@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   NarrationProvider,
   NarrationResult,
@@ -26,10 +26,10 @@ export function useAudioNarration({
   const [state, setState] = useState<PlaybackState>("IDLE");
   const [error, setError] = useState<string | null>(null);
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
-  const [wordTimings, setWordTimings] = useState<NarrationResult["wordTimings"]>(
-    undefined
-  );
-  const [durationMs, setDurationMs] = useState<number | null>(null);
+  const [baseWordTimings, setBaseWordTimings] = useState<
+    NarrationResult["wordTimings"]
+  >(undefined);
+  const [baseDurationMs, setBaseDurationMs] = useState<number | null>(null);
   const [boundaryWordIndex, setBoundaryWordIndex] = useState<number | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
@@ -37,6 +37,23 @@ export function useAudioNarration({
   const startedAtRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const preparePromiseRef = useRef<Promise<void> | null>(null);
+  const lastSpeedRef = useRef<number | null>(null);
+  const speedRef = useRef<number>(1);
+  const normalizedSpeed = useMemo(() => normalizeSpeed(speed), [speed]);
+
+  const wordTimings = useMemo(
+    () => scaleWordTimings(baseWordTimings, normalizedSpeed),
+    [baseWordTimings, normalizedSpeed]
+  );
+
+  const durationMs = useMemo(() => {
+    if (!baseDurationMs) return null;
+    return Math.floor(baseDurationMs / normalizedSpeed);
+  }, [baseDurationMs, normalizedSpeed]);
+
+  useEffect(() => {
+    speedRef.current = normalizedSpeed;
+  }, [normalizedSpeed]);
 
   const stopClock = useCallback(() => {
     if (startedAtRef.current === null) return;
@@ -82,12 +99,12 @@ export function useAudioNarration({
     setIsPreparing(true);
 
     const prepPromise = provider
-      .prepare({ bookId, rawText, tokens, speed })
+      .prepare({ bookId, rawText, tokens, speed: speedRef.current })
       .then((result) => {
         if (!mounted) return;
-        setWordTimings(result.wordTimings);
+        setBaseWordTimings(result.wordTimings);
         const duration = typeof result.meta?.durationMs === "number" ? result.meta.durationMs : null;
-        setDurationMs(duration);
+        setBaseDurationMs(duration);
         setIsReady(true);
         setIsPreparing(false);
       })
@@ -104,7 +121,25 @@ export function useAudioNarration({
       mounted = false;
       preparePromiseRef.current = null;
     };
-  }, [provider, bookId, rawText, tokens, speed]);
+  }, [provider, bookId, rawText, tokens]);
+
+  useEffect(() => {
+    provider.setPlaybackRate(normalizedSpeed);
+    if (lastSpeedRef.current === null) {
+      lastSpeedRef.current = normalizedSpeed;
+      return;
+    }
+    if (lastSpeedRef.current !== normalizedSpeed) {
+      void (async () => {
+        await provider.stop();
+        stopClock();
+        resetClock();
+        setState("STOPPED");
+        setBoundaryWordIndex(null);
+      })();
+      lastSpeedRef.current = normalizedSpeed;
+    }
+  }, [provider, normalizedSpeed, resetClock, stopClock]);
 
   useEffect(() => {
     const unsubEnded = provider.on("ended", () => {
@@ -184,4 +219,21 @@ export function useAudioNarration({
     pause,
     stop,
   };
+}
+
+function normalizeSpeed(speed?: number) {
+  if (!Number.isFinite(speed) || !speed || speed <= 0) return 1;
+  return speed;
+}
+
+function scaleWordTimings(
+  wordTimings: NarrationResult["wordTimings"],
+  speed: number
+) {
+  if (!wordTimings?.length || speed === 1) return wordTimings;
+  return wordTimings.map((timing) => ({
+    ...timing,
+    startMs: Math.max(0, Math.round(timing.startMs / speed)),
+    endMs: Math.max(0, Math.round(timing.endMs / speed)),
+  }));
 }

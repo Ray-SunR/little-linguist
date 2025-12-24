@@ -26,6 +26,7 @@ type ReaderShellProps = {
 
 export default function ReaderShell({ books }: ReaderShellProps) {
   const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
 
@@ -56,7 +57,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     bookId: selectedBook?.id ?? "",
     rawText: selectedBook?.text ?? "",
     tokens,
-    speed: 1,
+    speed: playbackSpeed,
   });
 
   const currentWordIndex = useWordHighlighter({
@@ -183,6 +184,8 @@ export default function ReaderShell({ books }: ReaderShellProps) {
         onPlay={narration.play}
         onPause={narration.pause}
         onStop={narration.stop}
+        speed={playbackSpeed}
+        onSpeedChange={setPlaybackSpeed}
         isPreparing={narration.isPreparing}
         isDisabled={isEmpty}
       />

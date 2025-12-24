@@ -19,9 +19,11 @@ export class PollyNarrationProvider implements NarrationProvider {
   private wordTimings: WordTiming[] | undefined;
   private durationMs: number | null = null;
   private creds: PollyCredentials;
+  private playbackRate = 1;
 
   constructor(creds: PollyCredentials, speed = 1) {
     this.creds = creds;
+    this.playbackRate = speed;
   }
 
   async prepare(input: NarrationPrepareInput): Promise<NarrationResult> {
@@ -83,6 +85,7 @@ export class PollyNarrationProvider implements NarrationProvider {
     if (!this.audio) {
       throw new Error("No audio from Polly");
     }
+    this.audio.playbackRate = this.playbackRate;
     this.audio.onended = () => this.emit("ended");
     this.audio.onerror = (event) => this.emit("error", event);
 
@@ -121,9 +124,18 @@ export class PollyNarrationProvider implements NarrationProvider {
     this.emit("state", "STOPPED");
   }
 
+  setPlaybackRate(rate: number): void {
+    if (!Number.isFinite(rate) || rate <= 0) return;
+    this.playbackRate = rate;
+    if (this.audio) {
+      this.audio.playbackRate = rate;
+    }
+  }
+
   getCurrentTimeSec(): number | null {
     if (!this.audio) return null;
-    return this.audio.currentTime;
+    const rate = this.playbackRate || 1;
+    return this.audio.currentTime / rate;
   }
 
   on(event: NarrationEvent, cb: (payload?: unknown) => void): () => void {

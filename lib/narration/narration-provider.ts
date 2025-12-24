@@ -29,6 +29,7 @@ export interface NarrationProvider {
   play(): Promise<void>;
   pause(): Promise<void>;
   stop(): Promise<void>;
+  setPlaybackRate(rate: number): void;
   getCurrentTimeSec(): number | null;
   on(event: NarrationEvent, cb: (payload?: unknown) => void): () => void;
 }

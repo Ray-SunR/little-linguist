@@ -63,6 +63,11 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
     this.emit("state", "STOPPED");
   }
 
+  setPlaybackRate(rate: number): void {
+    if (!Number.isFinite(rate) || rate <= 0) return;
+    this.rate = rate;
+  }
+
   getCurrentTimeSec(): number | null {
     return null;
   }

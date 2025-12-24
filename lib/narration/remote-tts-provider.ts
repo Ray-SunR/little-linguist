@@ -13,6 +13,7 @@ export class RemoteTtsNarrationProvider implements NarrationProvider {
   private audioUrl: string | null;
   private wordTimings: WordTiming[] | undefined;
   private durationMs: number | null = null;
+  private playbackRate = 1;
 
   constructor(audioUrl?: string | null) {
     this.audioUrl = audioUrl ?? null;
@@ -21,6 +22,7 @@ export class RemoteTtsNarrationProvider implements NarrationProvider {
   async prepare(input: NarrationPrepareInput): Promise<NarrationResult> {
     if (this.audioUrl) {
       this.audio = new Audio(this.audioUrl);
+      this.audio.playbackRate = this.playbackRate;
       this.audio.onended = () => this.emit("ended");
       this.audio.onerror = (event) => this.emit("error", event);
       await this.loadMetadata();
@@ -55,9 +57,18 @@ export class RemoteTtsNarrationProvider implements NarrationProvider {
     this.emit("state", "STOPPED");
   }
 
+  setPlaybackRate(rate: number): void {
+    if (!Number.isFinite(rate) || rate <= 0) return;
+    this.playbackRate = rate;
+    if (this.audio) {
+      this.audio.playbackRate = rate;
+    }
+  }
+
   getCurrentTimeSec(): number | null {
     if (!this.audio) return null;
-    return this.audio.currentTime;
+    const rate = this.playbackRate || 1;
+    return this.audio.currentTime / rate;
   }
 
   on(event: NarrationEvent, cb: (payload?: unknown) => void): () => void {
