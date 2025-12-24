@@ -1,0 +1,67 @@
+openapi: 3.0.3
+info:
+  title: Core Reader MVP Contracts
+  version: 0.1.0
+  description: |
+    This frontend-only MVP does not expose external API endpoints. The schemas below
+    document the static JSON book list and narration metadata used by the UI.
+paths: {}
+components:
+  schemas:
+    Book:
+      type: object
+      required:
+        - id
+        - title
+        - text
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        text:
+          type: string
+    WordToken:
+      type: object
+      required:
+        - wordIndex
+        - text
+      properties:
+        wordIndex:
+          type: integer
+        text:
+          type: string
+        punctuation:
+          type: string
+          nullable: true
+    WordTiming:
+      type: object
+      required:
+        - wordIndex
+        - startMs
+        - endMs
+      properties:
+        wordIndex:
+          type: integer
+        startMs:
+          type: integer
+        endMs:
+          type: integer
+    NarrationResult:
+      type: object
+      required:
+        - provider
+      properties:
+        provider:
+          type: string
+        audioUrl:
+          type: string
+          nullable: true
+        wordTimings:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/WordTiming'
+        meta:
+          type: object
+          nullable: true

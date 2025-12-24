@@ -3,7 +3,7 @@
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Note**: This template is filled in by the planning workflow for the project.
 
 ## Summary
 
@@ -31,7 +31,16 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- Kid-first UX: targets ≥44px, 3–5 primary actions, visual cues over text
+- Readability: large, high-contrast text; short labels; chunked content
+- Accessibility: keyboard nav, focus rings, ARIA labels, reduced motion support
+- Audio-first: prominent playback controls, low-latency audio plan
+- Consistency: fixed action placement, consistent color/icon meanings
+- Safe-by-default: no external links in kid mode, protected parent controls
+- Architecture: UI primitives vs feature components vs data services separation
+- Styling: Tailwind + tokens, shadcn variants, no ad-hoc CSS
+- Performance: route code-splitting, lazy-loaded heavy features, fast first paint
+- Feedback UX: pressed states, toasts, loading + empty states
 
 ## Project Structure
 

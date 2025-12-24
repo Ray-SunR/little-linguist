@@ -82,6 +82,17 @@
   Fill them out with the right functional requirements.
 -->
 
+### Constitution-Driven Requirements *(mandatory)*
+
+- Accessibility: keyboard navigation, focus rings, ARIA labels, reduced motion
+- Kid-first UX: large targets, minimal primary actions, visual cues over text
+- Readability: large text, high contrast, short labels, chunked content
+- Audio-first: obvious playback controls, low-latency playback plan
+- Safe-by-default: kid-safe defaults, protected parent-only actions
+- Feedback: pressed states, toasts/snackbars, loading and empty states
+- Performance: fast first paint, code-split routes, lazy-load heavy features
+- Styling: Tailwind + tokens, shadcn variants, no ad-hoc CSS
+
 ### Functional Requirements
 
 - **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
