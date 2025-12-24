@@ -9,6 +9,7 @@ import { WebSpeechNarrationProvider } from "../../lib/narration/web-speech-provi
 import { PollyNarrationProvider } from "../../lib/narration/polly-provider";
 import { useAudioNarration } from "../../hooks/use-audio-narration";
 import { useWordHighlighter } from "../../hooks/use-word-highlighter";
+import { DEFAULT_SPEED, type SpeedOption } from "../../lib/speed-options";
 import BookSelect from "./book-select";
 import BookText from "./book-text";
 import PlaybackControls from "./playback-controls";
@@ -26,7 +27,7 @@ type ReaderShellProps = {
 
 export default function ReaderShell({ books }: ReaderShellProps) {
   const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
 
@@ -83,55 +84,41 @@ export default function ReaderShell({ books }: ReaderShellProps) {
       <div className="pointer-events-none absolute right-8 top-16 h-20 w-20 blob blob-2" />
       <div className="pointer-events-none absolute -right-6 bottom-10 h-24 w-24 blob blob-3" />
 
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
+      <div className="card-frame rounded-card card-glow p-4 sm:p-5">
+        <header className="flex items-center gap-3 mb-4">
           <Link
             href="/"
-            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-ink shadow-soft"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-ink shadow-soft hover:shadow-lg transition-shadow flex-shrink-0"
             aria-label="Back to home"
           >
-            <ArrowLeft className="h-6 w-6" aria-hidden />
+            <ArrowLeft className="h-5 w-5" aria-hidden />
           </Link>
-          <p className="inline-pill text-[11px] font-semibold uppercase tracking-wide">Calm Listening</p>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-3 text-center sm:justify-start sm:text-left">
-          <div className="emoji-badge" aria-hidden>
-            😊
-          </div>
-          <div className="flex flex-col items-start gap-1">
-            <h1 className="text-2xl font-extrabold section-title sm:text-3xl">Story Time</h1>
-            <p className="max-w-2xl text-sm text-ink-muted sm:text-base">
-              Pick a cozy story, press play, and follow along with the glowing words.
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <div className="card-frame rounded-card card-glow p-4 sm:p-5">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-accent" aria-hidden />
-            <div>
-              <p className="text-xs font-semibold text-ink-muted">Now Reading</p>
-              <h2 className="text-2xl font-bold section-title">
-                {selectedBook?.title ?? "Choose a book"}
-              </h2>
+          
+          {/* Book Title as Selector - Center */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Sparkles className="h-5 w-5 text-accent flex-shrink-0" aria-hidden />
+            <div className="flex-1 min-w-0">
+              <BookSelect
+                books={books}
+                selectedBookId={selectedBookId}
+                onSelect={setSelectedBookId}
+                label=""
+              />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="soft-chip text-sm">Kid mode</span>
-            <button
-              type="button"
-              className="ghost-btn touch-target inline-flex items-center gap-2 text-sm"
-              onClick={goNextBook}
-              disabled={isEmpty}
-              aria-label="Next book"
-            >
-              Next
-              <FastForward className="h-4 w-4" aria-hidden />
-            </button>
-          </div>
-        </div>
+
+          <button
+            type="button"
+            className="ghost-btn inline-flex items-center gap-2 text-sm font-bold px-3 py-2 flex-shrink-0"
+            onClick={goNextBook}
+            disabled={isEmpty}
+            aria-label="Next story"
+            title="Next story (N)"
+          >
+            Next
+            <FastForward className="h-4 w-4" aria-hidden />
+          </button>
+        </header>
 
         {narration.error ? (
           <div className="mb-4 rounded-card bg-cta px-4 py-3 text-base font-semibold text-cta-ink">
@@ -143,52 +130,36 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           <div className="text-ink-muted">Loading your books...</div>
         ) : isEmpty ? (
           <div className="text-ink-muted">No books yet. Add one to get started.</div>
-        ) : (
-          <div className="mb-6 flex flex-col gap-3">
-            <BookSelect
-              books={books}
-              selectedBookId={selectedBookId}
-              onSelect={setSelectedBookId}
+        ) : null}
+
+        {/* Playback Controls - Inline */}
+        {!isEmpty && (
+          <div className="mb-4">
+            <PlaybackControls
+              state={narration.state}
+              onPlay={narration.play}
+              onPause={narration.pause}
+              onStop={narration.stop}
+              speed={playbackSpeed}
+              onSpeedChange={setPlaybackSpeed}
+              isPreparing={narration.isPreparing}
+              isDisabled={isEmpty}
+              currentProgress={narration.durationMs && narration.durationMs > 0 ? (narration.currentTimeSec / (narration.durationMs / 1000)) * 100 : 0}
+              durationMs={narration.durationMs ?? 0}
+              currentTimeSec={narration.currentTimeSec}
             />
           </div>
         )}
 
         <div className="space-y-4">
-          <div className="book-illustration">
-            <div className="absolute bottom-4 left-6 h-16 w-28 rounded-full bg-gradient-to-t from-green-400 to-lime-300 blur-xl" />
-            <div className="absolute bottom-6 right-8 h-16 w-28 rounded-full bg-gradient-to-t from-green-500 to-lime-300 blur-xl" />
-            <div className="relative z-10 flex flex-col items-center gap-2 text-white drop-shadow">
-              <div className="h-16 w-24 rounded-full bg-white/90 blur-lg" />
-              <span className="text-lg font-bold">Story Scene</span>
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden rounded-[1.8rem] bg-white/80 shadow-soft">
+          <div className="relative overflow-hidden rounded-[1.8rem] bg-white/90 shadow-soft">
             <div className="pointer-events-none absolute -left-8 -top-6 h-20 w-20 rounded-full bg-accent-soft blur-3xl" />
             <div className="pointer-events-none absolute right-4 top-4 h-14 w-14 rounded-full bg-cta/30 blur-2xl" />
             <BookText tokens={tokens} currentWordIndex={currentWordIndex} />
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-2 text-sm text-ink-muted">
-          <span className="inline-pill">
-            <Wand2 className="h-4 w-4" aria-hidden />
-            Highlight magic on
-          </span>
-          <span className="inline-pill">Touch-friendly controls</span>
-        </div>
       </div>
-
-      <PlaybackControls
-        state={narration.state}
-        onPlay={narration.play}
-        onPause={narration.pause}
-        onStop={narration.stop}
-        speed={playbackSpeed}
-        onSpeedChange={setPlaybackSpeed}
-        isPreparing={narration.isPreparing}
-        isDisabled={isEmpty}
-      />
     </section>
   );
 }

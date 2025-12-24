@@ -53,19 +53,21 @@ export default function BookSelect({
 
   return (
     <div className="relative" ref={listRef}>
-      <label className="text-sm font-semibold text-ink" id="book-select-label">
-        {label}
-      </label>
+      {label && (
+        <label className="text-sm font-semibold text-ink" id="book-select-label">
+          {label}
+        </label>
+      )}
       <button
         type="button"
-        className="pill-input touch-target mt-2 flex w-full items-center justify-between gap-2 text-left text-base"
+        className={`flex w-full items-center justify-between gap-2 text-left transition-colors hover:bg-accent-soft/30 rounded-lg px-2 py-1 -ml-2 ${label ? 'pill-input touch-target mt-2 text-base' : 'text-xl font-bold section-title sm:text-2xl'}`}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-labelledby="book-select-label"
+        aria-labelledby={label ? "book-select-label" : undefined}
         onClick={handleToggle}
       >
         <span className="truncate">{selected?.title ?? "Select a book"}</span>
-        <ChevronDown className="h-4 w-4 text-ink-muted" aria-hidden />
+        <ChevronDown className={`flex-shrink-0 ${label ? 'h-4 w-4 text-ink-muted' : 'h-5 w-5 text-accent'}`} aria-hidden />
       </button>
       {open ? (
         <div

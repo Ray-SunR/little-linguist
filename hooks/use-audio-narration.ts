@@ -130,16 +130,25 @@ export function useAudioNarration({
       return;
     }
     if (lastSpeedRef.current !== normalizedSpeed) {
+      const wasPlaying = state === "PLAYING";
       void (async () => {
-        await provider.stop();
-        stopClock();
-        resetClock();
-        setState("STOPPED");
-        setBoundaryWordIndex(null);
+        // Pause if playing (don't stop - that would reset position)
+        if (wasPlaying) {
+          await provider.pause();
+          stopClock();
+        }
+        
+        // Provider's playback rate is already updated above
+        // Now resume if it was playing
+        if (wasPlaying) {
+          startedAtRef.current = performance.now();
+          await provider.play();
+          setState("PLAYING");
+        }
       })();
       lastSpeedRef.current = normalizedSpeed;
     }
-  }, [provider, normalizedSpeed, resetClock, stopClock]);
+  }, [provider, normalizedSpeed, state, stopClock]);
 
   useEffect(() => {
     const unsubEnded = provider.on("ended", () => {

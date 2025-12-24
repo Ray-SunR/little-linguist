@@ -1,17 +1,23 @@
 "use client";
 
-import { Play, Square } from "lucide-react";
+import { useState } from "react";
+import { Play, Pause, Square } from "lucide-react";
 import type { PlaybackState } from "../../hooks/use-audio-narration";
+import type { SpeedOption } from "../../lib/speed-options";
+import SpeedPresetButtons from "./speed-preset-buttons";
 
 type PlaybackControlsProps = {
   state: PlaybackState;
   onPlay: () => void | Promise<void>;
   onPause: () => void | Promise<void>;
   onStop: () => void | Promise<void>;
-  speed: number;
-  onSpeedChange: (nextSpeed: number) => void;
+  speed: SpeedOption;
+  onSpeedChange: (nextSpeed: SpeedOption) => void;
   isPreparing?: boolean;
   isDisabled?: boolean;
+  currentProgress?: number;
+  durationMs?: number;
+  currentTimeSec?: number;
 };
 
 export default function PlaybackControls({
@@ -23,67 +29,92 @@ export default function PlaybackControls({
   onSpeedChange,
   isPreparing = false,
   isDisabled = false,
+  currentProgress = 0,
+  durationMs = 0,
+  currentTimeSec = 0,
 }: PlaybackControlsProps) {
+  const [isSpeedExpanded, setIsSpeedExpanded] = useState(false);
+
   const isPlaying = state === "PLAYING";
   const isPaused = state === "PAUSED";
-  const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
+  const canStop = state !== "IDLE";
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const totalSeconds = durationMs ? Math.floor(durationMs / 1000) : 0;
 
   return (
-    <div className="card-frame rounded-card card-glow p-4 sm:p-5">
-      <div className="mb-3 flex items-center gap-2 text-sm text-ink-muted">
-        <span className="inline-pill">
-          <Play className="h-4 w-4" aria-hidden />
-          {isPreparing ? "Cooking your story..." : isPlaying ? "Playing" : isPaused ? "Paused" : "Ready"}
-        </span>
-        {isPreparing ? (
-          <span className="inline-pill bg-cta/15 text-ink">
-            ✨ Magic in progress
-          </span>
-        ) : null}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            className="primary-btn touch-target inline-flex items-center gap-2 text-lg"
-            onClick={() => (isPlaying ? void onPause() : void onPlay())}
-            disabled={isDisabled || isPreparing}
-            aria-label={isPlaying ? "Pause" : "Read Story"}
-          >
-            <Play className="h-5 w-5" aria-hidden="true" />
-            {isPlaying ? "Pause" : isPreparing ? "Preparing..." : "Read Story"}
-          </button>
-          <button
-            className="danger-btn touch-target text-base"
-            onClick={() => void onStop()}
-            disabled={isDisabled || state === "IDLE"}
-            aria-label="Stop"
-          >
-            <Square className="h-5 w-5" aria-hidden="true" />
-            Stop
-          </button>
-        </div>
-        <div className="ml-auto flex items-center">
-          <label htmlFor="playback-speed" className="sr-only">
-            Playback speed
-          </label>
-          <div className="inline-flex items-center rounded-full border border-white/70 bg-white/90 px-3 py-1 text-sm font-semibold text-ink shadow-soft">
-            <select
-              id="playback-speed"
-              className="cursor-pointer bg-transparent text-sm font-semibold text-ink outline-none"
-              value={speed}
-              onChange={(event) => onSpeedChange(Number(event.target.value))}
-              disabled={isDisabled || isPreparing}
-              aria-label="Playback speed"
-            >
-              {speedOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}x
-                </option>
-              ))}
-            </select>
+    <div className="w-full space-y-2.5 p-3 bg-white rounded-2xl shadow-lg border-2 border-purple-100">
+      {/* Progress Bar */}
+      {(isPlaying || isPaused) && totalSeconds > 0 && (
+        <div className="space-y-1">
+          <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300 ease-linear"
+              style={{ width: `${currentProgress}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] text-gray-600 font-medium">
+            <span>{formatTime(currentTimeSec)}</span>
+            <span>{formatTime(totalSeconds)}</span>
           </div>
         </div>
+      )}
+
+      {/* Speed Control */}
+      <SpeedPresetButtons 
+        value={speed} 
+        onChange={onSpeedChange} 
+        disabled={isDisabled || isPreparing}
+        isExpanded={isSpeedExpanded}
+        onToggle={() => setIsSpeedExpanded(!isSpeedExpanded)}
+      />
+
+      {/* Playback Buttons */}
+      <div className="flex items-center gap-2">
+        {/* Play/Pause Button */}
+        <button
+          className="flex-1 h-11 rounded-xl font-bold text-white text-base flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
+          style={{
+            backgroundColor: isPlaying ? '#FDD835' : '#0AA3FF',
+          }}
+          onClick={() => (isPlaying ? void onPause() : void onPlay())}
+          disabled={isDisabled || isPreparing}
+          aria-label={isPlaying ? "Pause" : isPreparing ? "Preparing..." : "Read Story"}
+          title={isPlaying ? "Pause (Space)" : "Play (Space)"}
+        >
+          {isPlaying ? (
+            <>
+              <Pause className="h-4 w-4 fill-white" />
+              <span className="text-sm">Pause</span>
+            </>
+          ) : isPreparing ? (
+            <span className="text-sm">Preparing...</span>
+          ) : (
+            <>
+              <Play className="h-4 w-4 fill-white" />
+              <span className="text-sm">Play</span>
+            </>
+          )}
+        </button>
+
+        {/* Stop Button */}
+        <button
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
+          style={{
+            backgroundColor: '#EF5350',
+          }}
+          onClick={() => void onStop()}
+          disabled={isDisabled || !canStop}
+          aria-label="Stop and reset"
+          title="Stop (S)"
+        >
+          <Square className="h-4 w-4 text-white fill-white" />
+        </button>
       </div>
     </div>
   );

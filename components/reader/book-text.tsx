@@ -17,7 +17,7 @@ export default function BookText({ tokens, currentWordIndex }: BookTextProps) {
   }
 
   return (
-    <div className="px-5 py-5 text-justify text-xl font-semibold leading-relaxed text-ink md:text-2xl">
+    <div className="px-5 py-6 text-left text-xl font-semibold leading-relaxed text-ink md:text-2xl md:leading-relaxed">
       {tokens.map((token) => {
         const isActive = token.wordIndex === currentWordIndex;
         return (
