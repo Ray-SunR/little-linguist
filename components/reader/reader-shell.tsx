@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, FastForward, Sparkles, Wand2 } from "lucide-react";
 import { tokenizeText } from "../../lib/tokenization";
 import { RemoteTtsNarrationProvider } from "../../lib/narration/remote-tts-provider";
@@ -34,6 +34,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const [isListening, setIsListening] = useState(false);
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const tokens = useMemo(() => {
     if (!selectedBook) return [];
@@ -100,13 +101,13 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     setSelectedBookId(books[nextIndex].id);
   }, [books, selectedBookId]);
 
-  const handleWordClick = useCallback(async (word: string, element: HTMLElement) => {
+  const handleWordClick = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
     // Pause main narration when inspecting word
     if (narration.state === "PLAYING") {
       await narration.pause();
     }
     
-    await wordInspector.openWord(word, element);
+    await wordInspector.openWord(word, element, wordIndex);
   }, [narration, wordInspector]);
 
   const handleTooltipListen = useCallback(async () => {
@@ -130,6 +131,48 @@ export default function ReaderShell({ books }: ReaderShellProps) {
       console.error("Failed to play sentence TTS:", error);
     }
   }, [tooltipProvider]);
+
+  const handlePlayFromWord = useCallback(async () => {
+    const wordIndex = wordInspector.selectedWordIndex;
+    if (wordIndex === null) return;
+    
+    // Close the popover
+    wordInspector.close();
+    
+    // Start playback from the selected word
+    await narration.playFromWord(wordIndex);
+  }, [wordInspector, narration]);
+
+  // Auto-scroll to highlighted word during playback
+  useEffect(() => {
+    if (currentWordIndex === null || narration.state !== "PLAYING") return;
+    
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    // Find the highlighted word element
+    const wordElement = scrollContainer.querySelector(
+      `[data-word-index="${currentWordIndex}"]`
+    ) as HTMLElement;
+
+    if (!wordElement) return;
+
+    // Check if element is already in view
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const elementRect = wordElement.getBoundingClientRect();
+    
+    const isInView = 
+      elementRect.top >= containerRect.top &&
+      elementRect.bottom <= containerRect.bottom;
+
+    // Only scroll if element is not fully visible
+    if (!isInView) {
+      wordElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [currentWordIndex, narration.state]);
 
   return (
     <section className="relative mx-auto flex h-full w-full max-w-5xl flex-col gap-4 sm:gap-5">
@@ -205,7 +248,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
         )}
 
         {/* Scrollable Book Content */}
-        <div className="flex-1 overflow-y-auto space-y-4">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto space-y-4">
           <div className="relative overflow-hidden rounded-[1.8rem] bg-white/90 shadow-soft">
             <div className="pointer-events-none absolute -left-8 -top-6 h-20 w-20 rounded-full bg-accent-soft blur-3xl" />
             <div className="pointer-events-none absolute right-4 top-4 h-14 w-14 rounded-full bg-cta/30 blur-2xl" />
@@ -230,6 +273,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
         onRetry={wordInspector.retry}
         isListening={isListening}
         onPlaySentence={handlePlaySentence}
+        onPlayFromWord={handlePlayFromWord}
       />
     </section>
   );

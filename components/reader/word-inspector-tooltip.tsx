@@ -1,6 +1,6 @@
 "use client";
 
-import { Volume2, X, RefreshCw, Sparkles } from "lucide-react";
+import { Volume2, X, RefreshCw, Sparkles, Play } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { cn } from "../../lib/utils";
 import type { WordInsight } from "../../lib/word-insight";
@@ -18,6 +18,7 @@ type WordInspectorTooltipProps = {
   onRetry: () => void;
   isListening?: boolean;
   onPlaySentence?: (sentence: string) => void;
+  onPlayFromWord?: () => void;
 };
 
 /**
@@ -35,6 +36,7 @@ export default function WordInspectorTooltip({
   onRetry,
   isListening = false,
   onPlaySentence,
+  onPlayFromWord,
 }: WordInspectorTooltipProps) {
   const [playingSentenceIndex, setPlayingSentenceIndex] = useState<number | null>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -169,6 +171,21 @@ export default function WordInspectorTooltip({
                 Listen
               </button>
             </div>
+
+            {/* Play from here button */}
+            {onPlayFromWord && (
+              <button
+                onClick={onPlayFromWord}
+                className={cn(
+                  "w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-white shadow-md transition-all",
+                  "hover:shadow-lg active:scale-95"
+                )}
+                style={{ backgroundColor: '#7c3aed' }}
+              >
+                <Play className="h-5 w-5 fill-white" />
+                Play from here
+              </button>
+            )}
 
             {/* Definition */}
             <div>

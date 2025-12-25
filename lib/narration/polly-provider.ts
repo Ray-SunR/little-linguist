@@ -138,6 +138,14 @@ export class PollyNarrationProvider implements NarrationProvider {
     return this.audio.currentTime / rate;
   }
 
+  seekToTime(seconds: number): void {
+    if (!this.audio) return;
+    if (!Number.isFinite(seconds) || seconds < 0) return;
+    // Adjust for playback rate
+    const rate = this.playbackRate || 1;
+    this.audio.currentTime = seconds * rate;
+  }
+
   on(event: NarrationEvent, cb: (payload?: unknown) => void): () => void {
     const existing = this.listeners.get(event) ?? new Set();
     existing.add(cb);

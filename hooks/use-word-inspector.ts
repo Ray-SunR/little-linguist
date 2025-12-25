@@ -11,6 +11,7 @@ export interface TooltipPosition {
 export interface UseWordInspectorReturn {
   // State
   selectedWord: string | null;
+  selectedWordIndex: number | null;
   isOpen: boolean;
   isLoading: boolean;
   error: string | null;
@@ -18,7 +19,7 @@ export interface UseWordInspectorReturn {
   position: TooltipPosition | null;
   
   // Actions
-  openWord: (word: string, element: HTMLElement) => Promise<void>;
+  openWord: (word: string, element: HTMLElement, wordIndex: number) => Promise<void>;
   close: () => void;
   retry: () => Promise<void>;
 }
@@ -29,6 +30,7 @@ export interface UseWordInspectorReturn {
  */
 export function useWordInspector(): UseWordInspectorReturn {
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
+  const [selectedWordIndex, setSelectedWordIndex] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export function useWordInspector(): UseWordInspectorReturn {
   const cacheRef = useRef<Map<string, WordInsight>>(new Map());
   const serviceRef = useRef(getWordInsightServiceInstance());
 
-  const openWord = useCallback(async (word: string, element: HTMLElement) => {
+  const openWord = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
     const trimmedWord = word.trim();
     
     if (!trimmedWord) {
@@ -56,6 +58,7 @@ export function useWordInspector(): UseWordInspectorReturn {
     });
 
     setSelectedWord(trimmedWord);
+    setSelectedWordIndex(wordIndex);
     setIsOpen(true);
     setError(null);
 
@@ -92,6 +95,7 @@ export function useWordInspector(): UseWordInspectorReturn {
     // Keep insight data for smooth close animation
     setTimeout(() => {
       setSelectedWord(null);
+      setSelectedWordIndex(null);
       setInsight(null);
       setError(null);
       setPosition(null);
@@ -99,7 +103,7 @@ export function useWordInspector(): UseWordInspectorReturn {
   }, []);
 
   const retry = useCallback(async () => {
-    if (selectedWord && position) {
+    if (selectedWord && position && selectedWordIndex !== null) {
       // Clear cache for this word and retry
       cacheRef.current.delete(selectedWord.toLowerCase());
       // Need to recreate element for retry - use approximate position
@@ -108,13 +112,14 @@ export function useWordInspector(): UseWordInspectorReturn {
         position.y + position.height / 2
       ) as HTMLElement;
       if (fakeElement) {
-        await openWord(selectedWord, fakeElement);
+        await openWord(selectedWord, fakeElement, selectedWordIndex);
       }
     }
-  }, [selectedWord, position, openWord]);
+  }, [selectedWord, selectedWordIndex, position, openWord]);
 
   return {
     selectedWord,
+    selectedWordIndex,
     isOpen,
     isLoading,
     error,

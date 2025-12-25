@@ -24,12 +24,13 @@ export type NarrationPrepareInput = {
 export type NarrationEvent = "ended" | "error" | "state" | "boundary";
 
 export interface NarrationProvider {
-  type: NarrationProviderType;
+  type: string;
   prepare(input: NarrationPrepareInput): Promise<NarrationResult>;
   play(): Promise<void>;
   pause(): Promise<void>;
   stop(): Promise<void>;
   setPlaybackRate(rate: number): void;
   getCurrentTimeSec(): number | null;
+  seekToTime(seconds: number): void;
   on(event: NarrationEvent, cb: (payload?: unknown) => void): () => void;
 }

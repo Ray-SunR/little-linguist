@@ -24,6 +24,7 @@ export function useWordHighlighter({
   const [currentWordIndex, setCurrentWordIndex] = useState<number | null>(null);
   const lastIndexRef = useRef<number>(0);
   const markPtrRef = useRef<number>(0);
+  const lastTimeSecRef = useRef<number>(0);
 
   const orderedTimings = useMemo(() => {
     if (!wordTimings?.length) return [];
@@ -51,6 +52,15 @@ export function useWordHighlighter({
     }
 
     if (state !== "PLAYING") return;
+
+    // Detect backward seek - if time jumped back by more than 1 second, reset
+    const timeDiff = currentTimeSec - lastTimeSecRef.current;
+    if (timeDiff < -1.0) {
+      // Backward seek detected, reset to allow jumping back
+      lastIndexRef.current = 0;
+      markPtrRef.current = 0;
+    }
+    lastTimeSecRef.current = currentTimeSec;
 
     const hasTimings = orderedTimings.length > 0;
     let nextIndex = lastIndexRef.current;

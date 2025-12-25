@@ -12,6 +12,8 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
   private preparedText = "";
   private rate = 1;
   private wordStarts: { index: number; start: number }[] = [];
+  private seekCharOffset = 0;
+  private seekWordIndexOffset = 0;
 
   async prepare(input: NarrationPrepareInput): Promise<NarrationResult> {
     this.preparedText = input.rawText;
@@ -38,13 +40,20 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
       window.speechSynthesis.cancel();
     }
 
-    this.utterance = new SpeechSynthesisUtterance(this.preparedText);
+    // Use substring if we've seeked to a different position
+    const textToSpeak = this.seekCharOffset > 0 
+      ? this.preparedText.substring(this.seekCharOffset) 
+      : this.preparedText;
+
+    this.utterance = new SpeechSynthesisUtterance(textToSpeak);
     this.utterance.rate = this.rate;
     this.utterance.onend = () => this.emit("ended");
     this.utterance.onerror = (event) => this.emit("error", event);
     this.utterance.onboundary = (event) => {
       const charIndex = event.charIndex ?? 0;
-      const wordIndex = findWordIndexByChar(this.wordStarts, charIndex);
+      // Adjust character index by the offset
+      const actualCharIndex = charIndex + this.seekCharOffset;
+      const wordIndex = findWordIndexByChar(this.wordStarts, actualCharIndex);
       if (wordIndex !== null) this.emit("boundary", wordIndex);
     };
     window.speechSynthesis.speak(this.utterance);
@@ -70,6 +79,27 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
 
   getCurrentTimeSec(): number | null {
     return null;
+  }
+
+  seekToTime(seconds: number): void {
+    // Web Speech API doesn't support seeking by time directly
+    // We'll handle seeking by word index instead (called from use-audio-narration)
+    // This is a no-op for now, seeking is handled via seekToWordIndex
+  }
+
+  seekToWordIndex(wordIndex: number): void {
+    if (wordIndex < 0 || wordIndex >= this.wordStarts.length) {
+      this.seekCharOffset = 0;
+      this.seekWordIndexOffset = 0;
+      return;
+    }
+    
+    // Find the character position for this word index
+    const wordStart = this.wordStarts.find(w => w.index === wordIndex);
+    if (wordStart) {
+      this.seekCharOffset = wordStart.start;
+      this.seekWordIndexOffset = wordIndex;
+    }
   }
 
   on(event: NarrationEvent, cb: (payload?: unknown) => void): () => void {

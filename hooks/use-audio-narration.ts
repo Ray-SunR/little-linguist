@@ -216,6 +216,56 @@ export function useAudioNarration({
     setBoundaryWordIndex(null);
   }, [provider, resetClock, stopClock]);
 
+  const playFromWord = useCallback(async (wordIndex: number) => {
+    try {
+      // Wait for preparation if needed
+      if (preparePromiseRef.current) {
+        await preparePromiseRef.current;
+      }
+      if (!isReady) {
+        setError("Could not generate audio. Try again.");
+        return;
+      }
+
+      // Find the word timing for the specified word index
+      const wordTiming = wordTimings?.find(w => w.wordIndex === wordIndex);
+      
+      // If we have timing info, seek to that position
+      if (wordTiming && wordTiming.startMs >= 0) {
+        // Stop current playback first
+        await provider.stop();
+        stopClock();
+        
+        // Seek to the word's position
+        const startTimeSec = wordTiming.startMs / 1000;
+        provider.seekToTime(startTimeSec);
+        
+        // For Web Speech, also use the special seekToWordIndex method
+        if (provider.type === "web_speech" && 'seekToWordIndex' in provider) {
+          (provider as any).seekToWordIndex(wordIndex);
+        }
+        
+        // Set the elapsed time to match
+        elapsedMsRef.current = wordTiming.startMs;
+        setCurrentTimeSec(startTimeSec);
+        setBoundaryWordIndex(wordIndex);
+        
+        setError(null);
+        startedAtRef.current = performance.now();
+        
+        // Start playback from the seeked position
+        await provider.play();
+        setState("PLAYING");
+      } else {
+        // If no timing available, fall back to playing from beginning
+        await play();
+      }
+    } catch {
+      setError("Could not start playback. Try again.");
+      setState("STOPPED");
+    }
+  }, [isReady, provider, wordTimings, play, stopClock]);
+
   return {
     state,
     error,
@@ -227,6 +277,7 @@ export function useAudioNarration({
     play,
     pause,
     stop,
+    playFromWord,
   };
 }
 

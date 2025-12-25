@@ -32,6 +32,11 @@ TypeScript (Next.js App Router, Node.js 20 LTS): Follow standard conventions
 - Only create fully custom components when absolutely necessary and no UI library alternative exists
 - Document any custom component creation decisions and reasoning
 
+## Development Workflow
+
+- **Never run `npm run dev` automatically** - Always ask the user to start the development server manually
+- When testing is needed, provide instructions for the user to run the server themselves
+
 ## Recent Changes
 - 001-playback-speed-control: Added TypeScript, Node.js 20 LTS + Next.js App Router, React, Tailwind, shadcn/ui, Lucide; existing narration providers (Web Speech, Remote TTS, Polly)
 - 001-playback-speed-control: Verification must be done via Firefox DevTools MCP; add dev-only debug logging for speed/highlight flows when troubleshooting.

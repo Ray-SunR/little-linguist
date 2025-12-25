@@ -5,7 +5,7 @@ import type { WordToken } from "../../lib/tokenization";
 type BookTextProps = {
   tokens: WordToken[];
   currentWordIndex: number | null;
-  onWordClick?: (word: string, element: HTMLElement) => void;
+  onWordClick?: (word: string, element: HTMLElement, wordIndex: number) => void;
 };
 
 export default function BookText({ 
@@ -30,11 +30,12 @@ export default function BookText({
         return (
           <span
             key={token.wordIndex}
+            data-word-index={token.wordIndex}
             className={`word-token${isActive ? " highlight-word" : ""}`}
           >
             {onWordClick ? (
               <button
-                onClick={(e) => onWordClick(wordText, e.currentTarget)}
+                onClick={(e) => onWordClick(wordText, e.currentTarget, token.wordIndex)}
                 className="word-button"
                 type="button"
               >
