@@ -132,12 +132,12 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   }, [tooltipProvider]);
 
   return (
-    <section className="relative mx-auto flex w-full max-w-5xl flex-col gap-4 sm:gap-5">
+    <section className="relative mx-auto flex h-full w-full max-w-5xl flex-col gap-4 sm:gap-5">
       <div className="pointer-events-none absolute -left-6 top-6 h-28 w-28 blob blob-1" />
       <div className="pointer-events-none absolute right-8 top-16 h-20 w-20 blob blob-2" />
       <div className="pointer-events-none absolute -right-6 bottom-10 h-24 w-24 blob blob-3" />
 
-      <div className="card-frame rounded-card card-glow p-4 sm:p-5">
+      <div className="card-frame rounded-card card-glow p-4 sm:p-5 flex flex-col overflow-hidden">
         <header className="flex items-center gap-3 mb-4">
           <Link
             href="/"
@@ -185,9 +185,9 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           <div className="text-ink-muted">No books yet. Add one to get started.</div>
         ) : null}
 
-        {/* Playback Controls - Inline */}
+        {/* Playback Controls - Sticky */}
         {!isEmpty && (
-          <div className="mb-4">
+          <div className="mb-4 flex-shrink-0">
             <PlaybackControls
               state={narration.state}
               onPlay={narration.play}
@@ -204,7 +204,8 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           </div>
         )}
 
-        <div className="space-y-4">
+        {/* Scrollable Book Content */}
+        <div className="flex-1 overflow-y-auto space-y-4">
           <div className="relative overflow-hidden rounded-[1.8rem] bg-white/90 shadow-soft">
             <div className="pointer-events-none absolute -left-8 -top-6 h-20 w-20 rounded-full bg-accent-soft blur-3xl" />
             <div className="pointer-events-none absolute right-4 top-4 h-14 w-14 rounded-full bg-cta/30 blur-2xl" />
