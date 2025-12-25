@@ -24,6 +24,14 @@ npm test && npm run lint
 
 TypeScript (Next.js App Router, Node.js 20 LTS): Follow standard conventions
 
+## Component Guidelines
+
+**Always use shadcn/ui components first:**
+- Use components from `components/ui/` (shadcn/ui library) whenever possible
+- When the UI library doesn't have the needed component, extend/customize existing shadcn/ui components rather than creating from scratch
+- Only create fully custom components when absolutely necessary and no UI library alternative exists
+- Document any custom component creation decisions and reasoning
+
 ## Recent Changes
 - 001-playback-speed-control: Added TypeScript, Node.js 20 LTS + Next.js App Router, React, Tailwind, shadcn/ui, Lucide; existing narration providers (Web Speech, Remote TTS, Polly)
 - 001-playback-speed-control: Verification must be done via Firefox DevTools MCP; add dev-only debug logging for speed/highlight flows when troubleshooting.
