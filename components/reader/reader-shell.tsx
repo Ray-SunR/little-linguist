@@ -9,10 +9,13 @@ import { WebSpeechNarrationProvider } from "../../lib/narration/web-speech-provi
 import { PollyNarrationProvider } from "../../lib/narration/polly-provider";
 import { useAudioNarration } from "../../hooks/use-audio-narration";
 import { useWordHighlighter } from "../../hooks/use-word-highlighter";
+import { useWordInspector } from "../../hooks/use-word-inspector";
 import { DEFAULT_SPEED, type SpeedOption } from "../../lib/speed-options";
+import { playWordOnly, playSentence } from "../../lib/tts/tooltip-tts";
 import BookSelect from "./book-select";
 import BookText from "./book-text";
 import PlaybackControls from "./playback-controls";
+import WordInspectorTooltip from "./word-inspector-tooltip";
 
 type Book = {
   id: string;
@@ -28,6 +31,7 @@ type ReaderShellProps = {
 export default function ReaderShell({ books }: ReaderShellProps) {
   const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
   const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
+  const [isListening, setIsListening] = useState(false);
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
 
@@ -53,6 +57,22 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     return new WebSpeechNarrationProvider();
   }, [selectedBook?.audioUrl]);
 
+  // Separate provider for tooltip TTS to avoid conflicts with main narration
+  const tooltipProvider = useMemo(() => {
+    const providerType = process.env.NEXT_PUBLIC_NARRATION_PROVIDER ?? "web_speech";
+    if (providerType === "polly") {
+      const creds = {
+        accessKeyId: process.env.NEXT_PUBLIC_POLLY_ACCESS_KEY_ID ?? "",
+        secretAccessKey: process.env.NEXT_PUBLIC_POLLY_SECRET_ACCESS_KEY ?? "",
+        region: process.env.NEXT_PUBLIC_POLLY_REGION ?? "us-east-1",
+        voiceId: process.env.NEXT_PUBLIC_POLLY_VOICE_ID ?? "Joanna",
+      };
+      return new PollyNarrationProvider(creds);
+    }
+    // For web_speech and remote_tts, use Web Speech as it's simpler for short audio
+    return new WebSpeechNarrationProvider();
+  }, []);
+
   const narration = useAudioNarration({
     provider,
     bookId: selectedBook?.id ?? "",
@@ -70,6 +90,8 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     boundaryWordIndex: narration.boundaryWordIndex,
   });
 
+  const wordInspector = useWordInspector();
+
   const isEmpty = books.length === 0;
   const goNextBook = useCallback(() => {
     if (!books.length) return;
@@ -77,6 +99,37 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % books.length;
     setSelectedBookId(books[nextIndex].id);
   }, [books, selectedBookId]);
+
+  const handleWordClick = useCallback(async (word: string, element: HTMLElement) => {
+    // Pause main narration when inspecting word
+    if (narration.state === "PLAYING") {
+      await narration.pause();
+    }
+    
+    await wordInspector.openWord(word, element);
+  }, [narration, wordInspector]);
+
+  const handleTooltipListen = useCallback(async () => {
+    if (!wordInspector.insight || isListening) return;
+    
+    setIsListening(true);
+    
+    try {
+      await playWordOnly(wordInspector.insight.word, tooltipProvider);
+    } catch (error) {
+      console.error("Failed to play word TTS:", error);
+    } finally {
+      setIsListening(false);
+    }
+  }, [wordInspector.insight, isListening, tooltipProvider]);
+
+  const handlePlaySentence = useCallback(async (sentence: string) => {
+    try {
+      await playSentence(sentence, tooltipProvider);
+    } catch (error) {
+      console.error("Failed to play sentence TTS:", error);
+    }
+  }, [tooltipProvider]);
 
   return (
     <section className="relative mx-auto flex w-full max-w-5xl flex-col gap-4 sm:gap-5">
@@ -155,11 +208,28 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           <div className="relative overflow-hidden rounded-[1.8rem] bg-white/90 shadow-soft">
             <div className="pointer-events-none absolute -left-8 -top-6 h-20 w-20 rounded-full bg-accent-soft blur-3xl" />
             <div className="pointer-events-none absolute right-4 top-4 h-14 w-14 rounded-full bg-cta/30 blur-2xl" />
-            <BookText tokens={tokens} currentWordIndex={currentWordIndex} />
+            <BookText 
+              tokens={tokens} 
+              currentWordIndex={currentWordIndex}
+              onWordClick={handleWordClick}
+            />
           </div>
         </div>
 
       </div>
+
+      <WordInspectorTooltip
+        insight={wordInspector.insight}
+        isLoading={wordInspector.isLoading}
+        error={wordInspector.error}
+        isOpen={wordInspector.isOpen}
+        position={wordInspector.position}
+        onClose={wordInspector.close}
+        onListen={handleTooltipListen}
+        onRetry={wordInspector.retry}
+        isListening={isListening}
+        onPlaySentence={handlePlaySentence}
+      />
     </section>
   );
 }
