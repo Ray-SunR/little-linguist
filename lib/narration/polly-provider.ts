@@ -4,6 +4,7 @@ import {
   type SynthesizeSpeechCommandInput,
 } from "@aws-sdk/client-polly";
 import { NarrationEvent, NarrationPrepareInput, NarrationProvider, NarrationResult, WordTiming } from "./narration-provider";
+import { splitIntoChunks, CHUNKER_PRESETS, type TextChunk } from "./text-chunker";
 
 type PollyCredentials = {
   accessKeyId: string;
@@ -20,6 +21,7 @@ export class PollyNarrationProvider implements NarrationProvider {
   private durationMs: number | null = null;
   private creds: PollyCredentials;
   private playbackRate = 1;
+  private chunks: TextChunk[] = [];
 
   constructor(creds: PollyCredentials, speed = 1) {
     this.creds = creds;
@@ -28,6 +30,13 @@ export class PollyNarrationProvider implements NarrationProvider {
 
   async prepare(input: NarrationPrepareInput): Promise<NarrationResult> {
     const normalizedText = normalizeText(input.rawText);
+    
+    // Split text into chunks for Polly's 3,000 character limit
+    this.chunks = splitIntoChunks(normalizedText, CHUNKER_PRESETS.POLLY);
+    
+    if (process.env.NODE_ENV !== "production" && this.chunks.length > 1) {
+      console.log(`[Polly] Chunking: ${normalizedText.length} chars → ${this.chunks.length} chunks`);
+    }
 
     const client = new PollyClient({
       region: this.creds.region,
@@ -37,82 +46,113 @@ export class PollyNarrationProvider implements NarrationProvider {
       },
     });
 
-    // Polly requires separate calls for audio and speech marks
-    const audioParams: SynthesizeSpeechCommandInput = {
-      OutputFormat: "mp3",
-      Text: normalizedText,
-      VoiceId: this.creds.voiceId,
-      Engine: "neural",
-      TextType: "text",
-      SpeechMarkTypes: undefined,
-      SampleRate: "22050",
-    };
+    // Process each chunk and collect audio buffers
+    const audioBuffers: ArrayBuffer[] = [];
+    let totalDurationMs = 0;
+    const allWordTimings: WordTiming[] = [];
 
-    const marksParams: SynthesizeSpeechCommandInput = {
-      OutputFormat: "json",
-      Text: normalizedText,
-      VoiceId: this.creds.voiceId,
-      Engine: "neural",
-      SpeechMarkTypes: ["word"],
-      TextType: "text",
-      SampleRate: "22050",
-    };
+    for (let i = 0; i < this.chunks.length; i++) {
+      const chunk = this.chunks[i];
+      
+      // Polly requires separate calls for audio and speech marks
+      const audioParams: SynthesizeSpeechCommandInput = {
+        OutputFormat: "mp3",
+        Text: chunk.text,
+        VoiceId: this.creds.voiceId as any,
+        Engine: "neural",
+        TextType: "text",
+        SpeechMarkTypes: undefined,
+        SampleRate: "22050",
+      };
 
-    const [audioResp, marksResp] = await Promise.all([
-      client.send(new SynthesizeSpeechCommand(audioParams)),
-      client.send(new SynthesizeSpeechCommand(marksParams)),
-    ]);
+      const marksParams: SynthesizeSpeechCommandInput = {
+        OutputFormat: "json",
+        Text: chunk.text,
+        VoiceId: this.creds.voiceId as any,
+        Engine: "neural",
+        SpeechMarkTypes: ["word"],
+        TextType: "text",
+        SampleRate: "22050",
+      };
 
-    const audioUrl = await streamToObjectUrl(audioResp.AudioStream);
-    const rawMarks = parseSpeechMarks(await streamToString(marksResp.AudioStream));
-    // Debug: log first few marks in dev
-    if (process.env.NODE_ENV !== "production") {
-      const markPreview = rawMarks.slice(0, 10).map((m, i) => ({
-        i,
-        word: m.word,
-        startMs: m.startMs,
+      const [audioResp, marksResp] = await Promise.all([
+        client.send(new SynthesizeSpeechCommand(audioParams)),
+        client.send(new SynthesizeSpeechCommand(marksParams)),
+      ]);
+
+      const audioBuffer = await streamToArrayBuffer(audioResp.AudioStream);
+      const rawMarks = parseSpeechMarks(await streamToString(marksResp.AudioStream));
+
+      if (!audioBuffer) {
+        throw new Error(`No audio from Polly for chunk ${i}`);
+      }
+
+      audioBuffers.push(audioBuffer);
+      
+      // Create temporary audio to get duration
+      const tempUrl = URL.createObjectURL(new Blob([audioBuffer], { type: "audio/mpeg" }));
+      const tempAudio = new Audio(tempUrl);
+      
+      await new Promise<void>((resolve) => {
+        tempAudio.addEventListener("loadedmetadata", () => resolve(), { once: true });
+        tempAudio.addEventListener("error", () => resolve(), { once: true });
+      });
+
+      const chunkDurationMs = Math.floor(tempAudio.duration * 1000);
+      URL.revokeObjectURL(tempUrl);
+
+      // Adjust word timings for this chunk to global indices
+      const adjustedTimings = rawMarks.map((mark, idx) => ({
+        wordIndex: chunk.startWordIndex + idx,
+        startMs: totalDurationMs + mark.startMs,
+        endMs: totalDurationMs + (rawMarks[idx + 1]?.startMs ?? chunkDurationMs),
       }));
-      const markTail = rawMarks.slice(-3).map((m, i) => ({
-        i: rawMarks.length - 3 + i,
-        word: m.word,
-        startMs: m.startMs,
-      }));
-      console.log("Polly raw marks (first 10):", JSON.stringify(markPreview));
-      console.log("Polly raw marks (last 3):", JSON.stringify(markTail));
+
+      allWordTimings.push(...adjustedTimings);
+      totalDurationMs += chunkDurationMs;
     }
 
-    this.audio = audioUrl ? new Audio(audioUrl) : null;
-    if (!this.audio) {
-      throw new Error("No audio from Polly");
-    }
+    // Concatenate all audio chunks into a single blob
+    const concatenatedBlob = new Blob(audioBuffers, { type: "audio/mpeg" });
+    const audioUrl = URL.createObjectURL(concatenatedBlob);
+    
+    // Create single audio element
+    this.audio = new Audio(audioUrl);
     this.audio.playbackRate = this.playbackRate;
-    this.audio.onended = () => this.emit("ended");
-    this.audio.onerror = (event) => this.emit("error", event);
+    
+    // Setup event handlers
+    this.audio.onended = () => {
+      this.emit("ended");
+    };
+    
+    this.audio.onerror = (event) => {
+      console.error("[Polly] Audio playback error:", event);
+      this.emit("error", event);
+    };
 
-    if (this.audio) {
-      await this.loadMetadata();
+    this.wordTimings = alignTimingsToTokens(allWordTimings, input.tokens, totalDurationMs);
+    this.durationMs = totalDurationMs;
+
+    if (process.env.NODE_ENV !== "production" && this.chunks.length > 1) {
+      console.log(`[Polly] Concatenated ${this.chunks.length} chunks → ${(totalDurationMs/1000).toFixed(1)}s audio, ${allWordTimings.length} words`);
     }
-
-    this.wordTimings = alignTimingsToTokens(rawMarks, input.tokens, this.durationMs);
 
     return {
       provider: this.type,
       audioUrl,
       wordTimings: this.wordTimings,
-      meta: this.durationMs ? { durationMs: this.durationMs } : undefined,
+      meta: { durationMs: totalDurationMs },
     };
   }
 
   async play(): Promise<void> {
     if (!this.audio) return;
-    if (!this.audio.paused && !this.audio.ended) return;
     await this.audio.play();
     this.emit("state", "PLAYING");
   }
 
   async pause(): Promise<void> {
     if (!this.audio) return;
-    if (this.audio.paused) return;
     this.audio.pause();
     this.emit("state", "PAUSED");
   }
@@ -134,16 +174,13 @@ export class PollyNarrationProvider implements NarrationProvider {
 
   getCurrentTimeSec(): number | null {
     if (!this.audio) return null;
-    const rate = this.playbackRate || 1;
-    return this.audio.currentTime / rate;
+    return this.audio.currentTime;
   }
 
   seekToTime(seconds: number): void {
     if (!this.audio) return;
     if (!Number.isFinite(seconds) || seconds < 0) return;
-    // Adjust for playback rate
-    const rate = this.playbackRate || 1;
-    this.audio.currentTime = seconds * rate;
+    this.audio.currentTime = seconds;
   }
 
   on(event: NarrationEvent, cb: (payload?: unknown) => void): () => void {
@@ -165,29 +202,17 @@ export class PollyNarrationProvider implements NarrationProvider {
     }
   }
 
-  private async loadMetadata(): Promise<void> {
-    if (!this.audio) return;
-    return new Promise((resolve) => {
-      this.audio?.addEventListener(
-        "loadedmetadata",
-        () => {
-          if (this.audio && Number.isFinite(this.audio.duration)) {
-            this.durationMs = Math.floor(this.audio.duration * 1000);
-          }
-          resolve();
-        },
-        { once: true }
-      );
-      this.audio?.addEventListener("error", () => resolve(), { once: true });
-    });
-  }
 }
 
-async function streamToObjectUrl(stream?: any): Promise<string> {
+async function streamToArrayBuffer(stream?: any): Promise<ArrayBuffer | null> {
   const bytes = await toBytes(stream);
-  if (!bytes) return "";
-  const blob = new Blob([bytes], { type: "audio/mpeg" });
-  return URL.createObjectURL(blob);
+  if (!bytes) return null;
+  // Ensure we return an ArrayBuffer (not SharedArrayBuffer)
+  if (bytes.buffer instanceof ArrayBuffer) {
+    return bytes.buffer;
+  }
+  // If it's a SharedArrayBuffer or something else, copy to regular ArrayBuffer
+  return bytes.slice().buffer;
 }
 
 async function streamToString(stream?: any): Promise<string> {
@@ -249,38 +274,19 @@ function parseSpeechMarks(jsonl: string): RawMark[] {
 }
 
 function alignTimingsToTokens(
-  rawMarks: RawMark[],
+  wordTimings: WordTiming[],
   tokens: { wordIndex: number; text: string }[],
   durationMs: number | null
-) {
-  if (!rawMarks.length || !tokens.length) return [];
-  // Order by start time and map 1:1 in order (no skipping ahead)
-  const marks = [...rawMarks].sort((a, b) => a.startMs - b.startMs);
-  const aligned: WordTiming[] = [];
+): WordTiming[] {
+  // Word timings from chunks are already adjusted to global indices
+  // Just ensure they align with token indices
   const maxIdx = tokens.length - 1;
-  const count = Math.min(marks.length, tokens.length);
-
-  for (let i = 0; i < count; i++) {
-    const token = tokens[i];
-    const mark = marks[i];
-    aligned.push({
-      wordIndex: Math.min(Math.max(token.wordIndex, 0), maxIdx),
-      startMs: mark.startMs,
-      endMs: mark.startMs + 200,
-    });
-  }
-
-  for (let i = 0; i < aligned.length; i++) {
-    const nextStart = aligned[i + 1]?.startMs;
-    if (nextStart !== undefined) {
-      aligned[i].endMs = nextStart - 1;
-    } else if (durationMs && durationMs > aligned[i].startMs) {
-      aligned[i].endMs = durationMs;
-    }
-    aligned[i].wordIndex = Math.min(Math.max(aligned[i].wordIndex, 0), maxIdx);
-  }
-
-  return aligned;
+  
+  return wordTimings.map(timing => ({
+    wordIndex: Math.min(Math.max(timing.wordIndex, 0), maxIdx),
+    startMs: timing.startMs,
+    endMs: timing.endMs,
+  }));
 }
 
 function normalizeText(text: string) {

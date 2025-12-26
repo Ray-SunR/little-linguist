@@ -12,17 +12,12 @@ import { useWordHighlighter } from "../../hooks/use-word-highlighter";
 import { useWordInspector } from "../../hooks/use-word-inspector";
 import { DEFAULT_SPEED, type SpeedOption } from "../../lib/speed-options";
 import { playWordOnly, playSentence } from "../../lib/tts/tooltip-tts";
+import type { Book, ViewMode, FlowMode } from "../../lib/types";
 import BookSelect from "./book-select";
-import BookText from "./book-text";
+import BookLayout from "./book-layout";
+import LayoutControls from "./layout-controls";
 import PlaybackControls from "./playback-controls";
 import WordInspectorTooltip from "./word-inspector-tooltip";
-
-type Book = {
-  id: string;
-  title: string;
-  text: string;
-  audioUrl?: string;
-};
 
 type ReaderShellProps = {
   books: Book[];
@@ -32,6 +27,9 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
   const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
   const [isListening, setIsListening] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("single");
+  const [flowMode, setFlowMode] = useState<FlowMode>("paged");
+  const [controlsExpanded, setControlsExpanded] = useState(false);
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -181,18 +179,18 @@ export default function ReaderShell({ books }: ReaderShellProps) {
       <div className="pointer-events-none absolute -right-6 bottom-10 h-24 w-24 blob blob-3" />
 
       <div className="card-frame rounded-card card-glow p-4 sm:p-5 flex flex-col overflow-hidden">
-        <header className="flex items-center gap-3 mb-4">
+        <header className="flex items-center gap-2 sm:gap-3 mb-3">
           <Link
             href="/"
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-ink shadow-soft hover:shadow-lg transition-shadow flex-shrink-0"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white text-ink shadow-soft hover:shadow-lg transition-shadow flex-shrink-0"
             aria-label="Back to home"
           >
-            <ArrowLeft className="h-5 w-5" aria-hidden />
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
           </Link>
           
-          {/* Book Title as Selector - Center */}
+          {/* Book Title as Selector */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Sparkles className="h-5 w-5 text-accent flex-shrink-0" aria-hidden />
+            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-accent flex-shrink-0" aria-hidden />
             <div className="flex-1 min-w-0">
               <BookSelect
                 books={books}
@@ -203,21 +201,89 @@ export default function ReaderShell({ books }: ReaderShellProps) {
             </div>
           </div>
 
+          {/* Inline Play/Pause Button */}
           <button
             type="button"
-            className="ghost-btn inline-flex items-center gap-2 text-sm font-bold px-3 py-2 flex-shrink-0"
+            onClick={narration.state === "PLAYING" ? narration.pause : narration.play}
+            disabled={isEmpty || narration.isPreparing}
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-cta text-cta-ink shadow-soft hover:shadow-lg transition-all disabled:opacity-50 flex-shrink-0"
+            aria-label={narration.state === "PLAYING" ? "Pause" : "Play"}
+            title={narration.state === "PLAYING" ? "Pause (Space)" : "Play (Space)"}
+          >
+            {narration.state === "PLAYING" ? (
+              <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+              </svg>
+            ) : (
+              <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            )}
+          </button>
+
+          {/* Settings/Controls Toggle */}
+          <button
+            type="button"
+            onClick={() => setControlsExpanded(!controlsExpanded)}
+            disabled={isEmpty}
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white text-ink shadow-soft hover:shadow-lg transition-all disabled:opacity-50 flex-shrink-0"
+            aria-label={controlsExpanded ? "Hide controls" : "Show controls"}
+            aria-expanded={controlsExpanded}
+            title="Toggle controls"
+          >
+            <svg 
+              className={`h-4 w-4 sm:h-5 sm:w-5 transition-transform ${controlsExpanded ? 'rotate-180' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            className="ghost-btn inline-flex items-center gap-1 sm:gap-2 text-sm font-bold px-2 py-1.5 sm:px-3 sm:py-2 flex-shrink-0"
             onClick={goNextBook}
             disabled={isEmpty}
             aria-label="Next story"
             title="Next story (N)"
           >
-            Next
+            <span className="hidden sm:inline">Next</span>
             <FastForward className="h-4 w-4" aria-hidden />
           </button>
         </header>
 
+        {/* Expandable Controls Panel */}
+        {!isEmpty && controlsExpanded && (
+          <div className="mb-3 flex-shrink-0 animate-slide-down overflow-hidden">
+            <div className="space-y-3 pb-3 border-b-2 border-accent/10">
+              <PlaybackControls
+                state={narration.state}
+                onPlay={narration.play}
+                onPause={narration.pause}
+                onStop={narration.stop}
+                speed={playbackSpeed}
+                onSpeedChange={setPlaybackSpeed}
+                isPreparing={narration.isPreparing}
+                isDisabled={isEmpty}
+                currentProgress={narration.durationMs && narration.durationMs > 0 ? (narration.currentTimeSec / (narration.durationMs / 1000)) * 100 : 0}
+                durationMs={narration.durationMs ?? 0}
+                currentTimeSec={narration.currentTimeSec}
+              />
+              
+              <LayoutControls
+                viewMode={viewMode}
+                flowMode={flowMode}
+                onViewModeChange={setViewMode}
+                onFlowModeChange={setFlowMode}
+              />
+            </div>
+          </div>
+        )}
+
         {narration.error ? (
-          <div className="mb-4 rounded-card bg-cta px-4 py-3 text-base font-semibold text-cta-ink">
+          <div className="mb-3 rounded-card bg-cta px-4 py-3 text-base font-semibold text-cta-ink">
             {narration.error}
           </div>
         ) : null}
@@ -228,34 +294,18 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           <div className="text-ink-muted">No books yet. Add one to get started.</div>
         ) : null}
 
-        {/* Playback Controls - Sticky */}
-        {!isEmpty && (
-          <div className="mb-4 flex-shrink-0">
-            <PlaybackControls
-              state={narration.state}
-              onPlay={narration.play}
-              onPause={narration.pause}
-              onStop={narration.stop}
-              speed={playbackSpeed}
-              onSpeedChange={setPlaybackSpeed}
-              isPreparing={narration.isPreparing}
-              isDisabled={isEmpty}
-              currentProgress={narration.durationMs && narration.durationMs > 0 ? (narration.currentTimeSec / (narration.durationMs / 1000)) * 100 : 0}
-              durationMs={narration.durationMs ?? 0}
-              currentTimeSec={narration.currentTimeSec}
-            />
-          </div>
-        )}
-
         {/* Scrollable Book Content */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto space-y-4">
           <div className="relative overflow-hidden rounded-[1.8rem] bg-white/90 shadow-soft">
             <div className="pointer-events-none absolute -left-8 -top-6 h-20 w-20 rounded-full bg-accent-soft blur-3xl" />
             <div className="pointer-events-none absolute right-4 top-4 h-14 w-14 rounded-full bg-cta/30 blur-2xl" />
-            <BookText 
-              tokens={tokens} 
+            <BookLayout
+              tokens={tokens}
+              images={selectedBook?.images}
               currentWordIndex={currentWordIndex}
               onWordClick={handleWordClick}
+              viewMode={viewMode}
+              flowMode={flowMode}
             />
           </div>
         </div>

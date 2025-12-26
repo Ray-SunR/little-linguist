@@ -41,10 +41,9 @@ export function useAudioNarration({
   const speedRef = useRef<number>(1);
   const normalizedSpeed = useMemo(() => normalizeSpeed(speed), [speed]);
 
-  const wordTimings = useMemo(
-    () => scaleWordTimings(baseWordTimings, normalizedSpeed),
-    [baseWordTimings, normalizedSpeed]
-  );
+  // Don't scale word timings - audio.currentTime is in content time, not wall-clock time
+  // The playbackRate property handles speed adjustment automatically
+  const wordTimings = baseWordTimings;
 
   const durationMs = useMemo(() => {
     if (!baseDurationMs) return null;
@@ -284,16 +283,4 @@ export function useAudioNarration({
 function normalizeSpeed(speed?: number) {
   if (!Number.isFinite(speed) || !speed || speed <= 0) return 1;
   return speed;
-}
-
-function scaleWordTimings(
-  wordTimings: NarrationResult["wordTimings"],
-  speed: number
-) {
-  if (!wordTimings?.length || speed === 1) return wordTimings;
-  return wordTimings.map((timing) => ({
-    ...timing,
-    startMs: Math.max(0, Math.round(timing.startMs / speed)),
-    endMs: Math.max(0, Math.round(timing.endMs / speed)),
-  }));
 }
