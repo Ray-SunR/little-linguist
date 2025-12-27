@@ -18,5 +18,4 @@ export interface Book {
   images?: BookImage[];
 }
 
-export type ViewMode = 'single' | 'spread';
-export type FlowMode = 'paged' | 'continuous';
+export type ViewMode = 'continuous' | 'spread';

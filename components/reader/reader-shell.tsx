@@ -12,7 +12,7 @@ import { useWordHighlighter } from "../../hooks/use-word-highlighter";
 import { useWordInspector } from "../../hooks/use-word-inspector";
 import { DEFAULT_SPEED, type SpeedOption } from "../../lib/speed-options";
 import { playWordOnly, playSentence } from "../../lib/tts/tooltip-tts";
-import type { Book, ViewMode, FlowMode } from "../../lib/types";
+import type { Book, ViewMode } from "../../lib/types";
 import BookSelect from "./book-select";
 import BookLayout from "./book-layout";
 import LayoutControls from "./layout-controls";
@@ -27,8 +27,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
   const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
   const [isListening, setIsListening] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("single");
-  const [flowMode, setFlowMode] = useState<FlowMode>("paged");
+  const [viewMode, setViewMode] = useState<ViewMode>("continuous");
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
@@ -104,15 +103,15 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     if (narration.state === "PLAYING") {
       await narration.pause();
     }
-    
+
     await wordInspector.openWord(word, element, wordIndex);
   }, [narration, wordInspector]);
 
   const handleTooltipListen = useCallback(async () => {
     if (!wordInspector.insight || isListening) return;
-    
+
     setIsListening(true);
-    
+
     try {
       await playWordOnly(wordInspector.insight.word, tooltipProvider);
     } catch (error) {
@@ -133,10 +132,10 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const handlePlayFromWord = useCallback(async () => {
     const wordIndex = wordInspector.selectedWordIndex;
     if (wordIndex === null) return;
-    
+
     // Close the popover
     wordInspector.close();
-    
+
     // Start playback from the selected word
     await narration.playFromWord(wordIndex);
   }, [wordInspector, narration]);
@@ -144,7 +143,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   // Auto-scroll to highlighted word during playback
   useEffect(() => {
     if (currentWordIndex === null || narration.state !== "PLAYING") return;
-    
+
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
 
@@ -155,22 +154,38 @@ export default function ReaderShell({ books }: ReaderShellProps) {
 
     if (!wordElement) return;
 
-    // Check if element is already in view
-    const containerRect = scrollContainer.getBoundingClientRect();
-    const elementRect = wordElement.getBoundingClientRect();
-    
-    const isInView = 
-      elementRect.top >= containerRect.top &&
-      elementRect.bottom <= containerRect.bottom;
+    if (viewMode === "spread") {
+      // In spread mode, find the horizontal scroll container
+      const horizontalContainer = scrollContainer.querySelector(".book-spread-scroll-container") as HTMLElement;
+      if (horizontalContainer) {
+        const containerWidth = horizontalContainer.clientWidth;
+        // Word offset relative to the scrollable content
+        const wordOffset = wordElement.offsetLeft;
+        const currentScrollLeft = horizontalContainer.scrollLeft;
 
-    // Only scroll if element is not fully visible
-    if (!isInView) {
+        // Determine which spread (2 columns) the word belongs to
+        // We add some buffer to avoid flickering at the very edge of a page
+        const targetSpreadIndex = Math.floor(wordOffset / containerWidth);
+        const targetScrollLeft = targetSpreadIndex * containerWidth;
+
+        // Only scroll if the word is not in the current visible spread
+        const isVisible = wordOffset >= currentScrollLeft && wordOffset < currentScrollLeft + containerWidth;
+
+        if (!isVisible) {
+          horizontalContainer.scrollTo({
+            left: targetScrollLeft,
+            behavior: "smooth",
+          });
+        }
+      }
+    } else {
+      // Continuous mode - standard scrollIntoView works best
       wordElement.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     }
-  }, [currentWordIndex, narration.state]);
+  }, [currentWordIndex, narration.state, viewMode]);
 
   return (
     <section className="relative mx-auto flex h-full w-full max-w-5xl flex-col gap-4 sm:gap-5">
@@ -187,7 +202,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           >
             <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
           </Link>
-          
+
           {/* Book Title as Selector */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-accent flex-shrink-0" aria-hidden />
@@ -212,11 +227,11 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           >
             {narration.state === "PLAYING" ? (
               <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
               </svg>
             ) : (
               <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
+                <path d="M8 5v14l11-7z" />
               </svg>
             )}
           </button>
@@ -231,10 +246,10 @@ export default function ReaderShell({ books }: ReaderShellProps) {
             aria-expanded={controlsExpanded}
             title="Toggle controls"
           >
-            <svg 
-              className={`h-4 w-4 sm:h-5 sm:w-5 transition-transform ${controlsExpanded ? 'rotate-180' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className={`h-4 w-4 sm:h-5 sm:w-5 transition-transform ${controlsExpanded ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -271,12 +286,10 @@ export default function ReaderShell({ books }: ReaderShellProps) {
                 durationMs={narration.durationMs ?? 0}
                 currentTimeSec={narration.currentTimeSec}
               />
-              
+
               <LayoutControls
                 viewMode={viewMode}
-                flowMode={flowMode}
                 onViewModeChange={setViewMode}
-                onFlowModeChange={setFlowMode}
               />
             </div>
           </div>
@@ -305,7 +318,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
               currentWordIndex={currentWordIndex}
               onWordClick={handleWordClick}
               viewMode={viewMode}
-              flowMode={flowMode}
+              isPlaying={narration.state === "PLAYING"}
             />
           </div>
         </div>
