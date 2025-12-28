@@ -330,9 +330,9 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           <div className="text-ink-muted">No books yet. Add one to get started.</div>
         ) : null}
 
-        {/* Scrollable Book Content */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto space-y-4">
-          <div className="relative overflow-hidden rounded-[1.8rem] bg-white/90 shadow-soft">
+        {/* Standardized Book Content Area */}
+        <div ref={scrollContainerRef} className="flex-1 min-h-0 flex flex-col pt-1">
+          <div className="relative h-full overflow-hidden rounded-[1.8rem] bg-white/90 shadow-soft">
             <div className="pointer-events-none absolute -left-8 -top-6 h-20 w-20 rounded-full bg-accent-soft blur-3xl" />
             <div className="pointer-events-none absolute right-4 top-4 h-14 w-14 rounded-full bg-cta/30 blur-2xl" />
             <BookLayout

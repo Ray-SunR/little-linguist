@@ -24,41 +24,26 @@ export default function BookLayout({
 }: BookLayoutProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Render spread mode (multi-column flow with snapping)
-  // We provide a generous number of snap anchors to ensure the container is snappable 
-  // throughout its browser-calculated width.
+  // Pagination logic
+  // "continuous" (SLIDE) = 1 column/page at a time
+  // "spread" (FLIP) = 2 columns/pages at a time
+  const columnCount = viewMode === "continuous" ? 1 : 2;
+
   const snapAnchors = useMemo(() => {
-    // Estimating enough spreads based on token count
-    const estimatedSpreads = Math.ceil(tokens.length / 80) + 10;
+    // Estimating spreads based on token count
+    // One anchor per full viewport width (100%)
+    const estimatedSpreads = Math.ceil(tokens.length / (columnCount * 40)) + 5;
     return Array.from({ length: estimatedSpreads }).map((_, i) => (
       <div key={i} className="book-snap-anchor" />
     ));
-  }, [tokens.length]);
-
-
-  // Render continuous mode (vertical scroll - unchanged)
-  if (viewMode === "continuous") {
-    return (
-      <div className="book-surface">
-        <div className="book-continuous-container">
-          <BookText
-            tokens={tokens}
-            images={images}
-            currentWordIndex={currentWordIndex}
-            onWordClick={onWordClick}
-          />
-        </div>
-      </div>
-    );
-  }
-
-
+  }, [tokens.length, columnCount]);
 
   return (
-    <div className="book-surface book-spread">
+    <div className={`book-surface h-full ${viewMode === "spread" ? "book-spread" : ""}`}>
       <div
         ref={scrollContainerRef}
         className="book-spread-scroll-container"
+        style={{ columns: columnCount } as React.CSSProperties}
       >
         {/* Invisible snapping anchors overlay */}
         <div className="book-snap-overlay">

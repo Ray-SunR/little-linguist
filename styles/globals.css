@@ -426,17 +426,15 @@ body {
   display: block;
   overflow-x: auto;
   overflow-y: hidden;
-  height: 85vh;
+  height: 100%;
   -webkit-overflow-scrolling: touch;
   padding: 0;
   /* Padding moves to the section for snapping alignment */
   position: relative;
 
-  /* Multi-column layout */
-  columns: 2;
-  column-width: 50%;
+  /* Multi-column layout - dynamically controlled by mode */
+  column-width: auto;
   column-gap: 0;
-  /* Removing gap here to use it in background/section padding */
   column-fill: auto;
 
   /* Scroll Snap */
@@ -478,9 +476,8 @@ body {
 .book-spread-section {
   display: block;
   min-width: 100%;
+  height: 100%;
   padding: var(--page-padding);
-  break-inside: avoid;
-  /* Don't split the main content block across columns */
 }
 
 /* Individual page container */
@@ -524,11 +521,10 @@ body {
 /* Image rendering within pages */
 .book-image-block {
   display: block;
-  margin: 1.5rem auto;
+  margin: 1rem auto;
   max-width: 100%;
   text-align: center;
   break-inside: avoid;
-  /* Prevent images from splitting across columns */
 }
 
 .book-image {
@@ -553,24 +549,11 @@ body {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .book-spread-section {
-    grid-template-columns: 1fr;
     padding: clamp(16px, 3vw, 24px);
   }
 
-  .book-page {
-    height: 100%;
-  }
-
   .book-image {
-    max-height: 30vh;
-  }
-
-  .book-continuous-container {
-    max-height: 70vh;
-  }
-
-  .book-spread-scroll-container {
-    height: 70vh;
+    max-height: 25vh;
   }
 }
 
