@@ -15,8 +15,7 @@ import { playWordOnly, playSentence } from "../../lib/tts/tooltip-tts";
 import type { Book, ViewMode } from "../../lib/types";
 import BookSelect from "./book-select";
 import BookLayout from "./book-layout";
-import LayoutControls from "./layout-controls";
-import PlaybackControls from "./playback-controls";
+import ControlPanel from "./control-panel";
 import WordInspectorTooltip from "./word-inspector-tooltip";
 
 type ReaderShellProps = {
@@ -29,6 +28,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const [isListening, setIsListening] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("continuous");
   const [controlsExpanded, setControlsExpanded] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -139,6 +139,16 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     // Start playback from the selected word
     await narration.playFromWord(wordIndex);
   }, [wordInspector, narration]);
+
+  const toggleTheme = useCallback(() => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
 
   // Auto-scroll to highlighted word during playback
   useEffect(() => {
@@ -271,27 +281,16 @@ export default function ReaderShell({ books }: ReaderShellProps) {
 
         {/* Expandable Controls Panel */}
         {!isEmpty && controlsExpanded && (
-          <div className="mb-3 flex-shrink-0 animate-slide-down overflow-hidden">
-            <div className="space-y-3 pb-3 border-b-2 border-accent/10">
-              <PlaybackControls
-                state={narration.state}
-                onPlay={narration.play}
-                onPause={narration.pause}
-                onStop={narration.stop}
-                speed={playbackSpeed}
-                onSpeedChange={setPlaybackSpeed}
-                isPreparing={narration.isPreparing}
-                isDisabled={isEmpty}
-                currentProgress={narration.durationMs && narration.durationMs > 0 ? (narration.currentTimeSec / (narration.durationMs / 1000)) * 100 : 0}
-                durationMs={narration.durationMs ?? 0}
-                currentTimeSec={narration.currentTimeSec}
-              />
-
-              <LayoutControls
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-              />
-            </div>
+          <div className="mb-3 flex flex-shrink-0 animate-slide-down overflow-hidden justify-center">
+            <ControlPanel
+              speed={playbackSpeed}
+              onSpeedChange={setPlaybackSpeed}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              theme={theme}
+              onThemeToggle={toggleTheme}
+              isDisabled={isEmpty || narration.isPreparing}
+            />
           </div>
         )}
 
