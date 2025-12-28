@@ -1,6 +1,6 @@
 "use client";
 
-import { Sun, MousePointer2, BookOpen } from "lucide-react";
+import { Sun, MousePointer2, BookOpen, ScrollText } from "lucide-react";
 import type { ViewMode } from "../../lib/types";
 import type { SpeedOption } from "../../lib/speed-options";
 
@@ -52,8 +52,8 @@ export default function ControlPanel({
                             onClick={() => onSpeedChange(opt.speed)}
                             disabled={isDisabled}
                             className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-[1.8rem] transition-all duration-300 ${isActive
-                                    ? "bg-[#0AA3FF] text-white shadow-lg transform scale-105 z-10"
-                                    : "text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-[#252535]"
+                                ? "bg-[#0AA3FF] text-white shadow-lg transform scale-105 z-10"
+                                : "text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-[#252535]"
                                 }`}
                         >
                             <span className={`text-2xl mb-1 ${isActive ? "brightness-110" : "grayscale opacity-60"}`}>
@@ -72,23 +72,36 @@ export default function ControlPanel({
                 <div className="flex-1 bg-[#F5F7FA] dark:bg-[#151525] rounded-full p-1.5 flex gap-1 items-center">
                     <button
                         onClick={() => onViewModeChange("continuous")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black text-[11px] transition-all ${viewMode === "continuous"
-                                ? "bg-[#0AA3FF] text-white shadow-md font-black"
-                                : "text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-[#252535]"
+                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-black text-[10px] transition-all ${viewMode === "continuous"
+                            ? "bg-[#0AA3FF] text-white shadow-md font-black"
+                            : "text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-[#252535]"
                             }`}
+                        title="Slide view (Horizontal)"
                     >
-                        <MousePointer2 className={`w-4 h-4 ${viewMode === "continuous" ? "fill-white" : ""}`} />
+                        <MousePointer2 className={`w-3.5 h-3.5 ${viewMode === "continuous" ? "fill-white" : ""}`} />
                         SLIDE
                     </button>
                     <button
                         onClick={() => onViewModeChange("spread")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black text-[11px] transition-all ${viewMode === "spread"
-                                ? "bg-[#0AA3FF] text-white shadow-md font-black"
-                                : "text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-[#252535]"
+                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-black text-[10px] transition-all ${viewMode === "spread"
+                            ? "bg-[#0AA3FF] text-white shadow-md font-black"
+                            : "text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-[#252535]"
                             }`}
+                        title="Flip view (2-page Spread)"
                     >
-                        <BookOpen className={`w-4 h-4 ${viewMode === "spread" ? "fill-white" : ""}`} />
+                        <BookOpen className={`w-3.5 h-3.5 ${viewMode === "spread" ? "fill-white" : ""}`} />
                         FLIP
+                    </button>
+                    <button
+                        onClick={() => onViewModeChange("scroll")}
+                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-black text-[10px] transition-all ${viewMode === "scroll"
+                            ? "bg-[#0AA3FF] text-white shadow-md font-black"
+                            : "text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-[#252535]"
+                            }`}
+                        title="Scroll view (Vertical)"
+                    >
+                        <ScrollText className={`w-3.5 h-3.5 ${viewMode === "scroll" ? "fill-white" : ""}`} />
+                        SCROLL
                     </button>
                 </div>
 

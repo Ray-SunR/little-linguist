@@ -26,7 +26,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
   const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
   const [isListening, setIsListening] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("continuous");
+  const [viewMode, setViewMode] = useState<ViewMode>("scroll");
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;

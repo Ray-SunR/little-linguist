@@ -39,19 +39,21 @@ export default function BookLayout({
   }, [tokens.length, columnCount]);
 
   return (
-    <div className={`book-surface h-full ${viewMode === "spread" ? "book-spread" : ""}`}>
+    <div className={`book-surface h-full ${viewMode === "spread" ? "book-spread" : ""} ${viewMode === "scroll" ? "book-scroll" : ""}`}>
       <div
         ref={scrollContainerRef}
-        className="book-spread-scroll-container"
-        style={{ columns: columnCount } as React.CSSProperties}
+        className={viewMode === "scroll" ? "book-continuous-container" : "book-spread-scroll-container"}
+        style={viewMode !== "scroll" ? { columns: columnCount } as React.CSSProperties : {}}
       >
-        {/* Invisible snapping anchors overlay */}
-        <div className="book-snap-overlay">
-          {snapAnchors}
-        </div>
+        {viewMode !== "scroll" && (
+          /* Invisible snapping anchors overlay only for horizontal modes */
+          <div className="book-snap-overlay">
+            {snapAnchors}
+          </div>
+        )}
 
-        {/* The actual content that flows into columns */}
-        <div className="book-spread-section">
+        {/* The actual content */}
+        <div className={viewMode === "scroll" ? "" : "book-spread-section"}>
           <BookText
             tokens={tokens}
             images={images}
