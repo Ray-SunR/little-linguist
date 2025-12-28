@@ -32,6 +32,8 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
 
   const tokens = useMemo(() => {
     if (!selectedBook) return [];
@@ -150,6 +152,25 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     }
   }, [theme]);
 
+  // Click away to dismiss controls
+  useEffect(() => {
+    if (!controlsExpanded) return;
+
+    const handleClickAway = (event: MouseEvent) => {
+      if (
+        controlsRef.current &&
+        !controlsRef.current.contains(event.target as Node) &&
+        toggleButtonRef.current &&
+        !toggleButtonRef.current.contains(event.target as Node)
+      ) {
+        setControlsExpanded(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickAway);
+    return () => document.removeEventListener("mousedown", handleClickAway);
+  }, [controlsExpanded]);
+
   // Auto-scroll to highlighted word during playback
   useEffect(() => {
     if (currentWordIndex === null || narration.state !== "PLAYING") return;
@@ -246,8 +267,8 @@ export default function ReaderShell({ books }: ReaderShellProps) {
             )}
           </button>
 
-          {/* Settings/Controls Toggle */}
           <button
+            ref={toggleButtonRef}
             type="button"
             onClick={() => setControlsExpanded(!controlsExpanded)}
             disabled={isEmpty}
@@ -279,9 +300,12 @@ export default function ReaderShell({ books }: ReaderShellProps) {
           </button>
         </header>
 
-        {/* Expandable Controls Panel */}
+        {/* Expandable Controls Panel - Overlay */}
         {!isEmpty && controlsExpanded && (
-          <div className="mb-3 flex flex-shrink-0 animate-slide-down overflow-hidden justify-center">
+          <div
+            ref={controlsRef}
+            className="absolute right-4 top-[5.2rem] z-50 w-[calc(100%-2rem)] max-w-sm animate-slide-down overflow-visible"
+          >
             <ControlPanel
               speed={playbackSpeed}
               onSpeedChange={setPlaybackSpeed}

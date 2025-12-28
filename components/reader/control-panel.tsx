@@ -1,0 +1,106 @@
+"use client";
+
+import { Sun, MousePointer2, BookOpen } from "lucide-react";
+import type { ViewMode } from "../../lib/types";
+import type { SpeedOption } from "../../lib/speed-options";
+
+type ControlPanelProps = {
+    speed: SpeedOption;
+    onSpeedChange: (speed: SpeedOption) => void;
+    viewMode: ViewMode;
+    onViewModeChange: (mode: ViewMode) => void;
+    theme: "light" | "dark";
+    onThemeToggle: () => void;
+    isDisabled?: boolean;
+};
+
+export default function ControlPanel({
+    speed,
+    onSpeedChange,
+    viewMode,
+    onViewModeChange,
+    theme,
+    onThemeToggle,
+    isDisabled = false,
+}: ControlPanelProps) {
+    const speedOptions: { speed: SpeedOption; label: string; emoji: string; color: string }[] = [
+        { speed: 0.75, label: "HIKE", emoji: "🐢", color: "#A5D6A7" },
+        { speed: 1, label: "NORMAL", emoji: "⭐", color: "#0AA3FF" },
+        { speed: 1.5, label: "RUN", emoji: "🏃", color: "#FFB74D" },
+        { speed: 2, label: "ROCKET", emoji: "🚀", color: "#EF5350" },
+    ];
+
+    return (
+        <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-strong transition-all duration-300 dark:bg-[#1E1E2E] border-2 border-[#E9E9F0] dark:border-[#2E2E3E]">
+            <div className="flex items-center justify-between mb-6 px-1">
+                <h2 className="text-[13px] font-black tracking-widest text-[#2f3352] dark:text-[#E0E0E0] uppercase">
+                    READING TEMPO
+                </h2>
+                <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">SET TO</span>
+                    <span className="text-sm font-black text-[#2f3352] dark:text-white">{speed}x</span>
+                </div>
+            </div>
+
+            {/* Speed Selector Row */}
+            <div className="bg-[#F5F7FA] dark:bg-[#151525] rounded-[2rem] p-1.5 flex gap-1 mb-8">
+                {speedOptions.map((opt) => {
+                    const isActive = speed === opt.speed;
+                    return (
+                        <button
+                            key={opt.speed}
+                            onClick={() => onSpeedChange(opt.speed)}
+                            disabled={isDisabled}
+                            className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-[1.8rem] transition-all duration-300 ${isActive
+                                    ? "bg-[#0AA3FF] text-white shadow-lg transform scale-105 z-10"
+                                    : "text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-[#252535]"
+                                }`}
+                        >
+                            <span className={`text-2xl mb-1 ${isActive ? "brightness-110" : "grayscale opacity-60"}`}>
+                                {opt.emoji}
+                            </span>
+                            <span className={`text-[10px] font-black tracking-wide ${isActive ? "text-white" : "text-slate-400 dark:text-slate-500"}`}>
+                                {opt.label}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+
+            <div className="flex gap-4">
+                {/* View Mode Toggle */}
+                <div className="flex-1 bg-[#F5F7FA] dark:bg-[#151525] rounded-full p-1.5 flex gap-1 items-center">
+                    <button
+                        onClick={() => onViewModeChange("continuous")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black text-[11px] transition-all ${viewMode === "continuous"
+                                ? "bg-[#0AA3FF] text-white shadow-md font-black"
+                                : "text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-[#252535]"
+                            }`}
+                    >
+                        <MousePointer2 className={`w-4 h-4 ${viewMode === "continuous" ? "fill-white" : ""}`} />
+                        SLIDE
+                    </button>
+                    <button
+                        onClick={() => onViewModeChange("spread")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black text-[11px] transition-all ${viewMode === "spread"
+                                ? "bg-[#0AA3FF] text-white shadow-md font-black"
+                                : "text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-[#252535]"
+                            }`}
+                    >
+                        <BookOpen className={`w-4 h-4 ${viewMode === "spread" ? "fill-white" : ""}`} />
+                        FLIP
+                    </button>
+                </div>
+
+                {/* Theme Toggle Button */}
+                <button
+                    onClick={onThemeToggle}
+                    className="w-14 h-14 rounded-[1.5rem] flex items-center justify-center bg-[#FFF9C4] text-[#FBC02D] shadow-sm hover:shadow-md transition-all active:scale-95 border-2 border-[#FFF59D] dark:bg-[#252535] dark:border-[#353545] dark:text-[#FFD740]"
+                    aria-label="Toggle theme"
+                >
+                    <Sun className="w-6 h-6 fill-current" />
+                </button>
+            </div>
+        </div>
+    );
+}
