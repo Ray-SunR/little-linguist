@@ -73,7 +73,7 @@ export default function BookSelect({
         <div
           role="listbox"
           aria-labelledby="book-select-label"
-          className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl bg-white shadow-soft"
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl bg-card shadow-soft"
         >
           <div className="max-h-64 overflow-y-auto">
             {books.map((book) => {
@@ -83,11 +83,10 @@ export default function BookSelect({
                   key={book.id}
                   role="option"
                   aria-selected={isActive}
-                  className={`flex w-full items-center justify-between px-4 py-3 text-left text-base ${
-                    isActive
-                      ? "bg-accent-soft font-semibold text-ink"
-                      : "hover:bg-shell text-ink"
-                  }`}
+                  className={`flex w-full items-center justify-between px-4 py-3 text-left text-base ${isActive
+                    ? "bg-accent-soft font-semibold text-ink"
+                    : "hover:bg-shell text-ink"
+                    }`}
                   onClick={() => handleSelect(book.id)}
                 >
                   <span className="truncate">{book.title}</span>
@@ -100,7 +99,8 @@ export default function BookSelect({
             ) : null}
           </div>
         </div>
-      ) : null}
-    </div>
+      ) : null
+      }
+    </div >
   );
 }

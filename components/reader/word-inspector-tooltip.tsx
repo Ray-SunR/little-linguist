@@ -83,16 +83,16 @@ export default function WordInspectorTooltip({
     <Popover open={isOpen} onOpenChange={(open) => !open && onClose()}>
       {/* Virtual anchor element for positioning */}
       <PopoverAnchor asChild>
-        <div 
+        <div
           ref={anchorRef}
           className="pointer-events-none fixed"
           style={{ zIndex: -1 }}
         />
       </PopoverAnchor>
-      
+
       <PopoverContent
         className={cn(
-          "w-96 rounded-2xl border-2 border-accent/10 bg-gradient-to-br from-[#f0e7ff] to-[#e8f0ff] p-5 shadow-2xl",
+          "w-96 rounded-2xl border-2 border-accent/10 bg-gradient-to-br from-[#f0e7ff] to-[#e8f0ff] dark:from-[#2a2d3f] dark:to-[#1e2130] p-5 shadow-2xl",
           "max-h-[500px] overflow-y-auto"
         )}
         style={{
@@ -115,7 +115,7 @@ export default function WordInspectorTooltip({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/60 text-ink/60 hover:bg-white hover:text-ink transition-colors"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-card/60 text-ink/60 hover:bg-card hover:text-ink transition-colors"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
@@ -152,16 +152,16 @@ export default function WordInspectorTooltip({
             {/* Header: Word + Sparkle + Listen button */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <h2 className="text-3xl font-bold" style={{ color: '#7c3aed' }}>
+                <h2 className="text-3xl font-bold text-accent">
                   {insight.word}
                 </h2>
-                <Sparkles className="h-5 w-5" style={{ color: '#a78bfa' }} />
+                <Sparkles className="h-5 w-5 text-accent/60" />
               </div>
               <button
                 onClick={onListen}
                 disabled={isListening}
                 className={cn(
-                  "flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-foreground shadow-sm transition-all",
+                  "flex items-center gap-2 rounded-xl bg-card px-4 py-2 text-sm font-bold text-ink shadow-sm transition-all",
                   "hover:shadow-md",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
                   "flex-shrink-0"
@@ -202,17 +202,15 @@ export default function WordInspectorTooltip({
                   {insight.examples.map((example, index) => (
                     <div
                       key={index}
-                      className="relative flex items-start gap-3 rounded-xl bg-white/50 px-4 py-3"
+                      className="relative flex items-start gap-3 rounded-xl bg-card/50 px-4 py-3"
                     >
                       {/* Quote bar */}
-                      <div 
-                        className="absolute left-2 top-1/2 -translate-y-1/2 w-1 h-2/3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: '#a78bfa' }}
+                      <div
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-1 h-2/3 rounded-full flex-shrink-0 bg-accent/60"
                       />
                       {/* Example text */}
-                      <p 
-                        className="flex-1 text-sm italic font-medium pl-3"
-                        style={{ color: '#7c3aed' }}
+                      <p
+                        className="flex-1 text-sm italic font-medium pl-3 text-accent"
                       >
                         "{example}"
                       </p>
@@ -221,8 +219,8 @@ export default function WordInspectorTooltip({
                         onClick={() => handleSentencePlay(example, index)}
                         disabled={playingSentenceIndex === index}
                         className={cn(
-                          "flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-white transition-all",
-                          "hover:bg-white/80",
+                          "flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-card transition-all",
+                          "hover:bg-card/80",
                           "disabled:opacity-50 disabled:cursor-not-allowed"
                         )}
                         aria-label="Play sentence"

@@ -31,7 +31,7 @@ export default function ControlPanel({
     ];
 
     return (
-        <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-strong transition-all duration-300 dark:bg-[#1E1E2E] border-2 border-[#E9E9F0] dark:border-[#2E2E3E]">
+        <div className="w-full max-w-sm rounded-[2rem] bg-card p-6 shadow-strong transition-all duration-300 border-2 border-[#E9E9F0] dark:border-white/10">
             <div className="flex items-center justify-between mb-6 px-1">
                 <h2 className="text-[13px] font-black tracking-widest text-[#2f3352] dark:text-[#E0E0E0] uppercase">
                     READING TEMPO

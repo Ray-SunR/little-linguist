@@ -228,7 +228,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
         <header className="flex items-center gap-2 sm:gap-3 mb-3">
           <Link
             href="/"
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white text-ink shadow-soft hover:shadow-lg transition-shadow flex-shrink-0"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg transition-shadow flex-shrink-0"
             aria-label="Back to home"
           >
             <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
@@ -272,7 +272,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
             type="button"
             onClick={() => setControlsExpanded(!controlsExpanded)}
             disabled={isEmpty}
-            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white text-ink shadow-soft hover:shadow-lg transition-all disabled:opacity-50 flex-shrink-0"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg transition-all disabled:opacity-50 flex-shrink-0"
             aria-label={controlsExpanded ? "Hide controls" : "Show controls"}
             aria-expanded={controlsExpanded}
             title="Toggle controls"
@@ -332,7 +332,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
 
         {/* Standardized Book Content Area */}
         <div ref={scrollContainerRef} className="flex-1 min-h-0 flex flex-col pt-1">
-          <div className="relative h-full overflow-hidden rounded-[1.8rem] bg-white/90 shadow-soft">
+          <div className="relative h-full overflow-hidden rounded-[1.8rem] bg-card/60 dark:bg-card/40 shadow-soft">
             <div className="pointer-events-none absolute -left-8 -top-6 h-20 w-20 rounded-full bg-accent-soft blur-3xl" />
             <div className="pointer-events-none absolute right-4 top-4 h-14 w-14 rounded-full bg-cta/30 blur-2xl" />
             <BookLayout
