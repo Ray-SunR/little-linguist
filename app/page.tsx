@@ -22,6 +22,12 @@ export default function HomePage() {
           <Link className="primary-btn touch-target text-lg" href="/reader">
             Open Reader
           </Link>
+          <Link className="ghost-btn text-base" href="/my-words">
+            My Collection 🌟
+          </Link>
+          <Link className="ghost-btn text-base" href="/story-maker">
+            Story Maker 🪄
+          </Link>
         </div>
       </div>
     </main>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, FastForward, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, FastForward, Sparkles, Wand2, Star } from "lucide-react";
 import { tokenizeText } from "../../lib/tokenization";
 import { RemoteTtsNarrationProvider } from "../../lib/narration/remote-tts-provider";
 import { WebSpeechNarrationProvider } from "../../lib/narration/web-speech-provider";
@@ -27,8 +27,34 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
   const [isListening, setIsListening] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("scroll");
+  const [isMounted, setIsMounted] = useState(false);
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  // Load persistence on mount
+  useEffect(() => {
+    const savedBookId = localStorage.getItem("reader_selectedBookId");
+    const savedViewMode = localStorage.getItem("reader_viewMode");
+
+    if (savedBookId && books.some(b => b.id === savedBookId)) {
+      setSelectedBookId(savedBookId);
+    }
+    if (savedViewMode) {
+      setViewMode(savedViewMode as ViewMode);
+    }
+    setIsMounted(true);
+  }, [books]);
+
+  // Save persistence on change
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem("reader_selectedBookId", selectedBookId);
+  }, [selectedBookId, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem("reader_viewMode", viewMode);
+  }, [viewMode, isMounted]);
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -286,6 +312,24 @@ export default function ReaderShell({ books }: ReaderShellProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
+
+          <Link
+            href="/my-words"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg hover:text-yellow-500 transition-all flex-shrink-0"
+            aria-label="My Words"
+            title="My Word List"
+          >
+            <Star className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Link>
+
+          <Link
+            href="/story-maker"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg hover:text-purple-500 transition-all flex-shrink-0"
+            aria-label="Story Maker"
+            title="Create a Story"
+          >
+            <Wand2 className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Link>
 
           <button
             type="button"

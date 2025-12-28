@@ -1,9 +1,10 @@
 "use client";
 
-import { Volume2, X, RefreshCw, Sparkles, Play } from "lucide-react";
+import { Volume2, X, RefreshCw, Sparkles, Play, Star } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { cn } from "../../lib/utils";
 import type { WordInsight } from "../../lib/word-insight";
+import { useWordList } from "../../lib/word-list-context";
 import type { TooltipPosition } from "../../hooks/use-word-inspector";
 import { Popover, PopoverContent, PopoverAnchor } from "../ui/popover";
 
@@ -40,6 +41,20 @@ export default function WordInspectorTooltip({
 }: WordInspectorTooltipProps) {
   const [playingSentenceIndex, setPlayingSentenceIndex] = useState<number | null>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const { hasWord, addWord, removeWord } = useWordList();
+
+  const isSaved = insight ? hasWord(insight.word) : false;
+
+  const toggleSave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!insight) return;
+
+    if (isSaved) {
+      removeWord(insight.word);
+    } else {
+      addWord(insight);
+    }
+  };
 
   // Handle ESC key to close
   useEffect(() => {
@@ -155,7 +170,24 @@ export default function WordInspectorTooltip({
                 <h2 className="text-3xl font-bold text-accent">
                   {insight.word}
                 </h2>
-                <Sparkles className="h-5 w-5 text-accent/60" />
+                <button
+                  onClick={toggleSave}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-bold transition-all active:scale-95",
+                    isSaved
+                      ? "bg-yellow-100 text-yellow-700 shadow-sm"
+                      : "bg-card text-ink-muted hover:text-yellow-600 hover:bg-yellow-50"
+                  )}
+                  aria-label={isSaved ? "Remove from list" : "Add to list"}
+                >
+                  <Star
+                    className={cn(
+                      "h-4 w-4 transition-colors",
+                      isSaved ? "fill-yellow-400 text-yellow-500" : "text-gray-400"
+                    )}
+                  />
+                  <span>{isSaved ? "Saved!" : "Save word"}</span>
+                </button>
               </div>
               <button
                 onClick={onListen}
