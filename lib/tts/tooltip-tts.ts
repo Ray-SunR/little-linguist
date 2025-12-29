@@ -22,7 +22,7 @@ export async function playTooltipTTS(
   try {
     // Prepare provider with tooltip content
     await provider.prepare({
-      bookId: "tooltip-temp",
+      contentId: "tooltip-temp",
       rawText: fullText,
       tokens: parts.map((text, index) => ({
         wordIndex: index,
@@ -48,7 +48,7 @@ export async function playWordOnly(
 ): Promise<void> {
   try {
     await provider.prepare({
-      bookId: "word-only-temp",
+      contentId: "word-only-temp",
       rawText: word,
       tokens: [{ wordIndex: 0, text: word }],
       speed: 1.0
@@ -69,7 +69,7 @@ export async function playSentence(
 ): Promise<void> {
   try {
     await provider.prepare({
-      bookId: "sentence-temp",
+      contentId: "sentence-temp",
       rawText: sentence,
       tokens: [{ wordIndex: 0, text: sentence }],
       speed: 1.0

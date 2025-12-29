@@ -74,7 +74,7 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
             }
 
             // 3. Provider Type
-            if (voiceProvider === "remote_tts" || voiceProvider === "polly") { // approximate type check
+            if (voiceProvider === "remote_tts") {
                 return new PollyNarrationProvider();
             }
             if (voiceProvider === "web_speech") {
