@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { WordTiming } from "../lib/narration/narration-provider";
+import type { WordTiming } from "@/lib/features/narration";
 import type { PlaybackState } from "./use-audio-narration";
 
 type UseWordHighlighterInput = {

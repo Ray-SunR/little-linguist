@@ -1,5 +1,5 @@
-import type { IWordService } from "./types";
-import type { WordInsight } from "../word-insight/types";
+import type { IWordService } from "../types";
+import type { WordInsight } from "../types";
 
 const STORAGE_KEY = "my-word-list";
 

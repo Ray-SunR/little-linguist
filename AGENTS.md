@@ -32,6 +32,8 @@ TypeScript (Next.js App Router, Node.js 20 LTS): Follow standard conventions
 - Only create fully custom components when absolutely necessary and no UI library alternative exists
 - Document any custom component creation decisions and reasoning
 
+
+
 ## Development Workflow
 
 - **Never run `npm run dev` automatically** - Always ask the user to start the development server manually

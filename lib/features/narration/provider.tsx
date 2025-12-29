@@ -1,13 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useMemo, useEffect, useRef } from "react";
-import { useAudioNarration, PlaybackState } from "../hooks/use-audio-narration";
-import { useWordHighlighter } from "../hooks/use-word-highlighter";
-import { PollyNarrationProvider } from "./narration/polly-provider";
-import { WebSpeechNarrationProvider } from "./narration/web-speech-provider";
-import { RemoteTtsNarrationProvider } from "./narration/remote-tts-provider";
-import { tokenizeText } from "./tokenization";
-import type { WordTiming } from "./narration/narration-provider";
+import { useAudioNarration, PlaybackState } from "@/hooks/use-audio-narration";
+import { useWordHighlighter } from "@/hooks/use-word-highlighter";
+import { tokenizeText } from "@/lib/core";
+import type { WordTiming } from "./types";
+import { NarrationProviderFactory } from "./factory";
 
 type NarrationContextType = {
     state: PlaybackState;
@@ -50,14 +48,9 @@ export function NarrationProvider({
     const provider = useMemo(() => {
         if (typeof window === "undefined") return null;
 
-        // Default to polly if specified, fallback to web_speech
-        if (initialProviderType === "polly") {
-            return new PollyNarrationProvider();
-        }
-        if (initialProviderType === "remote_tts" && bookState?.audioUrl) {
-            return new RemoteTtsNarrationProvider(bookState.audioUrl);
-        }
-        return new WebSpeechNarrationProvider();
+        return NarrationProviderFactory.createProvider(initialProviderType || "web_speech", {
+            audioUrl: bookState?.audioUrl
+        });
     }, [initialProviderType, bookState?.audioUrl]);
 
     const tokens = useMemo(() => {
@@ -66,7 +59,7 @@ export function NarrationProvider({
     }, [bookState?.text]);
 
     const narration = useAudioNarration({
-        provider: provider as any,
+        provider: provider,
         contentId: bookState?.id ?? "",
         rawText: bookState?.text ?? "",
         tokens,

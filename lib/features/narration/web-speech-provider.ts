@@ -1,12 +1,12 @@
 import {
-  NarrationEvent,
+  INarrationProvider,
   NarrationPrepareInput,
-  NarrationProvider,
   NarrationResult,
-} from "./narration-provider";
+  NarrationEvent,
+} from "./types";
 import { splitIntoChunks, CHUNKER_PRESETS, isAndroid, type TextChunk } from "./text-chunker";
 
-export class WebSpeechNarrationProvider implements NarrationProvider {
+export class WebSpeechNarrationProvider implements INarrationProvider {
   type: "web_speech" = "web_speech";
   private utterances: SpeechSynthesisUtterance[] = [];
   private listeners: Map<NarrationEvent, Set<(payload?: unknown) => void>> = new Map();
@@ -25,7 +25,7 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
     this.chunks = splitIntoChunks(input.rawText, CHUNKER_PRESETS.WEB_SPEECH);
 
     if (process.env.NODE_ENV !== "production" && this.chunks.length > 1) {
-      console.log(`[Web Speech] Chunking: ${input.rawText.length} chars → ${this.chunks.length} chunks`);
+      console.log(`[Web Speech]Chunking: ${input.rawText.length} chars → ${this.chunks.length} chunks`);
     }
 
     return {
@@ -81,7 +81,7 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
         if (event.error === "interrupted" || event.error === "canceled") {
           return;
         }
-        console.error(`[Web Speech] Error in chunk ${chunkIndex + 1}/${this.chunks.length}:`, event);
+        console.error(`[Web Speech]Error in chunk ${chunkIndex + 1}/${this.chunks.length}:`, event);
         this.emit("error", event);
       };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { SPEED_OPTIONS, type SpeedOption } from "../../lib/speed-options";
+import { SPEED_OPTIONS, type SpeedOption } from "@/lib/features/narration/internal/speed-options";
 
 type SpeedPresetButtonsProps = {
   value: SpeedOption;

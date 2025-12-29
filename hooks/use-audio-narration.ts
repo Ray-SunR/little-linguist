@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
-  NarrationProvider,
+  INarrationProvider,
   NarrationResult,
-} from "../lib/narration/narration-provider";
+} from "@/lib/features/narration";
 
 export type PlaybackState = "IDLE" | "PLAYING" | "PAUSED" | "STOPPED";
 
 type UseAudioNarrationInput = {
-  provider: NarrationProvider;
+  provider: INarrationProvider | null;
   contentId: string;
   rawText: string;
   tokens: { wordIndex: number; text: string }[];
@@ -58,7 +58,7 @@ export function useAudioNarration({
 
   useEffect(() => {
     // Reset state variables and stop playback when switching books
-    provider.stop();
+    if (provider) provider.stop();
     setState("IDLE");
     setCurrentTimeSec(0);
     // immediately set boundary index if initialWordIndex is provided
@@ -97,7 +97,7 @@ export function useAudioNarration({
 
   const tick = useCallback(() => {
     if (state !== "PLAYING") return;
-    const providerTime = provider.getCurrentTimeSec();
+    const providerTime = provider ? provider.getCurrentTimeSec() : null;
     if (providerTime !== null) {
       setCurrentTimeSec(providerTime);
     } else if (startedAtRef.current !== null) {
@@ -126,9 +126,14 @@ export function useAudioNarration({
     setIsReady(false);
     setIsPreparing(true);
 
+    if (!provider) {
+      setIsPreparing(false);
+      return;
+    }
+
     const prepPromise = provider
       .prepare({ contentId, rawText, tokens, speed: speedRef.current })
-      .then((result) => {
+      .then((result: NarrationResult) => {
         if (!mounted) return;
         setBaseWordTimings(result.wordTimings);
         const duration = typeof result.meta?.durationMs === "number" ? result.meta.durationMs : null;
@@ -139,7 +144,7 @@ export function useAudioNarration({
 
         // Handle initial seek if word index is provided
         if (typeof initialWordIndex === "number" && !hasSeekedInitialRef.current) {
-          const timing = result.wordTimings?.find(w => w.wordIndex === initialWordIndex);
+          const timing = result.wordTimings?.find(w => (w as any).wordIndex === initialWordIndex);
           if (timing) {
             const timeSec = timing.startMs / 1000;
             provider.seekToTime(timeSec);
@@ -153,7 +158,7 @@ export function useAudioNarration({
           hasSeekedInitialRef.current = true;
         }
       })
-      .catch((e) => {
+      .catch((e: Error) => {
         console.error("Preparation error:", e);
         if (!mounted) return;
         setError("Could not generate audio. Try again.");
@@ -170,7 +175,7 @@ export function useAudioNarration({
   }, [provider, contentId, rawText, tokens, initialWordIndex]);
 
   useEffect(() => {
-    provider.setPlaybackRate(normalizedSpeed);
+    if (provider) provider.setPlaybackRate(normalizedSpeed);
     if (lastSpeedRef.current === null) {
       lastSpeedRef.current = normalizedSpeed;
       return;
@@ -179,14 +184,14 @@ export function useAudioNarration({
       const wasPlaying = state === "PLAYING";
       void (async () => {
         // Pause if playing (don't stop - that would reset position)
-        if (wasPlaying) {
+        if (wasPlaying && provider) {
           await provider.pause();
           stopClock();
         }
 
         // Provider's playback rate is already updated above
         // Now resume if it was playing
-        if (wasPlaying) {
+        if (wasPlaying && provider) {
           startedAtRef.current = performance.now();
           await provider.play();
           setState("PLAYING");
@@ -197,6 +202,7 @@ export function useAudioNarration({
   }, [provider, normalizedSpeed, state, stopClock]);
 
   useEffect(() => {
+    if (!provider) return;
     const unsubEnded = provider.on("ended", () => {
       stopClock();
       resetClock();
@@ -210,7 +216,7 @@ export function useAudioNarration({
       setError("Audio not ready—try again");
       setBoundaryWordIndex(null);
     });
-    const unsubBoundary = provider.on("boundary", (payload) => {
+    const unsubBoundary = provider.on("boundary", (payload: unknown) => {
       if (typeof payload === "number") {
         setBoundaryWordIndex(payload);
       }
@@ -228,7 +234,7 @@ export function useAudioNarration({
       if (preparePromiseRef.current) {
         await preparePromiseRef.current;
       }
-      if (!isReady) {
+      if (!isReady || !provider) {
         setError("Could not generate audio. Try again.");
         return;
       }
@@ -252,13 +258,13 @@ export function useAudioNarration({
 
   const pause = useCallback(async () => {
     if (state !== "PLAYING") return;
-    await provider.pause();
+    if (provider) await provider.pause();
     stopClock();
     setState("PAUSED");
   }, [provider, state, stopClock]);
 
   const stop = useCallback(async () => {
-    await provider.stop();
+    if (provider) await provider.stop();
     stopClock();
     resetClock();
     setState("STOPPED");
@@ -271,7 +277,7 @@ export function useAudioNarration({
       if (preparePromiseRef.current) {
         await preparePromiseRef.current;
       }
-      if (!isReady) {
+      if (!isReady || !provider) {
         setError("Could not generate audio. Try again.");
         return;
       }

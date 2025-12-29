@@ -1,7 +1,7 @@
 "use client";
 
-import type { WordToken } from "../../lib/tokenization";
-import type { BookImage } from "../../lib/types";
+import type { WordToken } from "@/lib/core";
+import type { BookImage } from "@/lib/core";
 
 type BookTextProps = {
   tokens: WordToken[];

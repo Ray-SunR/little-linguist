@@ -3,12 +3,12 @@
 import React, { useMemo, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useAudioNarration, type PlaybackState } from "../hooks/use-audio-narration";
 import { useWordHighlighter } from "../hooks/use-word-highlighter";
-import { BlobNarrationProvider } from "../lib/narration/blob-provider";
-import { PollyNarrationProvider } from "../lib/narration/polly-provider";
-import { WebSpeechNarrationProvider } from "../lib/narration/web-speech-provider";
-import type { NarrationProvider, NarrationProviderType } from "../lib/narration/narration-provider";
-import { tokenizeText } from "../lib/tokenization";
-import type { WordTiming } from "../lib/narration/narration-provider";
+import { BlobNarrationProvider } from "@/lib/features/narration/blob-provider";
+import { PollyNarrationProvider } from "@/lib/features/narration/polly-provider";
+import { WebSpeechNarrationProvider } from "@/lib/features/narration/web-speech-provider";
+import type { INarrationProvider, NarrationProviderType } from "@/lib/features/narration";
+import { tokenizeText } from "@/lib/core";
+import type { WordTiming } from "@/lib/features/narration";
 import { Play, Pause, RotateCcw } from "lucide-react";
 
 export type NarratedTextRef = {
@@ -25,7 +25,7 @@ type NarratedTextProps = {
     // Option B: Provider type to instantiate (e.g. "polly")
     voiceProvider?: NarrationProviderType;
     // Option C: Explicit provider instance (advanced)
-    provider?: NarrationProvider;
+    provider?: INarrationProvider;
 
     timings?: WordTiming[];
     autoPlay?: boolean;

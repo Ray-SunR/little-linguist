@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { SPEED_OPTIONS, type SpeedOption } from "../../lib/speed-options";
+import { SPEED_OPTIONS, type SpeedOption } from "@/lib/features/narration/internal/speed-options";
 
 type SpeedSliderProps = {
   value: SpeedOption;

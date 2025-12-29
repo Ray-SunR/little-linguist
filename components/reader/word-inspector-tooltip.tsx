@@ -2,9 +2,9 @@
 
 import { Volume2, X, RefreshCw, Sparkles, Play, Star } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import { cn } from "../../lib/utils";
-import type { WordInsight } from "../../lib/word-insight";
-import { useWordList } from "../../lib/word-list-context";
+import { cn } from "@/lib/core";
+import type { WordInsight } from "@/lib/features/word-insight";
+import { useWordList } from "@/lib/features/word-insight";
 import type { TooltipPosition } from "../../hooks/use-word-inspector";
 import { Popover, PopoverContent, PopoverAnchor } from "../ui/popover";
 import { WordInsightView } from "./word-insight-view";

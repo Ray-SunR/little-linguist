@@ -1,4 +1,11 @@
-export type NarrationProviderType = "web_speech" | "remote_tts";
+export type NarrationProviderType = "web_speech" | "remote_tts" | "polly";
+
+export type TooltipPosition = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 export type WordTiming = {
   wordIndex: number;
@@ -23,8 +30,8 @@ export type NarrationPrepareInput = {
 
 export type NarrationEvent = "ended" | "error" | "state" | "boundary";
 
-export interface NarrationProvider {
-  type: string;
+export interface INarrationProvider {
+  type: NarrationProviderType;
   prepare(input: NarrationPrepareInput): Promise<NarrationResult>;
   play(): Promise<void>;
   pause(): Promise<void>;

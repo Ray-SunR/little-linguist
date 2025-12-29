@@ -2,8 +2,8 @@
 
 import { Volume2, Play, Star, X, Pause } from "lucide-react";
 import { useState, useRef } from "react";
-import { cn } from "../../lib/utils";
-import type { WordInsight } from "../../lib/word-insight";
+import { cn } from "@/lib/core";
+import type { WordInsight } from "@/lib/features/word-insight";
 import { NarratedText, type NarratedTextRef } from "../narrated-text";
 
 type WordInsightViewProps = {

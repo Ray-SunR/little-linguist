@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpen, MousePointer2, ScrollText } from "lucide-react";
-import type { ViewMode } from "../../lib/types";
+import type { ViewMode } from "@/lib/core";
 
 type LayoutControlsProps = {
   viewMode: ViewMode;

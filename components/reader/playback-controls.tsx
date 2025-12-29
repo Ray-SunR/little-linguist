@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Play, Pause, Square } from "lucide-react";
 import type { PlaybackState } from "../../hooks/use-audio-narration";
-import type { SpeedOption } from "../../lib/speed-options";
+import type { SpeedOption } from "@/lib/features/narration/internal/speed-options";
 import SpeedPresetButtons from "./speed-preset-buttons";
 
 type PlaybackControlsProps = {

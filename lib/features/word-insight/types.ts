@@ -13,13 +13,14 @@ export interface WordInsight {
  * Implementations: GeminiWordInsightService, BackendWordInsightService
  */
 export interface WordInsightService {
-  /**
-   * Fetch word insight for a given word
-   * @param word - The word to look up (will be normalized)
-   * @returns Promise resolving to WordInsight
-   * @throws Error if service fails (should be caught and fallback used)
-   */
   getInsight(word: string): Promise<WordInsight>;
+}
+
+export interface IWordService {
+  getWords(): Promise<WordInsight[]>;
+  addWord(word: WordInsight): Promise<void>;
+  removeWord(wordStr: string): Promise<void>;
+  hasWord(wordStr: string): Promise<boolean>;
 }
 
 /**

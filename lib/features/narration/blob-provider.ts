@@ -1,13 +1,12 @@
-
 import {
-    NarrationEvent,
+    INarrationProvider,
     NarrationPrepareInput,
-    NarrationProvider,
+    NarrationEvent,
     NarrationResult,
     WordTiming,
-} from "./narration-provider";
+} from "./types";
 
-export class BlobNarrationProvider implements NarrationProvider {
+export class BlobNarrationProvider implements INarrationProvider {
     type: "remote_tts" = "remote_tts";
     private audio: HTMLAudioElement | null = null;
     private listeners: Map<NarrationEvent, Set<(payload?: unknown) => void>> = new Map();

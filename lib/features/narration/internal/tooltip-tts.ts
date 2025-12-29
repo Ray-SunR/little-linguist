@@ -1,5 +1,5 @@
-import type { NarrationProvider } from "../narration/narration-provider";
-import type { WordInsight } from "../word-insight";
+import type { INarrationProvider } from "../types";
+import type { WordInsight } from "@/lib/features/word-insight";
 
 /**
  * Play tooltip content using the provided narration provider
@@ -7,7 +7,7 @@ import type { WordInsight } from "../word-insight";
  */
 export async function playTooltipTTS(
   insight: WordInsight,
-  provider: NarrationProvider
+  provider: INarrationProvider
 ): Promise<void> {
   // Build the text to be spoken
   const parts: string[] = [
@@ -44,7 +44,7 @@ export async function playTooltipTTS(
  */
 export async function playWordOnly(
   word: string,
-  provider: NarrationProvider
+  provider: INarrationProvider
 ): Promise<void> {
   try {
     await provider.prepare({
@@ -65,7 +65,7 @@ export async function playWordOnly(
  */
 export async function playSentence(
   sentence: string,
-  provider: NarrationProvider
+  provider: INarrationProvider
 ): Promise<void> {
   try {
     await provider.prepare({
@@ -84,7 +84,7 @@ export async function playSentence(
 /**
  * Stop tooltip TTS playback
  */
-export async function stopTooltipTTS(provider: NarrationProvider): Promise<void> {
+export async function stopTooltipTTS(provider: INarrationProvider): Promise<void> {
   try {
     await provider.stop();
   } catch (error) {

@@ -1,9 +1,9 @@
-import { NarrationEvent, NarrationPrepareInput, NarrationProvider, NarrationResult, WordTiming } from "./narration-provider";
+import { INarrationProvider, NarrationPrepareInput, NarrationResult, NarrationEvent, WordTiming } from "./types";
 import { splitIntoChunks, CHUNKER_PRESETS, type TextChunk } from "./text-chunker";
 import { pollyCache } from "./polly-cache";
 
-export class PollyNarrationProvider implements NarrationProvider {
-  type: "remote_tts" = "remote_tts";
+export class PollyNarrationProvider implements INarrationProvider {
+  type: "polly" = "polly";
   private audio: HTMLAudioElement | null = null;
   private listeners: Map<NarrationEvent, Set<(payload?: unknown) => void>> = new Map();
   private wordTimings: WordTiming[] | undefined;
@@ -32,7 +32,7 @@ export class PollyNarrationProvider implements NarrationProvider {
     this.chunks = splitIntoChunks(normalizedText, CHUNKER_PRESETS.POLLY);
 
     if (process.env.NODE_ENV !== "production" && this.chunks.length > 1) {
-      console.log(`[Polly Proxy] Chunking: ${normalizedText.length} chars → ${this.chunks.length} chunks`);
+      console.log(`[Polly Proxy]Chunking: ${normalizedText.length} chars → ${this.chunks.length} chunks`);
     }
 
     // Process each chunk and collect audio buffers
@@ -56,7 +56,7 @@ export class PollyNarrationProvider implements NarrationProvider {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || `Proxy error: ${response.statusText}`);
+          throw new Error(errorData.error || `Proxy error: ${response.statusText} `);
         }
 
         const result = await response.json();

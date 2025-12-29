@@ -1,8 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import type { WordInsight } from "./word-insight/types";
-import { wordService } from "./services/factory";
+import type { WordInsight } from "./types";
+import { LocalStorageWordService } from "./implementations/local-storage-word-service";
+const wordService = new LocalStorageWordService();
 
 type WordListContextType = {
     words: WordInsight[];

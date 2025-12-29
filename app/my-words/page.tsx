@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { ArrowLeft, Volume2, Trash2, BookOpen } from "lucide-react";
-import { useWordList } from "../../lib/word-list-context";
+import { useWordList } from "@/lib/features/word-insight";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "../../lib/utils";
-import type { WordInsight } from "../../lib/word-insight";
+import { cn } from "@/lib/core";
+import type { WordInsight } from "@/lib/features/word-insight";
 
 export default function MyWordsPage() {
     const { words, removeWord, isLoading } = useWordList();

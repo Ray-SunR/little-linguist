@@ -1,7 +1,7 @@
 import { Sun, MousePointer2, BookOpen, ScrollText, Star, Wand2 } from "lucide-react";
 import Link from "next/link";
-import type { ViewMode } from "../../lib/types";
-import type { SpeedOption } from "../../lib/speed-options";
+import type { ViewMode } from "@/lib/core";
+import type { SpeedOption } from "@/lib/features/narration/internal/speed-options";
 
 type ControlPanelProps = {
     speed: SpeedOption;

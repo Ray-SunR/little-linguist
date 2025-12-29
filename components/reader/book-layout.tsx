@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useMemo } from "react";
-import type { WordToken } from "../../lib/tokenization";
-import type { BookImage, ViewMode } from "../../lib/types";
+import type { WordToken } from "@/lib/core";
+import type { BookImage, ViewMode } from "@/lib/core";
 import BookText from "./book-text";
 
 type BookLayoutProps = {

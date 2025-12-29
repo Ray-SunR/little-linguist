@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw } from "lucide-react";
-import { useWordList } from "../../lib/word-list-context";
+import { useWordList } from "@/lib/features/word-insight";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "../../lib/utils";
-import { storyService } from "../../lib/services/factory";
-import type { Story, UserProfile } from "../../lib/services/types";
+import { cn } from "@/lib/core";
+import { getStoryService } from "@/lib/features/story";
+import type { Story, UserProfile } from "@/lib/features/story";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -43,7 +43,8 @@ export default function StoryMakerPage() {
         setStep("generating");
         setError(null);
         try {
-            const newStory = await storyService.generateStory(selectedWords, profile);
+            const service = getStoryService();
+            const newStory = await service.generateStory(selectedWords, profile);
             setStory(newStory);
             setStep("reading");
         } catch (err) {

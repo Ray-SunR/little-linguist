@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, FastForward, Sparkles, Wand2, Star } from "lucide-react";
-import { tokenizeText } from "../../lib/tokenization";
-import { WebSpeechNarrationProvider } from "../../lib/narration/web-speech-provider";
-import { PollyNarrationProvider } from "../../lib/narration/polly-provider";
+import { tokenizeText } from "@/lib/core";
+import { WebSpeechNarrationProvider } from "@/lib/features/narration/web-speech-provider";
+import { PollyNarrationProvider } from "@/lib/features/narration/polly-provider";
 import { useWordInspector } from "../../hooks/use-word-inspector";
-import { DEFAULT_SPEED, type SpeedOption } from "../../lib/speed-options";
-import { playWordOnly, playSentence } from "../../lib/tts/tooltip-tts";
-import { useNarration } from "../../lib/narration-context";
-import { getBookProgress, saveBookProgress } from "../../lib/reader-progress";
-import type { Book, ViewMode } from "../../lib/types";
+import { DEFAULT_SPEED, type SpeedOption } from "@/lib/features/narration/internal/speed-options";
+import { playWordOnly, playSentence } from "@/lib/features/narration";
+import { useNarration } from "@/lib/features/narration";
+import { getBookProgress, saveBookProgress } from "@/lib/core";
+import type { Book, ViewMode } from "@/lib/core";
 import BookSelect from "./book-select";
 import BookLayout from "./book-layout";
 import ControlPanel from "./control-panel";
@@ -19,10 +19,10 @@ import WordInspectorTooltip from "./word-inspector-tooltip";
 
 type ReaderShellProps = {
   books: Book[];
-  initialNarrationProvider?: string;
+  initialINarrationProvider?: string;
 };
 
-export default function ReaderShell({ books, initialNarrationProvider }: ReaderShellProps) {
+export default function ReaderShell({ books, initialINarrationProvider }: ReaderShellProps) {
   const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
   const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
   const [isListening, setIsListening] = useState(false);
@@ -115,13 +115,13 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
 
   // Separate provider for tooltip TTS to avoid conflicts with main narration
   const tooltipProvider = useMemo(() => {
-    const providerType = initialNarrationProvider ?? "web_speech";
+    const providerType = initialINarrationProvider ?? "web_speech";
     if (providerType === "polly") {
       return new PollyNarrationProvider();
     }
     // For web_speech and remote_tts, use Web Speech as it's simpler for short audio
     return new WebSpeechNarrationProvider();
-  }, [initialNarrationProvider]);
+  }, [initialINarrationProvider]);
 
   const { currentWordIndex } = narration;
 

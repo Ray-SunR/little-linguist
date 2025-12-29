@@ -1,6 +1,7 @@
-import { LocalStorageWordService } from "./local-storage-word-service";
-import { GeminiStoryService } from "./gemini-story-service";
-import type { IWordService, IStoryService } from "./types";
+import { LocalStorageWordService } from "@/lib/features/word-insight";
+import { StoryService } from "./story-service";
+import type { IStoryService } from "./types";
+import type { IWordService } from "@/lib/features/word-insight";
 
 class ServiceFactory {
     private static wordService: IWordService;
@@ -15,11 +16,11 @@ class ServiceFactory {
 
     static getStoryService(): IStoryService {
         if (!this.storyService) {
-            this.storyService = new GeminiStoryService();
+            this.storyService = new StoryService();
         }
         return this.storyService;
     }
 }
 
-export const wordService = ServiceFactory.getWordService();
-export const storyService = ServiceFactory.getStoryService();
+export const getWordService = () => ServiceFactory.getWordService();
+export const getStoryService = () => ServiceFactory.getStoryService();

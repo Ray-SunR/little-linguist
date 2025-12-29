@@ -1,33 +1,30 @@
 import type { IStoryService, Story, UserProfile } from "./types";
+import type { AIProvider } from "@/lib/core/integrations/ai";
+import { getAIProvider } from "@/lib/core/integrations/ai";
 
 const STORAGE_KEY = "my-generated-stories";
 
-export class GeminiStoryService implements IStoryService {
+/**
+ * Service for managing user stories.
+ * Handles persistence (localStorage) and orchestrates generation via AIProvider.
+ */
+export class StoryService implements IStoryService {
+    private provider: AIProvider;
+
+    constructor(provider?: AIProvider) {
+        this.provider = provider || getAIProvider();
+    }
+
     async generateStory(words: string[], userProfile: UserProfile): Promise<Story> {
         try {
-            const response = await fetch("/api/story", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ words, userProfile }),
-            });
+            // Delegate generation to AI Provider
+            const generatedContent = await this.provider.generateStory(words, userProfile);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to generate story");
-            }
-
-            const data = await response.json();
-
-            if (!data.title || !data.content) {
-                throw new Error("Invalid response from Gemini Proxy");
-            }
-
+            // Construct full Story object
             const story: Story = {
                 id: crypto.randomUUID(),
-                title: data.title,
-                content: data.content,
+                title: generatedContent.title,
+                content: generatedContent.content,
                 createdAt: Date.now(),
                 wordsUsed: words,
                 userProfile: userProfile,
@@ -36,7 +33,7 @@ export class GeminiStoryService implements IStoryService {
             return story;
 
         } catch (error) {
-            console.error("Gemini Story Service error:", error);
+            console.error("Story Service generation error:", error);
             throw error;
         }
     }
