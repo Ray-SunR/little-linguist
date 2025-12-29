@@ -1,7 +1,8 @@
 import { GeminiWordInsightService } from "./gemini-service";
 
 // Re-export types for convenience
-export type { WordInsight, WordInsightService } from "./types";
+import type { WordInsight, WordInsightService } from "./types";
+export type { WordInsight, WordInsightService };
 export { normalizeWord, FALLBACK_INSIGHT } from "./types";
 
 /**

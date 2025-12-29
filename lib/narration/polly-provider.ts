@@ -60,13 +60,18 @@ export class PollyNarrationProvider implements NarrationProvider {
         }
 
         const result = await response.json();
-        data = {
-          audioContent: result.audioContent,
-          speechMarks: result.speechMarks
+        const newData = {
+          audioContent: result.audioContent as string,
+          speechMarks: result.speechMarks as string,
         };
 
         // Save to cache
-        await pollyCache.set(chunk.text, data);
+        await pollyCache.set(chunk.text, newData);
+
+        data = {
+          ...newData,
+          timestamp: Date.now(),
+        };
       } else if (process.env.NODE_ENV !== "production") {
         console.log(`[Polly Cache] HIT for chunk ${i + 1}/${this.chunks.length}`);
       }

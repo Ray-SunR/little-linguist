@@ -7,7 +7,7 @@ import { PollyNarrationProvider } from "./narration/polly-provider";
 import { WebSpeechNarrationProvider } from "./narration/web-speech-provider";
 import { RemoteTtsNarrationProvider } from "./narration/remote-tts-provider";
 import { tokenizeText } from "./tokenization";
-import type { WordTiming } from "./narration-provider";
+import type { WordTiming } from "./narration/narration-provider";
 
 type NarrationContextType = {
     state: PlaybackState;
