@@ -46,6 +46,13 @@ export function useWordHighlighter({
       return;
     }
 
+    // Show saved position when not playing (resume position)
+    if ((state === "STOPPED" || state === "IDLE") && boundaryWordIndex !== null) {
+      setCurrentWordIndex(boundaryWordIndex);
+      lastIndexRef.current = boundaryWordIndex;
+      return;
+    }
+
     if (state === "PAUSED") {
       setCurrentWordIndex(lastIndexRef.current);
       return;

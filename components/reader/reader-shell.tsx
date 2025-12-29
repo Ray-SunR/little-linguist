@@ -10,6 +10,7 @@ import { useWordInspector } from "../../hooks/use-word-inspector";
 import { DEFAULT_SPEED, type SpeedOption } from "../../lib/speed-options";
 import { playWordOnly, playSentence } from "../../lib/tts/tooltip-tts";
 import { useNarration } from "../../lib/narration-context";
+import { getBookProgress, saveBookProgress } from "../../lib/reader-progress";
 import type { Book, ViewMode } from "../../lib/types";
 import BookSelect from "./book-select";
 import BookLayout from "./book-layout";
@@ -29,7 +30,7 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
   const [isMounted, setIsMounted] = useState(false);
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [initialWordIndex, setInitialWordIndex] = useState<number | undefined>(undefined);
+  const prevBookIdRef = useRef<string | null>(null);
 
   const narration = useNarration();
 
@@ -54,10 +55,29 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
     const selectedBook = books.find(b => b.id === selectedBookId);
     if (!selectedBook) return;
 
-    const savedProgress = localStorage.getItem(`reader_progress_${selectedBookId}`);
-    const progress = savedProgress ? parseInt(savedProgress, 10) : undefined;
+    // Save progress for the PREVIOUS book before loading the new one
+    if (prevBookIdRef.current && prevBookIdRef.current !== selectedBookId) {
+      const prevWordIndex = narration.currentWordIndex;
+      const prevTimeSec = narration.currentTimeSec;
+      if (prevWordIndex !== null && prevWordIndex !== undefined) {
+        saveBookProgress(
+          prevBookIdRef.current,
+          prevWordIndex,
+          prevTimeSec,
+          playbackSpeed
+        );
+      }
+    }
+    prevBookIdRef.current = selectedBookId;
 
-    setInitialWordIndex(progress);
+    // Load progress for the new book
+    const savedProgress = getBookProgress(selectedBookId);
+    const progress = savedProgress?.wordIndex;
+
+    // Restore playback speed if saved
+    if (savedProgress?.playbackSpeed) {
+      setPlaybackSpeed(savedProgress.playbackSpeed as SpeedOption);
+    }
 
     narration.loadBook({
       id: selectedBook.id,
@@ -105,11 +125,51 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
 
   const { currentWordIndex } = narration;
 
-  // Save progress when word index changes
+  // Track last saved state to detect genuine changes
+  const lastSavedRef = useRef<{ bookId: string | null; wordIndex: number | null }>({
+    bookId: null,
+    wordIndex: null,
+  });
+  // Transition lock - prevents saves immediately after book switch
+  const transitionLockRef = useRef(false);
+
+  // When book changes, set transition lock and track the stale word index
+  useEffect(() => {
+    // Lock saves during transition
+    transitionLockRef.current = true;
+    // Reset last saved for the new book
+    lastSavedRef.current = { bookId: null, wordIndex: null };
+
+    // Unlock after a short delay to allow state to settle
+    const timer = setTimeout(() => {
+      transitionLockRef.current = false;
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [selectedBookId]);
+
+  // Save progress when word index changes (continuous save during playback)
   useEffect(() => {
     if (!isMounted || currentWordIndex === null || currentWordIndex === undefined) return;
-    localStorage.setItem(`reader_progress_${selectedBookId}`, currentWordIndex.toString());
-  }, [currentWordIndex, selectedBookId, isMounted]);
+    // Don't save during transition
+    if (transitionLockRef.current) return;
+    // Only save if narration is playing the selected book
+    if (narration.activeBookId !== selectedBookId) return;
+    // Only save if the word index actually changed for this book
+    if (lastSavedRef.current.bookId === selectedBookId &&
+      lastSavedRef.current.wordIndex === currentWordIndex) {
+      return;
+    }
+
+    // Update last saved and save
+    lastSavedRef.current = { bookId: selectedBookId, wordIndex: currentWordIndex };
+    saveBookProgress(
+      selectedBookId,
+      currentWordIndex,
+      narration.currentTimeSec,
+      playbackSpeed
+    );
+  }, [currentWordIndex, selectedBookId, narration.activeBookId, narration.currentTimeSec, playbackSpeed, isMounted]);
 
   const wordInspector = useWordInspector();
 
