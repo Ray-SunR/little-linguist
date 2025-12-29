@@ -268,46 +268,52 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
 
-    // Find the highlighted word element
-    const wordElement = scrollContainer.querySelector(
-      `[data-word-index="${currentWordIndex}"]`
-    ) as HTMLElement;
+    // Use requestAnimationFrame to ensure DOM is painted before scrolling
+    // This is critical for book switches where the new book's content needs to render first
+    const rafId = requestAnimationFrame(() => {
+      // Find the highlighted word element
+      const wordElement = scrollContainer.querySelector(
+        `[data-word-index="${currentWordIndex}"]`
+      ) as HTMLElement;
 
-    if (!wordElement) return;
+      if (!wordElement) return;
 
-    const behavior = isNewBook ? "instant" : "smooth";
+      const behavior = isNewBook ? "instant" : "smooth";
 
-    if (viewMode === "spread") {
-      // In spread mode, find the horizontal scroll container
-      const horizontalContainer = scrollContainer.querySelector(".book-spread-scroll-container") as HTMLElement;
-      if (horizontalContainer) {
-        const containerWidth = horizontalContainer.clientWidth;
-        const wordOffset = wordElement.offsetLeft;
-        const currentScrollLeft = horizontalContainer.scrollLeft;
+      if (viewMode === "spread") {
+        // In spread mode, find the horizontal scroll container
+        const horizontalContainer = scrollContainer.querySelector(".book-spread-scroll-container") as HTMLElement;
+        if (horizontalContainer) {
+          const containerWidth = horizontalContainer.clientWidth;
+          const wordOffset = wordElement.offsetLeft;
+          const currentScrollLeft = horizontalContainer.scrollLeft;
 
-        const targetSpreadIndex = Math.floor(wordOffset / containerWidth);
-        const targetScrollLeft = targetSpreadIndex * containerWidth;
+          const targetSpreadIndex = Math.floor(wordOffset / containerWidth);
+          const targetScrollLeft = targetSpreadIndex * containerWidth;
 
-        const isVisible = wordOffset >= currentScrollLeft && wordOffset < currentScrollLeft + containerWidth;
+          const isVisible = wordOffset >= currentScrollLeft && wordOffset < currentScrollLeft + containerWidth;
 
-        if (!isVisible || behavior === "instant") {
-          horizontalContainer.scrollTo({
-            left: targetScrollLeft,
-            behavior,
-          });
+          if (!isVisible || behavior === "instant") {
+            horizontalContainer.scrollTo({
+              left: targetScrollLeft,
+              behavior,
+            });
+          }
         }
+      } else {
+        // Continuous mode - standard scrollIntoView works best
+        wordElement.scrollIntoView({
+          behavior,
+          block: "center",
+        });
       }
-    } else {
-      // Continuous mode - standard scrollIntoView works best
-      wordElement.scrollIntoView({
-        behavior,
-        block: "center",
-      });
-    }
 
-    if (isNewBook) {
-      lastScrolledBookIdRef.current = selectedBookId;
-    }
+      if (isNewBook) {
+        lastScrolledBookIdRef.current = selectedBookId;
+      }
+    });
+
+    return () => cancelAnimationFrame(rafId);
   }, [currentWordIndex, narration.state, viewMode, selectedBookId]);
 
   return (
