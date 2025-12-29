@@ -38,8 +38,8 @@ export function useWordHighlighter({
   }, [wordTimings, tokensCount]);
 
   useEffect(() => {
-    // reset when stopping or idle
-    if (state === "STOPPED" || state === "IDLE") {
+    // reset only if really starting fresh
+    if ((state === "STOPPED" || state === "IDLE") && currentTimeSec === 0 && boundaryWordIndex === null) {
       setCurrentWordIndex(null);
       lastIndexRef.current = 0;
       markPtrRef.current = 0;

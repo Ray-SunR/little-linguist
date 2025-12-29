@@ -20,14 +20,14 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
   async prepare(input: NarrationPrepareInput): Promise<NarrationResult> {
     this.preparedText = input.rawText;
     this.rate = input.speed ?? 1;
-    
+
     // Split text into chunks for reliable cross-browser playback
     this.chunks = splitIntoChunks(input.rawText, CHUNKER_PRESETS.WEB_SPEECH);
-    
+
     if (process.env.NODE_ENV !== "production" && this.chunks.length > 1) {
       console.log(`[Web Speech] Chunking: ${input.rawText.length} chars → ${this.chunks.length} chunks`);
     }
-    
+
     return {
       provider: this.type,
       meta: { fallbackWpm: 150 },
@@ -60,7 +60,7 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
     this.chunks.forEach((chunk, chunkIndex) => {
       const utterance = new SpeechSynthesisUtterance(chunk.text);
       utterance.rate = this.rate;
-      
+
       utterance.onboundary = (event) => {
         if (event.name === "word") {
           this.globalWordIndex++;
@@ -75,7 +75,12 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
         }
       };
 
-      utterance.onerror = (event) => {
+      utterance.onerror = (event: any) => {
+        // Ignore errors caused by intentional cancellation or interruption
+        // These happen naturally when we call .cancel() to stop or change text
+        if (event.error === "interrupted" || event.error === "canceled") {
+          return;
+        }
         console.error(`[Web Speech] Error in chunk ${chunkIndex + 1}/${this.chunks.length}:`, event);
         this.emit("error", event);
       };
@@ -90,7 +95,7 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
 
   async pause(): Promise<void> {
     if (typeof window === "undefined") return;
-    
+
     if (isAndroid()) {
       // Android doesn't support true pause - save position and cancel
       this.savedWordIndex = this.globalWordIndex;
@@ -101,7 +106,7 @@ export class WebSpeechNarrationProvider implements NarrationProvider {
       window.speechSynthesis.pause();
       this.isPaused = true;
     }
-    
+
     this.emit("state", "PAUSED");
   }
 

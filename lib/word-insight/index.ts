@@ -1,24 +1,16 @@
-import type { WordInsightService } from "./types";
 import { GeminiWordInsightService } from "./gemini-service";
-import { BackendWordInsightService } from "./backend-service";
 
 // Re-export types for convenience
 export type { WordInsight, WordInsightService } from "./types";
 export { normalizeWord, FALLBACK_INSIGHT } from "./types";
 
 /**
- * Factory function to get the appropriate word insight service
- * Toggle between implementations via environment variable
+ * Factory function to get the appropriate word insight service.
+ * The server-side /api/word-insight route handles provider selection.
  * 
- * @returns WordInsightService instance (Gemini or Backend)
+ * @returns WordInsightService instance
  */
 export function getWordInsightService(): WordInsightService {
-  const useBackend = process.env.NEXT_PUBLIC_USE_BACKEND_WORD_INSIGHT === "true";
-  
-  if (useBackend) {
-    return new BackendWordInsightService();
-  }
-  
   return new GeminiWordInsightService();
 }
 

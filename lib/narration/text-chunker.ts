@@ -55,7 +55,7 @@ export function splitIntoChunks(
 
     // Find the best breaking point within maxChars
     let chunkText: string;
-    
+
     if (config.preferSentenceBoundary) {
       // Try to break at sentence boundary (. ! ? followed by space or end)
       const sentenceEndPattern = /[.!?][\s\n]/g;
@@ -106,7 +106,7 @@ export function splitIntoChunks(
     }
 
     const wordCount = countWords(chunkText);
-    
+
     chunks.push({
       text: chunkText,
       startWordIndex: globalWordOffset,
@@ -119,7 +119,7 @@ export function splitIntoChunks(
     globalCharOffset += chunkText.length;
     globalWordOffset += wordCount;
     remaining = remaining.substring(chunkText.length).trim();
-    
+
     // Adjust global char offset for trimmed whitespace
     const trimmedChars = text.length - globalCharOffset - remaining.length;
     globalCharOffset += trimmedChars;

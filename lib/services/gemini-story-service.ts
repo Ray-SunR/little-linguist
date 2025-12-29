@@ -1,55 +1,27 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import type { IStoryService, Story, UserProfile } from "./types";
 
 const STORAGE_KEY = "my-generated-stories";
 
 export class GeminiStoryService implements IStoryService {
-    private ai: GoogleGenAI;
-
-    constructor() {
-        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
-        if (!apiKey) {
-            console.warn("NEXT_PUBLIC_GEMINI_API_KEY not set. Story generation will not work.");
-        }
-        this.ai = new GoogleGenAI({ apiKey });
-    }
-
     async generateStory(words: string[], userProfile: UserProfile): Promise<Story> {
-        const { name, age, gender } = userProfile;
-        const wordsList = words.join(", ");
-
-        if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-            throw new Error("API Key missing");
-        }
-
         try {
-            const response = await this.ai.models.generateContent({
-                model: 'gemini-2.0-flash-exp',
-                contents: `Write a short, engaging story for a ${age}-year-old ${gender} named ${name}.
-The story MUST include the following words: ${wordsList}.
-Highlight the usage of these words in the story if possible (e.g., using bold markdown).
-
-The story should be fun, educational, and age-appropriate.
-Provide a title for the story as well.`,
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: Type.OBJECT,
-                        properties: {
-                            title: { type: Type.STRING },
-                            content: { type: Type.STRING },
-                        },
-                        required: ["title", "content"]
-                    },
-                    systemInstruction: "You are a creative storyteller for children.",
-                    temperature: 0.8,
-                }
+            const response = await fetch("/api/story", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ words, userProfile }),
             });
 
-            const data = JSON.parse(response.text || '{}');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to generate story");
+            }
+
+            const data = await response.json();
 
             if (!data.title || !data.content) {
-                throw new Error("Invalid response from Gemini");
+                throw new Error("Invalid response from Gemini Proxy");
             }
 
             const story: Story = {
@@ -64,7 +36,7 @@ Provide a title for the story as well.`,
             return story;
 
         } catch (error) {
-            console.error("Gemini Story API error:", error);
+            console.error("Gemini Story Service error:", error);
             throw error;
         }
     }

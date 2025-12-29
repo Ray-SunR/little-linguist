@@ -4,14 +4,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, FastForward, Sparkles, Wand2, Star } from "lucide-react";
 import { tokenizeText } from "../../lib/tokenization";
-import { RemoteTtsNarrationProvider } from "../../lib/narration/remote-tts-provider";
 import { WebSpeechNarrationProvider } from "../../lib/narration/web-speech-provider";
 import { PollyNarrationProvider } from "../../lib/narration/polly-provider";
-import { useAudioNarration } from "../../hooks/use-audio-narration";
-import { useWordHighlighter } from "../../hooks/use-word-highlighter";
 import { useWordInspector } from "../../hooks/use-word-inspector";
 import { DEFAULT_SPEED, type SpeedOption } from "../../lib/speed-options";
 import { playWordOnly, playSentence } from "../../lib/tts/tooltip-tts";
+import { useNarration } from "../../lib/narration-context";
 import type { Book, ViewMode } from "../../lib/types";
 import BookSelect from "./book-select";
 import BookLayout from "./book-layout";
@@ -20,9 +18,10 @@ import WordInspectorTooltip from "./word-inspector-tooltip";
 
 type ReaderShellProps = {
   books: Book[];
+  initialNarrationProvider?: string;
 };
 
-export default function ReaderShell({ books }: ReaderShellProps) {
+export default function ReaderShell({ books, initialNarrationProvider }: ReaderShellProps) {
   const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
   const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
   const [isListening, setIsListening] = useState(false);
@@ -30,6 +29,9 @@ export default function ReaderShell({ books }: ReaderShellProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [initialWordIndex, setInitialWordIndex] = useState<number | undefined>(undefined);
+
+  const narration = useNarration();
 
   // Load persistence on mount
   useEffect(() => {
@@ -45,6 +47,30 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     setIsMounted(true);
   }, [books]);
 
+  // Load per-book progress and book state together to ensure atomicity
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const selectedBook = books.find(b => b.id === selectedBookId);
+    if (!selectedBook) return;
+
+    const savedProgress = localStorage.getItem(`reader_progress_${selectedBookId}`);
+    const progress = savedProgress ? parseInt(savedProgress, 10) : undefined;
+
+    setInitialWordIndex(progress);
+
+    narration.loadBook({
+      id: selectedBook.id,
+      text: selectedBook.text,
+      audioUrl: selectedBook.audioUrl,
+    }, progress);
+  }, [selectedBookId, books, isMounted]);
+
+  // Sync playback speed to global context
+  useEffect(() => {
+    narration.setSpeed(playbackSpeed);
+  }, [playbackSpeed]);
+
   // Save persistence on change
   useEffect(() => {
     if (!isMounted) return;
@@ -55,6 +81,7 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     if (!isMounted) return;
     localStorage.setItem("reader_viewMode", viewMode);
   }, [viewMode, isMounted]);
+
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null;
   const isLoading = false;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -66,55 +93,23 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     return tokenizeText(selectedBook.text);
   }, [selectedBook]);
 
-  const provider = useMemo(() => {
-    const providerType = process.env.NEXT_PUBLIC_NARRATION_PROVIDER ?? "web_speech";
-    if (providerType === "remote_tts") {
-      return new RemoteTtsNarrationProvider(selectedBook?.audioUrl);
-    }
-    if (providerType === "polly") {
-      const creds = {
-        accessKeyId: process.env.NEXT_PUBLIC_POLLY_ACCESS_KEY_ID ?? "",
-        secretAccessKey: process.env.NEXT_PUBLIC_POLLY_SECRET_ACCESS_KEY ?? "",
-        region: process.env.NEXT_PUBLIC_POLLY_REGION ?? "us-east-1",
-        voiceId: process.env.NEXT_PUBLIC_POLLY_VOICE_ID ?? "Joanna",
-      };
-      return new PollyNarrationProvider(creds);
-    }
-    return new WebSpeechNarrationProvider();
-  }, [selectedBook?.audioUrl]);
-
   // Separate provider for tooltip TTS to avoid conflicts with main narration
   const tooltipProvider = useMemo(() => {
-    const providerType = process.env.NEXT_PUBLIC_NARRATION_PROVIDER ?? "web_speech";
+    const providerType = initialNarrationProvider ?? "web_speech";
     if (providerType === "polly") {
-      const creds = {
-        accessKeyId: process.env.NEXT_PUBLIC_POLLY_ACCESS_KEY_ID ?? "",
-        secretAccessKey: process.env.NEXT_PUBLIC_POLLY_SECRET_ACCESS_KEY ?? "",
-        region: process.env.NEXT_PUBLIC_POLLY_REGION ?? "us-east-1",
-        voiceId: process.env.NEXT_PUBLIC_POLLY_VOICE_ID ?? "Joanna",
-      };
-      return new PollyNarrationProvider(creds);
+      return new PollyNarrationProvider();
     }
     // For web_speech and remote_tts, use Web Speech as it's simpler for short audio
     return new WebSpeechNarrationProvider();
-  }, []);
+  }, [initialNarrationProvider]);
 
-  const narration = useAudioNarration({
-    provider,
-    bookId: selectedBook?.id ?? "",
-    rawText: selectedBook?.text ?? "",
-    tokens,
-    speed: playbackSpeed,
-  });
+  const { currentWordIndex } = narration;
 
-  const currentWordIndex = useWordHighlighter({
-    state: narration.state,
-    currentTimeSec: narration.currentTimeSec,
-    wordTimings: narration.wordTimings,
-    tokensCount: tokens.length,
-    durationMs: narration.durationMs,
-    boundaryWordIndex: narration.boundaryWordIndex,
-  });
+  // Save progress when word index changes
+  useEffect(() => {
+    if (!isMounted || currentWordIndex === null || currentWordIndex === undefined) return;
+    localStorage.setItem(`reader_progress_${selectedBookId}`, currentWordIndex.toString());
+  }, [currentWordIndex, selectedBookId, isMounted]);
 
   const wordInspector = useWordInspector();
 
@@ -197,9 +192,18 @@ export default function ReaderShell({ books }: ReaderShellProps) {
     return () => document.removeEventListener("mousedown", handleClickAway);
   }, [controlsExpanded]);
 
-  // Auto-scroll to highlighted word during playback
+  const lastScrolledBookIdRef = useRef<string | null>(null);
+
+  // Auto-scroll to highlighted word
   useEffect(() => {
-    if (currentWordIndex === null || narration.state !== "PLAYING") return;
+    if (currentWordIndex === null) return;
+
+    // During playback, we always want to scroll.
+    // If NOT playing, only scroll if we haven't done the initial restoration for this book yet.
+    const isPlaying = narration.state === "PLAYING";
+    const isNewBook = lastScrolledBookIdRef.current !== selectedBookId;
+
+    if (!isPlaying && !isNewBook) return;
 
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
@@ -211,38 +215,40 @@ export default function ReaderShell({ books }: ReaderShellProps) {
 
     if (!wordElement) return;
 
+    const behavior = isNewBook ? "instant" : "smooth";
+
     if (viewMode === "spread") {
       // In spread mode, find the horizontal scroll container
       const horizontalContainer = scrollContainer.querySelector(".book-spread-scroll-container") as HTMLElement;
       if (horizontalContainer) {
         const containerWidth = horizontalContainer.clientWidth;
-        // Word offset relative to the scrollable content
         const wordOffset = wordElement.offsetLeft;
         const currentScrollLeft = horizontalContainer.scrollLeft;
 
-        // Determine which spread (2 columns) the word belongs to
-        // We add some buffer to avoid flickering at the very edge of a page
         const targetSpreadIndex = Math.floor(wordOffset / containerWidth);
         const targetScrollLeft = targetSpreadIndex * containerWidth;
 
-        // Only scroll if the word is not in the current visible spread
         const isVisible = wordOffset >= currentScrollLeft && wordOffset < currentScrollLeft + containerWidth;
 
-        if (!isVisible) {
+        if (!isVisible || behavior === "instant") {
           horizontalContainer.scrollTo({
             left: targetScrollLeft,
-            behavior: "smooth",
+            behavior,
           });
         }
       }
     } else {
       // Continuous mode - standard scrollIntoView works best
       wordElement.scrollIntoView({
-        behavior: "smooth",
+        behavior,
         block: "center",
       });
     }
-  }, [currentWordIndex, narration.state, viewMode]);
+
+    if (isNewBook) {
+      lastScrolledBookIdRef.current = selectedBookId;
+    }
+  }, [currentWordIndex, narration.state, viewMode, selectedBookId]);
 
   return (
     <section className="relative mx-auto flex h-full w-full max-w-5xl flex-col gap-4 sm:gap-5">

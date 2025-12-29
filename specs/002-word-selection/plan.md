@@ -148,13 +148,12 @@ export class GeminiWordInsightService implements WordInsightService {
   private model;
 
   constructor() {
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
-    
-    if (!apiKey) {
-      console.warn("NEXT_PUBLIC_GEMINI_API_KEY not set. Word insights will use fallback data.");
-    }
-
-    this.genAI = new GoogleGenerativeAI(apiKey);
+    // Now proxies through /api/word-insight for security
+    const response = await fetch("/api/word-insight", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ word: normalized })
+    });
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       generationConfig: {
@@ -183,7 +182,7 @@ export class GeminiWordInsightService implements WordInsightService {
       return { ...FALLBACK_INSIGHT, word };
     }
 
-    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+    // No longer checked on client
       return { ...FALLBACK_INSIGHT, word };
     }
 
@@ -360,7 +359,7 @@ export function getWordInsightServiceInstance(): WordInsightService {
 
 Current setup:
 ```bash
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_key_here
+GEMINI_API_KEY=your_gemini_key_here
 ```
 
 Future setup (when backend is ready):
@@ -944,7 +943,7 @@ Add at the end:
 ### Manual Test Plan
 
 **Setup:**
-1. Set `NEXT_PUBLIC_GEMINI_API_KEY` in `.env.local`
+1. Set `GEMINI_API_KEY` in `.env.local`
 2. Start dev server: `npm run dev`
 3. Open Firefox with DevTools MCP
 
@@ -1039,7 +1038,7 @@ if (process.env.NODE_ENV !== "production") {
 `.env.local`:
 ```bash
 # Gemini API Key (get from https://aistudio.google.com/apikey)
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Optional: Force backend mode (default: false)
 # NEXT_PUBLIC_USE_BACKEND_WORD_INSIGHT=false

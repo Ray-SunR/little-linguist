@@ -14,6 +14,7 @@ type UseAudioNarrationInput = {
   rawText: string;
   tokens: { wordIndex: number; text: string }[];
   speed?: number;
+  initialWordIndex?: number;
 };
 
 export function useAudioNarration({
@@ -22,6 +23,7 @@ export function useAudioNarration({
   rawText,
   tokens,
   speed,
+  initialWordIndex,
 }: UseAudioNarrationInput) {
   const [state, setState] = useState<PlaybackState>("IDLE");
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +42,33 @@ export function useAudioNarration({
   const lastSpeedRef = useRef<number | null>(null);
   const speedRef = useRef<number>(1);
   const normalizedSpeed = useMemo(() => normalizeSpeed(speed), [speed]);
+
+  // Track if we've already sought to the initial index for the current book
+  const lastBookIdRef = useRef<string | null>(null);
+  const hasSeekedInitialRef = useRef(false);
+
+  // Immediate reset when bookId changes
+  if (lastBookIdRef.current !== bookId) {
+    lastBookIdRef.current = bookId;
+    hasSeekedInitialRef.current = false;
+
+    // We update refs here, but we also need to trigger a state update
+    // to clear the UI highlight immediately.
+  }
+
+  useEffect(() => {
+    // Reset state variables and stop playback when switching books
+    provider.stop();
+    setState("IDLE");
+    setCurrentTimeSec(0);
+    // Immediately set boundary index if initialWordIndex is provided
+    // This ensures the highlight appears even before audio is prepared
+    setBoundaryWordIndex(initialWordIndex ?? null);
+    setBaseWordTimings(undefined);
+    setBaseDurationMs(null);
+    elapsedMsRef.current = 0;
+    startedAtRef.current = null;
+  }, [bookId, provider, initialWordIndex]);
 
   // Don't scale word timings - audio.currentTime is in content time, not wall-clock time
   // The playbackRate property handles speed adjustment automatically
@@ -106,8 +135,26 @@ export function useAudioNarration({
         setBaseDurationMs(duration);
         setIsReady(true);
         setIsPreparing(false);
+        setError(null);
+
+        // Handle initial seek if word index is provided
+        if (typeof initialWordIndex === "number" && !hasSeekedInitialRef.current) {
+          const timing = result.wordTimings?.find(w => w.wordIndex === initialWordIndex);
+          if (timing) {
+            const timeSec = timing.startMs / 1000;
+            provider.seekToTime(timeSec);
+            if (provider.type === "web_speech" && "seekToWordIndex" in provider) {
+              (provider as any).seekToWordIndex(initialWordIndex);
+            }
+            setCurrentTimeSec(timeSec);
+            elapsedMsRef.current = timing.startMs;
+            setBoundaryWordIndex(initialWordIndex);
+          }
+          hasSeekedInitialRef.current = true;
+        }
       })
-      .catch(() => {
+      .catch((e) => {
+        console.error("Preparation error:", e);
         if (!mounted) return;
         setError("Could not generate audio. Try again.");
         setIsReady(false);
@@ -120,7 +167,7 @@ export function useAudioNarration({
       mounted = false;
       preparePromiseRef.current = null;
     };
-  }, [provider, bookId, rawText, tokens]);
+  }, [provider, bookId, rawText, tokens, initialWordIndex]);
 
   useEffect(() => {
     provider.setPlaybackRate(normalizedSpeed);
@@ -136,7 +183,7 @@ export function useAudioNarration({
           await provider.pause();
           stopClock();
         }
-        
+
         // Provider's playback rate is already updated above
         // Now resume if it was playing
         if (wasPlaying) {
@@ -187,9 +234,12 @@ export function useAudioNarration({
       }
       setError(null);
       if (state === "IDLE" || state === "STOPPED") {
-        elapsedMsRef.current = 0;
-        setCurrentTimeSec(0);
-        setBoundaryWordIndex(null);
+        // Only reset clock if we don't have a resume position and we're not starting from a seek
+        if (boundaryWordIndex === null && currentTimeSec === 0) {
+          elapsedMsRef.current = 0;
+          setCurrentTimeSec(0);
+          setBoundaryWordIndex(null);
+        }
       }
       startedAtRef.current = performance.now();
       await provider.play();
@@ -228,30 +278,30 @@ export function useAudioNarration({
 
       // Find the word timing for the specified word index
       const wordTiming = wordTimings?.find(w => w.wordIndex === wordIndex);
-      
+
       // If we have timing info, seek to that position
       if (wordTiming && wordTiming.startMs >= 0) {
         // Stop current playback first
         await provider.stop();
         stopClock();
-        
+
         // Seek to the word's position
         const startTimeSec = wordTiming.startMs / 1000;
         provider.seekToTime(startTimeSec);
-        
+
         // For Web Speech, also use the special seekToWordIndex method
         if (provider.type === "web_speech" && 'seekToWordIndex' in provider) {
           (provider as any).seekToWordIndex(wordIndex);
         }
-        
+
         // Set the elapsed time to match
         elapsedMsRef.current = wordTiming.startMs;
         setCurrentTimeSec(startTimeSec);
         setBoundaryWordIndex(wordIndex);
-        
+
         setError(null);
         startedAtRef.current = performance.now();
-        
+
         // Start playback from the seeked position
         await provider.play();
         setState("PLAYING");

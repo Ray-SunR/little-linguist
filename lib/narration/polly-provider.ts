@@ -1,17 +1,6 @@
-import {
-  PollyClient,
-  SynthesizeSpeechCommand,
-  type SynthesizeSpeechCommandInput,
-} from "@aws-sdk/client-polly";
 import { NarrationEvent, NarrationPrepareInput, NarrationProvider, NarrationResult, WordTiming } from "./narration-provider";
 import { splitIntoChunks, CHUNKER_PRESETS, type TextChunk } from "./text-chunker";
-
-type PollyCredentials = {
-  accessKeyId: string;
-  secretAccessKey: string;
-  region: string;
-  voiceId: string;
-};
+import { pollyCache } from "./polly-cache";
 
 export class PollyNarrationProvider implements NarrationProvider {
   type: "remote_tts" = "remote_tts";
@@ -19,32 +8,32 @@ export class PollyNarrationProvider implements NarrationProvider {
   private listeners: Map<NarrationEvent, Set<(payload?: unknown) => void>> = new Map();
   private wordTimings: WordTiming[] | undefined;
   private durationMs: number | null = null;
-  private creds: PollyCredentials;
   private playbackRate = 1;
   private chunks: TextChunk[] = [];
 
-  constructor(creds: PollyCredentials, speed = 1) {
-    this.creds = creds;
+  constructor(speed = 1) {
     this.playbackRate = speed;
   }
 
   async prepare(input: NarrationPrepareInput): Promise<NarrationResult> {
     const normalizedText = normalizeText(input.rawText);
-    
-    // Split text into chunks for Polly's 3,000 character limit
-    this.chunks = splitIntoChunks(normalizedText, CHUNKER_PRESETS.POLLY);
-    
-    if (process.env.NODE_ENV !== "production" && this.chunks.length > 1) {
-      console.log(`[Polly] Chunking: ${normalizedText.length} chars → ${this.chunks.length} chunks`);
+
+    // Clean up previous audio if it exists to prevent "ghost" errors/events
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.onended = null;
+      this.audio.onerror = null;
+      this.audio.src = "";
+      this.audio.load();
+      this.audio = null;
     }
 
-    const client = new PollyClient({
-      region: this.creds.region,
-      credentials: {
-        accessKeyId: this.creds.accessKeyId,
-        secretAccessKey: this.creds.secretAccessKey,
-      },
-    });
+    // Split text into chunks for Polly's 3,000 character limit
+    this.chunks = splitIntoChunks(normalizedText, CHUNKER_PRESETS.POLLY);
+
+    if (process.env.NODE_ENV !== "production" && this.chunks.length > 1) {
+      console.log(`[Polly Proxy] Chunking: ${normalizedText.length} chars → ${this.chunks.length} chunks`);
+    }
 
     // Process each chunk and collect audio buffers
     const audioBuffers: ArrayBuffer[] = [];
@@ -53,46 +42,54 @@ export class PollyNarrationProvider implements NarrationProvider {
 
     for (let i = 0; i < this.chunks.length; i++) {
       const chunk = this.chunks[i];
-      
-      // Polly requires separate calls for audio and speech marks
-      const audioParams: SynthesizeSpeechCommandInput = {
-        OutputFormat: "mp3",
-        Text: chunk.text,
-        VoiceId: this.creds.voiceId as any,
-        Engine: "neural",
-        TextType: "text",
-        SpeechMarkTypes: undefined,
-        SampleRate: "22050",
-      };
 
-      const marksParams: SynthesizeSpeechCommandInput = {
-        OutputFormat: "json",
-        Text: chunk.text,
-        VoiceId: this.creds.voiceId as any,
-        Engine: "neural",
-        SpeechMarkTypes: ["word"],
-        TextType: "text",
-        SampleRate: "22050",
-      };
+      // Check cache first
+      let data = await pollyCache.get(chunk.text);
 
-      const [audioResp, marksResp] = await Promise.all([
-        client.send(new SynthesizeSpeechCommand(audioParams)),
-        client.send(new SynthesizeSpeechCommand(marksParams)),
-      ]);
+      if (!data) {
+        // Cache miss - fetch from API
+        const response = await fetch("/api/polly", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: chunk.text }),
+        });
 
-      const audioBuffer = await streamToArrayBuffer(audioResp.AudioStream);
-      const rawMarks = parseSpeechMarks(await streamToString(marksResp.AudioStream));
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Proxy error: ${response.statusText}`);
+        }
 
-      if (!audioBuffer) {
-        throw new Error(`No audio from Polly for chunk ${i}`);
+        const result = await response.json();
+        data = {
+          audioContent: result.audioContent,
+          speechMarks: result.speechMarks
+        };
+
+        // Save to cache
+        await pollyCache.set(chunk.text, data);
+      } else if (process.env.NODE_ENV !== "production") {
+        console.log(`[Polly Cache] HIT for chunk ${i + 1}/${this.chunks.length}`);
       }
 
+      const { audioContent, speechMarks } = data;
+
+      // Convert base64 audio to ArrayBuffer
+      const binaryString = window.atob(audioContent);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let j = 0; j < len; j++) {
+        bytes[j] = binaryString.charCodeAt(j);
+      }
+      const audioBuffer = bytes.buffer;
+
+      const rawMarks = parseSpeechMarks(speechMarks || "");
+
       audioBuffers.push(audioBuffer);
-      
+
       // Create temporary audio to get duration
       const tempUrl = URL.createObjectURL(new Blob([audioBuffer], { type: "audio/mpeg" }));
       const tempAudio = new Audio(tempUrl);
-      
+
       await new Promise<void>((resolve) => {
         tempAudio.addEventListener("loadedmetadata", () => resolve(), { once: true });
         tempAudio.addEventListener("error", () => resolve(), { once: true });
@@ -115,16 +112,16 @@ export class PollyNarrationProvider implements NarrationProvider {
     // Concatenate all audio chunks into a single blob
     const concatenatedBlob = new Blob(audioBuffers, { type: "audio/mpeg" });
     const audioUrl = URL.createObjectURL(concatenatedBlob);
-    
+
     // Create single audio element
     this.audio = new Audio(audioUrl);
     this.audio.playbackRate = this.playbackRate;
-    
+
     // Setup event handlers
     this.audio.onended = () => {
       this.emit("ended");
     };
-    
+
     this.audio.onerror = (event) => {
       console.error("[Polly] Audio playback error:", event);
       this.emit("error", event);
@@ -134,7 +131,7 @@ export class PollyNarrationProvider implements NarrationProvider {
     this.durationMs = totalDurationMs;
 
     if (process.env.NODE_ENV !== "production" && this.chunks.length > 1) {
-      console.log(`[Polly] Concatenated ${this.chunks.length} chunks → ${(totalDurationMs/1000).toFixed(1)}s audio, ${allWordTimings.length} words`);
+      console.log(`[Polly] Concatenated ${this.chunks.length} chunks → ${(totalDurationMs / 1000).toFixed(1)}s audio, ${allWordTimings.length} words`);
     }
 
     return {
@@ -204,53 +201,6 @@ export class PollyNarrationProvider implements NarrationProvider {
 
 }
 
-async function streamToArrayBuffer(stream?: any): Promise<ArrayBuffer | null> {
-  const bytes = await toBytes(stream);
-  if (!bytes) return null;
-  // Ensure we return an ArrayBuffer (not SharedArrayBuffer)
-  if (bytes.buffer instanceof ArrayBuffer) {
-    return bytes.buffer;
-  }
-  // If it's a SharedArrayBuffer or something else, copy to regular ArrayBuffer
-  return bytes.slice().buffer;
-}
-
-async function streamToString(stream?: any): Promise<string> {
-  const bytes = await toBytes(stream);
-  if (!bytes) return "";
-  return new TextDecoder().decode(bytes);
-}
-
-async function toBytes(stream?: any): Promise<Uint8Array | null> {
-  if (!stream) return null;
-  if (typeof stream === "string") return new TextEncoder().encode(stream);
-  if (stream instanceof Uint8Array) return stream;
-  if (stream instanceof ArrayBuffer) return new Uint8Array(stream);
-  if (typeof Blob !== "undefined" && stream instanceof Blob) {
-    return new Uint8Array(await stream.arrayBuffer());
-  }
-  if (typeof stream === "object" && typeof stream.getReader === "function") {
-    const reader = stream.getReader();
-    const chunks: Uint8Array[] = [];
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (value) chunks.push(value instanceof Uint8Array ? value : new Uint8Array(value));
-    }
-    const total = chunks.reduce((sum, c) => sum + c.byteLength, 0);
-    const merged = new Uint8Array(total);
-    let offset = 0;
-    for (const c of chunks) {
-      merged.set(c, offset);
-      offset += c.byteLength;
-    }
-    return merged;
-  }
-  if (typeof stream.transformToByteArray === "function") {
-    return await stream.transformToByteArray();
-  }
-  return null;
-}
 
 type RawMark = { word: string; startMs: number };
 
@@ -281,7 +231,7 @@ function alignTimingsToTokens(
   // Word timings from chunks are already adjusted to global indices
   // Just ensure they align with token indices
   const maxIdx = tokens.length - 1;
-  
+
   return wordTimings.map(timing => ({
     wordIndex: Math.min(Math.max(timing.wordIndex, 0), maxIdx),
     startMs: timing.startMs,
