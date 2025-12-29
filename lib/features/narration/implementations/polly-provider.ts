@@ -1,6 +1,6 @@
-import { INarrationProvider, NarrationPrepareInput, NarrationResult, NarrationEvent, WordTiming } from "./types";
-import { splitIntoChunks, CHUNKER_PRESETS, type TextChunk } from "./text-chunker";
-import { pollyCache } from "./polly-cache";
+import { INarrationProvider, NarrationPrepareInput, NarrationResult, NarrationEvent, WordTiming } from "../types";
+import { splitIntoChunks, CHUNKER_PRESETS, type TextChunk } from "../text-chunker";
+import { pollyCache } from "../polly-cache";
 
 export class PollyNarrationProvider implements INarrationProvider {
   type: "polly" = "polly";

@@ -1,6 +1,5 @@
 import { AIError, type AIProvider, type GeneratedStoryContent } from "./types";
-import type { UserProfile } from "@/lib/features/story";
-import { normalizeWord, type WordInsight } from "@/lib/features/word-insight";
+import { normalizeWord, type WordInsight, type UserProfile } from "@/lib/core";
 
 interface WordInsightResponse {
     word: string;

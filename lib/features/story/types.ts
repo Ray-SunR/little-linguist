@@ -1,19 +1,15 @@
-import type { WordInsight } from "../word-insight/types";
+/**
+ * Story feature types
+ * Re-exports core types for backward compatibility
+ */
+import type { UserProfile } from "@/lib/core";
 
-export interface IWordService {
-    getWords(): Promise<WordInsight[]>;
-    addWord(word: WordInsight): Promise<void>;
-    removeWord(wordStr: string): Promise<void>;
-    hasWord(wordStr: string): Promise<boolean>;
-}
+// Re-export from core for consumers
+export type { UserProfile } from "@/lib/core";
 
-export type UserProfile = {
-    name: string;
-    age: number;
-    gender: 'boy' | 'girl' | 'other';
-    avatarUrl?: string;
-};
-
+/**
+ * Story data structure
+ */
 export type Story = {
     id: string;
     title: string;
@@ -24,6 +20,9 @@ export type Story = {
     coverImageUrl?: string;
 };
 
+/**
+ * Service interface for story generation and persistence
+ */
 export interface IStoryService {
     generateStory(words: string[], userProfile: UserProfile): Promise<Story>;
     saveStory(story: Story): Promise<void>;

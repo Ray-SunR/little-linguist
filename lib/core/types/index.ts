@@ -19,3 +19,6 @@ export interface Book {
 }
 
 export type ViewMode = 'continuous' | 'spread' | 'scroll';
+
+// Domain types shared across features
+export * from "./domain";

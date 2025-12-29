@@ -1,21 +1,25 @@
 /**
- * Word insight data structure returned by all services
+ * Word insight feature types
+ * Re-exports core types for backward compatibility
  */
-export interface WordInsight {
-  word: string;
-  definition: string;
-  pronunciation: string;
-  examples: string[];
-}
+import type { WordInsight } from "@/lib/core";
+
+// Re-export from core for consumers
+export type { WordInsight } from "@/lib/core";
+export { normalizeWord } from "@/lib/core";
 
 /**
  * Service interface for word insight providers
- * Implementations: GeminiWordInsightService, BackendWordInsightService
+ * Implementations: AIWordInsightService
  */
 export interface WordInsightService {
   getInsight(word: string): Promise<WordInsight>;
 }
 
+/**
+ * Service interface for word list persistence
+ * Implementations: LocalStorageWordService
+ */
 export interface IWordService {
   getWords(): Promise<WordInsight[]>;
   addWord(word: WordInsight): Promise<void>;
@@ -32,10 +36,3 @@ export const FALLBACK_INSIGHT: WordInsight = {
   pronunciation: "",
   examples: []
 };
-
-/**
- * Normalize word for lookup and caching
- */
-export function normalizeWord(word: string): string {
-  return word.trim().toLowerCase().replace(/[.,!?;:'"]/g, "");
-}

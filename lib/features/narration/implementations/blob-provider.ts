@@ -4,7 +4,7 @@ import {
     NarrationEvent,
     NarrationResult,
     WordTiming,
-} from "./types";
+} from "../types";
 
 export class BlobNarrationProvider implements INarrationProvider {
     type: "remote_tts" = "remote_tts";

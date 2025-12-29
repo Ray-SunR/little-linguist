@@ -6,6 +6,7 @@ import { useWordHighlighter } from "@/hooks/use-word-highlighter";
 import { tokenizeText } from "@/lib/core";
 import type { WordTiming } from "./types";
 import { NarrationProviderFactory } from "./factory";
+import type { NarrationProviderType } from "./types";
 
 type NarrationContextType = {
     state: PlaybackState;
@@ -33,7 +34,7 @@ export function NarrationProvider({
     initialProviderType
 }: {
     children: React.ReactNode;
-    initialProviderType?: string;
+    initialProviderType?: NarrationProviderType;
 }) {
     const [bookState, setBookState] = useState<{
         id: string;

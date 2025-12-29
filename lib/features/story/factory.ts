@@ -1,5 +1,5 @@
 import { LocalStorageWordService } from "@/lib/features/word-insight";
-import { StoryService } from "./story-service";
+import { StoryService } from "./implementations/story-service";
 import type { IStoryService } from "./types";
 import type { IWordService } from "@/lib/features/word-insight";
 

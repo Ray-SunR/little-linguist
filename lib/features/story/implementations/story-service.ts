@@ -1,4 +1,4 @@
-import type { IStoryService, Story, UserProfile } from "./types";
+import type { IStoryService, Story, UserProfile } from "../types";
 import type { AIProvider } from "@/lib/core/integrations/ai";
 import { getAIProvider } from "@/lib/core/integrations/ai";
 

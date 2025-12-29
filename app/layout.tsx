@@ -1,6 +1,6 @@
 import "../styles/globals.css";
 import { WordListProvider } from "@/lib/features/word-insight";
-import { NarrationProvider } from "@/lib/features/narration";
+import { NarrationProvider, type NarrationProviderType } from "@/lib/features/narration";
 
 export const metadata = {
   title: "Core Reader MVP",
@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-shell bg-shell text-ink antialiased">
         <WordListProvider>
-          <NarrationProvider initialProviderType={process.env.NARRATION_PROVIDER}>
+          <NarrationProvider initialProviderType={process.env.NARRATION_PROVIDER as NarrationProviderType | undefined}>
             {children}
           </NarrationProvider>
         </WordListProvider>

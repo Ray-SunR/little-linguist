@@ -3,9 +3,9 @@
 import React, { useMemo, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useAudioNarration, type PlaybackState } from "../hooks/use-audio-narration";
 import { useWordHighlighter } from "../hooks/use-word-highlighter";
-import { BlobNarrationProvider } from "@/lib/features/narration/blob-provider";
-import { PollyNarrationProvider } from "@/lib/features/narration/polly-provider";
-import { WebSpeechNarrationProvider } from "@/lib/features/narration/web-speech-provider";
+import { BlobNarrationProvider } from "@/lib/features/narration/implementations/blob-provider";
+import { PollyNarrationProvider } from "@/lib/features/narration/implementations/polly-provider";
+import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
 import type { INarrationProvider, NarrationProviderType } from "@/lib/features/narration";
 import { tokenizeText } from "@/lib/core";
 import type { WordTiming } from "@/lib/features/narration";

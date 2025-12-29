@@ -4,7 +4,7 @@ import {
   NarrationResult,
   NarrationEvent,
   WordTiming,
-} from "./types";
+} from "../types";
 
 export class RemoteTtsNarrationProvider implements INarrationProvider {
   type: "remote_tts" = "remote_tts";

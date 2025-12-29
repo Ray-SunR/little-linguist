@@ -1,6 +1,6 @@
-import { PollyNarrationProvider } from "./polly-provider";
-import { RemoteTtsNarrationProvider } from "./remote-tts-provider";
-import { WebSpeechNarrationProvider } from "./web-speech-provider";
+import { PollyNarrationProvider } from "./implementations/polly-provider";
+import { RemoteTtsNarrationProvider } from "./implementations/remote-tts-provider";
+import { WebSpeechNarrationProvider } from "./implementations/web-speech-provider";
 import type { INarrationProvider, NarrationProviderType } from "./types";
 
 export interface NarrationFactoryConfig {
@@ -16,7 +16,7 @@ export class NarrationProviderFactory {
      * @param config - Configuration object (e.g. including audioUrl for remote_tts)
      * @throws Error if configuration is invalid for the requested type
      */
-    static createProvider(type: string, config: NarrationFactoryConfig = {}): INarrationProvider {
+    static createProvider(type: NarrationProviderType | "auto" | undefined, config: NarrationFactoryConfig = {}): INarrationProvider {
         // Validation: Ensure type is something we expect, though we fallback safely for unknown strings if needed
         // But for specific types, we should enforce config validity.
 

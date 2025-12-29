@@ -1,3 +1,3 @@
 export * from "./types";
-export { StoryService } from "./story-service";
+export { StoryService } from "./implementations/story-service";
 export { getStoryService, getWordService } from "./factory";

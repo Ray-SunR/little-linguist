@@ -3,8 +3,8 @@ import {
   NarrationPrepareInput,
   NarrationResult,
   NarrationEvent,
-} from "./types";
-import { splitIntoChunks, CHUNKER_PRESETS, isAndroid, type TextChunk } from "./text-chunker";
+} from "../types";
+import { splitIntoChunks, CHUNKER_PRESETS, isAndroid, type TextChunk } from "../text-chunker";
 
 export class WebSpeechNarrationProvider implements INarrationProvider {
   type: "web_speech" = "web_speech";
