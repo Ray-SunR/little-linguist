@@ -323,7 +323,7 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
       <div className="pointer-events-none absolute -right-6 bottom-10 h-24 w-24 blob blob-3" />
 
       <div className="card-frame rounded-card card-glow p-4 sm:p-5 flex flex-col overflow-hidden">
-        <header className="flex items-center gap-2 sm:gap-3 mb-3">
+        <header className="flex items-center gap-1.5 sm:gap-3 mb-3">
           <Link
             href="/"
             className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg transition-shadow flex-shrink-0"
@@ -333,8 +333,8 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
           </Link>
 
           {/* Book Title as Selector */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-accent flex-shrink-0" aria-hidden />
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+            <Sparkles className="hidden sm:flex h-4 w-4 sm:h-5 sm:w-5 text-accent flex-shrink-0" aria-hidden />
             <div className="flex-1 min-w-0">
               <BookSelect
                 books={books}
@@ -387,7 +387,7 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
 
           <Link
             href="/my-words"
-            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg hover:text-yellow-500 transition-all flex-shrink-0"
+            className="hidden sm:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg hover:text-yellow-500 transition-all flex-shrink-0"
             aria-label="My Words"
             title="My Word List"
           >
@@ -396,7 +396,7 @@ export default function ReaderShell({ books, initialNarrationProvider }: ReaderS
 
           <Link
             href="/story-maker"
-            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg hover:text-purple-500 transition-all flex-shrink-0"
+            className="hidden sm:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg hover:text-purple-500 transition-all flex-shrink-0"
             aria-label="Story Maker"
             title="Create a Story"
           >

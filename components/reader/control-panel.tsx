@@ -1,6 +1,5 @@
-"use client";
-
-import { Sun, MousePointer2, BookOpen, ScrollText } from "lucide-react";
+import { Sun, MousePointer2, BookOpen, ScrollText, Star, Wand2 } from "lucide-react";
+import Link from "next/link";
 import type { ViewMode } from "../../lib/types";
 import type { SpeedOption } from "../../lib/speed-options";
 
@@ -113,6 +112,28 @@ export default function ControlPanel({
                 >
                     <Sun className="w-6 h-6 fill-current" />
                 </button>
+            </div>
+
+            {/* Mobile-only secondary actions */}
+            <div className="mt-6 pt-6 border-t border-[#E9E9F0] dark:border-white/10 flex flex-col gap-3 sm:hidden">
+                <Link
+                    href="/my-words"
+                    className="flex items-center gap-3 w-full p-4 rounded-2xl bg-white dark:bg-[#252535] border border-[#E9E9F0] dark:border-white/10 text-ink dark:text-white font-bold"
+                >
+                    <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                        <Star className="w-4 h-4 text-yellow-600 dark:text-yellow-400 fill-current" />
+                    </div>
+                    MY WORD COLLECTION
+                </Link>
+                <Link
+                    href="/story-maker"
+                    className="flex items-center gap-3 w-full p-4 rounded-2xl bg-white dark:bg-[#252535] border border-[#E9E9F0] dark:border-white/10 text-ink dark:text-white font-bold"
+                >
+                    <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                        <Wand2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    CREATE A STORY
+                </Link>
             </div>
         </div>
     );
