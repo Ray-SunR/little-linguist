@@ -14,7 +14,7 @@ export type NarrationResult = {
 };
 
 export type NarrationPrepareInput = {
-  bookId: string;
+  contentId: string;
   rawText: string;
   tokens: { wordIndex: number; text: string }[];
   voice?: { name?: string; locale?: string };

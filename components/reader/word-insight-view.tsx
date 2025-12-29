@@ -1,19 +1,22 @@
 "use client";
 
-import { Volume2, Play, Star, X } from "lucide-react";
-import { useState } from "react";
+import { Volume2, Play, Star, X, Pause } from "lucide-react";
+import { useState, useRef } from "react";
 import { cn } from "../../lib/utils";
 import type { WordInsight } from "../../lib/word-insight";
+import { NarratedText, type NarratedTextRef } from "../narrated-text";
 
 type WordInsightViewProps = {
     insight: WordInsight;
     isSaved: boolean;
     onToggleSave: () => void;
-    onListen: () => void;
+    onListen: () => void; // Used for "Word" listen (original behavior)
     isListening?: boolean;
-    onPlaySentence?: (sentence: string) => void;
+    onPlaySentence?: (sentence: string) => void; // Kept for backward compat or pausing parent
     onPlayFromWord?: () => void;
     onClose?: () => void;
+    // New prop to request parent pause. If not provided, we might rely on onPlaySentence hack or add new one.
+    onRequestPauseMain?: () => void;
 };
 
 /**
@@ -26,20 +29,53 @@ export function WordInsightView({
     onToggleSave,
     onListen,
     isListening = false,
-    onPlaySentence,
+    onPlaySentence, // We'll use this to signal parent to pause
     onPlayFromWord,
     onClose,
+    onRequestPauseMain
 }: WordInsightViewProps) {
-    const [playingSentenceIndex, setPlayingSentenceIndex] = useState<number | null>(null);
+    const [playingSection, setPlayingSection] = useState<string | null>(null);
 
-    const handleSentencePlay = async (sentence: string, index: number) => {
-        if (!onPlaySentence) return;
-        setPlayingSentenceIndex(index);
-        try {
-            await onPlaySentence(sentence);
-        } finally {
-            setPlayingSentenceIndex(null);
+    // Refs for NarratedText components
+    const definitionRef = useRef<NarratedTextRef>(null);
+    const exampleRefs = useRef<(NarratedTextRef | null)[]>([]);
+
+    const handlePlaySection = async (section: string, ref: NarratedTextRef | null) => {
+        if (!ref) return;
+
+        // If clicking the currently playing section, pause/stop it
+        if (playingSection === section) {
+            if (ref.isPlaying) {
+                await ref.pause();
+                setPlayingSection(null); // Or keep it if we want pause state? Let's just toggle.
+            } else {
+                // Resume
+                // Pause main reader first
+                onRequestPauseMain?.();
+                onPlaySentence?.(""); // Hacky signal if onRequestPauseMain missing
+                await ref.play();
+            }
+            return;
         }
+
+        // Stop any other playing section
+        if (playingSection) {
+            if (playingSection === 'definition') definitionRef.current?.stop();
+            else if (playingSection.startsWith('example-')) {
+                const idx = parseInt(playingSection.split('-')[1]);
+                exampleRefs.current[idx]?.stop();
+            }
+        }
+
+        // Play new section
+        onRequestPauseMain?.();
+        onPlaySentence?.(""); // Signal parent
+        setPlayingSection(section);
+        await ref.play();
+    };
+
+    const handlePlaybackEnd = () => {
+        setPlayingSection(null);
     };
 
     return (
@@ -72,7 +108,7 @@ export function WordInsightView({
                                 />
                             </button>
 
-                            {/* Word Speaker */}
+                            {/* Word Speaker (Original - keeps "Listen" behavior for just the word) */}
                             <button
                                 onClick={onListen}
                                 disabled={isListening}
@@ -97,7 +133,7 @@ export function WordInsightView({
                                 </button>
                             )}
 
-                            {/* Inline Close Button (prevents overlap) */}
+                            {/* Inline Close Button */}
                             {onClose && (
                                 <button
                                     onClick={onClose}
@@ -121,18 +157,25 @@ export function WordInsightView({
             {/* Definition Section */}
             <div className="group relative bg-white/30 dark:bg-black/10 rounded-[1.5rem] p-3.5 border border-white/20 dark:border-white/5 shadow-inner">
                 <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 pr-4">
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-ink-muted/60 mb-2">Meaning</h3>
-                        <p className="text-lg font-bold leading-relaxed text-ink dark:text-white/90 pr-4">
-                            {insight.definition}
-                        </p>
+                        <div className="text-lg font-bold leading-relaxed text-ink dark:text-white/90">
+                            <NarratedText
+                                ref={definitionRef}
+                                text={insight.definition}
+                                voiceProvider="remote_tts" // Use Polly basically
+                                showControls={false}
+                                highlightClassName="highlight-word"
+                                onPlaybackEnd={handlePlaybackEnd}
+                            />
+                        </div>
                     </div>
                     <button
-                        onClick={() => onPlaySentence?.(insight.definition)}
+                        onClick={() => handlePlaySection('definition', definitionRef.current)}
                         className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 hover:scale-110 active:scale-95 transition-all shadow-soft"
                         title="Listen to meaning"
                     >
-                        <Volume2 className="h-4 w-4" />
+                        {playingSection === 'definition' ? <Pause className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                     </button>
                 </div>
             </div>
@@ -150,25 +193,34 @@ export function WordInsightView({
                                 <div
                                     className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-2/3 rounded-full flex-shrink-0 bg-accent/30 group-hover:bg-accent/60 transition-colors"
                                 />
-                                <p
-                                    className="flex-1 text-[13px] italic font-bold pl-3 text-accent leading-snug tracking-tight"
+                                <div className="flex-1 pl-3">
+                                    <div className="text-[13px] italic font-bold text-accent leading-snug tracking-tight">
+                                        <NarratedText
+                                            ref={(el) => {
+                                                exampleRefs.current[index] = el;
+                                            }}
+                                            text={example}
+                                            voiceProvider="remote_tts"
+                                            showControls={false}
+                                            highlightClassName="highlight-word"
+                                            onPlaybackEnd={handlePlaybackEnd}
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => handlePlaySection(`example-${index}`, exampleRefs.current[index])}
+                                    className={cn(
+                                        "flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-white dark:bg-[#1e2130] shadow-soft transition-all",
+                                        "hover:scale-110 active:scale-95",
+                                    )}
+                                    aria-label="Play sentence"
                                 >
-                                    "{example}"
-                                </p>
-                                {onPlaySentence && (
-                                    <button
-                                        onClick={() => handleSentencePlay(example, index)}
-                                        disabled={playingSentenceIndex === index}
-                                        className={cn(
-                                            "flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-white dark:bg-[#1e2130] shadow-soft transition-all",
-                                            "hover:scale-110 active:scale-95",
-                                            "disabled:opacity-50 disabled:cursor-not-allowed"
-                                        )}
-                                        aria-label="Play sentence"
-                                    >
-                                        <Volume2 className={cn("h-3 w-3 text-accent", playingSentenceIndex === index && "animate-pulse")} />
-                                    </button>
-                                )}
+                                    {playingSection === `example-${index}` ?
+                                        <Pause className="h-3 w-3 text-accent" /> :
+                                        <Volume2 className={cn("h-3 w-3 text-accent")} />
+                                    }
+                                </button>
                             </div>
                         ))}
                     </div>

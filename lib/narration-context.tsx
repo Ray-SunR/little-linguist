@@ -67,7 +67,7 @@ export function NarrationProvider({
 
     const narration = useAudioNarration({
         provider: provider as any,
-        bookId: bookState?.id ?? "",
+        contentId: bookState?.id ?? "",
         rawText: bookState?.text ?? "",
         tokens,
         speed: playbackSpeed,

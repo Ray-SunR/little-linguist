@@ -133,6 +133,7 @@ export default function WordInspectorTooltip({
           onPlaySentence={onPlaySentence}
           onPlayFromWord={onPlayFromWord}
           onClose={onClose}
+          onRequestPauseMain={() => onPlaySentence?.("")}
         />
       )}
     </>

@@ -10,7 +10,7 @@ export type PlaybackState = "IDLE" | "PLAYING" | "PAUSED" | "STOPPED";
 
 type UseAudioNarrationInput = {
   provider: NarrationProvider;
-  bookId: string;
+  contentId: string;
   rawText: string;
   tokens: { wordIndex: number; text: string }[];
   speed?: number;
@@ -19,7 +19,7 @@ type UseAudioNarrationInput = {
 
 export function useAudioNarration({
   provider,
-  bookId,
+  contentId,
   rawText,
   tokens,
   speed,
@@ -44,12 +44,12 @@ export function useAudioNarration({
   const normalizedSpeed = useMemo(() => normalizeSpeed(speed), [speed]);
 
   // Track if we've already sought to the initial index for the current book
-  const lastBookIdRef = useRef<string | null>(null);
+  const lastContentIdRef = useRef<string | null>(null);
   const hasSeekedInitialRef = useRef(false);
 
-  // Immediate reset when bookId changes
-  if (lastBookIdRef.current !== bookId) {
-    lastBookIdRef.current = bookId;
+  // Immediate reset when contentId changes
+  if (lastContentIdRef.current !== contentId) {
+    lastContentIdRef.current = contentId;
     hasSeekedInitialRef.current = false;
 
     // We update refs here, but we also need to trigger a state update
@@ -61,14 +61,14 @@ export function useAudioNarration({
     provider.stop();
     setState("IDLE");
     setCurrentTimeSec(0);
-    // Immediately set boundary index if initialWordIndex is provided
+    // immediately set boundary index if initialWordIndex is provided
     // This ensures the highlight appears even before audio is prepared
     setBoundaryWordIndex(initialWordIndex ?? null);
     setBaseWordTimings(undefined);
     setBaseDurationMs(null);
     elapsedMsRef.current = 0;
     startedAtRef.current = null;
-  }, [bookId, provider, initialWordIndex]);
+  }, [contentId, provider, initialWordIndex]);
 
   // Don't scale word timings - audio.currentTime is in content time, not wall-clock time
   // The playbackRate property handles speed adjustment automatically
@@ -127,7 +127,7 @@ export function useAudioNarration({
     setIsPreparing(true);
 
     const prepPromise = provider
-      .prepare({ bookId, rawText, tokens, speed: speedRef.current })
+      .prepare({ contentId, rawText, tokens, speed: speedRef.current })
       .then((result) => {
         if (!mounted) return;
         setBaseWordTimings(result.wordTimings);
@@ -167,7 +167,7 @@ export function useAudioNarration({
       mounted = false;
       preparePromiseRef.current = null;
     };
-  }, [provider, bookId, rawText, tokens, initialWordIndex]);
+  }, [provider, contentId, rawText, tokens, initialWordIndex]);
 
   useEffect(() => {
     provider.setPlaybackRate(normalizedSpeed);
