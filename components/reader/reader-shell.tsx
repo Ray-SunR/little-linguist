@@ -323,11 +323,11 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
       <div className="pointer-events-none absolute right-8 top-16 h-20 w-20 blob blob-2" />
       <div className="pointer-events-none absolute -right-6 bottom-10 h-24 w-24 blob blob-3" />
 
-      <div className="card-frame rounded-card card-glow p-4 sm:p-5 flex flex-col flex-1 min-h-0">
+      <div className="glass-card p-4 sm:p-5 flex flex-col flex-1 min-h-0">
         <header className="flex items-center gap-1.5 sm:gap-3 mb-3">
           <Link
             href="/"
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg transition-shadow flex-shrink-0"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent"
             aria-label="Back to home"
           >
             <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
@@ -335,7 +335,7 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
 
           {/* Book Title as Selector */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-            <Sparkles className="hidden sm:flex h-4 w-4 sm:h-5 sm:w-5 text-accent flex-shrink-0" aria-hidden />
+            <Sparkles className="hidden sm:flex h-4 w-4 sm:h-5 sm:w-5 text-pink-400 flex-shrink-0" aria-hidden />
             <div className="flex-1 min-w-0">
               <BookSelect
                 books={books}
@@ -351,7 +351,8 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
             type="button"
             onClick={narration.state === "PLAYING" ? narration.pause : narration.play}
             disabled={isEmpty || narration.isPreparing}
-            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-cta text-cta-ink shadow-soft hover:shadow-lg transition-all disabled:opacity-50 flex-shrink-0"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #8B4BFF, #7C3AED)' }}
             aria-label={narration.state === "PLAYING" ? "Pause" : "Play"}
             title={narration.state === "PLAYING" ? "Pause (Space)" : "Play (Space)"}
           >
@@ -371,7 +372,7 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
             type="button"
             onClick={() => setControlsExpanded(!controlsExpanded)}
             disabled={isEmpty}
-            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg transition-all disabled:opacity-50 flex-shrink-0"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 flex-shrink-0 border border-purple-100 dark:border-transparent"
             aria-label={controlsExpanded ? "Hide controls" : "Show controls"}
             aria-expanded={controlsExpanded}
             title="Toggle controls"
@@ -388,16 +389,16 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
 
           <Link
             href="/my-words"
-            className="hidden sm:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg hover:text-yellow-500 transition-all flex-shrink-0"
+            className="hidden sm:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-600 dark:text-yellow-400 shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-yellow-200 dark:border-yellow-800/30"
             aria-label="My Words"
             title="My Word List"
           >
-            <Star className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
           </Link>
 
           <Link
             href="/story-maker"
-            className="hidden sm:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-card text-ink shadow-soft hover:shadow-lg hover:text-purple-500 transition-all flex-shrink-0"
+            className="hidden sm:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-600 dark:text-purple-400 shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-200 dark:border-purple-800/30"
             aria-label="Story Maker"
             title="Create a Story"
           >
@@ -406,7 +407,7 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
 
           <button
             type="button"
-            className="ghost-btn inline-flex items-center gap-1 sm:gap-2 text-sm font-bold px-2 py-1.5 sm:px-3 sm:py-2 flex-shrink-0"
+            className="inline-flex items-center gap-1 sm:gap-2 text-sm font-bold px-3 py-2 sm:px-4 sm:py-2 rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent disabled:opacity-50"
             onClick={goNextBook}
             disabled={isEmpty}
             aria-label="Next story"
