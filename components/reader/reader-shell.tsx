@@ -20,10 +20,11 @@ import WordInspectorTooltip from "./word-inspector-tooltip";
 type ReaderShellProps = {
   books: Book[];
   initialINarrationProvider?: string;
+  initialBookId?: string;
 };
 
-export default function ReaderShell({ books, initialINarrationProvider }: ReaderShellProps) {
-  const [selectedBookId, setSelectedBookId] = useState(books[0]?.id ?? "");
+export default function ReaderShell({ books, initialINarrationProvider, initialBookId }: ReaderShellProps) {
+  const [selectedBookId, setSelectedBookId] = useState(initialBookId || books[0]?.id || "");
   const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
   const [isListening, setIsListening] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("scroll");
@@ -39,7 +40,7 @@ export default function ReaderShell({ books, initialINarrationProvider }: Reader
     const savedBookId = localStorage.getItem("reader_selectedBookId");
     const savedViewMode = localStorage.getItem("reader_viewMode");
 
-    if (savedBookId && books.some(b => b.id === savedBookId)) {
+    if (!initialBookId && savedBookId && books.some(b => b.id === savedBookId)) {
       setSelectedBookId(savedBookId);
     }
     if (savedViewMode) {
@@ -317,12 +318,12 @@ export default function ReaderShell({ books, initialINarrationProvider }: Reader
   }, [currentWordIndex, narration.state, viewMode, selectedBookId]);
 
   return (
-    <section className="relative mx-auto flex h-full w-full max-w-5xl flex-col gap-4 sm:gap-5">
+    <section className="relative mx-auto flex h-full w-full max-w-5xl flex-1 min-h-0 flex-col gap-4 sm:gap-5">
       <div className="pointer-events-none absolute -left-6 top-6 h-28 w-28 blob blob-1" />
       <div className="pointer-events-none absolute right-8 top-16 h-20 w-20 blob blob-2" />
       <div className="pointer-events-none absolute -right-6 bottom-10 h-24 w-24 blob blob-3" />
 
-      <div className="card-frame rounded-card card-glow p-4 sm:p-5 flex flex-col overflow-hidden">
+      <div className="card-frame rounded-card card-glow p-4 sm:p-5 flex flex-col flex-1 min-h-0">
         <header className="flex items-center gap-1.5 sm:gap-3 mb-3">
           <Link
             href="/"

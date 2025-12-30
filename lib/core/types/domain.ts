@@ -20,7 +20,7 @@ export type UserProfile = {
     name: string;
     age: number;
     gender: 'boy' | 'girl' | 'other';
-    avatarUrl?: string;
+    avatarUrl?: string; // Base64 or URL for the user's photo
 };
 
 /**

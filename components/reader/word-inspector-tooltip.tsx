@@ -142,7 +142,7 @@ export default function WordInspectorTooltip({
   if (isMobile) {
     if (!isOpen) return null;
     return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div className="fixed inset-0 z-[200] flex items-end justify-center">
         {/* Backdrop */}
         <div
           className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-auto"

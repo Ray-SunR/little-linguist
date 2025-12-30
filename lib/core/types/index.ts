@@ -8,6 +8,7 @@ export interface BookImage {
   src: string;
   caption: string;
   alt?: string;
+  isPlaceholder?: boolean;
 }
 
 export interface Book {

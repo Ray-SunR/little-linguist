@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService } from "@/lib/features/story";
 import type { Story, UserProfile } from "@/lib/features/story";
+import ReaderShell from "@/components/reader/reader-shell";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
 export default function StoryMakerPage() {
     const { words } = useWordList();
     const router = useRouter();
+    const service = getStoryService();
     const [step, setStep] = useState<Step>("profile");
     const [profile, setProfile] = useState<UserProfile>({
         name: "",
@@ -22,7 +24,10 @@ export default function StoryMakerPage() {
     });
     const [selectedWords, setSelectedWords] = useState<string[]>([]);
     const [story, setStory] = useState<Story | null>(null);
+    const [currentPage, setCurrentPage] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
 
     const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,10 +48,48 @@ export default function StoryMakerPage() {
         setStep("generating");
         setError(null);
         try {
-            const service = getStoryService();
-            const newStory = await service.generateStory(selectedWords, profile);
-            setStory(newStory);
+            // Step 1: Generate Text/Scenes Content
+            const content = await service.generateStoryContent(selectedWords, profile);
+
+            const initialStory: Story = {
+                id: crypto.randomUUID(),
+                title: content.title,
+                content: content.content,
+                scenes: content.scenes,
+                createdAt: Date.now(),
+                wordsUsed: selectedWords,
+                userProfile: profile,
+                mainCharacterDescription: content.mainCharacterDescription,
+            };
+
+            setStory(initialStory);
             setStep("reading");
+            setCurrentPage(0);
+
+            // Step 2: Generate Images Progressively in background
+            const CONCURRENCY_LIMIT = 2; // Lower concurrency in UI to be safe
+            const updatedScenes = [...content.scenes];
+
+            // Helper to update state with new image
+            const updateImage = (index: number, url: string) => {
+                setStory(prev => {
+                    if (!prev) return prev;
+                    const newScenes = [...prev.scenes];
+                    newScenes[index] = { ...newScenes[index], imageUrl: url };
+                    return { ...prev, scenes: newScenes };
+                });
+            };
+
+            for (let i = 0; i < updatedScenes.length; i += CONCURRENCY_LIMIT) {
+                const chunk = Array.from({ length: Math.min(CONCURRENCY_LIMIT, updatedScenes.length - i) }, (_, k) => i + k);
+                await Promise.all(chunk.map(async (index) => {
+                    const imageUrl = await service.generateImageForScene(updatedScenes[index], profile, content.mainCharacterDescription);
+                    if (imageUrl) {
+                        updateImage(index, imageUrl);
+                    }
+                }));
+            }
+
         } catch (err) {
             console.error(err);
             setError("Oops! Something went wrong while making your story. Please try again.");
@@ -131,11 +174,55 @@ export default function StoryMakerPage() {
                                 </div>
                             </div>
 
-                            <div className="pt-4 flex justify-end">
+                            <div className="pt-4 flex justify-between items-end">
+                                <div className="flex flex-col gap-2">
+                                    <label className="block font-bold text-ink-muted">Hero's Photo (Optional)</label>
+                                    <div className="flex items-center gap-4">
+                                        <label className="cursor-pointer group flex h-24 w-24 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 transition-all hover:border-accent hover:bg-accent/10">
+                                            {profile.avatarUrl ? (
+                                                <img
+                                                    src={profile.avatarUrl}
+                                                    alt="Preview"
+                                                    className="h-full w-full rounded-2xl object-cover"
+                                                />
+                                            ) : (
+                                                <>
+                                                    <Sparkles className="h-8 w-8 text-accent/50 group-hover:text-accent" />
+                                                    <span className="text-xs font-bold text-accent/50 group-hover:text-accent">Upload</span>
+                                                </>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setProfile({ ...profile, avatarUrl: reader.result as string });
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        {profile.avatarUrl && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setProfile({ ...profile, avatarUrl: undefined })}
+                                                className="text-sm font-bold text-red-500 hover:underline"
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-ink-muted">Used to make the hero look like you!</p>
+                                </div>
                                 <button
                                     type="submit"
                                     disabled={!profile.name}
-                                    className="primary-btn flex items-center gap-2 text-lg"
+                                    className="primary-btn flex items-center gap-2 text-lg h-fit"
                                 >
                                     Next Step <ChevronRight className="h-5 w-5" />
                                 </button>
@@ -243,38 +330,19 @@ export default function StoryMakerPage() {
                 )}
 
                 {step === "reading" && story && (
-                    <div className="animate-slide-down">
-                        <div className="card-frame rounded-card bg-white p-8 md:p-12 shadow-2xl relative overflow-hidden">
-                            {/* Decorative background elements */}
-                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-accent via-cta to-accent"></div>
-                            <Sparkles className="absolute top-8 right-8 h-12 w-12 text-accent/10" />
+                    <div className="fixed inset-0 z-[100] page-sky h-screen overflow-hidden px-4 py-4">
+                        <ReaderShell
+                            books={[service.convertStoryToBook(story)]}
+                            initialINarrationProvider={process.env.NEXT_PUBLIC_NARRATION_PROVIDER}
+                        />
 
-                            <h1 className="mb-8 text-center text-4xl font-black text-ink">{story.title}</h1>
-
-                            <div className="prose prose-lg prose-p:text-xl prose-p:leading-relaxed mx-auto text-ink">
-                                {/* Simple rendering of paragraphs. In a real app we might want to markdown parse or structure returns */}
-                                {story.content.split('\n').map((paragraph, i) => (
-                                    paragraph.trim() && <p key={i} className="mb-4">{paragraph}</p>
-                                ))}
+                        {/* Status overlay for background generation */}
+                        {story.scenes.some(s => !s.imageUrl) && (
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full bg-white/80 px-6 py-2 shadow-lg backdrop-blur-md border border-accent/20 animate-slide-up z-[110]">
+                                <RefreshCw className="h-4 w-4 animate-spin text-accent" />
+                                <span className="text-sm font-bold text-ink-muted">AI is drawing images...</span>
                             </div>
-
-                            <div className="mt-12 flex flex-col items-center gap-6 border-t border-ink/5 pt-8">
-                                <div className="flex flex-wrap justify-center gap-2">
-                                    {story.wordsUsed.map(word => (
-                                        <span key={word} className="rounded-full bg-highlight px-3 py-1 text-sm font-bold text-ink">
-                                            ★ {word}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                <button
-                                    onClick={reset}
-                                    className="ghost-btn flex items-center gap-2"
-                                >
-                                    <RefreshCw className="h-4 w-4" /> Make Another Story
-                                </button>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 )}
             </main>

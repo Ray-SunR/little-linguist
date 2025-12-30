@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import type { WordToken } from "@/lib/core";
 import type { BookImage } from "@/lib/core";
 
@@ -10,11 +11,11 @@ type BookTextProps = {
   images?: BookImage[];
 };
 
-export default function BookText({ 
-  tokens, 
+export default function BookText({
+  tokens,
   currentWordIndex,
   onWordClick,
-  images 
+  images
 }: BookTextProps) {
   if (tokens.length === 0) {
     return <p className="text-ink-muted">Pick a book to begin.</p>;
@@ -42,14 +43,13 @@ export default function BookText({
       {tokens.map((token) => {
         const isActive = token.wordIndex === currentWordIndex;
         const wordText = token.text;
-        
+
         // Check if there are images to render after this word
         const imagesAtIndex = imagesByIndex.get(token.wordIndex);
 
         return (
-          <>
+          <React.Fragment key={token.wordIndex}>
             <span
-              key={token.wordIndex}
               data-word-index={token.wordIndex}
               className={`word-token${isActive ? " highlight-word" : ""}`}
             >
@@ -67,20 +67,29 @@ export default function BookText({
               {token.punctuation ?? ""}
               {" "}
             </span>
-            
+
             {/* Render images after this word if any exist */}
             {imagesAtIndex?.map((image) => (
               <div key={image.id} className="book-image-block">
-                <img
-                  src={image.src}
-                  alt={image.alt || ""}
-                  className="book-image"
-                  loading="lazy"
-                />
-                <figcaption className="book-caption">{image.caption}</figcaption>
+                {image.isPlaceholder ? (
+                  <div className="book-image-skeleton animate-pulse border-accent/30 bg-accent/5">
+                    <div className="flex flex-col items-center justify-center h-full gap-3 text-accent/40">
+                      <div className="h-10 w-10 rounded-full border-4 border-t-accent animate-spin" />
+                      <span className="text-sm font-black uppercase tracking-widest antialiased">Drawing Magic...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <img
+                    src={image.src}
+                    alt={image.alt || ""}
+                    className="book-image animate-in fade-in zoom-in-95 duration-700"
+                    loading="lazy"
+                  />
+                )}
+                <figcaption className="book-caption">{image.isPlaceholder ? "..." : image.caption}</figcaption>
               </div>
             ))}
-          </>
+          </React.Fragment>
         );
       })}
     </div>

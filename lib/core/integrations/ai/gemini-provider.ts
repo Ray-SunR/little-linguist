@@ -11,6 +11,11 @@ interface WordInsightResponse {
 interface StoryResponse {
     title: string;
     content: string;
+    mainCharacterDescription: string;
+    scenes: {
+        text: string;
+        image_prompt: string;
+    }[];
     error?: string;
 }
 
@@ -62,7 +67,11 @@ export class GeminiProvider implements AIProvider {
 
     async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal }): Promise<GeneratedStoryContent> {
         try {
-            const response = await fetch("/api/story", {
+            const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
+                ? "/api/mock/story"
+                : "/api/story";
+
+            const response = await fetch(apiUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -84,13 +93,15 @@ export class GeminiProvider implements AIProvider {
 
             const data = await response.json() as StoryResponse;
 
-            if (!data.title || !data.content) {
+            if (!data.title || !data.content || !data.scenes) {
                 throw new AIError('server_error', 'Invalid response format from server');
             }
 
             return {
                 title: data.title,
                 content: data.content,
+                mainCharacterDescription: data.mainCharacterDescription,
+                scenes: data.scenes,
             };
 
         } catch (error) {

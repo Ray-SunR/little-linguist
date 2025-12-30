@@ -17,6 +17,11 @@ export interface AIProvider {
 export interface GeneratedStoryContent {
     title: string;
     content: string;
+    mainCharacterDescription: string;
+    scenes: {
+        text: string;
+        image_prompt: string;
+    }[];
 }
 
 export type AIErrorType = 'rate_limit' | 'invalid_input' | 'server_error' | 'unknown';
