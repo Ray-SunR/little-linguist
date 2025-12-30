@@ -105,161 +105,205 @@ export default function StoryMakerPage() {
     };
 
     return (
-        <div className="min-h-screen bg-shell p-6 md:p-10">
-            <header className="mx-auto mb-10 flex max-w-3xl items-center justify-between">
+        <div className="min-h-screen page-story-maker p-6 md:p-10">
+            <header className="mx-auto mb-8 flex max-w-3xl items-center justify-between">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 rounded-xl bg-white px-4 py-2 font-bold text-ink shadow-sm transition-transform hover:scale-105 active:scale-95"
+                        className="flex items-center gap-2 rounded-full bg-white/80 backdrop-blur-sm px-5 py-2.5 font-bold text-ink shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 border border-white/50"
                     >
                         <ArrowLeft className="h-5 w-5" />
                         Back
                     </button>
-                    <h1 className="text-2xl font-extrabold text-ink md:text-3xl flex items-center gap-2">
-                        Story Maker <Wand2 className="h-6 w-6 text-accent" />
+                    <h1 className="text-2xl font-extrabold text-ink md:text-3xl flex items-center gap-3">
+                        Story Maker
+                        <span className="story-header-icon w-10 h-10">
+                            <Wand2 className="h-5 w-5" />
+                        </span>
                     </h1>
                 </div>
             </header>
 
             <main className="mx-auto max-w-3xl">
                 {step === "profile" && (
-                    <div className="animate-slide-down card-frame rounded-card bg-white p-8 shadow-lg">
-                        <div className="mb-6 flex items-center gap-3 text-accent">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
-                                <User className="h-6 w-6" />
-                            </div>
-                            <h2 className="text-2xl font-bold">About the Hero</h2>
+                    <div className="animate-slide-up-fade glass-card p-8 md:p-10">
+                        {/* Header with wand icon */}
+                        <div className="flex items-center gap-3 mb-8">
+                            <Wand2 className="h-8 w-8 text-pink-400" />
+                            <h2 className="text-3xl font-bold text-ink">About the Hero</h2>
                         </div>
 
-                        <form onSubmit={handleProfileSubmit} className="space-y-6">
-                            <div>
-                                <label className="mb-2 block font-bold text-ink-muted">Hero's Name</label>
-                                <input
-                                    type="text"
-                                    value={profile.name}
-                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                    className="pill-input w-full text-lg"
-                                    placeholder="e.g. Charlie"
-                                    autoFocus
-                                    required
-                                />
-                            </div>
+                        <form onSubmit={handleProfileSubmit}>
+                            {/* Two column layout */}
+                            <div className="grid md:grid-cols-2 gap-8 mb-8">
+                                {/* Left column - Form fields */}
+                                <div className="space-y-6">
+                                    {/* Hero's Name */}
+                                    <div>
+                                        <label className="mb-2 block text-sm font-semibold text-ink-muted">Hero's Name</label>
+                                        <input
+                                            type="text"
+                                            value={profile.name}
+                                            onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                                            className="hero-name-input w-full"
+                                            placeholder="e.g., Leo, Mia"
+                                            autoFocus
+                                            required
+                                        />
+                                    </div>
 
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="mb-2 block font-bold text-ink-muted">Age</label>
-                                    <input
-                                        type="number"
-                                        value={profile.age}
-                                        onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) })}
-                                        className="pill-input w-full text-lg"
-                                        min={3}
-                                        max={12}
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="mb-2 block font-bold text-ink-muted">Gender</label>
-                                    <select
-                                        value={profile.gender}
-                                        onChange={(e) =>
-                                            setProfile({ ...profile, gender: e.target.value as UserProfile["gender"] })
-                                        }
-                                        className="pill-input w-full text-lg appearance-none"
-                                    >
-                                        <option value="boy">Boy</option>
-                                        <option value="girl">Girl</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div>
-                            </div>
+                                    {/* Age Selector */}
+                                    <div>
+                                        <label className="mb-2 block text-sm font-semibold text-ink-muted">Age selector</label>
+                                        <div className="age-slider">
+                                            <button
+                                                type="button"
+                                                className="age-slider-btn age-slider-btn-minus"
+                                                onClick={() => setProfile({ ...profile, age: Math.max(3, profile.age - 1) })}
+                                                disabled={profile.age <= 3}
+                                            >
+                                                −
+                                            </button>
+                                            <span className="age-slider-min">3</span>
+                                            <span className="age-slider-value">{profile.age}</span>
+                                            <span className="age-slider-max">10</span>
+                                            <button
+                                                type="button"
+                                                className="age-slider-btn age-slider-btn-plus"
+                                                onClick={() => setProfile({ ...profile, age: Math.min(10, profile.age + 1) })}
+                                                disabled={profile.age >= 10}
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
 
-                            <div className="pt-4 flex justify-between items-end">
-                                <div className="flex flex-col gap-2">
-                                    <label className="block font-bold text-ink-muted">Hero's Photo (Optional)</label>
-                                    <div className="flex items-center gap-4">
-                                        <label className="cursor-pointer group flex h-24 w-24 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 transition-all hover:border-accent hover:bg-accent/10">
-                                            {profile.avatarUrl ? (
+                                    {/* Gender Selection */}
+                                    <div>
+                                        <label className="mb-2 block text-sm font-semibold text-ink-muted">Gender selection</label>
+                                        <div className="gender-pills">
+                                            <button
+                                                type="button"
+                                                className={cn("gender-pill", profile.gender === "boy" && "gender-pill-active")}
+                                                onClick={() => setProfile({ ...profile, gender: "boy" })}
+                                            >
+                                                <span className="gender-pill-icon">👦</span>
+                                                Boy
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={cn("gender-pill", profile.gender === "girl" && "gender-pill-active")}
+                                                onClick={() => setProfile({ ...profile, gender: "girl" })}
+                                            >
+                                                <span className="gender-pill-icon">👧</span>
+                                                Girl
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right column - Photo Upload */}
+                                <div className="flex items-center justify-center">
+                                    <label className={cn(
+                                        "upload-zone-large",
+                                        profile.avatarUrl && "upload-zone-large-filled"
+                                    )}>
+                                        {profile.avatarUrl ? (
+                                            <div className="relative w-full h-full">
                                                 <img
                                                     src={profile.avatarUrl}
                                                     alt="Preview"
-                                                    className="h-full w-full rounded-2xl object-cover"
+                                                    className="w-full h-full object-cover rounded-2xl"
                                                 />
-                                            ) : (
-                                                <>
-                                                    <Sparkles className="h-8 w-8 text-accent/50 group-hover:text-accent" />
-                                                    <span className="text-xs font-bold text-accent/50 group-hover:text-accent">Upload</span>
-                                                </>
-                                            )}
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const reader = new FileReader();
-                                                        reader.onloadend = () => {
-                                                            setProfile({ ...profile, avatarUrl: reader.result as string });
-                                                        };
-                                                        reader.readAsDataURL(file);
-                                                    }
-                                                }}
-                                            />
-                                        </label>
-                                        {profile.avatarUrl && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setProfile({ ...profile, avatarUrl: undefined })}
-                                                className="text-sm font-bold text-red-500 hover:underline"
-                                            >
-                                                Remove
-                                            </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        setProfile({ ...profile, avatarUrl: undefined });
+                                                    }}
+                                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 shadow-lg hover:bg-red-600 transition-colors"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="upload-zone-content">
+                                                <Wand2 className="h-10 w-10 text-pink-300 mb-3" />
+                                                <span className="font-bold text-ink">Upload Hero Photo</span>
+                                                <span className="text-sm text-ink-muted">or drag & drop here</span>
+                                            </div>
                                         )}
-                                    </div>
-                                    <p className="text-xs text-ink-muted">Used to make the hero look like you!</p>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        setProfile({ ...profile, avatarUrl: reader.result as string });
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                        />
+                                    </label>
                                 </div>
-                                <button
-                                    type="submit"
-                                    disabled={!profile.name}
-                                    className="primary-btn flex items-center gap-2 text-lg h-fit"
-                                >
-                                    Next Step <ChevronRight className="h-5 w-5" />
-                                </button>
                             </div>
+
+                            {/* Full-width Next Button */}
+                            <button
+                                type="submit"
+                                disabled={!profile.name}
+                                className="next-step-btn w-full"
+                            >
+                                <span>Next Step</span>
+                                <ChevronRight className="h-6 w-6" />
+                            </button>
                         </form>
                     </div>
                 )}
 
                 {step === "words" && (
-                    <div className="animate-slide-down card-frame rounded-card bg-white p-8 shadow-lg">
-                        <div className="mb-6 flex items-center gap-3 text-accent">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
-                                <Sparkles className="h-6 w-6" />
+                    <div className="animate-slide-up-fade glass-card p-8 md:p-10">
+                        {/* Step Progress */}
+                        <div className="wizard-progress">
+                            <div className="wizard-step wizard-step-complete">
+                                <Check className="h-4 w-4" />
+                                <span>Hero</span>
                             </div>
-                            <h2 className="text-2xl font-bold">Pick Magic Words</h2>
+                            <div className="wizard-connector wizard-connector-active" />
+                            <div className="wizard-step wizard-step-active">
+                                <Sparkles className="h-4 w-4" />
+                                <span>Words</span>
+                            </div>
                         </div>
 
-                        <p className="mb-6 text-lg text-ink-muted">
-                            Choose up to 5 words from your collection to include in the story.
-                        </p>
+                        <div className="story-header">
+                            <div className="story-header-icon">
+                                <Sparkles className="h-7 w-7" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-ink">Pick Magic Words</h2>
+                                <p className="text-ink-muted text-sm">Choose up to 5 words to include in your story</p>
+                            </div>
+                        </div>
 
                         {error && (
-                            <div className="mb-6 rounded-xl bg-red-50 p-4 text-red-600 font-bold border border-red-100 flex items-center gap-2">
+                            <div className="mb-6 rounded-2xl bg-red-50 p-4 text-red-600 font-bold border border-red-100 flex items-center gap-3">
                                 <span className="text-xl">⚠️</span> {error}
                             </div>
                         )}
 
                         {words.length === 0 ? (
-                            <div className="text-center py-10 bg-shell-2 rounded-xl border-dashed border-2 border-accent/20">
-                                <p className="font-bold text-ink-muted mb-4">You haven't saved any words yet!</p>
-                                <Link href="/reader" className="text-accent underline font-bold">Go read a book</Link> to find words.
+                            <div className="text-center py-12 rounded-2xl border-2 border-dashed border-accent/30 bg-gradient-to-br from-accent/5 to-cta/5">
+                                <Sparkles className="h-12 w-12 text-accent/40 mx-auto mb-4" />
+                                <p className="font-bold text-ink-muted mb-2">You haven't saved any words yet!</p>
+                                <Link href="/reader" className="text-accent underline font-bold hover:text-accent/80 transition-colors">Go read a book</Link> to find words.
                                 <div className="mt-8">
                                     <button
                                         onClick={() => {
-                                            // Bypass for "I have no words" case - maybe let them type one? 
-                                            // For MVP, just let them skip word selection or use default words?
-                                            // Let's implement Skipping
                                             generateStory();
                                         }}
                                         className="ghost-btn"
@@ -277,10 +321,8 @@ export default function StoryMakerPage() {
                                             key={w.word}
                                             onClick={() => toggleWord(w.word)}
                                             className={cn(
-                                                "group relative flex items-center justify-between rounded-2xl border-2 px-4 py-3 font-bold transition-all",
-                                                isSelected
-                                                    ? "border-accent bg-accent text-white shadow-md transform scale-[1.02]"
-                                                    : "border-transparent bg-shell-2 text-ink hover:bg-accent/10"
+                                                "word-chip",
+                                                isSelected && "word-chip-selected"
                                             )}
                                         >
                                             <span>{w.word}</span>
@@ -291,18 +333,20 @@ export default function StoryMakerPage() {
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between pt-4 border-t border-ink/5">
+                        <div className="flex items-center justify-between pt-6 border-t border-ink/5">
                             <button
                                 onClick={() => setStep("profile")}
-                                className="font-bold text-ink-muted hover:text-ink transition-colors"
+                                className="flex items-center gap-2 font-bold text-ink-muted hover:text-ink transition-colors"
                             >
+                                <ArrowLeft className="h-4 w-4" />
                                 Back
                             </button>
 
                             <div className="flex items-center gap-4">
-                                <span className="text-sm font-bold text-ink-muted">
-                                    {selectedWords.length}/5 selected
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="count-badge">{selectedWords.length}</span>
+                                    <span className="text-sm font-bold text-ink-muted">/ 5 selected</span>
+                                </div>
                                 <button
                                     onClick={generateStory}
                                     className="primary-btn flex items-center gap-2 text-lg"
@@ -315,16 +359,29 @@ export default function StoryMakerPage() {
                 )}
 
                 {step === "generating" && (
-                    <div className="flex min-h-[400px] flex-col items-center justify-center text-center">
-                        <div className="relative mb-8">
-                            <div className="absolute inset-0 animate-ping rounded-full bg-accent/20"></div>
-                            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-xl">
-                                <Wand2 className="h-10 w-10 animate-pulse text-accent" />
+                    <div className="animate-slide-up-fade glass-card p-12 flex flex-col items-center justify-center text-center min-h-[400px]">
+                        <div className="sparkle-container mb-10">
+                            {/* Floating sparkle orbs */}
+                            <div className="sparkle-orb" style={{ top: '-20px', left: '-30px', animationDelay: '0s' }} />
+                            <div className="sparkle-orb" style={{ top: '-25px', right: '-25px', animationDelay: '0.5s' }} />
+                            <div className="sparkle-orb" style={{ bottom: '-15px', left: '-20px', animationDelay: '1s' }} />
+                            <div className="sparkle-orb" style={{ bottom: '-20px', right: '-30px', animationDelay: '1.5s' }} />
+
+                            {/* Main wand icon */}
+                            <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-white to-accent/10 shadow-xl magic-wand-enhanced">
+                                <div className="absolute inset-0 rounded-full animate-ping bg-accent/20" />
+                                <Wand2 className="h-12 w-12 text-accent animate-pulse" />
                             </div>
                         </div>
-                        <h2 className="mb-2 text-3xl font-extrabold text-accent">Making Magic...</h2>
+
+                        <h2 className="mb-3 text-3xl font-extrabold bg-gradient-to-r from-accent to-pink-500 bg-clip-text text-transparent">
+                            Making Magic...
+                        </h2>
                         <p className="text-xl text-ink-muted">
-                            Writing a story for {profile.name}!
+                            Writing an adventure for <span className="font-bold text-accent">{profile.name}</span>!
+                        </p>
+                        <p className="mt-4 text-sm text-ink-muted/70">
+                            This usually takes 10-20 seconds ✨
                         </p>
                     </div>
                 )}
