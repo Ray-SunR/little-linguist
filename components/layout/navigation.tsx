@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, BookOpen, Wand2, Languages, Settings2, User } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, BookOpen, Wand2, Languages, Settings2, User, LogOut, Mail } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
     {
@@ -43,10 +44,37 @@ const navItems = [
 
 export function Navigation() {
     const pathname = usePathname();
+    const router = useRouter();
     const [isHubOpen, setIsHubOpen] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const supabase = createClient();
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        fetchUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, [supabase.auth]);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        setIsHubOpen(false);
+        router.push("/login");
+    };
 
     // Expert UX: Hide sidebar on login page for full focus
     if (pathname === "/login") return null;
+
+    const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || "";
+    const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
+    const userInitial = fullName ? fullName[0].toUpperCase() : (user?.email?.[0]?.toUpperCase() ?? "?");
 
     return (
         <>
@@ -55,11 +83,17 @@ export function Navigation() {
                 <div className="mb-6">
                     <button
                         onClick={() => setIsHubOpen(true)}
-                        className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200/50 hover:scale-110 active:scale-90 transition-all text-white group relative"
+                        className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200/50 hover:scale-110 active:scale-90 transition-all text-white group relative overflow-hidden"
                     >
-                        <User className="w-7 h-7 drop-shadow-md" />
+                        {avatarUrl ? (
+                            <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                        ) : user ? (
+                            <span className="text-xl font-black drop-shadow-md">{userInitial}</span>
+                        ) : (
+                            <User className="w-7 h-7 drop-shadow-md" />
+                        )}
                         <span className="absolute left-20 px-4 py-2 bg-white/95 dark:bg-[#1c1f2f]/95 backdrop-blur-md rounded-xl text-xs font-black text-orange-600 border border-orange-100 dark:border-orange-500/20 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0 whitespace-nowrap shadow-xl">
-                            Adventure Hub
+                            {user ? (fullName || "My Adventure") : "Adventure Hub"}
                         </span>
                     </button>
                 </div>
@@ -125,29 +159,67 @@ export function Navigation() {
                 })}
                 <button
                     onClick={() => setIsHubOpen(true)}
-                    className="w-14 h-14 rounded-full flex flex-col items-center justify-center text-orange-500 active:scale-90"
+                    className="w-14 h-14 rounded-full flex flex-col items-center justify-center text-orange-500 active:scale-90 overflow-hidden"
                 >
-                    <User className="w-5 h-5" />
+                    {avatarUrl ? (
+                        <img src={avatarUrl} alt={fullName} className="w-6 h-6 rounded-full object-cover" />
+                    ) : user ? (
+                        <span className="text-sm font-black">{userInitial}</span>
+                    ) : (
+                        <User className="w-5 h-5" />
+                    )}
                     <span className="text-[9px] font-black mt-1 uppercase tracking-tight">Hub</span>
                 </button>
             </nav>
 
-            {/* Dummy Hub Modal for now */}
+            {/* Adventure Hub Modal */}
             {isHubOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
                     <div className="absolute inset-0 bg-purple-900/20 backdrop-blur-sm" onClick={() => setIsHubOpen(false)} />
                     <div className="relative w-full max-w-sm glass-card p-8 text-center animate-bounce-in">
-                        <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center shadow-xl mb-6">
-                            <User className="w-10 h-10 text-white" />
+                        <div className="w-24 h-24 mx-auto rounded-[2rem] bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center shadow-xl mb-6 scale-110 rotate-3 overflow-hidden border-4 border-white/50">
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                            ) : user ? (
+                                <span className="text-4xl font-black text-white drop-shadow-lg">{userInitial}</span>
+                            ) : (
+                                <User className="w-12 h-12 text-white" />
+                            )}
                         </div>
-                        <h2 className="text-3xl font-black text-ink mb-2">The Magic Hub</h2>
-                        <p className="text-ink-muted mb-8">Adventure stats and secret settings coming soon!</p>
-                        <button
-                            onClick={() => setIsHubOpen(false)}
-                            className="w-full next-step-btn py-4"
-                        >
-                            Close
-                        </button>
+
+                        <h2 className="text-3xl font-black text-ink dark:text-white mb-2 leading-tight">
+                            {fullName || (user ? "Magic Voyager" : "The Magic Hub")}
+                        </h2>
+
+                        {user ? (
+                            <div className="flex flex-col items-center gap-2 mb-8">
+                                <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-500/10 rounded-full border border-orange-100 dark:border-orange-500/20">
+                                    <Mail className="w-4 h-4 text-orange-500" />
+                                    <span className="text-xs font-bold text-orange-700 dark:text-orange-400">{user.email}</span>
+                                </div>
+                                <p className="text-ink-muted text-sm mt-4">Welcome back to your magical world of stories!</p>
+                            </div>
+                        ) : (
+                            <p className="text-ink-muted mb-8 italic">Your adventure is waiting to be written...</p>
+                        )}
+
+                        <div className="space-y-3">
+                            {user && (
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full py-4 px-6 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-black flex items-center justify-center gap-3 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all active:scale-95 group"
+                                >
+                                    <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                                    Sign Out
+                                </button>
+                            )}
+                            <button
+                                onClick={() => setIsHubOpen(false)}
+                                className="w-full next-step-btn py-4"
+                            >
+                                {user ? "Keep Exploring" : "Close"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

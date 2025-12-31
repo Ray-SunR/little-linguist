@@ -46,5 +46,18 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
+    // Expert UX: If user is logged in and tries to access /login, redirect to home
+    if (user && request.nextUrl.pathname === '/login') {
+        return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    // Expert UX: If user is NOT logged in and tries to access any PROTECTED route, redirect to /login
+    // Protected routes are everything except /login and /auth/callback
+    const isPublicRoute = request.nextUrl.pathname === '/login' || request.nextUrl.pathname.startsWith('/auth/')
+
+    if (!user && !isPublicRoute) {
+        return NextResponse.redirect(new URL('/login', request.url))
+    }
+
     return supabaseResponse
 }
