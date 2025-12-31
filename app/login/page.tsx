@@ -88,7 +88,7 @@ const StarLayer = ({ layerIndex, count, sizeRange, speed }: { layerIndex: number
 export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [loading, setLoading] = useState<'checking' | 'auth' | null>(null)
+    const [loading, setLoading] = useState<'checking' | 'auth' | 'google' | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const [authStep, setAuthStep] = useState<'email' | 'identity'>('email')
@@ -186,7 +186,7 @@ export default function LoginPage() {
         formData.append('origin', location.origin)
 
         try {
-            const result = !emailExists ? await signup(formData) : await login(formData)
+            const result = (!emailExists ? await signup(formData) : await login(formData)) as { error?: string; success?: string } | undefined
 
             if (result?.error) {
                 setError(result.error)
