@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { WordListProvider } from "@/lib/features/word-insight";
 import { NarrationProvider, type NarrationProviderType } from "@/lib/features/narration";
 import { Navigation } from "@/components/layout/navigation";
@@ -26,6 +27,7 @@ export default function RootLayout({
             </div>
           </NarrationProvider>
         </WordListProvider>
+        <Analytics />
       </body>
     </html>
   );
