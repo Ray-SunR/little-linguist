@@ -159,7 +159,7 @@ export function WordInsightView({
                 <div className="flex items-start justify-between">
                     <div className="flex-1 pr-4">
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-ink-muted/60 mb-2">Meaning</h3>
-                        <div className="text-lg font-bold leading-relaxed text-ink dark:text-white/90">
+                        <div className="text-base font-bold leading-relaxed text-ink dark:text-white/90">
                             <NarratedText
                                 ref={definitionRef}
                                 text={insight.definition}

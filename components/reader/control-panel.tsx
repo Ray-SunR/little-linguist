@@ -1,4 +1,4 @@
-import { Sun, MousePointer2, BookOpen, ScrollText, Star, Wand2 } from "lucide-react";
+import { Sun, MousePointer2, BookOpen, ScrollText, Star, Wand2, Maximize2, Minimize2, Languages } from "lucide-react";
 import Link from "next/link";
 import type { ViewMode } from "@/lib/core";
 import type { SpeedOption } from "@/lib/features/narration/internal/speed-options";
@@ -10,6 +10,8 @@ type ControlPanelProps = {
     onViewModeChange: (mode: ViewMode) => void;
     theme: "light" | "dark";
     onThemeToggle: () => void;
+    isMaximized: boolean;
+    onToggleMaximized: () => void;
     isDisabled?: boolean;
 };
 
@@ -20,6 +22,8 @@ export default function ControlPanel({
     onViewModeChange,
     theme,
     onThemeToggle,
+    isMaximized,
+    onToggleMaximized,
     isDisabled = false,
 }: ControlPanelProps) {
     const speedOptions: { speed: SpeedOption; label: string; emoji: string }[] = [
@@ -109,8 +113,23 @@ export default function ControlPanel({
                     onClick={onThemeToggle}
                     className="w-14 h-14 rounded-[1.5rem] flex items-center justify-center bg-gradient-to-br from-yellow-200 to-orange-200 text-orange-500 shadow-md hover:shadow-lg transition-all active:scale-95 border-2 border-yellow-100 dark:from-[#252535] dark:to-[#353545] dark:border-purple-900/50 dark:text-yellow-400"
                     aria-label="Toggle theme"
+                    title="Toggle theme"
                 >
                     <Sun className="w-6 h-6 fill-current" />
+                </button>
+
+                {/* Fullscreen Toggle Button */}
+                <button
+                    onClick={onToggleMaximized}
+                    className="w-14 h-14 rounded-[1.5rem] flex items-center justify-center bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-md hover:shadow-lg transition-all active:scale-95 border-2 border-purple-400/30"
+                    aria-label={isMaximized ? "Restore size" : "Fill screen"}
+                    title={isMaximized ? "Restore size" : "Fill screen"}
+                >
+                    {isMaximized ? (
+                        <Minimize2 className="w-6 h-6" />
+                    ) : (
+                        <Maximize2 className="w-6 h-6" />
+                    )}
                 </button>
             </div>
 
@@ -118,18 +137,18 @@ export default function ControlPanel({
             <div className="mt-6 pt-6 border-t border-purple-100 dark:border-white/10 flex flex-col gap-3 sm:hidden">
                 <Link
                     href="/my-words"
-                    className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-200 dark:border-yellow-800/30 text-ink dark:text-white font-bold"
+                    className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-2 border-indigo-200 dark:border-indigo-800/30 text-ink dark:text-white font-bold transition-all active:scale-[0.98]"
                 >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-300 to-orange-400 flex items-center justify-center shadow-sm">
-                        <Star className="w-4 h-4 text-white fill-current" />
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center shadow-md">
+                        <Languages className="w-4 h-4 text-white" />
                     </div>
-                    MY WORD COLLECTION
+                    MY VOCABULARY COLLECTION
                 </Link>
                 <Link
                     href="/story-maker"
-                    className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-200 dark:border-purple-800/30 text-ink dark:text-white font-bold"
+                    className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-200 dark:border-purple-800/30 text-ink dark:text-white font-bold transition-all active:scale-[0.98]"
                 >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-md">
                         <Wand2 className="w-4 h-4 text-white" />
                     </div>
                     CREATE A STORY

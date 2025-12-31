@@ -9,6 +9,7 @@ import { cn } from "@/lib/core";
 import { getStoryService } from "@/lib/features/story";
 import type { Story, UserProfile } from "@/lib/features/story";
 import ReaderShell from "@/components/reader/reader-shell";
+import { compressImage } from "@/lib/core/utils/image";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -228,23 +229,37 @@ export default function StoryMakerPage() {
                                             </div>
                                         ) : (
                                             <div className="upload-zone-content">
-                                                <Wand2 className="h-10 w-10 text-pink-300 mb-3" />
-                                                <span className="font-bold text-ink">Upload Hero Photo</span>
-                                                <span className="text-sm text-ink-muted">or drag & drop here</span>
+                                                {isUploading ? (
+                                                    <RefreshCw className="h-10 w-10 text-pink-300 mb-3 animate-spin" />
+                                                ) : (
+                                                    <Wand2 className="h-10 w-10 text-pink-300 mb-3" />
+                                                )}
+                                                <span className="font-bold text-ink">
+                                                    {isUploading ? "Compressing..." : "Upload Hero Photo"}
+                                                </span>
+                                                <span className="text-sm text-ink-muted">
+                                                    {isUploading ? "Just a moment ✨" : "or drag & drop here"}
+                                                </span>
                                             </div>
                                         )}
                                         <input
                                             type="file"
                                             accept="image/*"
                                             className="hidden"
-                                            onChange={(e) => {
+                                            disabled={isUploading}
+                                            onChange={async (e) => {
                                                 const file = e.target.files?.[0];
                                                 if (file) {
-                                                    const reader = new FileReader();
-                                                    reader.onloadend = () => {
-                                                        setProfile({ ...profile, avatarUrl: reader.result as string });
-                                                    };
-                                                    reader.readAsDataURL(file);
+                                                    setIsUploading(true);
+                                                    try {
+                                                        const compressed = await compressImage(file);
+                                                        setProfile({ ...profile, avatarUrl: compressed });
+                                                    } catch (err) {
+                                                        console.error("Compression failed:", err);
+                                                        setError("Failed to process image. Please try another one.");
+                                                    } finally {
+                                                        setIsUploading(false);
+                                                    }
                                                 }
                                             }}
                                         />

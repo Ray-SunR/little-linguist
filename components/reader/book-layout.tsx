@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import type { WordToken } from "@/lib/core";
 import type { BookImage, ViewMode } from "@/lib/core";
 import BookText from "./book-text";
@@ -29,14 +29,48 @@ export default function BookLayout({
   // "spread" (FLIP) = 2 columns/pages at a time
   const columnCount = viewMode === "continuous" ? 1 : 2;
 
+  const [spreadCount, setSpreadCount] = useState(0);
+
+  // Measure actual content width to determine exact number of spreads
+  useEffect(() => {
+    if (viewMode === "scroll") return;
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const updateSpreadCount = () => {
+      const scrollWidth = container.scrollWidth;
+      const clientWidth = container.clientWidth;
+      if (clientWidth > 0) {
+        const count = Math.ceil(scrollWidth / clientWidth);
+        setSpreadCount(count);
+      }
+    };
+
+    // Initial measure
+    updateSpreadCount();
+
+    // Use ResizeObserver to handle layout changes (like images loading or window resizing)
+    const resizeObserver = new ResizeObserver(() => {
+      // Small delay to let browser settle layout
+      requestAnimationFrame(updateSpreadCount);
+    });
+
+    resizeObserver.observe(container);
+
+    // Also observe the content specifically for changes
+    const content = container.querySelector(".book-spread-section");
+    if (content) resizeObserver.observe(content);
+
+    return () => resizeObserver.disconnect();
+  }, [tokens, images, viewMode]);
+
   const snapAnchors = useMemo(() => {
-    // Estimating spreads based on token count
-    // One anchor per full viewport width (100%)
-    const estimatedSpreads = Math.ceil(tokens.length / (columnCount * 40)) + 5;
-    return Array.from({ length: estimatedSpreads }).map((_, i) => (
+    if (viewMode === "scroll" || spreadCount === 0) return null;
+    return Array.from({ length: spreadCount }).map((_, i) => (
       <div key={i} className="book-snap-anchor" />
     ));
-  }, [tokens.length, columnCount]);
+  }, [spreadCount, viewMode]);
 
   return (
     <div className={`book-surface h-full ${viewMode === "spread" ? "book-spread" : ""} ${viewMode === "scroll" ? "book-scroll" : ""}`}>
