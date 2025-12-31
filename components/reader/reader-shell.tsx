@@ -339,7 +339,7 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
   }, [currentWordIndex, narration.state, viewMode, selectedBookId]);
 
   return (
-    <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-5xl gap-4 sm:gap-5'
+    <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out md:pl-28 ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-5xl gap-4 sm:gap-5'
       }`}>
       {!isMaximized && (
         <>
@@ -352,13 +352,6 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
       <div className={`glass-card flex flex-col flex-1 min-h-0 transition-all duration-500 ${isMaximized ? 'p-2 sm:p-4 rounded-none border-none bg-white dark:bg-[#0b0c14]' : 'p-4 sm:p-5'
         }`}>
         <header className="flex items-center gap-1.5 sm:gap-3 mb-3">
-          <Link
-            href="/"
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent"
-            aria-label="Back to home"
-          >
-            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
-          </Link>
 
           {/* Book Title as Selector */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
@@ -414,23 +407,6 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
             </svg>
           </button>
 
-          <Link
-            href="/my-words"
-            className="hidden sm:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/30 dark:to-blue-900/30 text-indigo-600 dark:text-indigo-400 shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-indigo-200 dark:border-indigo-800/30"
-            aria-label="My Vocabulary"
-            title="My Vocabulary Collection"
-          >
-            <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Link>
-
-          <Link
-            href="/story-maker"
-            className="hidden sm:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-600 dark:text-purple-400 shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-200 dark:border-purple-800/30"
-            aria-label="Story Maker"
-            title="Create a Story"
-          >
-            <Wand2 className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Link>
 
           <button
             type="button"

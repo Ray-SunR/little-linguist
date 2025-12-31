@@ -37,19 +37,14 @@ export default function MyWordsPage() {
     }
 
     return (
-        <div className="min-h-screen page-story-maker p-6 md:p-10">
+        <div className="min-h-screen page-story-maker p-6 md:p-10 md:pl-28">
             <header className="mx-auto mb-10 flex max-w-5xl items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.back()}
-                        className="flex items-center gap-2 rounded-full bg-white/80 backdrop-blur-sm px-5 py-2.5 font-bold text-ink shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 border border-white/50"
-                    >
-                        <ArrowLeft className="h-5 w-5" />
-                        Back
-                    </button>
-                    <h1 className="text-2xl font-extrabold text-ink md:text-3xl">
-                        My Collection
-                    </h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-3xl font-black text-ink">
+                            My Collection
+                        </h1>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -135,8 +130,8 @@ export default function MyWordsPage() {
 function ListRow({ word, onRemove, ttsProvider }: { word: WordInsight; onRemove: () => void; ttsProvider: INarrationProvider }) {
     const [isListening, setIsListening] = useState(false);
 
-    const handleListen = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleListen = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
         if (isListening) return;
 
         setIsListening(true);
@@ -204,8 +199,8 @@ function Flashcard({ word, onRemove, ttsProvider }: { word: WordInsight; onRemov
         setIsFlipped(!isFlipped);
     };
 
-    const handleListen = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleListen = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
         if (isListening) return;
 
         setIsListening(true);

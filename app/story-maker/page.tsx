@@ -106,22 +106,14 @@ export default function StoryMakerPage() {
     };
 
     return (
-        <div className="min-h-screen page-story-maker p-6 md:p-10">
+        <div className="min-h-screen page-story-maker p-6 md:p-10 md:pl-28">
             <header className="mx-auto mb-8 flex max-w-3xl items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.back()}
-                        className="flex items-center gap-2 rounded-full bg-white/80 backdrop-blur-sm px-5 py-2.5 font-bold text-ink shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 border border-white/50"
-                    >
-                        <ArrowLeft className="h-5 w-5" />
-                        Back
-                    </button>
-                    <h1 className="text-2xl font-extrabold text-ink md:text-3xl flex items-center gap-3">
-                        Story Maker
-                        <span className="story-header-icon w-10 h-10">
-                            <Wand2 className="h-5 w-5" />
-                        </span>
-                    </h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-3xl font-black text-ink">
+                            Story Maker
+                        </h1>
+                    </div>
                 </div>
             </header>
 
