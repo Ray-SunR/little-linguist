@@ -339,7 +339,7 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
   }, [currentWordIndex, narration.state, viewMode, selectedBookId]);
 
   return (
-    <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out md:pl-28 ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-5xl gap-4 sm:gap-5'
+    <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out md:pl-28 ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-7xl gap-4 sm:gap-5'
       }`}>
       {!isMaximized && (
         <>

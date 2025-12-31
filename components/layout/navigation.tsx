@@ -45,6 +45,9 @@ export function Navigation() {
     const pathname = usePathname();
     const [isHubOpen, setIsHubOpen] = useState(false);
 
+    // Expert UX: Hide sidebar on login page for full focus
+    if (pathname === "/login") return null;
+
     return (
         <>
             {/* Sidebar - Desktop/Tablet */}
