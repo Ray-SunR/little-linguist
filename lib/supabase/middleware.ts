@@ -53,7 +53,9 @@ export async function updateSession(request: NextRequest) {
 
     // Expert UX: If user is NOT logged in and tries to access any PROTECTED route, redirect to /login
     // Protected routes are everything except /login and /auth/callback
-    const isPublicRoute = request.nextUrl.pathname === '/login' || request.nextUrl.pathname.startsWith('/auth/')
+    const isPublicRoute = request.nextUrl.pathname === '/login' ||
+        request.nextUrl.pathname.startsWith('/auth/') ||
+        request.nextUrl.pathname.startsWith('/api/')
 
     if (!user && !isPublicRoute) {
         return NextResponse.redirect(new URL('/login', request.url))

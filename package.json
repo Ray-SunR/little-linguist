@@ -31,15 +31,20 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@swc/core": "^1.15.8",
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
+    "axios": "^1.13.2",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.6",
     "postcss": "^8.4.39",
     "shadcn": "^3.6.2",
+    "swc-node": "^1.0.0",
     "tailwindcss": "^3.4.7",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.5.4"
   }
 }
