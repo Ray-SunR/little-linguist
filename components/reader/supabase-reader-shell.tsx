@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FastForward, Sparkles, Loader2, ArrowLeft } from "lucide-react";
+import { FastForward, Sparkles, Loader2, ArrowLeft, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useNarrationEngine, type NarrationShard } from "@/hooks/use-narration-engine";
 import { useReaderPersistence } from "@/hooks/use-reader-persistence";
@@ -122,6 +122,14 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
         const nextBookId = books[nextIndex].id;
         router.push(`/reader/${nextBookId}`);
     }, [books, selectedBookId, saveProgress, router]);
+
+    const handleRestart = useCallback(async () => {
+        if (!selectedBookId) return;
+        pause();
+        await seekToWord(0);
+        saveProgress();
+        lastScrolledBookIdRef.current = null;
+    }, [selectedBookId, pause, seekToWord, saveProgress]);
 
     const handleWordClick = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
         if (playbackState === "playing") pause();
@@ -269,6 +277,18 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
                             </h1>
                         </div>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={handleRestart}
+                        disabled={isEmpty || isPreparing}
+                        className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 flex-shrink-0 border border-emerald-400/30"
+                        style={{ background: 'linear-gradient(135deg, #34D399, #10B981)' }}
+                        aria-label="Restart story"
+                        title="Restart story from beginning"
+                    >
+                        <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </button>
 
                     <button
                         type="button"
