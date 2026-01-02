@@ -17,7 +17,7 @@ export class PollyNarrationService {
                 secretAccessKey: process.env.POLLY_SECRET_ACCESS_KEY!,
             },
         });
-        this.voiceId = process.env.POLLY_VOICE_ID || "Joanna";
+        this.voiceId = process.env.POLLY_VOICE_ID || "Kevin";
     }
 
     async synthesize(text: string): Promise<PollyResponse> {

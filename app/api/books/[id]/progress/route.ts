@@ -42,7 +42,9 @@ export async function POST(
         const result = await repo.saveProgress(user.id, params.id, {
             last_token_index: payload.tokenIndex,
             last_shard_index: payload.shardIndex,
-            last_playback_time: payload.time
+            last_playback_time: payload.time,
+            view_mode: payload.viewMode,
+            playback_speed: payload.speed
         });
 
         return NextResponse.json(result);

@@ -307,7 +307,7 @@ export default function StoryMakerPage() {
                             <div className="text-center py-12 rounded-2xl border-2 border-dashed border-accent/30 bg-gradient-to-br from-accent/5 to-cta/5">
                                 <Sparkles className="h-12 w-12 text-accent/40 mx-auto mb-4" />
                                 <p className="font-bold text-ink-muted mb-2">You haven't saved any words yet!</p>
-                                <Link href="/reader" className="text-accent underline font-bold hover:text-accent/80 transition-colors">Go read a book</Link> to find words.
+                                <Link href="/library" className="text-accent underline font-bold hover:text-accent/80 transition-colors">Go read a book</Link> to find words.
                                 <div className="mt-8">
                                     <button
                                         onClick={() => {

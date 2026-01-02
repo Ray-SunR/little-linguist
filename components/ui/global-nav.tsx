@@ -23,7 +23,7 @@ export default function GlobalNav() {
     }, [pathname]);
 
     const navItems = [
-        { href: "/reader", icon: Home, label: "Library", color: "text-blue-500", bg: "bg-blue-500" },
+        { href: "/library", icon: Home, label: "Library", color: "text-blue-500", bg: "bg-blue-500" },
         { href: "/story-maker", icon: Wand2, label: "Maker", color: "text-purple-500", bg: "bg-purple-500" },
         { href: "/my-words", icon: Languages, label: "Words", color: "text-indigo-500", bg: "bg-indigo-500" },
         // { href: "/profile", icon: User, label: "Hero", color: "text-pink-500", bg: "bg-pink-500" },

@@ -18,7 +18,7 @@ export class BookRepository {
     async getSystemBooks(): Promise<Partial<Book>[]> {
         const { data, error } = await this.supabase
             .from('books')
-            .select('id, book_key, title, origin') // Sparse list
+            .select('id, book_key, title, origin, updated_at, voice_id') // Sparse list
             .eq('origin', 'system')
             .order('title');
 
@@ -29,7 +29,7 @@ export class BookRepository {
     async getBookById(idOrSlug: string, options: { includeContent?: boolean, includeMedia?: boolean } = {}): Promise<any | null> {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
 
-        const fields = ['id', 'book_key', 'title', 'origin', 'tokens'];
+        const fields = ['id', 'book_key', 'title', 'origin', 'tokens', 'updated_at', 'voice_id'];
         if (options.includeContent) fields.push('text');
 
         const query = this.supabase.from('books').select(fields.join(','));
@@ -83,12 +83,17 @@ export class BookRepository {
         return result;
     }
 
-    async getNarrationChunks(bookId: string) {
-        const { data, error } = await this.supabase
+    async getNarrationChunks(bookId: string, voiceId?: string) {
+        let query = this.supabase
             .from('book_audios')
             .select('*')
-            .eq('book_id', bookId)
-            .order('chunk_index');
+            .eq('book_id', bookId);
+
+        if (voiceId) {
+            query = query.eq('voice_id', voiceId);
+        }
+
+        const { data, error } = await query.order('chunk_index');
 
         if (error) throw error;
         return data || [];
@@ -120,6 +125,8 @@ export class BookRepository {
         last_token_index: number;
         last_shard_index: number;
         last_playback_time: number;
+        view_mode?: string;
+        playback_speed?: number;
     }) {
         const { data, error } = await this.supabase
             .from('user_progress')

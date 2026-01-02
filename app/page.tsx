@@ -29,7 +29,7 @@ export default function HomePage() {
 
         <div className="space-y-4">
           <Link
-            href="/reader"
+            href="/library"
             className="next-step-btn w-full"
           >
             <BookOpen className="h-5 w-5" />

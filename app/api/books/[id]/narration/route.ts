@@ -37,8 +37,10 @@ export async function GET(
             return NextResponse.json({ error: 'Book not found' }, { status: 404 });
         }
 
+        const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
+
         // 1. Check existing chunks in database
-        let chunks = await repo.getNarrationChunks(book.id);
+        let chunks = await repo.getNarrationChunks(book.id, voiceId);
 
         // 2. If no chunks exist, perform initial sharding and generate first chunk
         if (chunks.length === 0) {
@@ -48,7 +50,7 @@ export async function GET(
             const firstChunkText = textChunks[0].text;
             const { audioBuffer, speechMarks } = await polly.synthesize(firstChunkText);
 
-            const voiceId = process.env.POLLY_VOICE_ID || 'Joanna';
+            const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
             const storagePath = `${book.id}/audio/${voiceId}/0.mp3`;
 
             const { error: uploadError } = await supabase.storage
@@ -90,7 +92,7 @@ export async function GET(
                 await supabase.from('book_audios').upsert(otherChunks, { onConflict: 'book_id,chunk_index,voice_id' });
             }
 
-            chunks = await repo.getNarrationChunks(book.id);
+            chunks = await repo.getNarrationChunks(book.id, voiceId);
         }
 
         // 3. Resolve signed URLs for all chunks
@@ -114,7 +116,8 @@ export async function POST(
         const book = await repo.getBookById(id);
         if (!book) return NextResponse.json({ error: 'Book not found' }, { status: 404 });
 
-        const existingChunks = await repo.getNarrationChunks(book.id);
+        const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
+        const existingChunks = await repo.getNarrationChunks(book.id, voiceId);
         const targetChunk = existingChunks.find(c => c.chunk_index === chunkIndex);
 
         if (!targetChunk) return NextResponse.json({ error: 'Chunk index out of range' }, { status: 400 });
@@ -130,7 +133,7 @@ export async function POST(
         const polly = new PollyNarrationService();
         const { audioBuffer, speechMarks } = await polly.synthesize(currentText);
 
-        const voiceId = process.env.POLLY_VOICE_ID || 'Joanna';
+        // const voiceId = process.env.POLLY_VOICE_ID || 'Kevin'; // Already defined above
         const storagePath = `${book.id}/audio/${voiceId}/${chunkIndex}.mp3`;
 
         const { error: uploadError } = await supabase.storage

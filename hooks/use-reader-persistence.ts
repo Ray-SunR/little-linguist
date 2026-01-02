@@ -8,6 +8,8 @@ interface PersistenceProps {
     shardIndex: number;
     time: number;
     playbackState: PlaybackState;
+    viewMode: string;
+    speed: number;
 }
 
 /**
@@ -19,41 +21,57 @@ export function useReaderPersistence({
     tokenIndex,
     shardIndex,
     time,
-    playbackState
+    playbackState,
+    viewMode,
+    speed
 }: PersistenceProps) {
-    const lastSavedRef = useRef<{ tokenIndex: number; time: number }>({ tokenIndex: -1, time: -1 });
+    const lastSavedRef = useRef<{ tokenIndex: number; time: number; viewMode: string; speed: number }>({
+        tokenIndex: -1, time: -1, viewMode: '', speed: 1.0
+    });
 
     // Use refs for the values to ensure we always save the LATEST state
     // without triggering effects for every token.
-    const currentValuesRef = useRef({ tokenIndex, shardIndex, time });
+    const currentValuesRef = useRef({ tokenIndex, shardIndex, time, viewMode, speed });
 
     useEffect(() => {
-        currentValuesRef.current = { tokenIndex, shardIndex, time };
-    }, [tokenIndex, shardIndex, time]);
+        currentValuesRef.current = { tokenIndex, shardIndex, time, viewMode, speed };
+    }, [tokenIndex, shardIndex, time, viewMode, speed]);
 
-    const save = useCallback(async (isExiting = false) => {
-        const { tokenIndex: tIdx, shardIndex: sIdx, time: tTime } = currentValuesRef.current;
+    const save = useCallback(async (isExiting = false, force = false) => {
+        const { tokenIndex: tIdx, shardIndex: sIdx, time: tTime, viewMode: tView, speed: tSpeed } = currentValuesRef.current;
 
-        // Only save if meaningful change (at least 1 word or 2 seconds)
+        // Only save if meaningful change OR forced (e.g. pause/stop)
         const isMeaningful =
+            force ||
             Math.abs(tIdx - lastSavedRef.current.tokenIndex) >= 1 ||
-            Math.abs(tTime - lastSavedRef.current.time) > 2;
+            Math.abs(tTime - lastSavedRef.current.time) > 2 ||
+            tView !== lastSavedRef.current.viewMode ||
+            tSpeed !== lastSavedRef.current.speed;
 
         if (!bookId || !isMeaningful) return;
 
         try {
+            const payload = {
+                tokenIndex: tIdx,
+                shardIndex: sIdx,
+                time: tTime,
+                viewMode: tView,
+                speed: tSpeed
+            };
+
             // Use fetch with keepalive for exit saves to ensure delivery
             if (isExiting) {
-                const body = JSON.stringify({ tokenIndex: tIdx, shardIndex: sIdx, time: tTime });
+                const body = JSON.stringify(payload);
                 navigator.sendBeacon(`/api/books/${bookId}/progress`, body);
             } else {
-                await axios.post(`/api/books/${bookId}/progress`, {
-                    tokenIndex: tIdx,
-                    shardIndex: sIdx,
-                    time: tTime
-                });
+                await axios.post(`/api/books/${bookId}/progress`, payload);
             }
-            lastSavedRef.current = { tokenIndex: tIdx, time: tTime };
+            lastSavedRef.current = {
+                tokenIndex: tIdx,
+                time: tTime,
+                viewMode: tView,
+                speed: tSpeed
+            };
         } catch (err) {
             console.error("Failed to save progress:", err);
         }
@@ -64,7 +82,7 @@ export function useReaderPersistence({
     useEffect(() => {
         if (prevPlaybackStateRef.current === 'playing' &&
             (playbackState === 'paused' || playbackState === 'stopped')) {
-            save();
+            save(false, true); // Force save on pause/stop
         }
         prevPlaybackStateRef.current = playbackState;
     }, [playbackState, save]);

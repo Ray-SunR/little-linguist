@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '.env.local' });
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
@@ -35,6 +36,7 @@ async function fullSeed() {
                 images: bookJson.images,
                 origin: 'system',
                 schema_version: 2, // Bumped version for token support
+                voice_id: process.env.POLLY_VOICE_ID || 'Kevin',
                 metadata: {
                     author: bookJson.author,
                     description: bookJson.description
@@ -75,7 +77,7 @@ async function fullSeed() {
         }
 
         // 4. Generate Narration (Shards)
-        const voiceId = process.env.POLLY_VOICE_ID || 'Joanna';
+        const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
         const textChunks = TextChunker.chunk(book.text);
         console.log(`Sharding complete: ${textChunks.length} chunks.`);
 

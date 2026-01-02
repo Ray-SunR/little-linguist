@@ -1,6 +1,6 @@
 import { INarrationProvider, NarrationPrepareInput, NarrationResult, NarrationEvent, WordTiming } from "../types";
 import { splitIntoChunks, CHUNKER_PRESETS, type TextChunk } from "../text-chunker";
-import { pollyCache } from "../polly-cache";
+import { ttsCache } from "../tts-cache";
 
 export class PollyNarrationProvider implements INarrationProvider {
   type: "polly" = "polly";
@@ -43,8 +43,11 @@ export class PollyNarrationProvider implements INarrationProvider {
     for (let i = 0; i < this.chunks.length; i++) {
       const chunk = this.chunks[i];
 
+      const voiceId = input.voice?.name || "default";
+      const cacheKey = ttsCache.generateKey(chunk.text, voiceId);
+
       // Check cache first
-      let data = await pollyCache.get(chunk.text);
+      let data = await ttsCache.get(cacheKey);
 
       if (!data) {
         // Cache miss - fetch from API
@@ -66,7 +69,7 @@ export class PollyNarrationProvider implements INarrationProvider {
         };
 
         // Save to cache
-        await pollyCache.set(chunk.text, newData);
+        await ttsCache.set(cacheKey, { ...newData, voiceId });
 
         data = {
           ...newData,

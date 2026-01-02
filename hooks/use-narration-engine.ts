@@ -20,7 +20,7 @@ export interface NarrationShard {
 interface UseNarrationEngineProps {
     bookId: string;
     shards: NarrationShard[];
-    initialTokenIndex?: number;
+    initialTokenIndex?: number | null;
     initialShardIndex?: number;
     initialTime?: number;
     speed?: number;
@@ -30,7 +30,7 @@ interface UseNarrationEngineProps {
 export function useNarrationEngine({
     bookId,
     shards,
-    initialTokenIndex = 0,
+    initialTokenIndex = null,
     initialShardIndex = 0,
     initialTime = 0,
     speed: initialSpeed = 1,
@@ -40,7 +40,7 @@ export function useNarrationEngine({
     const [currentShardIndex, setCurrentShardIndex] = useState(initialShardIndex);
     const [currentTime, setCurrentTime] = useState(initialTime);
     const [speed, setSpeed] = useState(initialSpeed);
-    const [currentWordIndex, setCurrentWordIndex] = useState<number>(initialTokenIndex);
+    const [currentWordIndex, setCurrentWordIndex] = useState<number | null>(initialTokenIndex);
     const [audioReady, setAudioReady] = useState(false);
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -48,7 +48,7 @@ export function useNarrationEngine({
     const bookIdRef = useRef<string>(bookId);
     const stateRef = useRef<PlaybackState>(state);
     const currentShardIndexRef = useRef<number>(currentShardIndex);
-    const currentWordIndexRef = useRef<number>(currentWordIndex);
+    const currentWordIndexRef = useRef<number | null>(currentWordIndex);
 
     // Keep refs in sync with state
     useEffect(() => { stateRef.current = state; }, [state]);
@@ -58,20 +58,33 @@ export function useNarrationEngine({
     const currentTimeRef = useRef<number>(currentTime);
     useEffect(() => { currentTimeRef.current = currentTime; }, [currentTime]);
 
-    // Reset state when bookId changes
+    // Reset state when bookId changes OR when initial progress updates (late load)
     useEffect(() => {
-        if (bookIdRef.current !== bookId) {
-            // Stop current playback
-            if (audioRef.current) {
+        const isNewBook = bookIdRef.current !== bookId;
+        // Detect if initial progress updated while we are seemingly at the start/stopped
+        // This handles the async loading of progress after book content
+        const progressUpdated =
+            stateRef.current === 'stopped' &&
+            (initialTokenIndex !== currentWordIndexRef.current || initialTime !== currentTimeRef.current);
+
+        if (isNewBook || progressUpdated) {
+            // Stop current playback if it's a new book
+            if (isNewBook && audioRef.current) {
                 audioRef.current.pause();
                 audioRef.current.src = "";
             }
 
-            // Reset all state for new book
-            setState('stopped');
+            // Update state
+            // If it's just a progress update, we don't necessarily reset to 'stopped' if we were 'stopped',
+            // but we update the indices.
+
+            // Only force stop if it's a new book
+            if (isNewBook) setState('stopped');
+
             setCurrentShardIndex(initialShardIndex);
             setCurrentTime(initialTime);
             setCurrentWordIndex(initialTokenIndex);
+
             shardsRef.current = shards;
             bookIdRef.current = bookId;
         }
@@ -141,7 +154,7 @@ export function useNarrationEngine({
     }, [speed]);
 
     const play = useCallback(async () => {
-        const wordIndex = currentWordIndexRef.current;
+        const wordIndex = currentWordIndexRef.current ?? 0; // Default to 0 if not set
 
         if (stateRef.current === 'paused' && audioRef.current && audioRef.current.src) {
             // Check if we also need to seek (user might have clicked around while paused)
