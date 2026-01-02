@@ -41,15 +41,16 @@ export class BookRepository {
 
         const { data, error } = await query.single();
         if (error && error.code !== 'PGRST116') throw error;
-        if (!data) return null;
+        const bookData = data as any;
+        if (!bookData) return null;
 
-        const result = { ...(data as any) };
+        const result = { ...bookData };
 
         if (options.includeMedia) {
             const { data: media, error: mediaError } = await this.supabase
                 .from('book_media')
                 .select('*')
-                .eq('book_id', data.id)
+                .eq('book_id', bookData.id)
                 .order('after_word_index');
 
             if (mediaError) throw mediaError;

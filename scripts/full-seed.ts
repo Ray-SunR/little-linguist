@@ -139,7 +139,7 @@ async function fullSeed() {
 
                     console.log("Generated.");
                     success = true;
-                } catch (err) {
+                } catch (err: any) {
                     retryCount++;
                     if (retryCount > maxRetries) {
                         console.log(`\n❌ Failed Shard ${chunk.index} after ${maxRetries} retries: ${err.message}`);
