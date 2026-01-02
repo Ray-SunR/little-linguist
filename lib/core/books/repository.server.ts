@@ -43,7 +43,7 @@ export class BookRepository {
         if (error && error.code !== 'PGRST116') throw error;
         if (!data) return null;
 
-        const result = { ...data };
+        const result = { ...(data as any) };
 
         if (options.includeMedia) {
             const { data: media, error: mediaError } = await this.supabase
