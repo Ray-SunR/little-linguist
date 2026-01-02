@@ -272,7 +272,7 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
                     <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
                         <Sparkles className="hidden sm:flex h-4 w-4 sm:h-5 sm:w-5 text-pink-400 flex-shrink-0" aria-hidden />
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-lg sm:text-xl font-bold text-ink truncate">
+                            <h1 className="text-lg sm:text-xl font-fredoka font-bold text-ink truncate leading-none">
                                 {selectedBook?.title || "Book Reader"}
                             </h1>
                         </div>
@@ -321,7 +321,7 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
 
                     <button
                         type="button"
-                        className="inline-flex items-center gap-1 sm:gap-2 text-sm font-bold px-3 py-2 sm:px-4 sm:py-2 rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent disabled:opacity-50"
+                        className="inline-flex items-center gap-1 sm:gap-2 text-sm font-fredoka font-bold px-3 py-2 sm:px-4 sm:py-2 rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent disabled:opacity-50"
                         onClick={goNextBook}
                         disabled={isEmpty}
                         aria-label="Next story"

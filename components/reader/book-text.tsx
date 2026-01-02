@@ -40,7 +40,7 @@ export default function BookText({
   }
 
   return (
-    <div className="px-5 py-6 text-left text-xl font-semibold leading-relaxed text-ink md:text-2xl md:leading-relaxed">
+    <div className="px-5 py-6 text-left text-xl font-nunito font-semibold leading-relaxed text-ink md:text-2xl md:leading-relaxed">
       {tokens.map((token) => {
         const isActive = token.wordIndex === currentWordIndex;
         const wordText = token.text;
@@ -76,7 +76,7 @@ export default function BookText({
                   <div className="book-image-skeleton animate-pulse border-accent/30 bg-accent/5">
                     <div className="flex flex-col items-center justify-center h-full gap-3 text-accent/40">
                       <div className="h-10 w-10 rounded-full border-4 border-t-accent animate-spin" />
-                      <span className="text-sm font-black uppercase tracking-widest antialiased">Drawing Magic...</span>
+                      <span className="text-sm font-fredoka font-black uppercase tracking-widest antialiased">Drawing Magic...</span>
                     </div>
                   </div>
                 ) : (

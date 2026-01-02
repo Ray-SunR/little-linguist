@@ -1,8 +1,19 @@
 import "../styles/globals.css";
+import { Fredoka, Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { WordListProvider } from "@/lib/features/word-insight";
 import { NarrationProvider, type NarrationProviderType } from "@/lib/features/narration";
 import { Navigation } from "@/components/layout/navigation";
+
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  variable: "--font-fredoka",
+});
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+});
 
 export const metadata = {
   title: "Core Reader MVP",
@@ -15,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-shell bg-shell text-ink antialiased">
+    <html lang="en" className={`${fredoka.variable} ${nunito.variable}`}>
+      <body className="min-h-shell bg-shell text-ink font-nunito antialiased">
         <WordListProvider>
           <NarrationProvider initialProviderType={process.env.NARRATION_PROVIDER as NarrationProviderType | undefined}>
             <div className="relative flex flex-col md:flex-row min-h-screen">

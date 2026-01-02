@@ -36,12 +36,12 @@ export default function ControlPanel({
     return (
         <div className="w-full max-w-sm rounded-[2rem] bg-white/90 dark:bg-[#1c1f2f]/95 backdrop-blur-xl p-6 shadow-xl transition-all duration-300 border-2 border-purple-100 dark:border-white/10">
             <div className="flex items-center justify-between mb-6 px-1">
-                <h2 className="text-[13px] font-black tracking-widest text-ink dark:text-white/90 uppercase">
+                <h2 className="text-[13px] font-fredoka font-black tracking-widest text-ink dark:text-white/90 uppercase text-accent/80">
                     READING TEMPO
                 </h2>
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 dark:bg-purple-900/30">
-                    <span className="text-[10px] font-bold text-purple-400 dark:text-purple-300 uppercase">SET TO</span>
-                    <span className="text-sm font-black text-accent dark:text-purple-200">{speed}x</span>
+                    <span className="text-[10px] font-fredoka font-bold text-purple-400 dark:text-purple-300 uppercase">SET TO</span>
+                    <span className="text-sm font-fredoka font-black text-accent dark:text-purple-200">{speed}x</span>
                 </div>
             </div>
 
@@ -62,7 +62,7 @@ export default function ControlPanel({
                             <span className={`text-2xl mb-1 ${isActive ? "brightness-110" : "grayscale opacity-60"}`}>
                                 {opt.emoji}
                             </span>
-                            <span className={`text-[10px] font-black tracking-wide ${isActive ? "text-white" : "text-purple-700 dark:text-slate-500"}`}>
+                            <span className={`text-[10px] font-fredoka font-black tracking-wide ${isActive ? "text-white" : "text-purple-700 dark:text-slate-500"}`}>
                                 {opt.label}
                             </span>
                         </button>
@@ -75,7 +75,7 @@ export default function ControlPanel({
                 <div className="flex-1 bg-purple-100/80 dark:bg-[#151525] rounded-full p-1.5 flex gap-1 items-center">
                     <button
                         onClick={() => onViewModeChange("continuous")}
-                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-black text-[10px] transition-all ${viewMode === "continuous"
+                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-fredoka font-black text-[10px] uppercase transition-all ${viewMode === "continuous"
                             ? "bg-gradient-to-r from-purple-500 to-purple-700 text-white shadow-md"
                             : "text-purple-700 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-[#252535]"
                             }`}
@@ -86,7 +86,7 @@ export default function ControlPanel({
                     </button>
                     <button
                         onClick={() => onViewModeChange("spread")}
-                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-black text-[10px] transition-all ${viewMode === "spread"
+                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-fredoka font-black text-[10px] uppercase transition-all ${viewMode === "spread"
                             ? "bg-gradient-to-r from-purple-500 to-purple-700 text-white shadow-md"
                             : "text-purple-700 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-[#252535]"
                             }`}
@@ -97,7 +97,7 @@ export default function ControlPanel({
                     </button>
                     <button
                         onClick={() => onViewModeChange("scroll")}
-                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-black text-[10px] transition-all ${viewMode === "scroll"
+                        className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-3 rounded-full font-fredoka font-black text-[10px] uppercase transition-all ${viewMode === "scroll"
                             ? "bg-gradient-to-r from-purple-500 to-purple-700 text-white shadow-md"
                             : "text-purple-700 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-[#252535]"
                             }`}

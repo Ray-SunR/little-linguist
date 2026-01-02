@@ -101,7 +101,7 @@ export default function WordInspectorTooltip({
             <div className="h-10 w-10 animate-spin rounded-full border-3 border-accent/10 border-t-accent" />
             <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 text-accent/50 animate-pulse" />
           </div>
-          <p className="text-sm font-medium text-muted-foreground animate-pulse">Linguist is thinking...</p>
+          <p className="text-sm font-nunito font-bold text-muted-foreground animate-pulse">Linguist is thinking...</p>
         </div>
       )}
 
@@ -111,10 +111,10 @@ export default function WordInspectorTooltip({
           <div className="rounded-full bg-destructive/10 p-3.5 ring-4 ring-destructive/5">
             <X className="h-5 w-5 text-destructive" />
           </div>
-          <p className="text-center text-sm font-medium text-muted-foreground">{error}</p>
+          <p className="text-center text-sm font-nunito font-semibold text-muted-foreground">{error}</p>
           <button
             onClick={onRetry}
-            className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3.5 py-1.5 text-xs font-bold text-accent hover:bg-accent/20 transition-all active:scale-95"
+            className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3.5 py-1.5 text-xs font-fredoka font-bold text-accent hover:bg-accent/20 transition-all active:scale-95"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Try Again

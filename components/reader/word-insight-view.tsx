@@ -84,7 +84,7 @@ export function WordInsightView({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
                 <div className="flex flex-col gap-0 w-full">
                     <div className="flex items-center gap-3 w-full">
-                        <h2 className="text-3xl font-black text-accent tracking-tighter leading-tight break-words min-w-0">
+                        <h2 className="text-3xl font-fredoka font-black text-accent tracking-tighter leading-tight break-words min-w-0">
                             {insight.word}
                         </h2>
 
@@ -158,8 +158,8 @@ export function WordInsightView({
             <div className="group relative bg-white/30 dark:bg-black/10 rounded-[1.5rem] p-3.5 border border-white/20 dark:border-white/5 shadow-inner">
                 <div className="flex items-start justify-between">
                     <div className="flex-1 pr-4">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-ink-muted/60 mb-2">Meaning</h3>
-                        <div className="text-base font-bold leading-relaxed text-ink dark:text-white/90">
+                        <h3 className="text-[10px] font-fredoka font-black uppercase tracking-[0.2em] text-ink-muted/60 mb-2">Meaning</h3>
+                        <div className="text-base font-nunito font-bold leading-relaxed text-ink dark:text-white/90">
                             <NarratedText
                                 ref={definitionRef}
                                 text={insight.definition}
@@ -183,7 +183,7 @@ export function WordInsightView({
             {/* Examples Section */}
             {insight.examples.length > 0 && (
                 <div className="space-y-2">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-ink-muted/60 px-1">Examples</h3>
+                    <h3 className="text-[10px] font-fredoka font-black uppercase tracking-[0.2em] text-ink-muted/60 px-1">Examples</h3>
                     <div className="space-y-2">
                         {insight.examples.map((example, index) => (
                             <div
@@ -194,7 +194,7 @@ export function WordInsightView({
                                     className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-2/3 rounded-full flex-shrink-0 bg-accent/30 group-hover:bg-accent/60 transition-colors"
                                 />
                                 <div className="flex-1 pl-3">
-                                    <div className="text-[13px] italic font-bold text-accent leading-snug tracking-tight">
+                                    <div className="text-[13px] italic font-nunito font-bold text-accent leading-snug tracking-tight">
                                         <NarratedText
                                             ref={(el) => {
                                                 exampleRefs.current[index] = el;
