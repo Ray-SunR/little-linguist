@@ -1,4 +1,4 @@
-import { tokenizeText } from "../utils/tokenization";
+import { Tokenizer, Token } from "./tokenizer";
 
 export interface NarrationChunk {
     index: number;
@@ -10,43 +10,48 @@ export interface NarrationChunk {
 /**
  * TextChunker splits a long text into smaller segments for narration.
  * It ensures that segments do not break in the middle of a sentence
- * and tracks the word indices to sync with the frontend tokenizer.
+ * and tracks the absolute word indices.
  */
 export class TextChunker {
     private static readonly MAX_CHARS = 1500;
     private static readonly SENTENCE_ENDERS = /[.!?](\s+|$)/;
 
     static chunk(rawText: string): NarrationChunk[] {
-        const tokens = tokenizeText(rawText);
-        const chunks: NarrationChunk[] = [];
+        const allTokens = Tokenizer.tokenize(rawText);
+        const wordTokens = Tokenizer.getWords(allTokens);
 
-        let currentChunkWords: string[] = [];
-        let currentChunkStartWordIndex = 0;
-        let currentCharsCount = 0;
+        const chunks: NarrationChunk[] = [];
+        let currentTokens: Token[] = [];
+        let currentWordIndices: number[] = [];
+        let charsCount = 0;
         let chunkIndex = 0;
 
-        for (let i = 0; i < tokens.length; i++) {
-            const token = tokens[i];
-            const wordWithPunct = token.text + (token.punctuation || "");
+        for (let i = 0; i < allTokens.length; i++) {
+            const token = allTokens[i];
+            currentTokens.push(token);
+            charsCount += token.t.length;
 
-            currentChunkWords.push(wordWithPunct);
-            currentCharsCount += wordWithPunct.length + 1; // +1 for space
+            if (token.type === 'w' && token.i !== undefined) {
+                currentWordIndices.push(token.i);
+            }
 
-            const isSentenceEnd = this.SENTENCE_ENDERS.test(wordWithPunct);
-            const isOverLimit = currentCharsCount >= this.MAX_CHARS;
+            const isSentenceEnd = token.type === 'p' && this.SENTENCE_ENDERS.test(token.t);
+            const isOverLimit = charsCount >= this.MAX_CHARS;
+            const isLastToken = i === allTokens.length - 1;
 
-            // If we are over the limit and at a sentence boundary, or at the end of text
-            if ((isOverLimit && isSentenceEnd) || i === tokens.length - 1) {
-                chunks.push({
-                    index: chunkIndex++,
-                    text: currentChunkWords.join(" "),
-                    startWordIndex: currentChunkStartWordIndex,
-                    endWordIndex: i,
-                });
+            if ((isOverLimit && isSentenceEnd) || isLastToken) {
+                if (currentWordIndices.length > 0) {
+                    chunks.push({
+                        index: chunkIndex++,
+                        text: Tokenizer.join(currentTokens),
+                        startWordIndex: Math.min(...currentWordIndices),
+                        endWordIndex: Math.max(...currentWordIndices),
+                    });
+                }
 
-                currentChunkWords = [];
-                currentChunkStartWordIndex = i + 1;
-                currentCharsCount = 0;
+                currentTokens = [];
+                currentWordIndices = [];
+                charsCount = 0;
             }
         }
 

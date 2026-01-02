@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { TextChunker } from '@/lib/core/books/text-chunker';
+import { Tokenizer } from '@/lib/core/books/tokenizer';
+import { alignSpeechMarksToTokens, getWordTokensForChunk } from '@/lib/core/books/speech-mark-aligner';
 import { PollyNarrationService } from '@/lib/features/narration/polly-service.server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -58,6 +60,11 @@ export async function GET(
 
             if (uploadError) throw uploadError;
 
+            // Align speech marks to canonical token indices
+            const allTokens = Tokenizer.tokenize(book.text);
+            const wordTokensForChunk = getWordTokensForChunk(allTokens, textChunks[0].startWordIndex, textChunks[0].endWordIndex);
+            const alignedTimings = alignSpeechMarksToTokens(speechMarks, wordTokensForChunk);
+
             // Save relative path to DB
             await repo.saveNarrationChunk({
                 book_id: book.id,
@@ -65,7 +72,7 @@ export async function GET(
                 start_word_index: textChunks[0].startWordIndex,
                 end_word_index: textChunks[0].endWordIndex,
                 audio_path: storagePath,
-                timings: speechMarks,
+                timings: alignedTimings,
                 voice_id: voiceId
             });
 
@@ -135,10 +142,16 @@ export async function POST(
 
         if (uploadError) throw uploadError;
 
+        // Align speech marks to canonical token indices
+        const allTokens = Tokenizer.tokenize(book.text);
+        const chunkInfo = textChunks[chunkIndex];
+        const wordTokensForChunk = getWordTokensForChunk(allTokens, chunkInfo.startWordIndex, chunkInfo.endWordIndex);
+        const alignedTimings = alignSpeechMarksToTokens(speechMarks, wordTokensForChunk);
+
         const updatedChunk = await repo.saveNarrationChunk({
             ...targetChunk,
             audio_path: storagePath, // Relative path
-            timings: speechMarks
+            timings: alignedTimings
         });
 
         const result = await getSignedUrlForChunk(updatedChunk, 'book-assets');

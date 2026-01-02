@@ -29,7 +29,7 @@ export class BookRepository {
     async getBookById(idOrSlug: string, options: { includeContent?: boolean, includeMedia?: boolean } = {}): Promise<any | null> {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
 
-        const fields = ['id', 'book_key', 'title', 'origin'];
+        const fields = ['id', 'book_key', 'title', 'origin', 'tokens'];
         if (options.includeContent) fields.push('text');
 
         const query = this.supabase.from('books').select(fields.join(','));
@@ -98,6 +98,37 @@ export class BookRepository {
         const { data, error } = await this.supabase
             .from('book_audios')
             .upsert(payload, { onConflict: 'book_id,chunk_index,voice_id' })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    }
+
+    async getProgress(userId: string, bookId: string) {
+        const { data, error } = await this.supabase
+            .from('user_progress')
+            .select('*')
+            .match({ user_id: userId, book_id: bookId })
+            .maybeSingle();
+
+        if (error) throw error;
+        return data;
+    }
+
+    async saveProgress(userId: string, bookId: string, progress: {
+        last_token_index: number;
+        last_shard_index: number;
+        last_playback_time: number;
+    }) {
+        const { data, error } = await this.supabase
+            .from('user_progress')
+            .upsert({
+                user_id: userId,
+                book_id: bookId,
+                ...progress,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id,book_id' })
             .select()
             .single();
 

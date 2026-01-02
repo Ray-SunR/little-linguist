@@ -1,0 +1,299 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+export type PlaybackState = 'playing' | 'paused' | 'stopped' | 'buffering';
+
+export interface NarrationShard {
+    chunk_index: number;
+    start_word_index: number;
+    end_word_index: number;
+    audio_path: string; // This will be the signed URL
+    timings: Array<{
+        time: number;
+        type: string;
+        value: string;
+        absIndex: number;
+    }>;
+}
+
+interface UseNarrationEngineProps {
+    bookId: string;
+    shards: NarrationShard[];
+    initialTokenIndex?: number;
+    initialShardIndex?: number;
+    initialTime?: number;
+    speed?: number;
+    onProgress?: (tokenIndex: number, shardIndex: number, time: number) => void;
+}
+
+export function useNarrationEngine({
+    bookId,
+    shards,
+    initialTokenIndex = 0,
+    initialShardIndex = 0,
+    initialTime = 0,
+    speed: initialSpeed = 1,
+    onProgress
+}: UseNarrationEngineProps) {
+    const [state, setState] = useState<PlaybackState>('stopped');
+    const [currentShardIndex, setCurrentShardIndex] = useState(initialShardIndex);
+    const [currentTime, setCurrentTime] = useState(initialTime);
+    const [speed, setSpeed] = useState(initialSpeed);
+    const [currentWordIndex, setCurrentWordIndex] = useState<number>(initialTokenIndex);
+    const [audioReady, setAudioReady] = useState(false);
+
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const shardsRef = useRef<NarrationShard[]>(shards);
+    const bookIdRef = useRef<string>(bookId);
+    const stateRef = useRef<PlaybackState>(state);
+    const currentShardIndexRef = useRef<number>(currentShardIndex);
+    const currentWordIndexRef = useRef<number>(currentWordIndex);
+
+    // Keep refs in sync with state
+    useEffect(() => { stateRef.current = state; }, [state]);
+    useEffect(() => { currentShardIndexRef.current = currentShardIndex; }, [currentShardIndex]);
+    useEffect(() => { currentWordIndexRef.current = currentWordIndex; }, [currentWordIndex]);
+
+    const currentTimeRef = useRef<number>(currentTime);
+    useEffect(() => { currentTimeRef.current = currentTime; }, [currentTime]);
+
+    // Reset state when bookId changes
+    useEffect(() => {
+        if (bookIdRef.current !== bookId) {
+            // Stop current playback
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = "";
+            }
+
+            // Reset all state for new book
+            setState('stopped');
+            setCurrentShardIndex(initialShardIndex);
+            setCurrentTime(initialTime);
+            setCurrentWordIndex(initialTokenIndex);
+            shardsRef.current = shards;
+            bookIdRef.current = bookId;
+        }
+    }, [bookId, shards, initialShardIndex, initialTime, initialTokenIndex]);
+
+    // Sync shards if they change (without book change)
+    useEffect(() => {
+        shardsRef.current = shards;
+    }, [shards]);
+
+    const findShardForWordIndex = useCallback((wordIndex: number) => {
+        return shardsRef.current.findIndex(s => wordIndex >= s.start_word_index && wordIndex <= s.end_word_index);
+    }, []);
+
+    const playShard = useCallback(async (shardIndex: number, startTime: number = 0, autoPlay: boolean = true) => {
+        if (shardIndex < 0 || shardIndex >= shardsRef.current.length) return;
+
+        const shard = shardsRef.current[shardIndex];
+        if (!shard.audio_path) return;
+
+        if (!audioRef.current) {
+            audioRef.current = new Audio();
+            setAudioReady(true); // Trigger effect to attach event listeners
+        }
+
+        const audio = audioRef.current;
+        const isSameSource = audio.src === shard.audio_path;
+
+        const initiatePlayback = async () => {
+            audio.playbackRate = speed;
+            audio.currentTime = startTime;
+            if (autoPlay) {
+                try {
+                    setState('playing');
+                    await audio.play();
+                } catch (err) {
+                    console.error("Playback failed:", err);
+                    setState('stopped');
+                }
+            } else {
+                setState('paused');
+            }
+        };
+
+        if (isSameSource) {
+            await initiatePlayback();
+        } else {
+            setState('buffering');
+            audio.src = shard.audio_path;
+
+            // Wait for metadata to be loaded before seeking
+            await new Promise<void>((resolve) => {
+                const onLoaded = () => {
+                    audio.removeEventListener('loadedmetadata', onLoaded);
+                    resolve();
+                };
+                audio.addEventListener('loadedmetadata', onLoaded);
+                // Fallback for already loaded or error
+                setTimeout(resolve, 3000);
+            });
+
+            await initiatePlayback();
+        }
+
+        setCurrentShardIndex(shardIndex);
+        setCurrentTime(startTime);
+    }, [speed]);
+
+    const play = useCallback(async () => {
+        const wordIndex = currentWordIndexRef.current;
+
+        if (stateRef.current === 'paused' && audioRef.current && audioRef.current.src) {
+            // Check if we also need to seek (user might have clicked around while paused)
+            const shardIndex = findShardForWordIndex(wordIndex);
+            const shard = shardsRef.current[shardIndex];
+
+            if (shard && audioRef.current.src === shard.audio_path) {
+                // Same shard, just ensure time is synced if it drifted or was changed
+                const mark = shard.timings.find(m => m.absIndex === wordIndex);
+                if (mark) {
+                    const expectedTime = mark.time / 1000;
+                    if (Math.abs(audioRef.current.currentTime - expectedTime) > 0.5) {
+                        audioRef.current.currentTime = expectedTime;
+                    }
+                }
+                await audioRef.current.play();
+                setState('playing');
+                return;
+            }
+        }
+
+        // Default: start/restart from current word
+        const shardIndex = findShardForWordIndex(wordIndex);
+        if (shardIndex !== -1) {
+            const shard = shardsRef.current[shardIndex];
+            const mark = shard.timings.find(m => m.absIndex === wordIndex);
+
+            // Auto-restart check:
+            // If we are at the last word of the last shard, and we are stopped (not paused),
+            // and the current time is past the start of the word (indicating it finished),
+            // then we should restart from the beginning.
+            const isLastShard = shardIndex === shardsRef.current.length - 1;
+            const isLastWord = shard && wordIndex >= shard.end_word_index;
+
+            if (isLastShard && isLastWord && stateRef.current !== 'paused') {
+                const startTime = mark ? mark.time / 1000 : 0;
+                // Use a small buffer (0.1s) to distinguish between "just seeked to start" and "finished reading"
+                // If we are significantly past the start time, assume we finished.
+                const isFinished = currentTimeRef.current > startTime + 0.1;
+
+                if (isFinished) {
+                    console.log("[Narration] Last word finished, restarting from beginning.");
+                    setCurrentWordIndex(0);
+                    setCurrentShardIndex(0);
+                    setCurrentTime(0);
+                    await playShard(0, 0, true);
+                    return;
+                }
+            }
+
+            const startTime = mark ? mark.time / 1000 : 0;
+            await playShard(shardIndex, startTime, true);
+        }
+    }, [findShardForWordIndex, playShard]);
+
+    const pause = useCallback(() => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            setState('paused');
+        }
+    }, []);
+
+    const seekToWord = useCallback(async (wordIndex: number) => {
+        const shardIndex = findShardForWordIndex(wordIndex);
+        if (shardIndex === -1) return;
+
+        const shard = shardsRef.current[shardIndex];
+        const mark = shard.timings.find(m => m.absIndex === wordIndex);
+        const startTime = mark ? mark.time / 1000 : 0;
+
+        setCurrentWordIndex(wordIndex);
+
+        // Always try to sync the audio element if it exists or if we should play
+        const currentState = stateRef.current;
+        if (currentState === 'playing' || currentState === 'paused' || currentState === 'buffering') {
+            await playShard(shardIndex, startTime, currentState === 'playing');
+        } else {
+            // Just update local state for restoration on next play
+            setCurrentShardIndex(shardIndex);
+            setCurrentTime(startTime);
+        }
+    }, [findShardForWordIndex, playShard]);
+
+    // Audio Event Listeners
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio || !audioReady) return;
+
+        const handleTimeUpdate = () => {
+            if (stateRef.current !== 'playing') return; // Only track while active
+
+            const timeMs = audio.currentTime * 1000;
+            const shard = shardsRef.current[currentShardIndexRef.current];
+            if (!shard) return;
+
+            // Find the active mark
+            const mark = shard.timings.reduce((prev, curr) => {
+                return (curr.time <= timeMs && curr.time > (prev?.time || -1)) ? curr : prev;
+            }, null as any);
+
+            if (mark && mark.absIndex !== currentWordIndexRef.current) {
+                setCurrentWordIndex(mark.absIndex);
+                onProgress?.(mark.absIndex, currentShardIndexRef.current, audio.currentTime);
+            }
+            setCurrentTime(audio.currentTime);
+        };
+
+        const handleEnded = async () => {
+            if (currentShardIndexRef.current < shardsRef.current.length - 1) {
+                // Transition to next shard
+                await playShard(currentShardIndexRef.current + 1, 0);
+            } else {
+                setState('stopped');
+            }
+        };
+
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+        audio.addEventListener('ended', handleEnded);
+
+        return () => {
+            audio.removeEventListener('timeupdate', handleTimeUpdate);
+            audio.removeEventListener('ended', handleEnded);
+        };
+    }, [onProgress, playShard, audioReady]); // Include audioReady to attach listeners after audio creation
+
+    // Handle speed changes
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.playbackRate = speed;
+        }
+    }, [speed]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = "";
+                audioRef.current = null;
+            }
+        };
+    }, []);
+
+    return {
+        state,
+        currentShardIndex,
+        currentWordIndex,
+        currentTime,
+        speed,
+        setSpeed,
+        play,
+        pause,
+        seekToWord
+    };
+}

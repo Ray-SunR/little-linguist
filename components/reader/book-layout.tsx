@@ -39,20 +39,30 @@ export default function BookLayout({
     if (!container) return;
 
     const updateSpreadCount = () => {
+      // Temporarily hide snap overlay to measure true content width
+      // This prevents a feedback loop where snap anchors extend the scroll width
+      const overlay = container.querySelector(".book-snap-overlay") as HTMLElement;
+      if (overlay) overlay.style.display = "none";
+
       const scrollWidth = container.scrollWidth;
       const clientWidth = container.clientWidth;
+
+      // Restore overlay
+      if (overlay) overlay.style.display = "";
+
       if (clientWidth > 0) {
-        const count = Math.ceil(scrollWidth / clientWidth);
-        setSpreadCount(count);
+        // Use floor instead of ceil to be conservative and avoid empty pages at the end
+        // if the overflow is just sub-pixel or padding
+        const count = Math.ceil((scrollWidth - 10) / clientWidth);
+        setSpreadCount(Math.max(1, count));
       }
     };
 
     // Initial measure
     updateSpreadCount();
 
-    // Use ResizeObserver to handle layout changes (like images loading or window resizing)
+    // Use ResizeObserver to handle layout changes
     const resizeObserver = new ResizeObserver(() => {
-      // Small delay to let browser settle layout
       requestAnimationFrame(updateSpreadCount);
     });
 
@@ -93,6 +103,25 @@ export default function BookLayout({
             images={images}
             currentWordIndex={currentWordIndex}
             onWordClick={onWordClick}
+            onImageLoad={() => {
+              // Trigger layout update when image loads
+              const container = scrollContainerRef.current;
+              if (container) {
+                // Same measurement logic as above
+                const overlay = container.querySelector(".book-snap-overlay") as HTMLElement;
+                if (overlay) overlay.style.display = "none";
+
+                const scrollWidth = container.scrollWidth;
+                const clientWidth = container.clientWidth;
+
+                if (overlay) overlay.style.display = "";
+
+                if (clientWidth > 0) {
+                  const count = Math.ceil((scrollWidth - 10) / clientWidth);
+                  setSpreadCount(Math.max(1, count));
+                }
+              }
+            }}
           />
         </div>
       </div>

@@ -15,8 +15,9 @@ export default function BookText({
   tokens,
   currentWordIndex,
   onWordClick,
-  images
-}: BookTextProps) {
+  images,
+  onImageLoad
+}: BookTextProps & { onImageLoad?: () => void }) {
   if (tokens.length === 0) {
     return <p className="text-ink-muted">Pick a book to begin.</p>;
   }
@@ -84,6 +85,7 @@ export default function BookText({
                     alt={image.alt || ""}
                     className="book-image animate-in fade-in zoom-in-95 duration-700"
                     loading="lazy"
+                    onLoad={onImageLoad}
                   />
                 )}
                 <figcaption className="book-caption">{image.isPlaceholder ? "..." : image.caption}</figcaption>
