@@ -63,9 +63,9 @@ const config: Config = {
 			},
 			boxShadow: {
 				soft: 'var(--shadow)',
-				clay: "0 8px 32px rgba(139, 75, 255, 0.1), 0 1px 2px rgba(139, 75, 255, 0.2)",
-				"clay-inset": "inset 0 -8px 15px rgba(139, 75, 255, 0.1), inset 0 2px 4px rgba(255, 255, 255, 0.8)",
-				"magic-glow": "0 0 40px rgba(139, 75, 255, 0.1)",
+				clay: "0 12px 36px rgba(139, 75, 255, 0.15), 0 2px 4px rgba(139, 75, 255, 0.2)",
+				"clay-inset": "inset 0 -12px 20px rgba(139, 75, 255, 0.15), inset 0 2px 6px rgba(255, 255, 255, 0.9)",
+				"magic-glow": "0 0 50px rgba(139, 75, 255, 0.15)",
 			},
 			borderRadius: {
 				card: 'var(--radius-card)',

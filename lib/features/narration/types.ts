@@ -23,7 +23,7 @@ export type NarrationResult = {
 export type NarrationPrepareInput = {
   contentId: string;
   rawText: string;
-  tokens: { wordIndex: number; text: string }[];
+  tokens: { wordIndex: number; text: string; start?: number; end?: number }[];
   voice?: { name?: string; locale?: string };
   speed?: number;
 };

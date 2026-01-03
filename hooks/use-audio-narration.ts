@@ -12,7 +12,7 @@ type UseAudioNarrationInput = {
   provider: INarrationProvider | null;
   contentId: string;
   rawText: string;
-  tokens: { wordIndex: number; text: string }[];
+  tokens: { wordIndex: number; text: string; start?: number; end?: number }[];
   speed?: number;
   initialWordIndex?: number;
 };

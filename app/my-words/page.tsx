@@ -303,6 +303,7 @@ function Flashcard({ word, onRemove, ttsProvider }: { word: WordInsight; onRemov
                             onToggleSave={(e?: any) => e?.stopPropagation?.()}
                             onListen={handleListen}
                             isListening={isListening}
+                            provider={ttsProvider}
                         />
 
                         {/* Flip back hint */}

@@ -9,7 +9,7 @@ import { useWordInspector } from "@/hooks/use-word-inspector";
 import { tokensToWordTokens } from "@/lib/core/books/token-adapter";
 import { Token } from "@/lib/core/books/tokenizer";
 import { DEFAULT_SPEED, type SpeedOption } from "@/lib/features/narration/internal/speed-options";
-import { playWordOnly, playSentence } from "@/lib/features/narration";
+import { playSentence } from "@/lib/features/narration";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
 import type { ViewMode } from "@/lib/core";
 
@@ -45,7 +45,6 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
     const router = useRouter();
     const [selectedBookId, setSelectedBookId] = useState(initialBookId || "");
     const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
-    const [isListening, setIsListening] = useState(false);
     const [viewMode, setViewMode] = useState<ViewMode>("scroll");
     const [isMounted, setIsMounted] = useState(false);
     const [controlsExpanded, setControlsExpanded] = useState(false);
@@ -134,19 +133,9 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
     const handleWordClick = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
         if (playbackState === "playing") pause();
         await wordInspector.openWord(word, element, wordIndex);
-    }, [playbackState, pause, wordInspector]);
+        await seekToWord(wordIndex);
+    }, [playbackState, pause, wordInspector, seekToWord]);
 
-    const handleTooltipListen = useCallback(async () => {
-        if (!wordInspector.insight || isListening) return;
-        setIsListening(true);
-        try {
-            await playWordOnly(wordInspector.insight.word, tooltipProvider);
-        } catch (error) {
-            console.error("Failed to play word TTS:", error);
-        } finally {
-            setIsListening(false);
-        }
-    }, [wordInspector.insight, isListening, tooltipProvider]);
 
     const handlePlaySentence = useCallback(async (sentence: string) => {
         try {
@@ -369,11 +358,10 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
                 isOpen={wordInspector.isOpen}
                 position={wordInspector.position}
                 onClose={wordInspector.close}
-                onListen={handleTooltipListen}
                 onRetry={wordInspector.retry}
-                isListening={isListening}
                 onPlaySentence={handlePlaySentence}
                 onPlayFromWord={handlePlayFromWord}
+                provider={tooltipProvider}
             />
         </section>
     );

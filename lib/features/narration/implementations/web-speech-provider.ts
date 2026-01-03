@@ -11,6 +11,7 @@ export class WebSpeechNarrationProvider implements INarrationProvider {
   private utterances: SpeechSynthesisUtterance[] = [];
   private listeners: Map<NarrationEvent, Set<(payload?: unknown) => void>> = new Map();
   private preparedText = "";
+  private tokens: { wordIndex: number; text: string; start?: number; end?: number }[] = [];
   private rate = 1;
   private chunks: TextChunk[] = [];
   private globalWordIndex = -1;
@@ -19,6 +20,7 @@ export class WebSpeechNarrationProvider implements INarrationProvider {
 
   async prepare(input: NarrationPrepareInput): Promise<NarrationResult> {
     this.preparedText = input.rawText;
+    this.tokens = input.tokens;
     this.rate = input.speed ?? 1;
 
     // Split text into chunks for reliable cross-browser playback
@@ -63,8 +65,23 @@ export class WebSpeechNarrationProvider implements INarrationProvider {
 
       utterance.onboundary = (event) => {
         if (event.name === "word") {
-          this.globalWordIndex++;
-          this.emit("boundary", this.globalWordIndex);
+          const globalCharIndex = chunk.startCharIndex + event.charIndex;
+
+          // Find token by character offset
+          const token = this.tokens.find(t =>
+            t.start !== undefined &&
+            globalCharIndex >= t.start &&
+            globalCharIndex < (t.end ?? (t.start + t.text.length))
+          );
+
+          if (token) {
+            this.globalWordIndex = token.wordIndex;
+            this.emit("boundary", this.globalWordIndex);
+          } else {
+            // Fallback for cases where offsets might be missing or slightly off
+            this.globalWordIndex++;
+            this.emit("boundary", this.globalWordIndex);
+          }
         }
       };
 

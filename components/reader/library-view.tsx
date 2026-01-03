@@ -69,106 +69,90 @@ export default function LibraryView({ books, onSelectBook }: LibraryViewProps) {
                 />
             </div>
 
-            <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-12 flex flex-col gap-8 md:gap-12">
-
+            <div className="relative mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex flex-col gap-6 md:gap-8">
                 {/* Hero Section */}
-                <header className="flex flex-col gap-8 pt-4 md:pt-8 relative overflow-visible">
-                    {/* Floating Decorative Elements */}
-                    <div className="absolute -top-10 -left-10 pointer-events-none opacity-20">
+                <header className="flex flex-col gap-6 pt-2 md:pt-4 relative overflow-visible">
+                    {/* Floating Decorative Elements - Smaller & more subtle */}
+                    <div className="absolute -top-6 -left-6 pointer-events-none opacity-20 hidden md:block">
                         <motion.div className="animate-float">
-                            <Wand2 className="w-32 h-32 text-purple-400 -rotate-12" />
-                        </motion.div>
-                    </div>
-                    <div className="absolute -bottom-20 -right-20 pointer-events-none opacity-10">
-                        <motion.div className="animate-float" style={{ animationDelay: "1s" }}>
-                            <Rocket className="w-48 h-48 text-blue-400 rotate-45" />
+                            <Wand2 className="w-20 h-20 text-purple-400 -rotate-12" />
                         </motion.div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
                         <motion.div
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                            className="space-y-4"
+                            className="space-y-2"
                         >
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border border-white/50 shadow-clay-inset text-xs font-black text-accent shadow-clay animate-in fade-in zoom-in duration-1000">
-                                <Star className="h-4 w-4 fill-accent" />
-                                <span>KID FRIENDLY • AD-FREE • PURE MAGIC</span>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-white/50 shadow-clay-inset text-[10px] font-black text-accent shadow-clay">
+                                <Star className="h-3 w-3 fill-accent" />
+                                <span>PURE MAGIC • AD-FREE</span>
                             </div>
-                            <h1 className="font-fredoka text-5xl md:text-7xl font-black text-ink dark:text-white tracking-tight leading-[1.05]">
-                                Magical <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-purple-500 to-pink-500 drop-shadow-sm">Story Library</span>
+                            <h1 className="font-fredoka text-4xl md:text-5xl font-black text-ink dark:text-white tracking-tight leading-tight">
+                                Magical <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-purple-500 to-pink-500 drop-shadow-sm">Story Library</span>
                             </h1>
-                            <p className="max-w-md text-lg font-medium text-ink-muted leading-relaxed opacity-90">
-                                Pick an adventure below or create your very own magic story with Leo!
-                            </p>
                         </motion.div>
 
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.8, x: 20 }}
-                            animate={{ opacity: 1, scale: 1, x: 0 }}
-                            transition={{ delay: 0.2, type: "spring", stiffness: 120 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1, type: "spring", stiffness: 120 }}
                         >
                             <Link
                                 href="/story-maker"
-                                className="group relative flex items-center gap-4 p-1.5 pr-8 rounded-[2.5rem] bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 text-white shadow-2xl shadow-purple-500/30 hover:scale-[1.05] active:scale-[0.95] transition-all duration-300 glass-shine"
+                                className="group relative flex items-center gap-3 p-1 pr-6 rounded-[2rem] bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 text-white shadow-xl shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 glass-shine"
                             >
-                                <div className="h-16 w-16 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md group-hover:rotate-12 transition-transform duration-500 border border-white/30">
-                                    <Wand2 className="h-8 w-8" />
+                                <div className="h-10 w-10 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md group-hover:rotate-12 transition-transform duration-500 border border-white/30">
+                                    <Wand2 className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-0.5">Design your own</div>
-                                    <div className="font-fredoka text-xl font-bold tracking-tight">Story Maker</div>
-                                </div>
-                                <div className="absolute -top-2 -right-2 h-6 w-6 bg-pink-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
+                                <div className="font-fredoka text-sm font-bold tracking-tight">Story Maker</div>
+                                <div className="absolute -top-1 -right-1 h-4 w-4 bg-pink-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
                             </Link>
                         </motion.div>
                     </div>
 
                     {/* Magic Search & Filters */}
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4">
                         <motion.div
-                            initial={{ opacity: 0, x: -20 }}
+                            initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="relative group max-w-2xl"
+                            transition={{ delay: 0.2 }}
+                            className="relative group w-full"
                         >
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-6 z-10">
-                                <Search className="h-6 w-6 text-slate-400 group-focus-within:text-accent transition-colors" />
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-5 z-10">
+                                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-accent transition-colors" />
                             </div>
                             <input
                                 type="text"
-                                placeholder="What would you like to read today?"
+                                placeholder="Find a story..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-16 clay-card pl-16 pr-6 font-fredoka text-xl font-bold text-ink placeholder:text-slate-400/60 focus:outline-none focus:scale-[1.01] transition-all"
+                                className="w-full h-14 clay-card pl-14 pr-6 font-fredoka text-lg font-bold text-ink placeholder:text-slate-400/60 focus:outline-none focus:scale-[1.005] transition-all border-4 shadow-clay-inset"
                             />
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-[10px] font-fredoka font-black text-purple-400 dark:text-purple-300 pointer-events-none uppercase tracking-tighter">
-                                <Compass className="w-3.5 h-3.5" /> Discovery
-                            </div>
                         </motion.div>
 
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap items-center gap-2">
                             {CATEGORIES.map((cat, idx) => {
                                 const isActive = activeCategory === cat.id;
                                 return (
                                     <motion.button
                                         key={cat.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.4 + (idx * 0.05) }}
-                                        whileHover={{ scale: 1.05, y: -2 }}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: 0.3 + (idx * 0.05) }}
+                                        whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => setActiveCategory(cat.id)}
                                         className={cn(
-                                            "flex items-center gap-2 px-6 py-3.5 rounded-[1.5rem] font-fredoka text-sm font-black transition-all border-2",
+                                            "flex items-center gap-2 px-5 py-2.5 rounded-[1.2rem] font-fredoka text-xs font-black transition-all border-[3px] whitespace-nowrap",
                                             isActive
-                                                ? cn("bg-gradient-to-br text-white border-white/30 shadow-xl", cat.color, cat.shadow)
-                                                : cn("bg-white/70 border-white text-slate-500 hover:text-ink shadow-sm hover:shadow-md", cat.bg)
+                                                ? cn("bg-gradient-to-br text-white border-white/30 shadow-lg", cat.color)
+                                                : cn("bg-white/90 border-white/50 text-slate-500 hover:text-ink shadow-sm shadow-clay-inset", cat.bg)
                                         )}
                                     >
-                                        <cat.icon className={cn("h-4 w-4", !isActive && "opacity-60")} />
+                                        <cat.icon className={cn("h-3.5 w-3.5", !isActive && "opacity-60")} />
                                         {cat.label}
                                     </motion.button>
                                 );

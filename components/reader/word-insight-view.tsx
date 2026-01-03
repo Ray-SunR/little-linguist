@@ -6,18 +6,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/core";
 import type { WordInsight } from "@/lib/features/word-insight";
 import { NarratedText, type NarratedTextRef } from "../narrated-text";
+import { INarrationProvider } from "@/lib/features/narration";
 
 type WordInsightViewProps = {
     insight: WordInsight;
     isSaved: boolean;
     onToggleSave: () => void;
-    onListen: () => void; // Used for "Word" listen (original behavior)
-    isListening?: boolean;
     onPlaySentence?: (sentence: string) => void; // Kept for backward compat or pausing parent
     onPlayFromWord?: () => void;
     onClose?: () => void;
-    // New prop to request parent pause. If not provided, we might rely on onPlaySentence hack or add new one.
     onRequestPauseMain?: () => void;
+    provider?: INarrationProvider;
 };
 
 /**
@@ -28,18 +27,18 @@ export function WordInsightView({
     insight,
     isSaved,
     onToggleSave,
-    onListen,
-    isListening = false,
     onPlaySentence, // We'll use this to signal parent to pause
     onPlayFromWord,
     onClose,
-    onRequestPauseMain
+    onRequestPauseMain,
+    provider
 }: WordInsightViewProps) {
     const [currentlyPlayingSection, setCurrentlyPlayingSection] = useState<string | null>(null);
 
     // Refs for NarratedText components
+    const wordRef = useRef<NarratedTextRef>(null);
     const definitionRef = useRef<NarratedTextRef>(null);
-    const exampleRef = useRef<NarratedTextRef>(null); // Changed from array to single ref
+    const exampleRef = useRef<NarratedTextRef>(null);
 
     const handlePlaySection = async (section: string, ref: NarratedTextRef | null) => {
         if (!ref) return;
@@ -61,10 +60,9 @@ export function WordInsightView({
 
         // Stop any other playing section
         if (currentlyPlayingSection) {
-            if (currentlyPlayingSection === 'definition') definitionRef.current?.stop();
-            else if (currentlyPlayingSection === 'example') { // Updated for single example
-                exampleRef.current?.stop();
-            }
+            if (currentlyPlayingSection === 'word') wordRef.current?.stop();
+            else if (currentlyPlayingSection === 'definition') definitionRef.current?.stop();
+            else if (currentlyPlayingSection === 'example') exampleRef.current?.stop();
         }
 
         // Play new section
@@ -83,14 +81,25 @@ export function WordInsightView({
             {/* Header: Word & Action Buttons */}
             <div className="mb-6 flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="h-16 px-6 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-clay-purple flex items-center justify-center border-2 border-white/30">
-                        <h2 className="text-2xl font-black text-white font-fredoka uppercase tracking-tight">
-                            {insight.word}
-                        </h2>
-                    </div>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handlePlaySection('word', wordRef.current)}
+                        className="h-16 px-6 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-clay-purple flex items-center justify-center border-2 border-white/30 group/word cursor-pointer"
+                    >
+                        <NarratedText
+                            ref={wordRef}
+                            text={insight.word}
+                            voiceProvider="web_speech"
+                            showControls={false}
+                            className="text-2xl font-black text-white font-fredoka uppercase tracking-tight"
+                            highlightClassName="text-yellow-200 drop-shadow-[0_0_8px_rgba(253,224,71,0.5)]"
+                            onPlaybackEnd={handlePlaybackEnd}
+                        />
+                    </motion.button>
                     {insight.pronunciation && (
-                        <div className="px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-100 font-bold text-sm text-purple-400 font-nunito">
-                            [{insight.pronunciation}]
+                        <div className="px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-100 font-bold text-sm text-purple-400 font-nunito flex items-center gap-2">
+                            <span>[{insight.pronunciation}]</span>
                         </div>
                     )}
                 </div>
@@ -127,13 +136,17 @@ export function WordInsightView({
                 <div className="group relative">
                     <div className="mb-2 flex items-center justify-between">
                         <span className="text-[10px] font-black text-purple-300 uppercase tracking-[0.2em] font-fredoka px-1">Definition</span>
+                        <div className="h-px flex-1 bg-gradient-to-r from-purple-50 to-transparent mx-3" />
                     </div>
                     <div className="relative clay-card p-6 bg-white/60 border-purple-50 group-hover:bg-white group-hover:border-purple-100 transition-all shadow-inner">
                         <div className="pr-12">
                             <NarratedText
                                 ref={definitionRef}
                                 text={insight.definition}
+                                voiceProvider="web_speech"
+                                showControls={false}
                                 className="text-[17px] font-bold text-ink leading-snug font-nunito"
+                                highlightClassName="bg-amber-100 text-amber-900 rounded-md px-1"
                                 onPlaybackEnd={handlePlaybackEnd}
                             />
                         </div>
@@ -164,7 +177,10 @@ export function WordInsightView({
                                 <NarratedText
                                     ref={exampleRef}
                                     text={insight.examples[0]}
+                                    voiceProvider="web_speech"
+                                    showControls={false}
                                     className="text-[17px] font-bold text-ink italic leading-snug font-nunito"
+                                    highlightClassName="bg-emerald-100 text-emerald-900 rounded-md px-1"
                                     onPlaybackEnd={handlePlaybackEnd}
                                 />
                             </div>
@@ -200,15 +216,14 @@ export function WordInsightView({
                     <motion.button
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={onListen}
+                        onClick={() => handlePlaySection('word', wordRef.current)}
                         className={cn(
                             "flex h-14 items-center justify-center gap-2 rounded-2xl font-fredoka font-black text-sm uppercase tracking-wider transition-all border-2 border-white/30",
                             onPlayFromWord ? "px-6 bg-white text-purple-600 shadow-clay border-purple-50" : "flex-1 bg-purple-500 text-white shadow-clay-purple"
                         )}
-                        disabled={isListening}
                     >
-                        {isListening ? (
-                            <RefreshCw className="h-5 w-5 animate-spin" />
+                        {currentlyPlayingSection === 'word' ? (
+                            <Pause className="h-5 w-5 animate-pulse" />
                         ) : (
                             <>
                                 <Volume2 className="h-5 w-5" />
@@ -217,7 +232,7 @@ export function WordInsightView({
                         )}
                     </motion.button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

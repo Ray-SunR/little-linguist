@@ -102,14 +102,14 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
             >
                 {/* Visual Depth Card (The "Clay" Body) */}
                 <div className={cn(
-                    "absolute inset-0 rounded-[2.5rem] border-[6px] bg-white/85 backdrop-blur-2xl transition-all duration-300 glass-shine",
+                    "absolute inset-0 rounded-[2.5rem] border-[5px] bg-white/90 backdrop-blur-2xl transition-all duration-300 glass-shine",
                     "shadow-clay shadow-clay-inset group-hover:shadow-magic-glow",
                     style.border
                 )}>
                     {/* Interactive Shine Foil */}
                     <motion.div
                         style={{
-                            background: `radial-gradient(circle at ${spotX} ${spotY}, rgba(255,255,255,0.4) 0%, transparent 60%)`,
+                            background: `radial-gradient(circle at ${spotX} ${spotY}, rgba(255,255,255,0.5) 0%, transparent 70%)`,
                         }}
                         className="absolute inset-0 z-10 pointer-events-none rounded-[2.2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     />
@@ -169,17 +169,17 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
                                             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Story Progress</span>
                                             <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{Math.round(progressPercent)}%</span>
                                         </div>
-                                        <div className="h-4 w-full bg-slate-100/80 rounded-full overflow-visible relative shadow-clay-inset border border-white">
+                                        <div className="h-4 w-full bg-slate-100/80 rounded-full overflow-visible relative shadow-clay-inset border-[3px] border-white/50">
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${progressPercent}%` }}
-                                                className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 rounded-full relative shadow-lg"
+                                                className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 rounded-full relative shadow-md"
                                             >
                                                 {/* The Rocket Icon tracking the progress */}
                                                 <motion.div
                                                     animate={{ y: [0, -2, 0] }}
                                                     transition={{ repeat: Infinity, duration: 2 }}
-                                                    className="absolute -right-4 -top-4 h-10 w-10 flex items-center justify-center bg-white rounded-full shadow-xl border-4 border-emerald-50 z-20"
+                                                    className="absolute -right-4 -top-4 h-10 w-10 flex items-center justify-center bg-white rounded-full shadow-lg border-[3px] border-emerald-50 z-20"
                                                 >
                                                     <Rocket className="h-5 w-5 text-emerald-500 -rotate-45" />
                                                 </motion.div>
@@ -211,9 +211,9 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
                         <motion.div
                             whileHover={{ scale: 1.2, rotate: 10 }}
                             whileTap={{ scale: 0.8 }}
-                            className="bg-white p-6 rounded-full shadow-2xl border-4 border-white transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 flex items-center justify-center"
+                            className="bg-white p-6 rounded-full shadow-clay border-[5px] border-white transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 flex items-center justify-center"
                         >
-                            <Play className="h-12 w-12 text-accent fill-accent translate-x-1" />
+                            <Play className="h-10 w-10 text-accent fill-accent translate-x-1" />
                         </motion.div>
                     </div>
                 </div>

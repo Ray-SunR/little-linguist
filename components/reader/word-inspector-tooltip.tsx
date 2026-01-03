@@ -8,6 +8,7 @@ import { useWordList } from "@/lib/features/word-insight";
 import type { TooltipPosition } from "../../hooks/use-word-inspector";
 import { Popover, PopoverContent, PopoverAnchor } from "../ui/popover";
 import { WordInsightView } from "./word-insight-view";
+import { INarrationProvider } from "@/lib/features/narration";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -18,11 +19,10 @@ type WordInspectorTooltipProps = {
   isOpen: boolean;
   position: TooltipPosition | null;
   onClose: () => void;
-  onListen: () => void;
   onRetry: () => void;
-  isListening?: boolean;
   onPlaySentence?: (sentence: string) => void;
   onPlayFromWord?: () => void;
+  provider?: INarrationProvider;
 };
 
 /**
@@ -36,11 +36,10 @@ export default function WordInspectorTooltip({
   isOpen,
   position,
   onClose,
-  onListen,
   onRetry,
-  isListening = false,
   onPlaySentence,
   onPlayFromWord,
+  provider,
 }: WordInspectorTooltipProps) {
   const anchorRef = useRef<HTMLDivElement>(null);
   const { hasWord, addWord, removeWord } = useWordList();
@@ -147,12 +146,11 @@ export default function WordInspectorTooltip({
           insight={insight}
           isSaved={isSaved}
           onToggleSave={toggleSaveAction}
-          onListen={onListen}
-          isListening={isListening}
           onPlaySentence={onPlaySentence}
           onPlayFromWord={onPlayFromWord}
           onClose={onClose}
           onRequestPauseMain={() => onPlaySentence?.("")}
+          provider={provider}
         />
       )}
     </div>

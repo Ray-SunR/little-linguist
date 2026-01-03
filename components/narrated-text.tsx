@@ -57,9 +57,10 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
     ) => {
         // Generate a stable ID for this content
         const contentId = useMemo(
-            () => `narrated-${text.substring(0, 20)}-${Date.now()}`,
-            [text, audio, voiceProvider]
+            () => `narrated-${text.substring(0, 30)}`,
+            [text]
         );
+
 
         const tokens = useMemo(() => tokenizeText(text), [text]);
 
