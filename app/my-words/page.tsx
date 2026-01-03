@@ -1,7 +1,8 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Trash2, BookOpen, Sparkles, LayoutGrid, List, Volume2, ChevronRight } from "lucide-react";
+import { ArrowLeft, Trash2, BookOpen, Sparkles, LayoutGrid, List, Volume2, ChevronRight, Star } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -37,24 +38,32 @@ export default function MyWordsPage() {
     }
 
     return (
-        <div className="min-h-screen page-story-maker p-6 md:p-10 md:pl-28">
-            <header className="mx-auto mb-10 flex max-w-5xl items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-3xl font-black text-ink">
+        <div className="min-h-screen page-story-maker p-6 md:p-10 md:pl-32 pb-24">
+            <motion.header
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mx-auto mb-12 flex max-w-6xl items-center justify-between"
+            >
+                <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-clay-amber flex items-center justify-center border-2 border-white/50">
+                        <Star className="h-8 w-8 text-white fill-current animate-bounce-subtle" />
+                    </div>
+                    <div>
+                        <h1 className="text-4xl font-black text-ink font-fredoka uppercase tracking-tight leading-none">
                             My Collection
                         </h1>
+                        <p className="text-ink-muted font-bold font-nunito mt-1">Your magical vocabulary treasury</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                     {words.length > 0 && (
-                        <div className="flex p-1 bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-white/50">
+                        <div className="flex p-2 bg-white/70 backdrop-blur-md rounded-[1.5rem] shadow-clay border border-white/80">
                             <button
                                 onClick={() => setViewMode("cards")}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold transition-all text-sm",
-                                    viewMode === "cards" ? "bg-accent text-white shadow-md" : "text-ink-muted hover:bg-white/50 hover:text-accent"
+                                    "flex items-center gap-2 px-5 py-2.5 rounded-xl font-black font-fredoka transition-all text-xs uppercase tracking-wider",
+                                    viewMode === "cards" ? "bg-accent text-white shadow-clay-purple" : "text-ink-muted hover:bg-white/50"
                                 )}
                             >
                                 <LayoutGrid className="h-4 w-4" />
@@ -63,8 +72,8 @@ export default function MyWordsPage() {
                             <button
                                 onClick={() => setViewMode("list")}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold transition-all text-sm",
-                                    viewMode === "list" ? "bg-accent text-white shadow-md" : "text-ink-muted hover:bg-white/50 hover:text-accent"
+                                    "flex items-center gap-2 px-5 py-2.5 rounded-xl font-black font-fredoka transition-all text-xs uppercase tracking-wider",
+                                    viewMode === "list" ? "bg-accent text-white shadow-clay-purple" : "text-ink-muted hover:bg-white/50"
                                 )}
                             >
                                 <List className="h-4 w-4" />
@@ -72,54 +81,75 @@ export default function MyWordsPage() {
                             </button>
                         </div>
                     )}
-                    <div className="count-badge flex items-center gap-2">
-                        <span className="text-lg font-black">{words.length}</span>
-                        <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">{words.length === 1 ? 'Word' : 'Words'}</span>
+                    <div className="px-6 py-3 rounded-[1.5rem] bg-white shadow-clay border-2 border-amber-100 flex items-center gap-3">
+                        <span className="text-2xl font-black text-amber-500 font-fredoka">{words.length}</span>
+                        <span className="text-[10px] uppercase font-black tracking-widest text-amber-500/60 font-fredoka">{words.length === 1 ? 'Word' : 'Words'}</span>
                     </div>
                 </div>
-            </header>
+            </motion.header>
 
-            <main className="mx-auto max-w-5xl">
-
+            <main className="mx-auto max-w-6xl">
                 {words.length === 0 ? (
-                    <div className="animate-slide-up-fade glass-card p-12 flex flex-col items-center justify-center text-center min-h-[400px]">
-                        <div className="sparkle-container mb-10">
-                            <div className="sparkle-orb" style={{ top: '-20px', left: '-30px', animationDelay: '0s' }} />
-                            <div className="sparkle-orb" style={{ top: '-25px', right: '-25px', animationDelay: '0.5s' }} />
-                            <div className="sparkle-orb" style={{ bottom: '-15px', left: '-20px', animationDelay: '1s' }} />
-                            <div className="sparkle-orb" style={{ bottom: '-20px', right: '-30px', animationDelay: '1.5s' }} />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="clay-card p-16 flex flex-col items-center justify-center text-center min-h-[500px] relative overflow-hidden"
+                    >
+                        {/* Radiance Orb */}
+                        <div className="absolute inset-x-[-30px] inset-y-[-30px] bg-amber-400/10 blur-[80px] rounded-full animate-pulse-glow" />
 
-                            <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-white to-accent/10 shadow-xl magic-wand-enhanced">
-                                <div className="absolute inset-0 rounded-full animate-ping bg-accent/20" />
-                                <BookOpen className="h-12 w-12 text-accent animate-pulse" />
+                        <div className="relative mb-12">
+                            <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-white to-amber-50 shadow-clay-amber flex items-center justify-center border-4 border-white">
+                                <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
+                                    <BookOpen className="h-14 w-14 text-amber-400" />
+                                </motion.div>
                             </div>
+                            <motion.div
+                                animate={{ scale: [1, 1.2, 1], rotate: [0, 15, -15, 0] }}
+                                transition={{ duration: 4, repeat: Infinity }}
+                                className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-amber-100"
+                            >
+                                <Sparkles className="h-6 w-6 text-amber-500" />
+                            </motion.div>
                         </div>
 
-                        <h2 className="mb-3 text-3xl font-extrabold bg-gradient-to-r from-accent to-pink-500 bg-clip-text text-transparent">
-                            Your collection is empty
-                        </h2>
-                        <p className="text-xl text-ink-muted mb-8 max-w-md">
-                            Explore stories and tap on starry words to build your magical collection!
+                        <h2 className="mb-4 text-4xl font-black text-ink font-fredoka uppercase tracking-tight">Your vault is empty</h2>
+                        <p className="text-xl text-ink-muted mb-10 max-w-md font-nunito font-medium">
+                            Explore magical stories and tap on starry words to build your treasure collection!
                         </p>
-                        <Link
-                            href="/reader"
-                            className="next-step-btn px-10"
-                        >
-                            <Sparkles className="h-6 w-6" />
-                            <span>Start Reading</span>
+                        <Link href="/library">
+                            <motion.button
+                                whileHover={{ scale: 1.05, y: -4 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="next-step-btn px-12 h-16 text-xl"
+                            >
+                                <Sparkles className="h-6 w-6" />
+                                <span>Find Magic Words</span>
+                            </motion.button>
                         </Link>
-                    </div>
+                    </motion.div>
                 ) : viewMode === "cards" ? (
-                    <div className="animate-slide-up-fade grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {words.map((word) => (
-                            <Flashcard key={word.word} word={word} onRemove={() => removeWord(word.word)} ttsProvider={tooltipProvider} />
-                        ))}
+                    <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+                        <AnimatePresence>
+                            {words.map((word, index) => (
+                                <motion.div
+                                    key={word.word}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                >
+                                    <Flashcard word={word} onRemove={() => removeWord(word.word)} ttsProvider={tooltipProvider} />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
                 ) : (
-                    <div className="animate-slide-up-fade flex flex-col gap-3">
-                        {words.map((word) => (
-                            <ListRow key={word.word} word={word} onRemove={() => removeWord(word.word)} ttsProvider={tooltipProvider} />
-                        ))}
+                    <div className="flex flex-col gap-4">
+                        <AnimatePresence>
+                            {words.map((word) => (
+                                <ListRow key={word.word} word={word} onRemove={() => removeWord(word.word)} ttsProvider={tooltipProvider} />
+                            ))}
+                        </AnimatePresence>
                     </div>
                 )}
             </main>

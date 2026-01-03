@@ -1506,3 +1506,94 @@ h6 {
   cursor: not-allowed;
   box-shadow: none;
 }
+
+@layer utilities {
+  .clay-card {
+    @apply rounded-[2.5rem] border-2 border-white/90 bg-white/85 backdrop-blur-2xl shadow-clay ring-1 ring-white/20;
+  }
+
+  /* Refined Shadow Variants */
+  .shadow-clay-purple {
+    box-shadow:
+      0 20px 50px rgba(139, 75, 255, 0.15),
+      inset 0 -8px 15px rgba(139, 75, 255, 0.1),
+      inset 0 4px 8px rgba(255, 255, 255, 0.5);
+  }
+
+  .shadow-clay-orange {
+    box-shadow:
+      0 20px 50px rgba(249, 115, 22, 0.15),
+      inset 0 -8px 15px rgba(249, 115, 22, 0.1),
+      inset 0 4px 8px rgba(255, 255, 255, 0.5);
+  }
+
+  .shadow-clay-mint {
+    box-shadow:
+      0 20px 50px rgba(16, 185, 129, 0.15),
+      inset 0 -8px 15px rgba(16, 185, 129, 0.1),
+      inset 0 4px 8px rgba(255, 255, 255, 0.5);
+  }
+
+  .shadow-clay-amber {
+    box-shadow:
+      0 20px 50px rgba(245, 158, 11, 0.15),
+      inset 0 -8px 15px rgba(245, 158, 11, 0.1),
+      inset 0 4px 8px rgba(255, 255, 255, 0.5);
+  }
+
+  .shadow-clay-pink {
+    box-shadow:
+      0 20px 50px rgba(236, 72, 153, 0.15),
+      inset 0 -8px 15px rgba(236, 72, 153, 0.1),
+      inset 0 4px 8px rgba(255, 255, 255, 0.5);
+  }
+
+  .clay-shadow {
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 8px 10px -6px rgba(0, 0, 0, 0.1),
+      inset 0 -4px 12px rgba(255, 255, 255, 0.3),
+      inset 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .font-fredoka {
+    font-family: var(--font-fredoka), "Fredoka", sans-serif;
+  }
+
+  .font-nunito {
+    font-family: var(--font-nunito), "Nunito", sans-serif;
+  }
+
+  .glass-shine {
+    @apply relative overflow-hidden;
+  }
+
+  .glass-shine::after {
+    content: "";
+    @apply absolute -inset-full bg-gradient-to-tr from-transparent via-white/20 to-transparent rotate-45 transition-transform duration-1000;
+  }
+
+  .glass-shine:hover::after {
+    @apply translate-x-full translate-y-full;
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0) rotate(0);
+    }
+
+    33% {
+      transform: translateY(-10px) rotate(2deg);
+    }
+
+    66% {
+      transform: translateY(-5px) rotate(-1deg);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}

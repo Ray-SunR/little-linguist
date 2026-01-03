@@ -101,7 +101,7 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
 
     const { saveProgress } = useReaderPersistence({
         bookId: selectedBook?.id || "",
-        tokenIndex: currentWordIndex,
+        tokenIndex: currentWordIndex ?? 0,
         shardIndex: currentShardIndex,
         time: currentTime,
         playbackState,

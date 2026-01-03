@@ -23,10 +23,16 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
     const mouseX = useSpring(x, { stiffness: 400, damping: 90 });
     const mouseY = useSpring(y, { stiffness: 400, damping: 90 });
 
-    const rotateX = useTransform(mouseY, [-0.5, 0.5], ["10deg", "-10deg"]);
-    const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-10deg", "10deg"]);
+    const rotateX = useTransform(mouseY, [-0.5, 0.5], ["15deg", "-15deg"]);
+    const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-15deg", "15deg"]);
+    const z = useSpring(useTransform(mouseX, [-0.5, 0.5], [0, 0]), { stiffness: 400, damping: 90 }); // Base z
+    const liftZ = useSpring(0, { stiffness: 300, damping: 30 });
 
     const coverImage = book.images?.[0]?.src || book.images?.[0]?.url;
+
+    // Shiny spotlight effect
+    const spotX = useTransform(mouseX, [-0.5, 0.5], ["0%", "100%"]);
+    const spotY = useTransform(mouseY, [-0.5, 0.5], ["0%", "100%"]);
 
     // Deterministic palette generation
     const getCoverStyle = (str: string) => {
@@ -49,18 +55,17 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
     const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
         if (!ref.current) return;
         const rect = ref.current.getBoundingClientRect();
-        x.set(e.clientX - rect.left / rect.width - 0.5);
-        y.set(e.clientY - rect.top / rect.height - 0.5);
-        // Corrected calculation for proper centered tilt
         const mouseXRel = e.clientX - rect.left;
         const mouseYRel = e.clientY - rect.top;
         x.set(mouseXRel / rect.width - 0.5);
         y.set(mouseYRel / rect.height - 0.5);
+        liftZ.set(40);
     };
 
     const handleMouseLeave = () => {
         x.set(0);
         y.set(0);
+        liftZ.set(0);
     };
 
     const progressPercent = book.initialProgress
@@ -80,7 +85,7 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}
-            className="group relative h-[460px] w-full cursor-pointer perspective-[1500px]"
+            className="group relative h-[480px] w-full cursor-pointer perspective-[2000px]"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onClick={() => onClick(book.id)}
@@ -90,22 +95,30 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
                 style={{
                     rotateX,
                     rotateY,
+                    z: liftZ,
                     transformStyle: "preserve-3d",
                 }}
-                className="relative h-full w-full transition-transform duration-500 ease-out"
+                className="relative h-full w-full transition-shadow duration-500 ease-out"
             >
                 {/* Visual Depth Card (The "Clay" Body) */}
                 <div className={cn(
-                    "absolute inset-0 rounded-[2.5rem] border-[6px] bg-white transition-all duration-300",
-                    "shadow-[0_20px_50px_rgba(0,0,0,0.1),inset_0_-8px_0_rgba(0,0,0,0.05)]",
-                    "group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.15),inset_0_-8px_0_rgba(0,0,0,0.05)]",
+                    "absolute inset-0 rounded-[2.5rem] border-[6px] bg-white/85 backdrop-blur-2xl transition-all duration-300 glass-shine",
+                    "shadow-clay shadow-clay-inset group-hover:shadow-magic-glow",
                     style.border
                 )}>
+                    {/* Interactive Shine Foil */}
+                    <motion.div
+                        style={{
+                            background: `radial-gradient(circle at ${spotX} ${spotY}, rgba(255,255,255,0.4) 0%, transparent 60%)`,
+                        }}
+                        className="absolute inset-0 z-10 pointer-events-none rounded-[2.2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    />
+
                     {/* Content Section */}
-                    <div className="relative h-full w-full p-4 flex flex-col gap-4">
+                    <div className="relative h-full w-full p-4 flex flex-col gap-5 overflow-visible">
 
                         {/* Cover Image Area */}
-                        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[1.8rem] border-4 border-white shadow-inner">
+                        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[1.8rem] border-4 border-white shadow-clay-inset group-hover:shadow-2xl transition-all duration-500">
                             {coverImage ? (
                                 <Image
                                     src={coverImage}
@@ -124,68 +137,83 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
                             )}
 
                             {/* Tags Overlay */}
-                            <div className="absolute top-3 right-3 flex flex-col gap-2">
-                                <div className="px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md shadow-sm border border-gray-100 flex items-center gap-1.5 transform translate-y-0 opacity-100 transition-all group-hover:scale-105">
-                                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">Gold</span>
+                            <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+                                <div className="px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 flex items-center gap-1.5 transform transition-all group-hover:scale-110">
+                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">Gold Edition</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Text Info Area */}
-                        <div className="flex-1 flex flex-col justify-between px-2 py-1">
-                            <div className="space-y-1">
-                                <h3 className="font-fredoka text-xl font-bold text-ink dark:text-slate-800 line-clamp-2 leading-tight group-hover:text-accent transition-colors">
+                        <div className="h-[120px] flex flex-col justify-between px-2 py-1">
+                            <div className="space-y-1.5">
+                                <h3 className="font-fredoka text-xl font-black text-ink dark:text-slate-800 line-clamp-2 leading-[1.2] group-hover:text-accent transition-colors h-[48px]">
                                     {book.title}
                                 </h3>
-                                <div className="flex items-center gap-3 text-xs font-bold text-ink-muted">
-                                    <span className="flex items-center gap-1">
-                                        <Clock className="w-3.5 h-3.5" />
+                                <div className="flex items-center gap-3 text-xs font-black text-ink-muted uppercase tracking-widest">
+                                    <span className="flex items-center gap-1.5">
+                                        <Clock className="w-4 h-4 text-accent" />
                                         8m
                                     </span>
-                                    <span className="h-1 w-1 rounded-full bg-slate-300" />
-                                    <span>Adventure</span>
+                                    <span className="h-1.5 w-1.5 rounded-full bg-slate-200" />
+                                    <span className="text-accent/80">Adventure</span>
                                 </div>
                             </div>
 
                             {/* Rocket Progress Area */}
-                            <div className="relative pt-6">
+                            <div className="relative pt-2 pb-2">
                                 {progressPercent > 0 ? (
                                     <>
-                                        <div className="flex justify-between items-end mb-2">
-                                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Adventure Progress</span>
-                                            <span className="text-xs font-black text-emerald-600">{Math.round(progressPercent)}%</span>
+                                        <div className="flex justify-between items-end mb-2.5">
+                                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Story Progress</span>
+                                            <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{Math.round(progressPercent)}%</span>
                                         </div>
-                                        <div className="h-3 w-full bg-slate-100 rounded-full overflow-visible relative">
+                                        <div className="h-4 w-full bg-slate-100/80 rounded-full overflow-visible relative shadow-clay-inset border border-white">
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${progressPercent}%` }}
-                                                className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full relative"
+                                                className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 rounded-full relative shadow-lg"
                                             >
                                                 {/* The Rocket Icon tracking the progress */}
-                                                <div className="absolute -right-3 -top-3 h-8 w-8 flex items-center justify-center bg-white rounded-full shadow-lg border-2 border-emerald-100">
-                                                    <Rocket className="h-4 w-4 text-emerald-500 -rotate-45" />
+                                                <motion.div
+                                                    animate={{ y: [0, -2, 0] }}
+                                                    transition={{ repeat: Infinity, duration: 2 }}
+                                                    className="absolute -right-4 -top-4 h-10 w-10 flex items-center justify-center bg-white rounded-full shadow-xl border-4 border-emerald-50 z-20"
+                                                >
+                                                    <Rocket className="h-5 w-5 text-emerald-500 -rotate-45" />
+                                                </motion.div>
+
+                                                {/* Progress Trail Particles */}
+                                                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                                                    <div className="h-1 w-1 bg-white/60 rounded-full animate-pulse" />
+                                                    <div className="h-1.5 w-1.5 bg-white/40 rounded-full animate-pulse delay-75" />
                                                 </div>
                                             </motion.div>
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="flex items-center justify-center py-2 px-4 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">New Story • Start Reading</span>
-                                    </div>
+                                    <motion.div
+                                        whileHover={{ scale: 1.02, x: 5 }}
+                                        className="flex items-center justify-center py-3 px-4 rounded-[1.2rem] bg-slate-50/50 border-2 border-dashed border-slate-200 group-hover:border-emerald-300 group-hover:bg-emerald-50/30 transition-all cursor-pointer"
+                                    >
+                                        <span className="text-[10px] font-black text-slate-400 group-hover:text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <Rocket className="w-3.5 h-3.5" /> Start Exploring
+                                        </span>
+                                    </motion.div>
                                 )}
                             </div>
                         </div>
                     </div>
 
                     {/* Play Button Hover FX */}
-                    <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 backdrop-blur-[2px] rounded-[2.5rem]">
+                    <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 backdrop-blur-[6px] bg-white/10 rounded-[2.5rem]">
                         <motion.div
-                            whileHover={{ scale: 1.1 }}
-                            whileActive={{ scale: 0.9 }}
-                            className="bg-white/90 p-5 rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.15)] transform translate-y-4 group-hover:translate-y-0 transition-all duration-500"
+                            whileHover={{ scale: 1.2, rotate: 10 }}
+                            whileTap={{ scale: 0.8 }}
+                            className="bg-white p-6 rounded-full shadow-2xl border-4 border-white transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 flex items-center justify-center"
                         >
-                            <Play className="h-10 w-10 text-accent fill-accent translate-x-1" />
+                            <Play className="h-12 w-12 text-accent fill-accent translate-x-1" />
                         </motion.div>
                     </div>
                 </div>

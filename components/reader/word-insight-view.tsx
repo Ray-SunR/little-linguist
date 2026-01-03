@@ -1,7 +1,8 @@
 "use client";
 
-import { Volume2, Play, Star, X, Pause } from "lucide-react";
+import { Volume2, Play, Star, X, Pause, RefreshCw } from "lucide-react";
 import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/core";
 import type { WordInsight } from "@/lib/features/word-insight";
 import { NarratedText, type NarratedTextRef } from "../narrated-text";
@@ -34,20 +35,20 @@ export function WordInsightView({
     onClose,
     onRequestPauseMain
 }: WordInsightViewProps) {
-    const [playingSection, setPlayingSection] = useState<string | null>(null);
+    const [currentlyPlayingSection, setCurrentlyPlayingSection] = useState<string | null>(null);
 
     // Refs for NarratedText components
     const definitionRef = useRef<NarratedTextRef>(null);
-    const exampleRefs = useRef<(NarratedTextRef | null)[]>([]);
+    const exampleRef = useRef<NarratedTextRef>(null); // Changed from array to single ref
 
     const handlePlaySection = async (section: string, ref: NarratedTextRef | null) => {
         if (!ref) return;
 
         // If clicking the currently playing section, pause/stop it
-        if (playingSection === section) {
+        if (currentlyPlayingSection === section) {
             if (ref.isPlaying) {
                 await ref.pause();
-                setPlayingSection(null); // Or keep it if we want pause state? Let's just toggle.
+                setCurrentlyPlayingSection(null);
             } else {
                 // Resume
                 // Pause main reader first
@@ -59,173 +60,164 @@ export function WordInsightView({
         }
 
         // Stop any other playing section
-        if (playingSection) {
-            if (playingSection === 'definition') definitionRef.current?.stop();
-            else if (playingSection.startsWith('example-')) {
-                const idx = parseInt(playingSection.split('-')[1]);
-                exampleRefs.current[idx]?.stop();
+        if (currentlyPlayingSection) {
+            if (currentlyPlayingSection === 'definition') definitionRef.current?.stop();
+            else if (currentlyPlayingSection === 'example') { // Updated for single example
+                exampleRef.current?.stop();
             }
         }
 
         // Play new section
         onRequestPauseMain?.();
         onPlaySentence?.(""); // Signal parent
-        setPlayingSection(section);
+        setCurrentlyPlayingSection(section);
         await ref.play();
     };
 
     const handlePlaybackEnd = () => {
-        setPlayingSection(null);
+        setCurrentlyPlayingSection(null);
     };
 
     return (
-        <div className="space-y-2">
-            {/* Header: Word + Save + Listen button */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-                <div className="flex flex-col gap-0 w-full">
-                    <div className="flex items-center gap-3 w-full">
-                        <h2 className="text-3xl font-fredoka font-black text-accent tracking-tighter leading-tight break-words min-w-0">
+        <div className="relative font-nunito h-full">
+            {/* Header: Word & Action Buttons */}
+            <div className="mb-6 flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="h-16 px-6 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-clay-purple flex items-center justify-center border-2 border-white/30">
+                        <h2 className="text-2xl font-black text-white font-fredoka uppercase tracking-tight">
                             {insight.word}
                         </h2>
-
-                        <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
-                            {/* Star Toggle */}
-                            <button
-                                onClick={onToggleSave}
-                                className={cn(
-                                    "flex h-8 w-8 items-center justify-center rounded-full transition-all active:scale-95 shadow-soft border",
-                                    isSaved
-                                        ? "bg-yellow-100 text-yellow-700 border-yellow-200"
-                                        : "bg-white/60 dark:bg-black/20 text-ink-muted hover:text-yellow-600 hover:bg-yellow-50 border-transparent"
-                                )}
-                                aria-label={isSaved ? "Remove from list" : "Save word"}
-                            >
-                                <Star
-                                    className={cn(
-                                        "h-4 w-4 transition-colors",
-                                        isSaved ? "fill-yellow-400 text-yellow-500" : "text-gray-400"
-                                    )}
-                                />
-                            </button>
-
-                            {/* Word Speaker (Original - keeps "Listen" behavior for just the word) */}
-                            <button
-                                onClick={onListen}
-                                disabled={isListening}
-                                className={cn(
-                                    "flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 shadow-soft border border-blue-500/10 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                                )}
-                                title="Listen to word"
-                            >
-                                <Volume2 className={cn("h-4 w-4", isListening && "animate-pulse")} />
-                            </button>
-
-                            {/* Play from here (Iconic) */}
-                            {onPlayFromWord && (
-                                <button
-                                    onClick={onPlayFromWord}
-                                    className={cn(
-                                        "flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 text-white shadow-md shadow-purple-500/20 transition-all hover:scale-110 active:scale-95"
-                                    )}
-                                    title="Read story from here"
-                                >
-                                    <Play className="h-3.5 w-3.5 fill-white" />
-                                </button>
-                            )}
-
-                            {/* Inline Close Button */}
-                            {onClose && (
-                                <button
-                                    onClick={onClose}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-ink-muted hover:bg-black/10 dark:hover:bg-white/20 hover:text-ink transition-all hover:rotate-90 duration-200 ml-1"
-                                    aria-label="Close"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            )}
-                        </div>
                     </div>
                     {insight.pronunciation && (
-                        <span className="font-mono text-[13px] font-bold text-ink-muted/70 tracking-tighter ml-1">
+                        <div className="px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-100 font-bold text-sm text-purple-400 font-nunito">
                             [{insight.pronunciation}]
-                        </span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <motion.button
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={onToggleSave}
+                        className={cn(
+                            "group flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-all shadow-clay",
+                            isSaved
+                                ? "bg-amber-400 border-amber-300 text-white shadow-clay-amber"
+                                : "bg-white border-slate-100 text-slate-300 hover:text-amber-400 hover:border-amber-100"
+                        )}
+                    >
+                        <Star className={cn("h-6 w-6 transition-transform", isSaved && "fill-current animate-bounce-subtle")} />
+                    </motion.button>
+                    {onClose && (
+                        <motion.button
+                            whileHover={{ scale: 1.1, rotate: 90 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={onClose}
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border-2 border-slate-100 text-slate-300 hover:text-rose-500 hover:border-rose-100 shadow-clay transition-all"
+                        >
+                            <X className="h-6 w-6" />
+                        </motion.button>
                     )}
                 </div>
             </div>
 
-
-            {/* Definition Section */}
-            <div className="group relative bg-white/30 dark:bg-black/10 rounded-[1.5rem] p-3.5 border border-white/20 dark:border-white/5 shadow-inner">
-                <div className="flex items-start justify-between">
-                    <div className="flex-1 pr-4">
-                        <h3 className="text-[10px] font-fredoka font-black uppercase tracking-[0.2em] text-ink-muted/60 mb-2">Meaning</h3>
-                        <div className="text-base font-nunito font-bold leading-relaxed text-ink dark:text-white/90">
+            <div className="space-y-6">
+                {/* Meaning Section */}
+                <div className="group relative">
+                    <div className="mb-2 flex items-center justify-between">
+                        <span className="text-[10px] font-black text-purple-300 uppercase tracking-[0.2em] font-fredoka px-1">Definition</span>
+                    </div>
+                    <div className="relative clay-card p-6 bg-white/60 border-purple-50 group-hover:bg-white group-hover:border-purple-100 transition-all shadow-inner">
+                        <div className="pr-12">
                             <NarratedText
                                 ref={definitionRef}
                                 text={insight.definition}
-                                voiceProvider="remote_tts" // Use Polly basically
-                                showControls={false}
-                                highlightClassName="highlight-word"
+                                className="text-[17px] font-bold text-ink leading-snug font-nunito"
                                 onPlaybackEnd={handlePlaybackEnd}
                             />
                         </div>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handlePlaySection('definition', definitionRef.current)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 flex items-center justify-center rounded-xl bg-purple-500 text-white shadow-clay-purple border border-white/30"
+                        >
+                            {currentlyPlayingSection === 'definition' ? (
+                                <Pause className="h-5 w-5 fill-white" />
+                            ) : (
+                                <Volume2 className="h-5 w-5 fill-white" />
+                            )}
+                        </motion.button>
                     </div>
-                    <button
-                        onClick={() => handlePlaySection('definition', definitionRef.current)}
-                        className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 hover:scale-110 active:scale-95 transition-all shadow-soft"
-                        title="Listen to meaning"
+                </div>
+
+                {/* Example Section */}
+                {insight.examples && insight.examples.length > 0 && (
+                    <div className="group relative">
+                        <div className="mb-2 flex items-center justify-between">
+                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] font-fredoka px-1">Example</span>
+                            <div className="h-px flex-1 bg-gradient-to-r from-emerald-100 to-transparent mx-3" />
+                        </div>
+                        <div className="relative clay-card p-6 bg-emerald-50/30 border-emerald-50 group-hover:bg-emerald-50/50 group-hover:border-emerald-100 transition-all shadow-inner">
+                            <div className="pr-12">
+                                <NarratedText
+                                    ref={exampleRef}
+                                    text={insight.examples[0]}
+                                    className="text-[17px] font-bold text-ink italic leading-snug font-nunito"
+                                    onPlaybackEnd={handlePlaybackEnd}
+                                />
+                            </div>
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handlePlaySection('example', exampleRef.current)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-500 text-white shadow-clay-mint border border-white/30"
+                            >
+                                {currentlyPlayingSection === 'example' ? (
+                                    <Pause className="h-5 w-5 fill-white" />
+                                ) : (
+                                    <Volume2 className="h-5 w-5 fill-white" />
+                                )}
+                            </motion.button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Main Action Buttons */}
+                <div className="flex gap-3 pt-2">
+                    {onPlayFromWord && (
+                        <motion.button
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={onPlayFromWord}
+                            className="flex-1 flex h-14 items-center justify-center gap-2 rounded-2xl bg-amber-400 text-white shadow-clay-amber border-2 border-white/30 font-fredoka font-black text-sm uppercase tracking-wider"
+                        >
+                            <Play className="h-5 w-5 fill-white" />
+                            Read to me
+                        </motion.button>
+                    )}
+                    <motion.button
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={onListen}
+                        className={cn(
+                            "flex h-14 items-center justify-center gap-2 rounded-2xl font-fredoka font-black text-sm uppercase tracking-wider transition-all border-2 border-white/30",
+                            onPlayFromWord ? "px-6 bg-white text-purple-600 shadow-clay border-purple-50" : "flex-1 bg-purple-500 text-white shadow-clay-purple"
+                        )}
+                        disabled={isListening}
                     >
-                        {playingSection === 'definition' ? <Pause className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                    </button>
+                        {isListening ? (
+                            <RefreshCw className="h-5 w-5 animate-spin" />
+                        ) : (
+                            <>
+                                <Volume2 className="h-5 w-5" />
+                                {!onPlayFromWord && "Word Sound"}
+                            </>
+                        )}
+                    </motion.button>
                 </div>
             </div>
-
-            {/* Examples Section */}
-            {insight.examples.length > 0 && (
-                <div className="space-y-2">
-                    <h3 className="text-[10px] font-fredoka font-black uppercase tracking-[0.2em] text-ink-muted/60 px-1">Examples</h3>
-                    <div className="space-y-2">
-                        {insight.examples.map((example, index) => (
-                            <div
-                                key={index}
-                                className="group relative flex items-start gap-2 rounded-[1rem] bg-white/40 dark:bg-black/20 p-2.5 transition-all hover:bg-white/60 dark:hover:bg-black/30 border border-transparent hover:border-white/40"
-                            >
-                                <div
-                                    className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-2/3 rounded-full flex-shrink-0 bg-accent/30 group-hover:bg-accent/60 transition-colors"
-                                />
-                                <div className="flex-1 pl-3">
-                                    <div className="text-[13px] italic font-nunito font-bold text-accent leading-snug tracking-tight">
-                                        <NarratedText
-                                            ref={(el) => {
-                                                exampleRefs.current[index] = el;
-                                            }}
-                                            text={example}
-                                            voiceProvider="remote_tts"
-                                            showControls={false}
-                                            highlightClassName="highlight-word"
-                                            onPlaybackEnd={handlePlaybackEnd}
-                                        />
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={() => handlePlaySection(`example-${index}`, exampleRefs.current[index])}
-                                    className={cn(
-                                        "flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-white dark:bg-[#1e2130] shadow-soft transition-all",
-                                        "hover:scale-110 active:scale-95",
-                                    )}
-                                    aria-label="Play sentence"
-                                >
-                                    {playingSection === `example-${index}` ?
-                                        <Pause className="h-3 w-3 text-accent" /> :
-                                        <Volume2 className={cn("h-3 w-3 text-accent")} />
-                                    }
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

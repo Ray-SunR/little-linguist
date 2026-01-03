@@ -9,6 +9,8 @@ import type { TooltipPosition } from "../../hooks/use-word-inspector";
 import { Popover, PopoverContent, PopoverAnchor } from "../ui/popover";
 import { WordInsightView } from "./word-insight-view";
 
+import { motion, AnimatePresence } from "framer-motion";
+
 type WordInspectorTooltipProps = {
   insight: WordInsight | null;
   isLoading: boolean;
@@ -93,32 +95,49 @@ export default function WordInspectorTooltip({
 
 
   const content = (
-    <>
+    <div className="relative">
       {/* Loading state */}
       {isLoading && (
-        <div className="flex flex-col items-center gap-3 py-6">
+        <div className="flex flex-col items-center gap-6 py-10">
           <div className="relative">
-            <div className="h-10 w-10 animate-spin rounded-full border-3 border-accent/10 border-t-accent" />
-            <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 text-accent/50 animate-pulse" />
+            {/* Radiance Orb */}
+            <div className="absolute inset-[-20px] bg-purple-400/20 blur-[30px] rounded-full animate-pulse" />
+
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              className="w-16 h-16 rounded-3xl bg-white shadow-clay-purple flex items-center justify-center border-4 border-purple-50"
+            >
+              <RefreshCw className="h-8 w-8 text-purple-500" />
+            </motion.div>
+            <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-amber-400 animate-bounce-subtle" />
           </div>
-          <p className="text-sm font-nunito font-bold text-muted-foreground animate-pulse">Linguist is thinking...</p>
+          <div className="text-center">
+            <p className="text-xl font-fredoka font-black text-ink uppercase tracking-tight">Casting Spell...</p>
+            <p className="text-sm font-nunito font-bold text-ink-muted mt-1 italic">Finding the magical meaning</p>
+          </div>
         </div>
       )}
 
       {/* Error state */}
       {error && (
-        <div className="flex flex-col items-center gap-3 py-6">
-          <div className="rounded-full bg-destructive/10 p-3.5 ring-4 ring-destructive/5">
-            <X className="h-5 w-5 text-destructive" />
+        <div className="flex flex-col items-center gap-6 py-10">
+          <div className="w-16 h-16 rounded-3xl bg-rose-50 shadow-clay-pink flex items-center justify-center border-4 border-rose-100">
+            <X className="h-8 w-8 text-rose-500" />
           </div>
-          <p className="text-center text-sm font-nunito font-semibold text-muted-foreground">{error}</p>
-          <button
+          <div className="text-center">
+            <p className="text-lg font-fredoka font-black text-ink uppercase tracking-tight">Magic Fizzled!</p>
+            <p className="text-sm font-nunito font-bold text-ink-muted mt-1 px-4">{error}</p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onRetry}
-            className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3.5 py-1.5 text-xs font-fredoka font-bold text-accent hover:bg-accent/20 transition-all active:scale-95"
+            className="flex items-center gap-2 rounded-2xl bg-white border-2 border-slate-100 px-6 py-3 text-sm font-fredoka font-black text-ink shadow-clay hover:border-purple-100"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-4 w-4" />
             Try Again
-          </button>
+          </motion.button>
         </div>
       )}
 
@@ -136,7 +155,7 @@ export default function WordInspectorTooltip({
           onRequestPauseMain={() => onPlaySentence?.("")}
         />
       )}
-    </>
+    </div>
   );
 
   if (isMobile) {
@@ -145,23 +164,23 @@ export default function WordInspectorTooltip({
       <div className="fixed inset-0 z-[200] flex items-end justify-center">
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-auto"
+          className="absolute inset-0 bg-ink/40 backdrop-blur-md animate-in fade-in duration-300 pointer-events-auto"
           onClick={onClose}
         />
         {/* Bottom Sheet */}
-        <div
+        <motion.div
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
           className={cn(
-            "relative w-full rounded-t-[2.5rem] bg-white/95 dark:bg-[#1e2130]/95 backdrop-blur-xl p-6 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] pointer-events-auto",
-            "animate-in slide-in-from-bottom duration-300 ease-out",
-            "max-h-[85vh] overflow-y-auto custom-scrollbar"
+            "relative w-full rounded-t-[3rem] bg-white border-t-4 border-white p-8 pb-12 shadow-[0_-20px_60px_rgba(0,0,0,0.3)] pointer-events-auto",
+            "max-h-[90vh] overflow-y-auto custom-scrollbar"
           )}
         >
           {/* Handle */}
-          <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-black/10 dark:bg-white/10" />
-
+          <div className="mx-auto mb-8 h-2 w-16 rounded-full bg-slate-100 shadow-inner" />
 
           {content}
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -179,17 +198,16 @@ export default function WordInspectorTooltip({
 
       <PopoverContent
         className={cn(
-          "w-[380px] rounded-[1.5rem] border border-white/20 bg-white/70 dark:bg-[#1e2130]/70 backdrop-blur-xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]",
-          "overflow-y-auto overflow-x-hidden custom-scrollbar"
+          "w-[420px] rounded-[2.5rem] border-4 border-white bg-white/95 backdrop-blur-2xl p-8 shadow-clay-purple z-[200]",
+          "overflow-visble"
         )}
         style={{
-          boxShadow: '0 25px 50px -12px rgba(124, 58, 237, 0.2)',
           maxHeight: 'var(--radix-popper-available-height)',
           overflowY: 'auto'
         }}
         align="center"
-        side="bottom"
-        sideOffset={16}
+        side="top"
+        sideOffset={20}
         collisionPadding={32}
         avoidCollisions={true}
         onOpenAutoFocus={(e) => e.preventDefault()}
@@ -202,6 +220,9 @@ export default function WordInspectorTooltip({
           onClose();
         }}
       >
+        {/* Soft Glowing Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-[2.5rem] -z-10" />
+
         {content}
       </PopoverContent>
     </Popover>

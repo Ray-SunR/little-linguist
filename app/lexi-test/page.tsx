@@ -88,6 +88,7 @@ function LexiReaderContainer({ book, books, onBookChange }: { book: any, books: 
         currentShardIndex,
         currentWordIndex,
         currentTime,
+        speed,
         play,
         pause,
         seekToWord,
@@ -107,10 +108,12 @@ function LexiReaderContainer({ book, books, onBookChange }: { book: any, books: 
     // Persistence Hook
     useReaderPersistence({
         bookId: book.id,
-        tokenIndex: currentWordIndex,
-        shardIndex: currentShardIndex,
+        tokenIndex: currentWordIndex ?? 0,
+        shardIndex: currentShardIndex ?? 0,
         time: currentTime,
-        playbackState: state
+        playbackState: state,
+        viewMode: 'scroll',
+        speed: speed
     });
 
     return (
@@ -135,7 +138,7 @@ function LexiReaderContainer({ book, books, onBookChange }: { book: any, books: 
                     <div className="flex items-center gap-2 bg-zinc-900 rounded-full px-4 py-1.5 border border-zinc-800">
                         <button
                             className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-zinc-800 hover:text-indigo-400 transition-colors"
-                            onClick={() => seekToWord(Math.max(0, currentWordIndex - 10))}
+                            onClick={() => seekToWord(Math.max(0, (currentWordIndex ?? 0) - 10))}
                         >
                             <Rewind className="h-4 w-4" />
                         </button>
@@ -158,7 +161,7 @@ function LexiReaderContainer({ book, books, onBookChange }: { book: any, books: 
 
                         <button
                             className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-zinc-800 hover:text-indigo-400 transition-colors"
-                            onClick={() => seekToWord(currentWordIndex + 10)}
+                            onClick={() => seekToWord((currentWordIndex ?? 0) + 10)}
                         >
                             <FastForward className="h-4 w-4" />
                         </button>
@@ -181,7 +184,7 @@ function LexiReaderContainer({ book, books, onBookChange }: { book: any, books: 
                     <div className="flex flex-col items-end">
                         <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Progress</span>
                         <span className="text-sm font-mono text-indigo-400">
-                            Word {currentWordIndex} / Shard {currentShardIndex}
+                            Word {currentWordIndex ?? 0} / Shard {currentShardIndex}
                         </span>
                     </div>
                 </div>
@@ -191,7 +194,7 @@ function LexiReaderContainer({ book, books, onBookChange }: { book: any, books: 
             <main className="flex-1 overflow-hidden relative">
                 <LexiReader
                     tokens={book.tokens}
-                    currentWordIndex={currentWordIndex}
+                    currentWordIndex={currentWordIndex ?? 0}
                     onWordClick={seekToWord}
                     className="max-w-3xl mx-auto py-12 px-8 h-full overflow-y-auto"
                 />

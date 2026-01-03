@@ -1,7 +1,8 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw } from "lucide-react";
+import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -119,119 +120,152 @@ export default function StoryMakerPage() {
 
             <main className="mx-auto max-w-3xl">
                 {step === "profile" && (
-                    <div className="animate-slide-up-fade glass-card p-8 md:p-10">
-                        {/* Header with wand icon */}
-                        <div className="flex items-center gap-3 mb-8">
-                            <Wand2 className="h-8 w-8 text-pink-400" />
-                            <h2 className="text-3xl font-bold text-ink">About the Hero</h2>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="clay-card p-10 md:p-12 relative overflow-hidden"
+                    >
+                        {/* Decorative background blobs */}
+                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-pink-500/5 rounded-full blur-3xl" />
+                        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl" />
+
+                        <div className="flex items-center gap-4 mb-10 relative">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 shadow-clay-pink flex items-center justify-center">
+                                <Wand2 className="h-8 w-8 text-white animate-bounce-subtle" />
+                            </div>
+                            <div>
+                                <h2 className="text-3xl font-black text-ink font-fredoka uppercase tracking-tight">About the Hero</h2>
+                                <p className="text-ink-muted font-medium font-nunito">Tell us who's going on this adventure!</p>
+                            </div>
                         </div>
 
-                        <form onSubmit={handleProfileSubmit}>
-                            {/* Two column layout */}
-                            <div className="grid md:grid-cols-2 gap-8 mb-8">
-                                {/* Left column - Form fields */}
-                                <div className="space-y-6">
-                                    {/* Hero's Name */}
+                        <form onSubmit={handleProfileSubmit} className="relative">
+                            <div className="grid md:grid-cols-2 gap-10 mb-10">
+                                <div className="space-y-8">
                                     <div>
-                                        <label className="mb-2 block text-sm font-semibold text-ink-muted">Hero's Name</label>
+                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero's Name</label>
                                         <input
                                             type="text"
                                             value={profile.name}
                                             onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                            className="hero-name-input w-full"
+                                            className="w-full h-16 px-6 rounded-[1.5rem] border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-fredoka text-xl font-bold text-ink placeholder:text-slate-300 shadow-inner"
                                             placeholder="e.g., Leo, Mia"
                                             autoFocus
                                             required
                                         />
                                     </div>
 
-                                    {/* Age Selector */}
                                     <div>
-                                        <label className="mb-2 block text-sm font-semibold text-ink-muted">Age selector</label>
-                                        <div className="age-slider">
-                                            <button
+                                        <label className="mb-4 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Age Explorer</label>
+                                        <div className="flex items-center justify-between p-2 rounded-[2rem] bg-purple-50 shadow-inner border-2 border-white/50">
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
                                                 type="button"
-                                                className="age-slider-btn age-slider-btn-minus"
+                                                className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
                                                 onClick={() => setProfile({ ...profile, age: Math.max(3, profile.age - 1) })}
                                                 disabled={profile.age <= 3}
                                             >
                                                 −
-                                            </button>
-                                            <span className="age-slider-min">3</span>
-                                            <span className="age-slider-value">{profile.age}</span>
-                                            <span className="age-slider-max">10</span>
-                                            <button
+                                            </motion.button>
+                                            <div className="flex flex-col items-center">
+                                                <span className="text-3xl font-black text-purple-600 font-fredoka">{profile.age}</span>
+                                                <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">years old</span>
+                                            </div>
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
                                                 type="button"
-                                                className="age-slider-btn age-slider-btn-plus"
+                                                className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
                                                 onClick={() => setProfile({ ...profile, age: Math.min(10, profile.age + 1) })}
                                                 disabled={profile.age >= 10}
                                             >
                                                 +
-                                            </button>
+                                            </motion.button>
                                         </div>
                                     </div>
 
-                                    {/* Gender Selection */}
                                     <div>
-                                        <label className="mb-2 block text-sm font-semibold text-ink-muted">Gender selection</label>
-                                        <div className="gender-pills">
-                                            <button
+                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Gender Choice</label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <motion.button
+                                                whileHover={{ y: -2 }}
+                                                whileTap={{ scale: 0.95 }}
                                                 type="button"
-                                                className={cn("gender-pill", profile.gender === "boy" && "gender-pill-active")}
+                                                className={cn(
+                                                    "flex items-center justify-center gap-3 p-4 rounded-2xl border-4 transition-all font-fredoka font-bold text-lg",
+                                                    profile.gender === "boy"
+                                                        ? "bg-blue-500 text-white border-blue-400 shadow-clay-purple"
+                                                        : "bg-white text-ink-muted border-slate-50 hover:border-blue-100 shadow-sm"
+                                                )}
                                                 onClick={() => setProfile({ ...profile, gender: "boy" })}
                                             >
-                                                <span className="gender-pill-icon">👦</span>
+                                                <span className="text-2xl">👦</span>
                                                 Boy
-                                            </button>
-                                            <button
+                                            </motion.button>
+                                            <motion.button
+                                                whileHover={{ y: -2 }}
+                                                whileTap={{ scale: 0.95 }}
                                                 type="button"
-                                                className={cn("gender-pill", profile.gender === "girl" && "gender-pill-active")}
+                                                className={cn(
+                                                    "flex items-center justify-center gap-3 p-4 rounded-2xl border-4 transition-all font-fredoka font-bold text-lg",
+                                                    profile.gender === "girl"
+                                                        ? "bg-pink-500 text-white border-pink-400 shadow-clay-pink"
+                                                        : "bg-white text-ink-muted border-slate-50 hover:border-pink-100 shadow-sm"
+                                                )}
                                                 onClick={() => setProfile({ ...profile, gender: "girl" })}
                                             >
-                                                <span className="gender-pill-icon">👧</span>
+                                                <span className="text-2xl">👧</span>
                                                 Girl
-                                            </button>
+                                            </motion.button>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Right column - Photo Upload */}
                                 <div className="flex items-center justify-center">
                                     <label className={cn(
-                                        "upload-zone-large",
-                                        profile.avatarUrl && "upload-zone-large-filled"
+                                        "w-full aspect-square rounded-[2.5rem] border-4 border-dashed transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group",
+                                        profile.avatarUrl
+                                            ? "border-emerald-200 bg-emerald-50/30"
+                                            : "border-purple-200 bg-purple-50/30 hover:bg-purple-50 hover:border-purple-300"
                                     )}>
                                         {profile.avatarUrl ? (
-                                            <div className="relative w-full h-full">
+                                            <div className="relative w-full h-full p-4">
                                                 <img
                                                     src={profile.avatarUrl}
                                                     alt="Preview"
-                                                    className="w-full h-full object-cover rounded-2xl"
+                                                    className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
                                                 />
-                                                <button
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1, rotate: 90 }}
+                                                    whileTap={{ scale: 0.9 }}
                                                     type="button"
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         setProfile({ ...profile, avatarUrl: undefined });
                                                     }}
-                                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 shadow-lg hover:bg-red-600 transition-colors"
+                                                    className="absolute top-6 right-6 w-10 h-10 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-xl border-2 border-white"
                                                 >
                                                     ×
-                                                </button>
+                                                </motion.button>
                                             </div>
                                         ) : (
-                                            <div className="upload-zone-content">
-                                                {isUploading ? (
-                                                    <RefreshCw className="h-10 w-10 text-pink-300 mb-3 animate-spin" />
-                                                ) : (
-                                                    <Wand2 className="h-10 w-10 text-pink-300 mb-3" />
-                                                )}
-                                                <span className="font-bold text-ink">
-                                                    {isUploading ? "Compressing..." : "Upload Hero Photo"}
+                                            <div className="text-center p-8">
+                                                <motion.div
+                                                    animate={{ y: [0, -5, 0] }}
+                                                    transition={{ duration: 3, repeat: Infinity }}
+                                                    className="w-20 h-20 rounded-[1.5rem] bg-white shadow-clay flex items-center justify-center mx-auto mb-6 border-2 border-purple-100"
+                                                >
+                                                    {isUploading ? (
+                                                        <RefreshCw className="h-10 w-10 text-purple-400 animate-spin" />
+                                                    ) : (
+                                                        <Sparkles className="h-10 w-10 text-purple-400" />
+                                                    )}
+                                                </motion.div>
+                                                <span className="text-xl font-black text-purple-600 font-fredoka block mb-1">
+                                                    {isUploading ? "Magical Pixels..." : "Hero Photo"}
                                                 </span>
-                                                <span className="text-sm text-ink-muted">
-                                                    {isUploading ? "Just a moment ✨" : "or drag & drop here"}
-                                                </span>
+                                                <p className="text-sm font-medium text-purple-400 font-nunito">Tap to upload your picture!</p>
                                             </div>
                                         )}
                                         <input
@@ -259,138 +293,203 @@ export default function StoryMakerPage() {
                                 </div>
                             </div>
 
-                            {/* Full-width Next Button */}
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 1.02, y: -4 }}
+                                whileTap={{ scale: 0.98 }}
                                 type="submit"
                                 disabled={!profile.name}
-                                className="next-step-btn w-full"
+                                className="w-full h-20 rounded-[2rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center justify-center gap-3 text-2xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 transition-all"
                             >
                                 <span>Next Step</span>
-                                <ChevronRight className="h-6 w-6" />
-                            </button>
+                                <ChevronRight className="h-8 w-8" />
+                            </motion.button>
                         </form>
-                    </div>
+                    </motion.div>
                 )}
 
                 {step === "words" && (
-                    <div className="animate-slide-up-fade glass-card p-8 md:p-10">
-                        {/* Step Progress */}
-                        <div className="wizard-progress">
-                            <div className="wizard-step wizard-step-complete">
-                                <Check className="h-4 w-4" />
-                                <span>Hero</span>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="clay-card p-10 md:p-12 relative overflow-hidden"
+                    >
+                        {/* Step Progress Bubble */}
+                        <div className="flex items-center gap-3 mb-10 px-6 py-3 rounded-full bg-white/50 border-2 border-white w-fit shadow-sm">
+                            <div className="w-8 h-8 rounded-full bg-emerald-500 shadow-clay-mint flex items-center justify-center">
+                                <Check className="h-4 w-4 text-white" />
                             </div>
-                            <div className="wizard-connector wizard-connector-active" />
-                            <div className="wizard-step wizard-step-active">
-                                <Sparkles className="h-4 w-4" />
-                                <span>Words</span>
-                            </div>
+                            <div className="w-12 h-1.5 rounded-full bg-emerald-200" />
+                            <div className="w-8 h-8 rounded-full bg-purple-500 shadow-clay-purple flex items-center justify-center font-black text-xs text-white">2</div>
+                            <span className="font-fredoka font-black text-purple-600 text-sm uppercase tracking-wider ml-2">Choose Words</span>
                         </div>
 
-                        <div className="story-header">
-                            <div className="story-header-icon">
-                                <Sparkles className="h-7 w-7" />
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-indigo-500 shadow-clay-purple flex items-center justify-center">
+                                <Sparkles className="h-8 w-8 text-white animate-pulse" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-ink">Pick Magic Words</h2>
-                                <p className="text-ink-muted text-sm">Choose up to 5 words to include in your story</p>
+                                <h2 className="text-3xl font-black text-ink font-fredoka uppercase tracking-tight">Pick Magic Words</h2>
+                                <p className="text-ink-muted font-medium font-nunito">Choose up to 5 words to include in your story</p>
                             </div>
                         </div>
 
                         {error && (
-                            <div className="mb-6 rounded-2xl bg-red-50 p-4 text-red-600 font-bold border border-red-100 flex items-center gap-3">
-                                <span className="text-xl">⚠️</span> {error}
-                            </div>
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-8 p-5 rounded-2xl bg-rose-50 border-2 border-rose-100 text-rose-600 font-bold font-nunito flex items-center gap-3 shadow-sm">
+                                <span className="text-2xl">⚠️</span> {error}
+                            </motion.div>
                         )}
 
                         {words.length === 0 ? (
-                            <div className="text-center py-12 rounded-2xl border-2 border-dashed border-accent/30 bg-gradient-to-br from-accent/5 to-cta/5">
-                                <Sparkles className="h-12 w-12 text-accent/40 mx-auto mb-4" />
-                                <p className="font-bold text-ink-muted mb-2">You haven't saved any words yet!</p>
-                                <Link href="/library" className="text-accent underline font-bold hover:text-accent/80 transition-colors">Go read a book</Link> to find words.
-                                <div className="mt-8">
-                                    <button
-                                        onClick={() => {
-                                            generateStory();
-                                        }}
-                                        className="ghost-btn"
+                            <div className="text-center py-16 rounded-[2.5rem] border-4 border-dashed border-purple-100 bg-purple-50/30">
+                                <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 4, repeat: Infinity }}>
+                                    <Sparkles className="h-16 w-16 text-purple-200 mx-auto mb-6" />
+                                </motion.div>
+                                <p className="font-black text-ink-muted text-xl font-fredoka mb-2">No words saved yet!</p>
+                                <p className="font-medium text-ink-muted/60 mb-8 max-w-sm mx-auto">Explore more books to find magic words for your collection.</p>
+                                <div className="flex flex-col gap-4 max-w-xs mx-auto">
+                                    <Link href="/library">
+                                        <button className="w-full h-14 rounded-2xl bg-white border-2 border-purple-200 text-purple-600 font-black font-fredoka hover:shadow-md transition-all">Go to Library</button>
+                                    </Link>
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => generateStory()}
+                                        className="text-purple-400 font-black text-sm uppercase tracking-wider underline hover:text-purple-600"
                                     >
-                                        Skip & Create Story without words
-                                    </button>
+                                        Skip and create anyway
+                                    </motion.button>
                                 </div>
                             </div>
                         ) : (
-                            <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {words.map((w) => {
                                     const isSelected = selectedWords.includes(w.word);
                                     return (
-                                        <button
+                                        <motion.button
                                             key={w.word}
+                                            whileHover={{ y: -4, scale: 1.02 }}
+                                            whileTap={{ scale: 0.95 }}
                                             onClick={() => toggleWord(w.word)}
                                             className={cn(
-                                                "word-chip",
-                                                isSelected && "word-chip-selected"
+                                                "relative h-20 px-6 rounded-2xl border-4 transition-all font-fredoka font-black text-xl flex items-center justify-between group overflow-hidden",
+                                                isSelected
+                                                    ? "bg-purple-500 text-white border-purple-400 shadow-clay-purple"
+                                                    : "bg-white text-ink border-white hover:border-purple-100 shadow-sm"
                                             )}
                                         >
-                                            <span>{w.word}</span>
-                                            {isSelected && <Check className="h-5 w-5" />}
-                                        </button>
+                                            <span className="relative z-10">{w.word}</span>
+                                            {isSelected ? (
+                                                <Check className="h-6 w-6 text-white relative z-10 animate-bounce-subtle" />
+                                            ) : (
+                                                <Plus className="h-6 w-6 text-purple-200 group-hover:text-purple-400 transition-colors" />
+                                            )}
+                                            {isSelected && (
+                                                <motion.div
+                                                    layoutId="sparkle-bg"
+                                                    className="absolute inset-0 bg-gradient-to-br from-purple-400 to-indigo-600 opacity-50"
+                                                />
+                                            )}
+                                        </motion.button>
                                     );
                                 })}
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between pt-6 border-t border-ink/5">
-                            <button
+                        <div className="flex items-center justify-between pt-8 border-t-2 border-purple-50">
+                            <motion.button
+                                whileHover={{ x: -4 }}
                                 onClick={() => setStep("profile")}
-                                className="flex items-center gap-2 font-bold text-ink-muted hover:text-ink transition-colors"
+                                className="flex items-center gap-3 font-black text-ink-muted hover:text-ink transition-colors font-fredoka uppercase tracking-wider"
                             >
-                                <ArrowLeft className="h-4 w-4" />
+                                <ArrowLeft className="h-5 w-5" />
                                 Back
-                            </button>
+                            </motion.button>
 
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <span className="count-badge">{selectedWords.length}</span>
-                                    <span className="text-sm font-bold text-ink-muted">/ 5 selected</span>
+                            <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white shadow-inner border border-purple-100">
+                                    <span className="text-2xl font-black text-purple-600 font-fredoka">{selectedWords.length}</span>
+                                    <span className="text-[10px] uppercase font-black tracking-widest text-purple-400 font-fredoka">/ 5 Words</span>
                                 </div>
-                                <button
+                                <motion.button
+                                    whileHover={{ scale: 1.02, y: -4 }}
+                                    whileTap={{ scale: 0.98 }}
                                     onClick={generateStory}
-                                    className="primary-btn flex items-center gap-2 text-lg"
+                                    className="h-16 px-10 rounded-[1.5rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center gap-3 text-xl font-black font-fredoka uppercase tracking-widest"
                                 >
-                                    Create Story <Wand2 className="h-5 w-5" />
-                                </button>
+                                    <span>Cast Spell</span>
+                                    <Wand2 className="h-6 w-6" />
+                                </motion.button>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {step === "generating" && (
-                    <div className="animate-slide-up-fade glass-card p-12 flex flex-col items-center justify-center text-center min-h-[400px]">
-                        <div className="sparkle-container mb-10">
-                            {/* Floating sparkle orbs */}
-                            <div className="sparkle-orb" style={{ top: '-20px', left: '-30px', animationDelay: '0s' }} />
-                            <div className="sparkle-orb" style={{ top: '-25px', right: '-25px', animationDelay: '0.5s' }} />
-                            <div className="sparkle-orb" style={{ bottom: '-15px', left: '-20px', animationDelay: '1s' }} />
-                            <div className="sparkle-orb" style={{ bottom: '-20px', right: '-30px', animationDelay: '1.5s' }} />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="clay-card p-16 flex flex-col items-center justify-center text-center min-h-[500px] relative overflow-hidden"
+                    >
+                        {/* Cinematic Background Elements */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5" />
+                        <div className="absolute top-[-20%] left-[-20%] w-full h-full bg-purple-400/10 blur-[100px] rounded-full animate-floaty" />
 
-                            {/* Main wand icon */}
-                            <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-white to-accent/10 shadow-xl magic-wand-enhanced">
-                                <div className="absolute inset-0 rounded-full animate-ping bg-accent/20" />
-                                <Wand2 className="h-12 w-12 text-accent animate-pulse" />
+                        <div className="relative mb-12">
+                            {/* Outer Radiance */}
+                            <div className="absolute inset-[-40px] bg-purple-400/20 blur-[60px] rounded-full animate-pulse" />
+
+                            {/* Main Wand Hexagon/Circle */}
+                            <div className="relative w-32 h-32 rounded-[2.5rem] bg-white shadow-clay-purple flex items-center justify-center border-4 border-purple-100 ring-8 ring-purple-50/50">
+                                <motion.div
+                                    animate={{
+                                        rotate: [0, 15, -15, 0],
+                                        scale: [1, 1.1, 1],
+                                    }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                    <Wand2 className="h-14 w-14 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
+                                </motion.div>
+
+                                {/* Floating Sparkles */}
+                                {[...Array(6)].map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        className="absolute w-2 h-2 bg-yellow-400 rounded-full"
+                                        animate={{
+                                            x: [0, (i % 2 === 0 ? 50 : -50) * Math.cos(i)],
+                                            y: [0, (i % 2 === 0 ? 50 : -50) * Math.sin(i)],
+                                            opacity: [0, 1, 0],
+                                            scale: [0, 1.2, 0],
+                                        }}
+                                        transition={{
+                                            duration: 2,
+                                            repeat: Infinity,
+                                            delay: i * 0.3,
+                                        }}
+                                    />
+                                ))}
                             </div>
                         </div>
 
-                        <h2 className="mb-3 text-3xl font-extrabold bg-gradient-to-r from-accent to-pink-500 bg-clip-text text-transparent">
+                        <h2 className="text-4xl font-black font-fredoka text-ink uppercase tracking-tight mb-4 relative">
                             Making Magic...
                         </h2>
-                        <p className="text-xl text-ink-muted">
-                            Writing an adventure for <span className="font-bold text-accent">{profile.name}</span>!
+                        <p className="text-xl text-ink-muted font-bold font-nunito mb-2">
+                            Writing a special adventure for <span className="text-purple-600">{profile.name}</span>
                         </p>
-                        <p className="mt-4 text-sm text-ink-muted/70">
-                            This usually takes 10-20 seconds ✨
-                        </p>
-                    </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-full border border-purple-100 mt-6">
+                            <RefreshCw className="h-4 w-4 text-purple-400 animate-spin" />
+                            <span className="text-xs font-black text-purple-400 uppercase tracking-widest font-fredoka">Creating original art & story</span>
+                        </div>
+
+                        <div className="mt-12 w-full max-w-xs h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner p-0.5">
+                            <motion.div
+                                className="h-full bg-gradient-to-r from-purple-500 via-pink-400 to-indigo-500 rounded-full"
+                                animate={{ width: ["10%", "90%"] }}
+                                transition={{ duration: 15, ease: "linear" }}
+                            />
+                        </div>
+                    </motion.div>
                 )}
 
                 {step === "reading" && story && (

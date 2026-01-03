@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { login, signup, checkEmail } from './actions'
 import { useState, useEffect, memo, useMemo } from 'react'
-import { Loader2, MoveRight, Sparkles, Mail, Lock, ChevronLeft } from 'lucide-react'
+import { Loader2, MoveRight, Sparkles, Mail, Lock, ChevronLeft, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/core'
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
@@ -220,7 +220,7 @@ export default function LoginPage() {
                 {/* Radiance Token */}
                 <div className="relative mb-10 group perspective-1000">
                     <div className="absolute inset-x-[-30px] inset-y-[-30px] bg-amber-400/20 blur-[50px] rounded-full animate-pulse-glow" />
-                    <div className="relative w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-[#ffd700] via-[#ffa500] to-[#ff4500] border-4 border-white/40 shadow-[0_15px_40px_rgba(255,69,0,0.4)] flex items-center justify-center rotate-3 group-hover:rotate-0 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110">
+                    <div className="relative w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-[#ffd700] via-[#ffa500] to-[#ff4500] border-4 border-white/40 shadow-[0_15px_40px_rgba(255,69,0,0.4)] flex items-center justify-center rotate-3 group-hover:rotate-0 transition-all duration-700 ease-&lsqb;cubic-bezier(0.34,1.56,0.64,1)&rsqb; group-hover:scale-110">
                         <Sparkles className="h-12 w-12 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)] animate-bounce-subtle" strokeWidth={2.5} />
                     </div>
                 </div>
@@ -372,55 +372,33 @@ export default function LoginPage() {
                                             </motion.div>
                                         )}
 
-                                        {success && (
-                                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-4 bg-emerald-50 border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 text-sm font-bold text-center">
-                                                {success}
-                                            </motion.div>
-                                        )}
+                                        <motion.button
+                                            whileHover={{ scale: 1.02, y: -4 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            type="submit"
+                                            disabled={!!loading || !isValidPassword}
+                                            className="h-16 w-full rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple transition-all disabled:opacity-50 border-2 border-white/30 text-xl font-black font-fredoka uppercase tracking-widest"
+                                        >
+                                            {loading === 'auth' ? (
+                                                <RefreshCw className="mx-auto h-6 w-6 animate-spin" />
+                                            ) : (
+                                                "Enter Realm"
+                                            )}
+                                        </motion.button>
 
-                                        <div className="space-y-4">
-                                            <button
-                                                type="submit"
-                                                disabled={!!loading || !isValidPassword}
-                                                className={cn(
-                                                    "w-full group relative h-[60px] rounded-2xl overflow-hidden transition-all duration-300",
-                                                    (!!loading || !isValidPassword) ? "opacity-50 grayscale cursor-not-allowed" : "active:scale-[0.98] shadow-lg hover:shadow-xl hover:shadow-purple-500/20"
-                                                )}
-                                            >
-                                                <div className={cn(
-                                                    "absolute inset-0 bg-gradient-to-r transition-all duration-500",
-                                                    (!!loading || !isValidPassword)
-                                                        ? "from-slate-400 to-slate-500"
-                                                        : "from-[#8b5cf6] to-[#6366f1] group-hover:from-[#7c3aed] group-hover:to-[#4f46e5]"
-                                                )} />
-                                                <div className="relative flex items-center justify-center gap-3 h-full px-8">
-                                                    {loading === 'auth' ? (
-                                                        <Loader2 className="w-7 h-7 animate-spin text-white" />
-                                                    ) : (
-                                                        <>
-                                                            <span className="text-lg font-black text-white">
-                                                                {emailExists ? "Enter Realm" : "Begin Adventure"}
-                                                            </span>
-                                                            <MoveRight className="w-6 h-6 text-white group-hover:translate-x-1 transition-transform" />
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setAuthStep('email')
-                                                    setError(null)
-                                                    setSuccess(null)
-                                                    setPassword('')
-                                                }}
-                                                className="w-full flex items-center justify-center gap-2 py-2 text-sm font-bold text-[#5c6285] dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
-                                            >
-                                                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                                                Use different email
-                                            </button>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setAuthStep('email')
+                                                setError(null)
+                                                setSuccess(null)
+                                                setPassword('')
+                                            }}
+                                            className="w-full flex items-center justify-center gap-2 py-2 text-sm font-bold text-[#5c6285] dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
+                                        >
+                                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                                            Use different email
+                                        </button>
                                     </form>
                                 )}
                             </motion.div>
@@ -428,13 +406,19 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                {/* Cinematic Footer */}
-                <div className="mt-12 py-4 flex items-center justify-center gap-10 text-[10px] font-black text-slate-500 transition-colors tracking-[0.2em] uppercase">
-                    <Link href="#" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">Privacy Sanctuary</Link>
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-800" />
-                    <Link href="#" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">Rules of Magic</Link>
-                </div >
-            </motion.div >
-        </div >
+                <div className="text-center pt-8">
+                    <p className="text-sm font-bold font-nunito text-ink-muted">
+                        New explorer? <span className="text-purple-600 hover:underline cursor-pointer">Request Invitation</span>
+                    </p>
+                </div>
+            </motion.div>
+
+            {/* Cinematic Footer */}
+            <div className="mt-12 py-4 flex items-center justify-center gap-10 text-[10px] font-black text-slate-500 transition-colors tracking-[0.2em] uppercase relative z-10">
+                <Link href="#" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">Privacy Sanctuary</Link>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-800" />
+                <Link href="#" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">Rules of Magic</Link>
+            </div>
+        </div>
     )
 }

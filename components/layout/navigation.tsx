@@ -2,43 +2,48 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, BookOpen, Wand2, Languages, Settings2, User, LogOut, Mail } from "lucide-react";
+import { Home, BookOpen, Wand2, Languages, Settings2, User, LogOut, Mail, Sparkles } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
     {
         href: "/",
         label: "Home",
         icon: Home,
-        color: "from-emerald-300 to-teal-500",
-        activeColor: "bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-lg shadow-emerald-200/50",
-        inactiveColor: "text-emerald-500/70 dark:text-emerald-400/70 hover:bg-emerald-50 dark:hover:bg-emerald-900/10",
+        color: "from-emerald-400 to-teal-500",
+        shadow: "shadow-emerald-200/50",
+        bg: "bg-emerald-50 dark:bg-emerald-900/10",
+        activeBg: "bg-gradient-to-br from-emerald-400 to-teal-600",
     },
     {
         href: "/reader",
         label: "Library",
         icon: BookOpen,
-        color: "from-blue-300 to-indigo-500",
-        activeColor: "bg-gradient-to-br from-blue-400 to-indigo-600 text-white shadow-lg shadow-blue-200/50",
-        inactiveColor: "text-blue-500/70 dark:text-blue-400/70 hover:bg-blue-50 dark:hover:bg-blue-900/10",
+        color: "from-blue-400 to-indigo-500",
+        shadow: "shadow-blue-200/50",
+        bg: "bg-blue-50 dark:bg-blue-900/10",
+        activeBg: "bg-gradient-to-br from-blue-400 to-indigo-600",
     },
     {
         href: "/story-maker",
         label: "Maker",
         icon: Wand2,
-        color: "from-purple-300 to-pink-500",
-        activeColor: "bg-gradient-to-br from-purple-400 to-pink-600 text-white shadow-lg shadow-purple-200/50",
-        inactiveColor: "text-purple-500/70 dark:text-purple-400/70 hover:bg-purple-50 dark:hover:bg-purple-900/10",
+        color: "from-purple-400 to-pink-500",
+        shadow: "shadow-purple-200/50",
+        bg: "bg-purple-50 dark:bg-purple-900/10",
+        activeBg: "bg-gradient-to-br from-purple-400 to-pink-600",
     },
     {
         href: "/my-words",
         label: "Words",
         icon: Languages,
-        color: "from-indigo-300 to-blue-500",
-        activeColor: "bg-gradient-to-br from-indigo-400 to-blue-600 text-white shadow-lg shadow-indigo-200/50",
-        inactiveColor: "text-indigo-500/70 dark:text-indigo-400/70 hover:bg-indigo-50 dark:hover:bg-indigo-900/10",
+        color: "from-orange-400 to-yellow-500",
+        shadow: "shadow-orange-200/50",
+        bg: "bg-orange-50 dark:bg-orange-900/10",
+        activeBg: "bg-gradient-to-br from-orange-400 to-amber-600",
     },
 ];
 
@@ -69,7 +74,6 @@ export function Navigation() {
         router.push("/login");
     };
 
-    // Expert UX: Hide sidebar on login page for full focus
     if (pathname === "/login") return null;
 
     const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || "";
@@ -79,150 +83,194 @@ export function Navigation() {
     return (
         <>
             {/* Sidebar - Desktop/Tablet */}
-            <nav className="fixed left-6 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col items-center gap-4 py-8 px-4 rounded-[2.5rem] bg-white/70 dark:bg-[#1c1f2f]/80 backdrop-blur-2xl border-2 border-white/80 shadow-[0_20px_50px_rgba(139,75,255,0.15)] animate-in slide-in-from-left duration-700 pointer-events-auto">
-                <div className="mb-6">
-                    <button
+            <nav className="fixed left-6 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col items-center gap-6 py-10 px-5 clay-card animate-in slide-in-from-left duration-700 pointer-events-auto">
+                {/* Explorer Badge (Profile) */}
+                <div className="mb-8">
+                    <motion.button
+                        whileHover={{ scale: 1.1, rotate: -5 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => setIsHubOpen(true)}
-                        className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200/50 hover:scale-110 active:scale-90 transition-all text-white group relative overflow-hidden"
+                        className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 flex items-center justify-center shadow-[0_10px_20px_rgba(249,115,22,0.3),inset_0_-4px_8px_rgba(0,0,0,0.1)] border-2 border-white/50 text-white group relative overflow-hidden"
                     >
                         {avatarUrl ? (
                             <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
                         ) : user ? (
-                            <span className="text-xl font-black drop-shadow-md">{userInitial}</span>
+                            <span className="text-2xl font-fredoka font-black drop-shadow-md">{userInitial}</span>
                         ) : (
-                            <User className="w-7 h-7 drop-shadow-md" />
+                            <User className="w-8 h-8 drop-shadow-md" />
                         )}
-                        <span className="absolute left-20 px-4 py-2 bg-white/95 dark:bg-[#1c1f2f]/95 backdrop-blur-md rounded-xl text-xs font-black text-orange-600 border border-orange-100 dark:border-orange-500/20 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0 whitespace-nowrap shadow-xl">
-                            {user ? (fullName || "My Adventure") : "Adventure Hub"}
-                        </span>
-                    </button>
+
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.button>
                 </div>
 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
                         const Icon = item.icon;
 
                         return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    "w-14 h-14 rounded-[1.25rem] flex items-center justify-center transition-all duration-300 active:scale-75 group relative",
-                                    isActive ? item.activeColor : item.inactiveColor
-                                )}
-                            >
-                                <Icon className={cn("w-6 h-6 drop-shadow-sm", isActive ? "animate-bounce-subtle" : "")} />
-                                <span className={cn(
-                                    "absolute left-20 px-4 py-2 bg-white/95 dark:bg-[#1c1f2f]/95 backdrop-blur-md rounded-xl text-xs font-black border opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0 whitespace-nowrap shadow-xl",
-                                    isActive ? "text-ink border-purple-100 dark:border-purple-500/20" : "text-ink-muted border-gray-100 dark:border-white/5"
-                                )}>
-                                    {item.label}
-                                </span>
+                            <Link key={item.href} href={item.href}>
+                                <motion.div
+                                    whileHover={{ scale: 1.15, x: 5 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className={cn(
+                                        "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group relative",
+                                        isActive
+                                            ? cn(item.activeBg, "text-white shadow-xl", item.shadow, "border-2 border-white/30")
+                                            : cn(item.bg, "text-slate-400 dark:text-slate-500 hover:text-ink dark:hover:text-slate-200")
+                                    )}
+                                >
+                                    <Icon className={cn("w-6 h-6", isActive ? "animate-bounce-subtle drop-shadow-sm" : "opacity-80")} />
+
+                                    {/* Tooltip */}
+                                    <span className={cn(
+                                        "absolute left-20 px-4 py-2 bg-white dark:bg-[#1c1f2f] rounded-xl text-xs font-fredoka font-black border-2 border-purple-50 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-all -translate-x-4 group-hover:translate-x-0 whitespace-nowrap shadow-[0_10px_30px_rgba(0,0,0,0.1)] pointer-events-none",
+                                        isActive ? "text-ink border-purple-100" : "text-slate-400"
+                                    )}>
+                                        {item.label}
+                                    </span>
+                                </motion.div>
                             </Link>
                         );
                     })}
                 </div>
 
-                <div className="mt-6 border-t border-purple-100 dark:border-white/10 pt-6">
-                    <button
+                <div className="mt-8 border-t-2 border-purple-50 dark:border-white/5 pt-8">
+                    <motion.button
+                        whileHover={{ rotate: 15, scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => setIsHubOpen(true)}
-                        className="w-14 h-14 rounded-2xl text-ink-muted/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-accent transition-all flex items-center justify-center group relative active:scale-90"
+                        className="w-14 h-14 rounded-2xl text-slate-300 hover:text-accent flex items-center justify-center group relative"
                     >
                         <Settings2 className="w-6 h-6" />
-                        <span className="absolute left-20 px-4 py-2 bg-white/95 dark:bg-[#1c1f2f]/95 backdrop-blur-md rounded-xl text-xs font-black text-ink-muted border border-gray-100 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0 whitespace-nowrap shadow-xl">
+                        <span className="absolute left-20 px-4 py-2 bg-white dark:bg-[#1c1f2f] rounded-xl text-xs font-fredoka font-black text-slate-400 border-2 border-purple-50 dark:border-white/5 opacity-0 group-hover:opacity-100 transition-all -translate-x-4 group-hover:translate-x-0 whitespace-nowrap shadow-xl pointer-events-none">
                             Settings
                         </span>
-                    </button>
+                    </motion.button>
                 </div>
             </nav>
 
             {/* Bottom Bar - Mobile */}
-            <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden w-[calc(100%-3rem)] max-w-sm flex items-center justify-around p-2 rounded-[2rem] bg-white/80 dark:bg-[#1c1f2f]/90 backdrop-blur-2xl border-2 border-white/80 shadow-[0_20px_50px_rgba(139,75,255,0.2)] animate-in slide-in-from-bottom duration-700">
+            <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden w-[calc(100%-2.5rem)] max-w-sm flex items-center justify-between p-2 rounded-[2.5rem] bg-white/90 dark:bg-[#1c1f2f]/95 backdrop-blur-2xl border-2 border-white shadow-[0_20px_50px_rgba(139,75,255,0.25)] animate-in slide-in-from-bottom duration-700">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
                     const Icon = item.icon;
 
                     return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                                "flex flex-col items-center justify-center w-14 h-14 rounded-full transition-all active:scale-90",
-                                isActive ? item.activeColor + " shadow-md scale-110" : item.inactiveColor
-                            )}
-                        >
-                            <Icon className="w-5 h-5" />
-                            <span className="text-[9px] font-black mt-1 uppercase tracking-tight">{item.label}</span>
+                        <Link key={item.href} href={item.href} className="flex-1">
+                            <motion.div
+                                whileTap={{ scale: 0.8 }}
+                                className={cn(
+                                    "flex flex-col items-center justify-center h-14 rounded-[1.8rem] transition-all duration-300",
+                                    isActive
+                                        ? cn(item.activeBg, "text-white shadow-lg mx-1 scale-105 border-2 border-white/20")
+                                        : "text-slate-400 dark:text-slate-500"
+                                )}
+                            >
+                                <Icon className={cn("w-5 h-5", isActive ? "mb-0.5" : "mb-1")} />
+                                <span className="text-[10px] font-fredoka font-black uppercase tracking-tight leading-none">
+                                    {item.label}
+                                </span>
+                            </motion.div>
                         </Link>
                     );
                 })}
-                <button
+
+                <motion.button
+                    whileTap={{ scale: 0.8 }}
                     onClick={() => setIsHubOpen(true)}
-                    className="w-14 h-14 rounded-full flex flex-col items-center justify-center text-orange-500 active:scale-90 overflow-hidden"
+                    className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-orange-500 overflow-hidden"
                 >
                     {avatarUrl ? (
-                        <img src={avatarUrl} alt={fullName} className="w-6 h-6 rounded-full object-cover" />
+                        <img src={avatarUrl} alt={fullName} className="w-7 h-7 rounded-full border-2 border-orange-200 object-cover" />
                     ) : user ? (
-                        <span className="text-sm font-black">{userInitial}</span>
+                        <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center">
+                            <span className="text-xs font-fredoka font-black">{userInitial}</span>
+                        </div>
                     ) : (
                         <User className="w-5 h-5" />
                     )}
-                    <span className="text-[9px] font-black mt-1 uppercase tracking-tight">Hub</span>
-                </button>
+                    <span className="text-[10px] font-fredoka font-black uppercase tracking-tight mt-0.5">Hub</span>
+                </motion.button>
             </nav>
 
             {/* Adventure Hub Modal */}
-            {isHubOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
-                    <div className="absolute inset-0 bg-purple-900/20 backdrop-blur-sm" onClick={() => setIsHubOpen(false)} />
-                    <div className="relative w-full max-w-sm glass-card p-8 text-center animate-bounce-in">
-                        <div className="w-24 h-24 mx-auto rounded-[2rem] bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center shadow-xl mb-6 scale-110 rotate-3 overflow-hidden border-4 border-white/50">
-                            {avatarUrl ? (
-                                <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-                            ) : user ? (
-                                <span className="text-4xl font-black text-white drop-shadow-lg">{userInitial}</span>
-                            ) : (
-                                <User className="w-12 h-12 text-white" />
-                            )}
-                        </div>
+            <AnimatePresence>
+                {isHubOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-purple-900/40 backdrop-blur-md"
+                            onClick={() => setIsHubOpen(false)}
+                        />
 
-                        <h2 className="text-3xl font-black text-ink dark:text-white mb-2 leading-tight">
-                            {fullName || (user ? "Magic Voyager" : "The Magic Hub")}
-                        </h2>
-
-                        {user ? (
-                            <div className="flex flex-col items-center gap-2 mb-8">
-                                <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-500/10 rounded-full border border-orange-100 dark:border-orange-500/20">
-                                    <Mail className="w-4 h-4 text-orange-500" />
-                                    <span className="text-xs font-bold text-orange-700 dark:text-orange-400">{user.email}</span>
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0, y: 50 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.8, opacity: 0, y: 50 }}
+                            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                            className="relative w-full max-w-sm clay-card p-10 text-center bg-white border-4 border-white shadow-2xl"
+                        >
+                            <div className="relative w-28 h-28 mx-auto mb-8">
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-orange-300 via-yellow-400 to-orange-600 opacity-20 blur-xl"
+                                />
+                                <div className="relative w-full h-full rounded-[2.2rem] bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 flex items-center justify-center shadow-2xl border-4 border-white overflow-hidden">
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                                    ) : user ? (
+                                        <span className="text-5xl font-fredoka font-black text-white drop-shadow-xl">{userInitial}</span>
+                                    ) : (
+                                        <User className="w-14 h-14 text-white" />
+                                    )}
                                 </div>
-                                <p className="text-ink-muted text-sm mt-4">Welcome back to your magical world of stories!</p>
+                                <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-yellow-400 border-4 border-white flex items-center justify-center shadow-lg">
+                                    <Sparkles className="w-5 h-5 text-white animate-pulse" />
+                                </div>
                             </div>
-                        ) : (
-                            <p className="text-ink-muted mb-8 italic">Your adventure is waiting to be written...</p>
-                        )}
 
-                        <div className="space-y-3">
-                            {user && (
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full py-4 px-6 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-black flex items-center justify-center gap-3 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all active:scale-95 group"
-                                >
-                                    <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                                    Sign Out
-                                </button>
+                            <h2 className="text-3xl font-fredoka font-black text-ink dark:text-white mb-2 leading-tight">
+                                {fullName || (user ? "Magic Voyager" : "The Magic Hub")}
+                            </h2>
+
+                            {user ? (
+                                <div className="flex flex-col items-center gap-3 mb-10">
+                                    <div className="flex items-center gap-2 px-5 py-2.5 bg-orange-50 dark:bg-orange-500/10 rounded-full border-2 border-orange-100 dark:border-orange-500/20 shadow-sm">
+                                        <Mail className="w-4 h-4 text-orange-500" />
+                                        <span className="text-sm font-nunito font-black text-orange-700 dark:text-orange-400">{user.email}</span>
+                                    </div>
+                                    <p className="text-slate-500 font-nunito font-bold text-sm mt-2 italic">“Every bookmark is a captured dream.”</p>
+                                </div>
+                            ) : (
+                                <p className="text-slate-500 mb-10 italic font-nunito font-bold">Your adventure is waiting to be written...</p>
                             )}
-                            <button
-                                onClick={() => setIsHubOpen(false)}
-                                className="w-full next-step-btn py-4"
-                            >
-                                {user ? "Keep Exploring" : "Close"}
-                            </button>
-                        </div>
+
+                            <div className="space-y-4">
+                                {user && (
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full py-4 px-6 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-fredoka font-black flex items-center justify-center gap-3 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all active:scale-95 group border-2 border-rose-100/50"
+                                    >
+                                        <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                                        Sign Out Explorer
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setIsHubOpen(false)}
+                                    className="w-full next-step-btn py-4 font-fredoka rounded-2xl"
+                                >
+                                    {user ? "Back to Adventure" : "Close Portal"}
+                                </button>
+                            </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
         </>
     );
 }
