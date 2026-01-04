@@ -8,6 +8,8 @@ export interface WordToken {
     text: string;
     wordIndex: number;
     punctuation?: string;
+    start: number; // For compatibility
+    end: number;   // For compatibility
 }
 
 /**
@@ -45,7 +47,9 @@ export function tokensToWordTokens(tokens: Token[]): WordToken[] {
             result.push({
                 text: token.t,
                 wordIndex: token.i,
-                punctuation: punctuation || undefined
+                punctuation: punctuation || undefined,
+                start: 0,
+                end: 0
             });
         }
     }

@@ -108,6 +108,20 @@ export class StoryService implements IStoryService {
     }
 
     /**
+     * @deprecated Use the Supabase API to fetch individual stories/books
+     */
+    async getStory(id: string): Promise<Story | null> {
+        return null;
+    }
+
+    /**
+     * @deprecated Use the Supabase API to delete stories/books
+     */
+    async deleteStory(id: string): Promise<void> {
+        // No-op
+    }
+
+    /**
      * Converts a Story object to a Book object for use in the SupabaseReaderShell (fallback/legacy)
      */
     convertStoryToBook(story: Story): Book {

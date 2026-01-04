@@ -1,4 +1,5 @@
-export type NarrationProviderType = "web_speech" | "remote_tts";
+// "polly" is kept for legacy compatibility but currently maps to WebSpeech or RemoteTTS in the factory
+export type NarrationProviderType = "web_speech" | "remote_tts" | "polly" | "auto";
 
 export type TooltipPosition = {
   x: number;

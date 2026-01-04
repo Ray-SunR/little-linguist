@@ -472,9 +472,7 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
         isOpen={wordInspector.isOpen}
         position={wordInspector.position}
         onClose={wordInspector.close}
-        onListen={handleTooltipListen}
         onRetry={wordInspector.retry}
-        isListening={isListening}
         onPlaySentence={handlePlaySentence}
         onPlayFromWord={handlePlayFromWord}
       />

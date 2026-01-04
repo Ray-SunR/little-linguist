@@ -294,9 +294,7 @@ function Flashcard({ word, onRemove, ttsProvider }: { word: WordInsight; onRemov
                         <WordInsightView
                             insight={word}
                             isSaved={true}
-                            onToggleSave={(e?: any) => e?.stopPropagation?.()}
-                            onListen={handleListen}
-                            isListening={isListening}
+                            onToggleSave={() => { }}
                             provider={ttsProvider}
                         />
 
