@@ -14,6 +14,7 @@ export type StoryScene = {
     text: string;
     imagePrompt: string;
     imageUrl?: string;
+    after_word_index?: number;
 };
 
 /**
@@ -21,6 +22,7 @@ export type StoryScene = {
  */
 export type Story = {
     id: string;
+    book_id?: string;
     title: string;
     content: string; // Keep content for backward compatibility or as a summary
     scenes: StoryScene[];
@@ -36,8 +38,8 @@ export type Story = {
  */
 export interface IStoryService {
     generateStory(words: string[], userProfile: UserProfile): Promise<Story>;
-    generateStoryContent(words: string[], userProfile: UserProfile): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string }>;
-    generateImageForScene(scene: StoryScene, userProfile: UserProfile, characterDescription: string): Promise<string | undefined>;
+    generateStoryContent(words: string[], userProfile: UserProfile): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string, book_id: string, tokens: any[] }>;
+    generateImageForScene(scene: StoryScene, userProfile: UserProfile, characterDescription: string, bookId?: string, sceneIndex?: number): Promise<string | undefined>;
     saveStory(story: Story): Promise<void>;
     getStories(): Promise<Story[]>;
     getStory(id: string): Promise<Story | null>;

@@ -4,7 +4,6 @@ import React, { useMemo, useEffect, useState, forwardRef, useImperativeHandle } 
 import { useAudioNarration, type PlaybackState } from "../hooks/use-audio-narration";
 import { useWordHighlighter } from "../hooks/use-word-highlighter";
 import { BlobNarrationProvider } from "@/lib/features/narration/implementations/blob-provider";
-import { PollyNarrationProvider } from "@/lib/features/narration/implementations/polly-provider";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
 import type { INarrationProvider, NarrationProviderType } from "@/lib/features/narration";
 import { tokenizeText } from "@/lib/core";
@@ -76,7 +75,8 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
 
             // 3. Provider Type
             if (voiceProvider === "remote_tts") {
-                return new PollyNarrationProvider();
+                // Return null or fallback to web_speech if no audio source provided
+                return null;
             }
             if (voiceProvider === "web_speech") {
                 return new WebSpeechNarrationProvider();

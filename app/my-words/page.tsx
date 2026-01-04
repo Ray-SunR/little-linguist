@@ -11,7 +11,6 @@ import type { WordInsight } from "@/lib/features/word-insight";
 import { WordInsightView } from "@/components/reader/word-insight-view";
 import { playWordOnly, useNarration } from "@/lib/features/narration";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
-import { PollyNarrationProvider } from "@/lib/features/narration/implementations/polly-provider";
 import type { INarrationProvider } from "@/lib/features/narration";
 
 export default function MyWordsPage() {
@@ -21,11 +20,6 @@ export default function MyWordsPage() {
 
     // Unified TTS Provider for individual words
     const tooltipProvider = useMemo(() => {
-        // We'll prefer Polly if available in the environment, fallback to Web Speech
-        const providerType = process.env.NEXT_PUBLIC_NARRATION_PROVIDER ?? "web_speech";
-        if (providerType === "polly") {
-            return new PollyNarrationProvider();
-        }
         return new WebSpeechNarrationProvider();
     }, []);
 

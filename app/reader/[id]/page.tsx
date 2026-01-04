@@ -44,6 +44,10 @@ function ReaderContent({ params }: ReaderPageProps) {
             const listToFetch = manifest.filter(remote => {
                 const cached = cachedBooks.find(b => b.id === remote.id);
                 if (!cached) return true;
+                // Always fetch the current book to ensure it's fresh, 
+                // especially for newly generated ones with async images
+                if (remote.id === bookId) return true;
+
                 if ((remote.updated_at && cached.updated_at && remote.updated_at !== cached.updated_at) ||
                     (remote.voice_id !== cached.voice_id)) return true;
                 if (cached.cached_at && (now - cached.cached_at > EXPIRY_MS)) return true;

@@ -1,4 +1,3 @@
-import { PollyNarrationProvider } from "./implementations/polly-provider";
 import { RemoteTtsNarrationProvider } from "./implementations/remote-tts-provider";
 import { WebSpeechNarrationProvider } from "./implementations/web-speech-provider";
 import type { INarrationProvider, NarrationProviderType } from "./types";
@@ -22,7 +21,7 @@ export class NarrationProviderFactory {
 
         switch (type as NarrationProviderType) {
             case "polly":
-                return new PollyNarrationProvider();
+                return new WebSpeechNarrationProvider();
 
             case "remote_tts":
                 if (!config.audioUrl) {

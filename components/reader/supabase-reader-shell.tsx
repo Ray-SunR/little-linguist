@@ -39,9 +39,10 @@ export interface SupabaseBook {
 type SupabaseReaderShellProps = {
     books: SupabaseBook[];
     initialBookId?: string;
+    onBack?: () => void;
 };
 
-export default function SupabaseReaderShell({ books, initialBookId }: SupabaseReaderShellProps) {
+export default function SupabaseReaderShell({ books, initialBookId, onBack }: SupabaseReaderShellProps) {
     const router = useRouter();
     const [selectedBookId, setSelectedBookId] = useState(initialBookId || "");
     const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
@@ -249,7 +250,11 @@ export default function SupabaseReaderShell({ books, initialBookId }: SupabaseRe
                         type="button"
                         onClick={() => {
                             saveProgress();
-                            router.push("/library");
+                            if (onBack) {
+                                onBack();
+                            } else {
+                                router.push("/library");
+                            }
                         }}
                         className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent"
                         aria-label="Back to Library"

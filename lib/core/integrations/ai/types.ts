@@ -18,9 +18,12 @@ export interface GeneratedStoryContent {
     title: string;
     content: string;
     mainCharacterDescription: string;
+    book_id: string;
+    tokens: any[];
     scenes: {
         text: string;
         image_prompt: string;
+        after_word_index?: number;
     }[];
 }
 

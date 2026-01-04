@@ -1,65 +1,109 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
+import { normalizeWord } from "@/lib/core";
+import { getWordAnalysisProvider } from "@/lib/features/word-insight/server/factory";
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
-    const useBackend = process.env.USE_BACKEND_WORD_INSIGHT === "true";
-    const backendUrl = process.env.WORD_INSIGHT_API_URL;
-    const apiKey = process.env.GEMINI_API_KEY;
-
     try {
-        const { word } = await req.json();
+        const { word: rawWord } = await req.json();
+        const word = normalizeWord(rawWord);
 
-        if (useBackend && backendUrl) {
-            const response = await fetch(backendUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ word }),
-            });
-            if (!response.ok) throw new Error(`Backend error: ${response.status}`);
-            return NextResponse.json(await response.json());
+        if (!word) {
+            return NextResponse.json({ error: "Invalid word" }, { status: 400 });
         }
 
-        if (!apiKey) {
-            return NextResponse.json({ error: "Gemini API Key missing on server" }, { status: 500 });
-        }
+        // 1. Check Cache
+        const { data: cached, error: dbError } = await supabase
+            .from("word_insights")
+            .select("*")
+            .eq("word", word)
+            .maybeSingle();
 
-        const genAI = new GoogleGenAI({ apiKey });
-        const response = await genAI.models.generateContent({
-            model: "gemini-2.0-flash-exp",
-            contents: `You are a helpful teacher for children ages 5-8. 
-Provide a simple, kid-friendly explanation for the word "${word}".
-
-Include:
-1. A simple, clear definition (one sentence, appropriate for young children)
-2. Simple phonetic pronunciation (e.g., "cat" = "kat", "there" = "thair")
-3. 1-2 example sentences that a young child would understand
-
-Keep everything simple, fun, and age-appropriate.`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        word: { type: Type.STRING },
-                        definition: { type: Type.STRING },
-                        pronunciation: { type: Type.STRING },
-                        examples: {
-                            type: Type.ARRAY,
-                            items: { type: Type.STRING }
-                        }
-                    },
-                    required: ["word", "definition", "pronunciation", "examples"]
-                },
-                systemInstruction: "You are a friendly teacher for 5-8 year-olds. Keep explanations short, simple, and positive.",
-                temperature: 0.7,
+        if (cached) {
+            // Resolve signed URL for audio if exists
+            let audioUrl = "";
+            if (cached.audio_path) {
+                const { data: signData } = await supabase.storage
+                    .from("word-insights-audio")
+                    .createSignedUrl(cached.audio_path, 3600);
+                audioUrl = signData?.signedUrl || "";
             }
+
+            return NextResponse.json({
+                word: cached.word,
+                definition: cached.definition,
+                pronunciation: cached.pronunciation,
+                examples: cached.examples,
+                audioUrl,
+                wordTimings: cached.timing_markers,
+            });
+        }
+
+        // 2. Generate Insight with Provider
+        const provider = getWordAnalysisProvider();
+        const insight = await provider.analyzeWord(word);
+
+        // 3. Generate Audio for Definition with Polly
+        let audioPath = "";
+        let wordTimings: any[] = [];
+        let signedAudioUrl = "";
+
+        try {
+            const polly = new PollyNarrationService();
+            const { audioBuffer, speechMarks } = await polly.synthesize(insight.definition);
+
+            audioPath = `${word}/definition.mp3`;
+            const { error: uploadError } = await supabase.storage
+                .from("word-insights-audio")
+                .upload(audioPath, audioBuffer, {
+                    contentType: "audio/mpeg",
+                    upsert: true
+                });
+
+            if (uploadError) throw uploadError;
+
+            // Map speech marks to WordTimings
+            // Polly marks: { time: ms, type: "word", value: "word" }
+            wordTimings = speechMarks.map((mark, idx) => ({
+                wordIndex: idx,
+                startMs: mark.time,
+                endMs: speechMarks[idx + 1] ? speechMarks[idx + 1].time : mark.time + 500 // estimate end
+            }));
+
+            const { data: signData } = await supabase.storage
+                .from("word-insights-audio")
+                .createSignedUrl(audioPath, 3600);
+            signedAudioUrl = signData?.signedUrl || "";
+
+        } catch (ttsError) {
+            console.error("TTS generation failed for word insight:", ttsError);
+            // Non-fatal, return insight without audio
+        }
+
+        // 4. Save to Database
+        await supabase.from("word_insights").upsert({
+            word,
+            definition: insight.definition,
+            pronunciation: insight.pronunciation,
+            examples: insight.examples,
+            audio_path: audioPath,
+            timing_markers: wordTimings,
+        }, { onConflict: "word" });
+
+        return NextResponse.json({
+            ...insight,
+            audioUrl: signedAudioUrl,
+            wordTimings,
         });
 
-        const data = JSON.parse(response.text || '{}');
-        return NextResponse.json(data);
-
     } catch (error: any) {
-        console.error("Gemini API error:", error);
+        console.error("Word insight error:", error);
         return NextResponse.json({ error: error.message || "Failed to fetch word insight" }, { status: 500 });
     }
 }

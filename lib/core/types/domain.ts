@@ -11,6 +11,12 @@ export interface WordInsight {
     definition: string;
     pronunciation?: string;
     examples: string[];
+    audioUrl?: string; // High-quality cached audio
+    wordTimings?: {
+        wordIndex: number;
+        startMs: number;
+        endMs: number;
+    }[];
 }
 
 /**

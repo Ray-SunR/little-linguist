@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
+import { createClient } from "@supabase/supabase-js";
 
 const PROJECT_ID = process.env.GOOGLE_PROJECT_ID;
 const LOCATION = 'global';
@@ -16,13 +17,24 @@ function getCredentials() {
     return undefined;
 }
 
+import { createClient as createAuthClient } from "@/lib/supabase/server";
+
 export async function POST(req: Request) {
     if (!PROJECT_ID) {
         return NextResponse.json({ error: "GOOGLE_PROJECT_ID missing" }, { status: 500 });
     }
 
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Get current user for owner_user_id
+    const authClient = createAuthClient();
+    const { data: { user } } = await authClient.auth.getUser();
+
     try {
-        const { prompt, userPhotoBase64, characterDescription } = await req.json();
+        const { prompt, userPhotoBase64, characterDescription, bookId, afterWordIndex, sceneIndex } = await req.json();
 
         // 1. Initialize Client (Using Vertex AI with explicit credentials)
         const credentials = getCredentials();
@@ -103,15 +115,9 @@ export async function POST(req: Request) {
         let base64Image: string | undefined;
         let modelThought: string | undefined;
 
-        // Safety check for content and parts
         const content = candidates[0].content;
         if (!content || !content.parts) {
-            console.error("No content or parts in response. Finish reason:", candidates[0].finishReason);
-            console.error("Full response structure:", JSON.stringify(response, (k, v) => k === 'data' ? '[BINARY]' : v, 2));
-            return NextResponse.json({
-                error: `Model returned no content (Finish Reason: ${candidates[0].finishReason})`,
-                details: "The model did not return any parts."
-            }, { status: 500 });
+            throw new Error(`Model returned no content (Finish Reason: ${candidates[0].finishReason})`);
         }
 
         for (const part of content.parts) {
@@ -119,25 +125,62 @@ export async function POST(req: Request) {
                 base64Image = part.inlineData.data;
             } else if (part.text) {
                 modelThought = part.text;
-                console.log('\n🤖 Model Thought Process Snippet:\n', modelThought.substring(0, 300) + "...");
             }
         }
 
         if (!base64Image) {
-            console.error("No image generated in parts. Full response structure:", JSON.stringify(response, (k, v) => k === 'data' ? '[BINARY]' : v, 2));
-            return NextResponse.json({
-                error: "No image generated (Safety Filter or Model Issue)",
-                details: "The model did not return an image part."
-            }, { status: 500 });
+            throw new Error("No image generated");
+        }
+
+        const dataUrl = `data:image/png;base64,${base64Image}`;
+
+        // --- 7. Persist Image to Supabase ---
+        if (bookId && afterWordIndex !== undefined) {
+            const buffer = Buffer.from(base64Image, 'base64');
+            const fileName = `scene-${sceneIndex || Date.now()}.png`;
+            const storagePath = `${bookId}/images/${fileName}`;
+
+            await supabase.storage.from('book-assets').upload(storagePath, buffer, {
+                contentType: 'image/png',
+                upsert: true
+            });
+
+            await supabase.from('book_media').upsert({
+                book_id: bookId,
+                owner_user_id: user?.id || null,
+                media_type: 'image',
+                path: storagePath,
+                after_word_index: afterWordIndex,
+                metadata: {
+                    caption: `Illustration for scene`,
+                    alt: prompt
+                }
+            }, { onConflict: 'book_id,path' });
+
+            // Also update the main book record's images array for redundancy/readability
+            const { data: book } = await supabase.from('books').select('images').eq('id', bookId).single();
+            const currentImages = Array.isArray(book?.images) ? book.images : [];
+            const newImage = {
+                id: crypto.randomUUID(),
+                src: storagePath,
+                afterWordIndex: afterWordIndex,
+                caption: `Illustration for scene`,
+                alt: prompt
+            };
+
+            await supabase.from('books').update({
+                images: [...currentImages, newImage],
+                updated_at: new Date().toISOString()
+            }).eq('id', bookId);
         }
 
         return NextResponse.json({
-            imageUrl: `data:image/png;base64,${base64Image}`,
+            imageUrl: dataUrl,
             thought: modelThought
         });
 
     } catch (error: any) {
-        console.error("Gemini 3 Image generation API error:", error);
+        console.error("Image generation error:", error);
         return NextResponse.json({ error: error.message || "Failed to generate image" }, { status: 500 });
     }
 }

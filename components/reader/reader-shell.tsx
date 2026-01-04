@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, FastForward, Sparkles, Wand2, Star, Maximize, Minimize, Languages } from "lucide-react";
 import { tokenizeText } from "@/lib/core";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
-import { PollyNarrationProvider } from "@/lib/features/narration/implementations/polly-provider";
 import { useWordInspector } from "../../hooks/use-word-inspector";
 import { DEFAULT_SPEED, type SpeedOption } from "@/lib/features/narration/internal/speed-options";
 import { playWordOnly, playSentence } from "@/lib/features/narration";
@@ -117,13 +116,8 @@ export default function ReaderShell({ books, initialINarrationProvider, initialB
 
   // Separate provider for tooltip TTS to avoid conflicts with main narration
   const tooltipProvider = useMemo(() => {
-    const providerType = initialINarrationProvider ?? "web_speech";
-    if (providerType === "polly") {
-      return new PollyNarrationProvider();
-    }
-    // For web_speech and remote_tts, use Web Speech as it's simpler for short audio
     return new WebSpeechNarrationProvider();
-  }, [initialINarrationProvider]);
+  }, []);
 
   const { currentWordIndex } = narration;
 

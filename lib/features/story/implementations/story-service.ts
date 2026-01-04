@@ -17,20 +17,23 @@ export class StoryService implements IStoryService {
         this.provider = provider || getAIProvider();
     }
 
-    async generateStoryContent(words: string[], userProfile: UserProfile): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string }> {
+    async generateStoryContent(words: string[], userProfile: UserProfile): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string, book_id: string, tokens: any[] }> {
         const generated = await this.provider.generateStory(words, userProfile);
         return {
             title: generated.title,
             content: generated.content,
             mainCharacterDescription: generated.mainCharacterDescription,
-            scenes: generated.scenes.map(s => ({
+            book_id: generated.book_id,
+            tokens: generated.tokens,
+            scenes: generated.scenes.map((s: any) => ({
                 text: s.text,
-                imagePrompt: s.image_prompt
+                imagePrompt: s.image_prompt,
+                after_word_index: s.after_word_index
             }))
         };
     }
 
-    async generateImageForScene(scene: StoryScene, userProfile: UserProfile, characterDescription: string): Promise<string | undefined> {
+    async generateImageForScene(scene: StoryScene, userProfile: UserProfile, characterDescription: string, bookId?: string, sceneIndex?: number): Promise<string | undefined> {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
                 ? "/api/mock/story/images"
@@ -42,7 +45,10 @@ export class StoryService implements IStoryService {
                 body: JSON.stringify({
                     prompt: scene.imagePrompt,
                     userPhotoBase64: userProfile.avatarUrl,
-                    characterDescription: characterDescription
+                    characterDescription: characterDescription,
+                    bookId: bookId,
+                    afterWordIndex: scene.after_word_index,
+                    sceneIndex: sceneIndex
                 }),
             });
 
@@ -87,40 +93,22 @@ export class StoryService implements IStoryService {
         }
     }
 
+    /**
+     * @deprecated Stories are now persisted to Supabase via /api/story
+     */
     async saveStory(story: Story): Promise<void> {
-        const stories = await this.getStories();
-        const newStories = [story, ...stories];
-        this.persistStories(newStories);
-    }
-
-    async getStories(): Promise<Story[]> {
-        if (typeof window === "undefined") return [];
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? JSON.parse(stored) : [];
-        } catch (e) {
-            return [];
-        }
-    }
-
-    async getStory(id: string): Promise<Story | null> {
-        const stories = await this.getStories();
-        return stories.find(s => s.id === id) || null;
-    }
-
-    async deleteStory(id: string): Promise<void> {
-        const stories = await this.getStories();
-        const newStories = stories.filter(s => s.id !== id);
-        this.persistStories(newStories);
-    }
-
-    private persistStories(stories: Story[]): void {
-        if (typeof window === "undefined") return;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stories));
+        // Redundant as of Supabase migration
     }
 
     /**
-     * Converts a Story object to a Book object for use in the ReaderShell
+     * @deprecated Use the standard library API to fetch stories (origin='user_generated')
+     */
+    async getStories(): Promise<Story[]> {
+        return [];
+    }
+
+    /**
+     * Converts a Story object to a Book object for use in the SupabaseReaderShell (fallback/legacy)
      */
     convertStoryToBook(story: Story): Book {
         let fullText = "";

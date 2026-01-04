@@ -15,28 +15,42 @@ export class BookRepository {
         );
     }
 
-    async getSystemBooks(): Promise<Partial<Book>[]> {
-        const { data, error } = await this.supabase
+    async getAvailableBooks(userId?: string): Promise<Partial<Book>[]> {
+        let query = this.supabase
             .from('books')
-            .select('id, book_key, title, origin, updated_at, voice_id') // Sparse list
-            .eq('origin', 'system')
-            .order('title');
+            .select('id, book_key, title, origin, updated_at, voice_id, owner_user_id');
+
+        if (userId) {
+            query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
+        } else {
+            query = query.is('owner_user_id', null);
+        }
+
+        const { data, error } = await query.order('title');
 
         if (error) throw error;
         return data || [];
     }
 
-    async getBookById(idOrSlug: string, options: { includeContent?: boolean, includeMedia?: boolean } = {}): Promise<any | null> {
+    async getBookById(idOrSlug: string, options: { includeContent?: boolean, includeMedia?: boolean, userId?: string } = {}): Promise<any | null> {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
 
-        const fields = ['id', 'book_key', 'title', 'origin', 'tokens', 'updated_at', 'voice_id'];
+        const fields = ['id', 'book_key', 'title', 'origin', 'tokens', 'images', 'updated_at', 'voice_id', 'owner_user_id'];
         if (options.includeContent) fields.push('text');
 
-        const query = this.supabase.from('books').select(fields.join(','));
+        let query = this.supabase.from('books').select(fields.join(','));
+
         if (isUuid) {
-            query.eq('id', idOrSlug);
+            query = query.eq('id', idOrSlug);
         } else {
-            query.eq('book_key', idOrSlug);
+            query = query.eq('book_key', idOrSlug);
+        }
+
+        // Apply ownership filter: public (null) OR owned by user
+        if (options.userId) {
+            query = query.or(`owner_user_id.is.null,owner_user_id.eq.${options.userId}`);
+        } else {
+            query = query.is('owner_user_id', null);
         }
 
         const { data, error } = await query.single();
@@ -45,6 +59,19 @@ export class BookRepository {
         if (!bookData) return null;
 
         const result = { ...bookData };
+
+        // Resolve signed URLs for images stored in the main book record
+        if (Array.isArray(result.images)) {
+            result.images = await Promise.all(result.images.map(async (img: any) => {
+                if (img.src && !img.src.startsWith('http')) {
+                    const { data: signedData } = await this.supabase.storage
+                        .from('book-assets')
+                        .createSignedUrl(img.src, 3600);
+                    return { ...img, src: signedData?.signedUrl || img.src };
+                }
+                return img;
+            }));
+        }
 
         if (options.includeMedia) {
             const { data: media, error: mediaError } = await this.supabase
@@ -77,7 +104,9 @@ export class BookRepository {
                 };
             }));
 
-            result.images = imagesWithUrls;
+            if (imagesWithUrls.length > 0) {
+                result.images = imagesWithUrls;
+            }
         }
 
         return result;

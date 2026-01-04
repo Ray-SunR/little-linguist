@@ -1,4 +1,4 @@
-export type NarrationProviderType = "web_speech" | "remote_tts" | "polly";
+export type NarrationProviderType = "web_speech" | "remote_tts";
 
 export type TooltipPosition = {
   x: number;

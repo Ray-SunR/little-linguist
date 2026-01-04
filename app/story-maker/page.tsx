@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService } from "@/lib/features/story";
 import type { Story, UserProfile } from "@/lib/features/story";
-import ReaderShell from "@/components/reader/reader-shell";
+import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { compressImage } from "@/lib/core/utils/image";
 
 type Step = "profile" | "words" | "generating" | "reading";
@@ -26,10 +26,38 @@ export default function StoryMakerPage() {
     });
     const [selectedWords, setSelectedWords] = useState<string[]>([]);
     const [story, setStory] = useState<Story | null>(null);
+    const [supabaseBook, setSupabaseBook] = useState<SupabaseBook | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
+
+    // Poll for shards when story is being read
+    useEffect(() => {
+        if (step !== "reading" || !supabaseBook || supabaseBook.shards?.length > 0) return;
+
+        let mounted = true;
+        const poll = async () => {
+            try {
+                const res = await fetch(`/api/books/${supabaseBook.id}/narration`);
+                if (res.ok && mounted) {
+                    const shards = await res.json();
+                    if (shards && shards.length > 0) {
+                        setSupabaseBook(prev => prev ? { ...prev, shards } : null);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to poll shards:", e);
+            }
+        };
+
+        const interval = setInterval(poll, 3000);
+        poll();
+        return () => {
+            mounted = false;
+            clearInterval(interval);
+        };
+    }, [step, supabaseBook?.id, supabaseBook?.shards?.length]);
 
     const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,6 +83,7 @@ export default function StoryMakerPage() {
 
             const initialStory: Story = {
                 id: crypto.randomUUID(),
+                book_id: content.book_id,
                 title: content.title,
                 content: content.content,
                 scenes: content.scenes,
@@ -64,12 +93,29 @@ export default function StoryMakerPage() {
                 mainCharacterDescription: content.mainCharacterDescription,
             };
 
+            const initialSupabaseBook: SupabaseBook = {
+                id: content.book_id,
+                title: content.title,
+                text: content.content,
+                tokens: content.tokens || [],
+                shards: [],
+                images: content.scenes.map((scene, idx) => ({
+                    id: `scene-${idx}`,
+                    src: "",
+                    afterWordIndex: scene.after_word_index,
+                    caption: "Drawing Magic...",
+                    isPlaceholder: true,
+                    sceneIndex: idx // Store for easier updates
+                })),
+            };
+
             setStory(initialStory);
+            setSupabaseBook(initialSupabaseBook);
             setStep("reading");
             setCurrentPage(0);
 
             // Step 2: Generate Images Progressively in background
-            const CONCURRENCY_LIMIT = 2; // Lower concurrency in UI to be safe
+            const CONCURRENCY_LIMIT = 2;
             const updatedScenes = [...content.scenes];
 
             // Helper to update state with new image
@@ -80,12 +126,41 @@ export default function StoryMakerPage() {
                     newScenes[index] = { ...newScenes[index], imageUrl: url };
                     return { ...prev, scenes: newScenes };
                 });
+
+                setSupabaseBook(prev => {
+                    if (!prev) return prev;
+                    const newImages = [...(prev.images || [])];
+                    const existingIdx = newImages.findIndex(img => (img as any).sceneIndex === index);
+
+                    const newEntry = {
+                        id: `scene-${index}`,
+                        src: url,
+                        afterWordIndex: content.scenes[index].after_word_index,
+                        caption: `Illustration for scene ${index + 1}`,
+                        isPlaceholder: false,
+                        sceneIndex: index
+                    };
+
+                    if (existingIdx !== -1) {
+                        newImages[existingIdx] = newEntry;
+                    } else {
+                        newImages.push(newEntry);
+                    }
+
+                    return { ...prev, images: newImages };
+                });
             };
 
             for (let i = 0; i < updatedScenes.length; i += CONCURRENCY_LIMIT) {
                 const chunk = Array.from({ length: Math.min(CONCURRENCY_LIMIT, updatedScenes.length - i) }, (_, k) => i + k);
                 await Promise.all(chunk.map(async (index) => {
-                    const imageUrl = await service.generateImageForScene(updatedScenes[index], profile, content.mainCharacterDescription);
+                    const imageUrl = await service.generateImageForScene(
+                        updatedScenes[index],
+                        profile,
+                        content.mainCharacterDescription,
+                        content.book_id,
+                        index
+                    );
                     if (imageUrl) {
                         updateImage(index, imageUrl);
                     }
@@ -492,15 +567,20 @@ export default function StoryMakerPage() {
                     </motion.div>
                 )}
 
-                {step === "reading" && story && (
+                {step === "reading" && supabaseBook && (
                     <div className="fixed inset-0 z-[100] page-sky h-screen overflow-hidden px-4 py-4">
-                        <ReaderShell
-                            books={[service.convertStoryToBook(story)]}
-                            initialINarrationProvider={process.env.NEXT_PUBLIC_NARRATION_PROVIDER}
+                        <SupabaseReaderShell
+                            books={[supabaseBook]}
+                            initialBookId={supabaseBook.id}
+                            onBack={() => {
+                                setStep("words");
+                                setStory(null);
+                                setSupabaseBook(null);
+                            }}
                         />
 
                         {/* Status overlay for background generation */}
-                        {story.scenes.some(s => !s.imageUrl) && (
+                        {supabaseBook.images?.some(img => img.isPlaceholder) && (
                             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full bg-white/80 px-6 py-2 shadow-lg backdrop-blur-md border border-accent/20 animate-slide-up z-[110]">
                                 <RefreshCw className="h-4 w-4 animate-spin text-accent" />
                                 <span className="text-sm font-bold text-ink-muted">AI is drawing images...</span>

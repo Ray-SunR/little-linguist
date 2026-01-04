@@ -143,7 +143,9 @@ export function WordInsightView({
                             <NarratedText
                                 ref={definitionRef}
                                 text={insight.definition}
-                                voiceProvider="web_speech"
+                                audio={insight.audioUrl}
+                                timings={insight.wordTimings}
+                                voiceProvider={insight.audioUrl ? "remote_tts" : "web_speech"}
                                 showControls={false}
                                 className="text-[17px] font-bold text-ink leading-snug font-nunito"
                                 highlightClassName="bg-amber-100 text-amber-900 rounded-md px-1"

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BookRepository } from '@/lib/core/books/repository.server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
     request: NextRequest,
@@ -10,10 +11,14 @@ export async function GET(
         const { searchParams } = new URL(request.url);
         const include = searchParams.get('include')?.split(',') || [];
 
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
         const repo = new BookRepository();
         const book = await repo.getBookById(id, {
             includeContent: include.includes('content'),
-            includeMedia: include.includes('media') || include.includes('images')
+            includeMedia: include.includes('media') || include.includes('images'),
+            userId: user?.id
         });
 
         if (!book) {

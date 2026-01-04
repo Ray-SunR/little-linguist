@@ -56,7 +56,9 @@ export class GeminiProvider implements AIProvider {
                 word: data.word,
                 definition: data.definition,
                 pronunciation: data.pronunciation || "",
-                examples: Array.isArray(data.examples) ? data.examples.slice(0, 2) : []
+                examples: Array.isArray(data.examples) ? data.examples.slice(0, 2) : [],
+                audioUrl: (data as any).audioUrl,
+                wordTimings: (data as any).wordTimings,
             };
         } catch (error) {
             if (error instanceof AIError) throw error;
@@ -101,6 +103,8 @@ export class GeminiProvider implements AIProvider {
                 title: data.title,
                 content: data.content,
                 mainCharacterDescription: data.mainCharacterDescription,
+                book_id: (data as any).book_id,
+                tokens: (data as any).tokens || [],
                 scenes: data.scenes,
             };
 
