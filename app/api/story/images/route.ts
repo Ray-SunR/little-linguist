@@ -1,186 +1,129 @@
-import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
 import { createClient } from "@supabase/supabase-js";
-
-const PROJECT_ID = process.env.GOOGLE_PROJECT_ID;
-const LOCATION = 'global';
-const MODEL_ID = 'gemini-2.5-flash-image';
-
-function getCredentials() {
-    if (process.env.GOOGLE_CREDENTIALS_JSON) {
-        try {
-            return JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
-        } catch (e) {
-            console.error("Failed to parse GOOGLE_CREDENTIALS_JSON", e);
-        }
-    }
-    return undefined;
-}
-
 import { createClient as createAuthClient } from "@/lib/supabase/server";
+import { ImageGenerationFactory } from '@/lib/features/image-generation/factory';
+import { StoryRepository } from '@/lib/core/stories/repository.server';
 
 export async function POST(req: Request) {
-    if (!PROJECT_ID) {
-        return NextResponse.json({ error: "GOOGLE_PROJECT_ID missing" }, { status: 500 });
-    }
-
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get current user for owner_user_id
     const authClient = createAuthClient();
     const { data: { user } } = await authClient.auth.getUser();
 
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized. Please sign in to generate images." }, { status: 401 });
+    }
+
     try {
-        const { prompt, userPhotoBase64, characterDescription, bookId, afterWordIndex, sceneIndex } = await req.json();
+        const { bookId, sceneIndex } = await req.json();
 
-        // 1. Initialize Client (Using Vertex AI with explicit credentials)
-        const credentials = getCredentials();
-        const ai = new GoogleGenAI({
-            vertexai: true,
-            project: PROJECT_ID,
-            location: LOCATION,
-            googleAuthOptions: credentials ? { credentials } : undefined
-        });
+        if (!bookId) {
+            return NextResponse.json({ error: "bookId is required" }, { status: 400 });
+        }
 
-        // 2. Prepare Base64 string for reference images (remove header if present)
-        const isBase64DataUrl = userPhotoBase64 && userPhotoBase64.startsWith('data:image');
-        const cleanBase64 = isBase64DataUrl
-            ? userPhotoBase64.replace(/^data:image\/\w+;base64,/, '')
-            : userPhotoBase64; // Fallback if it's already clean base64
+        const storyRepo = new StoryRepository(supabase);
+        const story = await storyRepo.getStoryById(bookId, user.id);
 
-        // Validate base64 is not empty
-        const hasValidBase64 = cleanBase64 && cleanBase64.length > 100;
+        if (!story) {
+            return NextResponse.json({ error: "Story meta not found or unauthorized" }, { status: 404 });
+        }
 
-        // 3. Prepare Contents array
-        const contents: any[] = [];
+        const scenes = story.scenes || [];
+        const mainCharacterDescription = story.main_character_description || 'the main character';
 
-        if (hasValidBase64) {
-            const mimeType = userPhotoBase64.includes('image/png') ? 'image/png' : 'image/jpeg';
+        if (scenes.length === 0) {
+            return NextResponse.json({ error: "No scenes found in story" }, { status: 400 });
+        }
 
-            const imagePart = {
-                inlineData: {
-                    data: cleanBase64,
-                    mimeType: mimeType
+        let userPhotoBuffer: Buffer | undefined;
+        if (story.avatar_url && story.avatar_url.includes('/user-uploads/')) {
+            try {
+                const { data: photoData } = await supabase.storage
+                    .from('book-assets')
+                    .download(story.avatar_url);
+                if (photoData) {
+                    const arrayBuffer = await photoData.arrayBuffer();
+                    userPhotoBuffer = Buffer.from(arrayBuffer);
                 }
-            };
-            contents.push(imagePart);
+            } catch (err) {
+                console.error("Failed to download user photo:", err);
+            }
         }
 
-        // 4. Build prompt
-        let finalPromptText = "";
-        if (hasValidBase64) {
-            finalPromptText = `
-                Generate a professional-grade storybook illustration featuring the child whose photos are provided before and referenced as [1] in the prompt. 
-                
-                The scene depicts: ${prompt}. 
-                
-                The child [1] should remain the central character, carefully preserving their unique facial features, age, hair style, skin color, clothing, and identity from the reference photos. 
-                
-                Composition and Style: An eye-level medium shot with a soft, tactile children's book texture. Use a vibrant, harmonious color palette and warm, whimsical lighting to create a magical and inviting atmosphere. 
-            `;
-        } else {
-            finalPromptText = `
-                An enchanting children's book illustration depicting: ${prompt}. 
-                The protagonist, ${characterDescription}, is the focus of the scene. 
-                
-                Style: Vibrant colors, professional storybook art style with rich textures and a sense of wonder. 
-            `;
-        }
+        const provider = ImageGenerationFactory.getProvider();
+        const results = [];
 
-        contents.push({ text: finalPromptText });
+        const indicesToGenerate = sceneIndex !== undefined
+            ? [sceneIndex]
+            : scenes.map((_: any, i: number) => i);
 
-        console.log(`Generating with ${MODEL_ID}... (Subject reference: ${hasValidBase64 ? 'Yes' : 'No'}), final prompt: ${finalPromptText}`);
+        for (const i of indicesToGenerate) {
+            const scene = scenes[i];
+            if (!scene) continue;
 
-        // 5. Call the API
-        const response = await ai.models.generateContent({
-            model: MODEL_ID,
-            contents: contents,
-            config: {
-                responseModalities: ["IMAGE"],
-                imageConfig: {
+            try {
+                const result = await provider.generateImage({
+                    prompt: scene.image_prompt,
+                    subjectImage: userPhotoBuffer,
+                    characterDescription: mainCharacterDescription,
                     imageSize: '1K'
-                }
+                });
+
+                const storagePath = `${bookId}/images/scene-${i}-${Date.now()}.png`;
+
+                await supabase.storage.from('book-assets').upload(storagePath, result.imageBuffer, {
+                    contentType: result.mimeType,
+                    upsert: true
+                });
+
+                await supabase.from('book_media').upsert({
+                    book_id: bookId,
+                    owner_user_id: user?.id || null,
+                    media_type: 'image',
+                    path: storagePath,
+                    after_word_index: scene.after_word_index,
+                    metadata: {
+                        caption: `Illustration for scene ${i + 1}`,
+                        alt: scene.image_prompt
+                    }
+                }, { onConflict: 'book_id,path' });
+
+                // Legacy compatibility: update books.images
+                const { data: currentBook } = await supabase.from('books').select('images').eq('id', bookId).single();
+                const currentImages = Array.isArray(currentBook?.images) ? currentBook.images : [];
+                const newImage = {
+                    id: crypto.randomUUID(),
+                    src: storagePath,
+                    afterWordIndex: scene.after_word_index,
+                    caption: `Illustration for scene ${i + 1}`,
+                    alt: scene.image_prompt,
+                    sceneIndex: i
+                };
+
+                await supabase.from('books').update({
+                    images: [...currentImages, newImage],
+                    updated_at: new Date().toISOString()
+                }).eq('id', bookId);
+
+                results.push({ sceneIndex: i, storagePath });
+            } catch (err) {
+                console.error(`Failed to generate image for scene ${i}:`, err);
+                results.push({ sceneIndex: i, error: (err as Error).message });
             }
-        });
-
-        // 6. Handle the Output
-        const candidates = response.candidates;
-        if (!candidates || candidates.length === 0) {
-            throw new Error("No candidates returned from model");
         }
 
-        let base64Image: string | undefined;
-        let modelThought: string | undefined;
-
-        const content = candidates[0].content;
-        if (!content || !content.parts) {
-            throw new Error(`Model returned no content (Finish Reason: ${candidates[0].finishReason})`);
+        // If we generated the whole book, mark as completed
+        if (sceneIndex === undefined) {
+            await storyRepo.updateStoryStatus(bookId, 'completed');
         }
 
-        for (const part of content.parts) {
-            if (part.inlineData) {
-                base64Image = part.inlineData.data;
-            } else if (part.text) {
-                modelThought = part.text;
-            }
-        }
-
-        if (!base64Image) {
-            throw new Error("No image generated");
-        }
-
-        const dataUrl = `data:image/png;base64,${base64Image}`;
-
-        // --- 7. Persist Image to Supabase ---
-        if (bookId && afterWordIndex !== undefined) {
-            const buffer = Buffer.from(base64Image, 'base64');
-            const fileName = `scene-${sceneIndex || Date.now()}.png`;
-            const storagePath = `${bookId}/images/${fileName}`;
-
-            await supabase.storage.from('book-assets').upload(storagePath, buffer, {
-                contentType: 'image/png',
-                upsert: true
-            });
-
-            await supabase.from('book_media').upsert({
-                book_id: bookId,
-                owner_user_id: user?.id || null,
-                media_type: 'image',
-                path: storagePath,
-                after_word_index: afterWordIndex,
-                metadata: {
-                    caption: `Illustration for scene`,
-                    alt: prompt
-                }
-            }, { onConflict: 'book_id,path' });
-
-            // Also update the main book record's images array for redundancy/readability
-            const { data: book } = await supabase.from('books').select('images').eq('id', bookId).single();
-            const currentImages = Array.isArray(book?.images) ? book.images : [];
-            const newImage = {
-                id: crypto.randomUUID(),
-                src: storagePath,
-                afterWordIndex: afterWordIndex,
-                caption: `Illustration for scene`,
-                alt: prompt
-            };
-
-            await supabase.from('books').update({
-                images: [...currentImages, newImage],
-                updated_at: new Date().toISOString()
-            }).eq('id', bookId);
-        }
-
-        return NextResponse.json({
-            imageUrl: dataUrl,
-            thought: modelThought
-        });
+        return NextResponse.json({ success: true, results });
 
     } catch (error: any) {
-        console.error("Image generation error:", error);
-        return NextResponse.json({ error: error.message || "Failed to generate image" }, { status: 500 });
+        console.error("Image generation API error:", error);
+        return NextResponse.json({ error: error.message || "Failed to generate images" }, { status: 500 });
     }
 }

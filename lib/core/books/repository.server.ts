@@ -35,7 +35,7 @@ export class BookRepository {
     async getBookById(idOrSlug: string, options: { includeContent?: boolean, includeMedia?: boolean, userId?: string } = {}): Promise<any | null> {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
 
-        const fields = ['id', 'book_key', 'title', 'origin', 'tokens', 'images', 'updated_at', 'voice_id', 'owner_user_id'];
+        const fields = ['id', 'book_key', 'title', 'origin', 'tokens', 'images', 'updated_at', 'voice_id', 'owner_user_id', 'metadata'];
         if (options.includeContent) fields.push('text');
 
         let query = this.supabase.from('books').select(fields.join(','));
@@ -74,6 +74,7 @@ export class BookRepository {
         }
 
         if (options.includeMedia) {
+            // 1. Fetch images from book_media
             const { data: media, error: mediaError } = await this.supabase
                 .from('book_media')
                 .select('*')
@@ -82,30 +83,75 @@ export class BookRepository {
 
             if (mediaError) throw mediaError;
 
-            // Resolve signed URLs for each media item
-            const imagesWithUrls = await Promise.all(media.map(async m => {
-                // If path is already a full URL (legacy), use it, otherwise sign it
-                let finalUrl = m.path;
-                if (!m.path.startsWith('http')) {
-                    const { data: signedData, error: signError } = await this.supabase.storage
-                        .from('book-assets')
-                        .createSignedUrl(m.path, 3600); // 1 hour expiry
+            // 2. Fetch story metadata to see all scenes (for placeholders)
+            const { data: story } = await this.supabase
+                .from('stories')
+                .select('scenes')
+                .eq('id', bookData.id)
+                .maybeSingle();
 
-                    if (!signError && signedData) {
-                        finalUrl = signedData.signedUrl;
+            if (story && Array.isArray(story.scenes)) {
+                // Return a combined list based on scenes
+                const fullImages = story.scenes.map((scene: any, index: number) => {
+                    // Find actual image for this scene's word index
+                    const actualMedia = media?.find(m => Number(m.after_word_index) === Number(scene.after_word_index));
+
+                    if (actualMedia) {
+                        return {
+                            id: actualMedia.id,
+                            afterWordIndex: Number(actualMedia.after_word_index),
+                            ...(actualMedia.metadata || {}),
+                            src: actualMedia.path,
+                            isPlaceholder: false
+                        };
+                    } else {
+                        // Placeholder
+                        return {
+                            id: `placeholder-${index}`,
+                            afterWordIndex: Number(scene.after_word_index),
+                            caption: "AI is drawing...",
+                            isPlaceholder: true,
+                            src: ""
+                        };
                     }
-                }
+                });
 
-                return {
-                    id: m.id,
-                    afterWordIndex: m.after_word_index,
-                    ...m.metadata,
-                    src: finalUrl, // Ensure this wins
-                };
-            }));
+                // Resolve signed URLs for each media item
+                result.images = await Promise.all(fullImages.map(async img => {
+                    // If path is already a full URL (legacy), use it, otherwise sign it
+                    if (img.src && !img.src.startsWith('http')) {
+                        const { data: signedData, error: signError } = await this.supabase.storage
+                            .from('book-assets')
+                            .createSignedUrl(img.src, 3600);
 
-            if (imagesWithUrls.length > 0) {
-                result.images = imagesWithUrls;
+                        if (!signError && signedData) {
+                            return { ...img, src: signedData.signedUrl };
+                        }
+                    }
+                    return img;
+                }));
+            } else if (media && media.length > 0) {
+                // Fallback for books without 'stories' entry: resolve signed URLs for plain book_media
+                result.images = await Promise.all(media.map(async m => {
+                    let finalUrl = m.path;
+                    if (!m.path.startsWith('http')) {
+                        const { data: signedData, error: signError } = await this.supabase.storage
+                            .from('book-assets')
+                            .createSignedUrl(m.path, 3600);
+
+                        if (!signError && signedData) {
+                            finalUrl = signedData.signedUrl;
+                        }
+                    }
+
+                    return {
+                        id: m.id,
+                        afterWordIndex: Number(m.after_word_index),
+                        ...(m.metadata || {}),
+                        src: finalUrl,
+                        isPlaceholder: false
+                    };
+                }));
             }
         }
 

@@ -5,8 +5,8 @@ import { Tokenizer } from "@/lib/core/books/tokenizer";
 import { TextChunker } from "@/lib/core/books/text-chunker";
 import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
 import { alignSpeechMarksToTokens, getWordTokensForChunk } from "@/lib/core/books/speech-mark-aligner";
-
 import { createClient as createAuthClient } from "@/lib/supabase/server";
+import { StoryRepository } from "@/lib/core/stories/repository.server";
 
 export async function POST(req: Request) {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -20,18 +20,20 @@ export async function POST(req: Request) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get current user for owner_user_id
     const authClient = createAuthClient();
     const { data: { user } } = await authClient.auth.getUser();
+
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized. Please sign in to create stories." }, { status: 401 });
+    }
 
     try {
         const { words, userProfile } = await req.json();
         const { name, age, gender } = userProfile;
         const wordsList = words.join(", ");
         const bookId = crypto.randomUUID();
-        const ownerId = user?.id || null;
+        const ownerId = user.id;
 
-        // --- 1. Handle User Photo Upload ---
         let finalUserProfile = { ...userProfile };
         if (userProfile.avatarUrl && userProfile.avatarUrl.startsWith('data:')) {
             try {
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
                     upsert: true
                 });
 
-                finalUserProfile.avatarUrl = photoPath; // Store relative path in DB
+                finalUserProfile.avatarUrl = photoPath;
             } catch (err) {
                 console.error("Failed to upload user photo:", err);
             }
@@ -53,7 +55,7 @@ export async function POST(req: Request) {
         const systemInstruction = "You are a creative storyteller for children. You output structured JSON stories with scene-by-scene descriptions for illustrators.";
         const userPrompt = `Write a short, engaging children's story for a ${age}-year-old ${gender} named ${name}.
 The story MUST include the following words: ${wordsList}.
-Split the story into exactly 5 distinct scenes.
+Split the story into exactly 2 distinct scenes.
 
 For the JSON output:
 1. In the "text" field: Use the name "${name}" naturally to tell the story.
@@ -98,21 +100,19 @@ The story should be fun, educational, and age-appropriate.`;
 
         const data = JSON.parse(response.text || '{}');
 
-        // --- 2. Persist Story to Database ---
-        const tokens = Tokenizer.tokenize(data.content);
+        // Reconstruct full content from scenes to ensure indices align perfectly.
+        // LLM might provide a 'content' block that is slightly different from 'scenes'.
+        const fullContent = data.scenes.map((s: any) => s.text).join('\n\n');
+        const tokens = Tokenizer.tokenize(fullContent);
         const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
 
-        // Calculate after_word_index for each scene
         let currentWordIndex = 0;
         const scenesWithIndices = data.scenes.map((scene: any) => {
             const sceneTokens = Tokenizer.tokenize(scene.text);
             const wordCount = Tokenizer.getWords(sceneTokens).length;
             const afterWordIndex = currentWordIndex + wordCount - 1;
             currentWordIndex += wordCount;
-            return {
-                ...scene,
-                after_word_index: afterWordIndex
-            };
+            return { ...scene, after_word_index: afterWordIndex };
         });
 
         const bookKey = `${data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.random().toString(36).substring(2, 7)}`;
@@ -124,38 +124,36 @@ The story should be fun, educational, and age-appropriate.`;
                 book_key: bookKey,
                 owner_user_id: ownerId,
                 title: data.title,
-                text: data.content,
-                images: [], // Required by schema
+                text: fullContent,
+                images: [],
                 tokens: tokens,
                 origin: 'user_generated',
                 schema_version: 2,
                 voice_id: voiceId,
-                metadata: {
-                    userProfile: finalUserProfile,
-                    wordsUsed: words,
-                    mainCharacterDescription: data.mainCharacterDescription,
-                    scenes: scenesWithIndices,
-                    generationOptions: {
-                        name,
-                        age,
-                        gender,
-                        words
-                    },
-                    prompts: {
-                        system: systemInstruction,
-                        user: userPrompt
-                    }
-                }
+                metadata: { isAIGenerated: true }
             })
             .select()
             .single();
 
         if (bookError) throw bookError;
 
-        // --- 3. Generate Narration Shards (Background-ish but sequentially for simplicity) ---
+        const storyRepo = new StoryRepository(supabase);
+        await storyRepo.createStory({
+            id: book.id,
+            owner_user_id: ownerId,
+            child_name: name,
+            child_age: age,
+            child_gender: gender,
+            words_used: words,
+            main_character_description: data.mainCharacterDescription,
+            scenes: scenesWithIndices,
+            status: 'generating',
+            avatar_url: finalUserProfile.avatarUrl
+        });
+
         (async () => {
             try {
-                const textChunks = TextChunker.chunk(data.content);
+                const textChunks = TextChunker.chunk(fullContent);
                 const polly = new PollyNarrationService();
 
                 for (const chunk of textChunks) {
@@ -181,9 +179,13 @@ The story should be fun, educational, and age-appropriate.`;
                         voice_id: voiceId
                     }, { onConflict: 'book_id,chunk_index,voice_id' });
                 }
-                console.log(`Sharding complete for book ${book.id}`);
+
+                console.log(`Background narration processing complete for book ${book.id}`);
+                // Status will be set to 'completed' by the image generation API
+                // which is triggered by the frontend.
             } catch (err) {
-                console.error(`Sharding failed for book ${book.id}:`, err);
+                console.error(`Background processing failed:`, err);
+                await storyRepo.updateStoryStatus(book.id, 'failed').catch(e => console.error("Failed to set failure status", e));
             }
         })();
 

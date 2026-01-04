@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useState, useCallback } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
+import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
 import { bookCache } from "@/lib/core/cache";
 import { ttsCache } from "@/lib/features/narration/tts-cache";
 
@@ -136,6 +137,48 @@ function ReaderContent({ params }: ReaderPageProps) {
         }
     }, []);
 
+    // Realtime subscriptions for the current book
+    useBookMediaSubscription(bookId, useCallback((newImage) => {
+        setBooks(prev => prev.map(book => {
+            if (book.id !== bookId) return book;
+            const currentImages = book.images || [];
+
+            // 1. Try to find a placeholder to replace
+            const placeholderIndex = currentImages.findIndex(img =>
+                Number(img.afterWordIndex) === Number(newImage.afterWordIndex) && img.isPlaceholder
+            );
+
+            if (placeholderIndex !== -1) {
+                const updatedImages = [...currentImages];
+                updatedImages[placeholderIndex] = { ...newImage, isPlaceholder: false };
+                return { ...book, images: updatedImages };
+            }
+
+            // 2. If no placeholder, check if we should update an existing real image
+            const existingIndex = currentImages.findIndex(img =>
+                Number(img.afterWordIndex) === Number(newImage.afterWordIndex)
+            );
+
+            if (existingIndex !== -1) {
+                const updatedImages = [...currentImages];
+                updatedImages[existingIndex] = { ...updatedImages[existingIndex], ...newImage, isPlaceholder: false };
+                return { ...book, images: updatedImages };
+            }
+
+            // 3. Fallback: append if it's completely new (unlikely with placeholders)
+            return { ...book, images: [...currentImages, newImage] };
+        }));
+    }, [bookId, setBooks]));
+
+    useBookAudioSubscription(bookId, useCallback((newShard) => {
+        setBooks(prev => prev.map(book => {
+            if (book.id !== bookId) return book;
+            const shards = book.shards || [];
+            if (shards.some(s => s.chunk_index === newShard.chunk_index)) return book;
+            return { ...book, shards: [...shards, newShard] };
+        }));
+    }, [bookId, setBooks]));
+
     useEffect(() => {
         loadBooks();
         ttsCache.init().catch(console.error);
@@ -166,6 +209,14 @@ function ReaderContent({ params }: ReaderPageProps) {
                 books={books}
                 initialBookId={bookId}
             />
+
+            {/* Status overlay for background generation */}
+            {books.find(b => b.id === bookId)?.images?.some(img => img.isPlaceholder) && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full bg-white/80 px-6 py-2 shadow-lg backdrop-blur-md border border-accent/20 animate-slide-up z-[110]">
+                    <RefreshCw className="h-4 w-4 animate-spin text-accent" />
+                    <span className="text-sm font-bold text-ink-muted">AI is drawing images...</span>
+                </div>
+            )}
         </main>
     );
 }

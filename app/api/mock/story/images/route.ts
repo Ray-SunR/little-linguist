@@ -1,53 +1,104 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { createClient } from "@supabase/supabase-js";
+import { createClient as createAuthClient } from "@/lib/supabase/server";
+import { StoryRepository } from '@/lib/core/stories/repository.server';
 
 export async function POST(req: Request) {
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const authClient = createAuthClient();
+    const { data: { user } } = await authClient.auth.getUser();
+
     try {
-        const { prompt } = await req.json();
-        console.log(`Mock Mode: Returning Rain illustration for prompt: "${prompt}"`);
+        const { bookId, sceneIndex } = await req.json();
 
-        // Simulate network/latency for AI generation (2-5 seconds)
-        const delay = Math.floor(Math.random() * 3000) + 2000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-
-        // Map prompts to images 1-5
-        // Since the prompts in response.txt start with [1], or are in sequence,
-        // we'll try to guess the scene number or just cycle 1-5 for variety if unknown.
-        let imageNumber = 1;
-        const match = prompt.match(/scene (\d+)/i);
-        if (match) {
-            imageNumber = parseInt(match[1], 10);
-        } else if (prompt.includes("backpack")) {
-            imageNumber = 1;
-        } else if (prompt.includes("packing")) {
-            imageNumber = 2;
-        } else if (prompt.includes("magnifying glass")) {
-            imageNumber = 3;
-        } else if (prompt.includes("fox")) {
-            imageNumber = 4;
-        } else if (prompt.includes("waterfall")) {
-            imageNumber = 5;
+        if (!bookId) {
+            return NextResponse.json({ error: "bookId is required" }, { status: 400 });
         }
 
-        // Clamp to 1-5
-        imageNumber = Math.max(1, Math.min(5, imageNumber));
+        const storyRepo = new StoryRepository(supabase);
+        const story = await storyRepo.getStoryById(bookId, user?.id);
 
-        const filename = `${imageNumber}.png`;
-        const imagePath = path.join(process.cwd(), 'data', 'mock', filename);
-
-        if (fs.existsSync(imagePath)) {
-            const buffer = fs.readFileSync(imagePath);
-            const base64 = buffer.toString('base64');
-            return NextResponse.json({
-                imageUrl: `data:image/png;base64,${base64}`,
-                thought: `Mock image ${imageNumber} returned after ${delay}ms delay.`
-            });
-        } else {
-            return NextResponse.json({ error: "Mock image not found", path: imagePath }, { status: 404 });
+        if (!story) {
+            return NextResponse.json({ error: "Story meta not found or unauthorized" }, { status: 404 });
         }
+
+        const scenes = story.scenes || [];
+
+        if (scenes.length === 0) {
+            return NextResponse.json({ error: "No scenes found in story" }, { status: 400 });
+        }
+
+        const results = [];
+        const indicesToGenerate = sceneIndex !== undefined
+            ? [sceneIndex]
+            : scenes.map((_: any, i: number) => i);
+
+        for (const i of indicesToGenerate) {
+            const scene = scenes[i];
+            if (!scene) continue;
+
+            console.log(`[Mock/API/Images] Generating mock image for scene ${i} (Book: ${bookId})...`);
+
+            // Simulate latency
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            const imageNumber = (i % 5) + 1;
+            const localMockPath = path.join(process.cwd(), 'data', 'mock', `${imageNumber}.png`);
+
+            if (fs.existsSync(localMockPath)) {
+                const buffer = fs.readFileSync(localMockPath);
+                const storagePath = `${bookId}/images/scene-${i}-mock.png`;
+
+                await supabase.storage.from('book-assets').upload(storagePath, buffer, {
+                    contentType: 'image/png',
+                    upsert: true
+                });
+
+                await supabase.from('book_media').upsert({
+                    book_id: bookId,
+                    owner_user_id: user?.id || null,
+                    media_type: 'image',
+                    path: storagePath,
+                    after_word_index: scene.after_word_index,
+                    metadata: {
+                        caption: `Mock Illustration for scene ${i + 1}`,
+                        alt: scene.image_prompt,
+                        isMock: true
+                    }
+                }, { onConflict: 'book_id,path' });
+
+                // Legacy
+                const { data: currentBook } = await supabase.from('books').select('images').eq('id', bookId).single();
+                const currentImages = Array.isArray(currentBook?.images) ? currentBook.images : [];
+                const newImage = {
+                    id: crypto.randomUUID(),
+                    src: storagePath,
+                    afterWordIndex: scene.after_word_index,
+                    caption: `Illustration for scene ${i + 1}`,
+                    alt: scene.image_prompt,
+                    sceneIndex: i,
+                    isMock: true
+                };
+
+                await supabase.from('books').update({
+                    images: [...currentImages, newImage],
+                    updated_at: new Date().toISOString()
+                }).eq('id', bookId);
+
+                results.push({ sceneIndex: i, storagePath });
+            }
+        }
+
+        return NextResponse.json({ success: true, results });
+
     } catch (error: any) {
-        console.error("Mock Image API error:", error);
-        return NextResponse.json({ error: "Failed to return mock image" }, { status: 500 });
+        console.error("Mock Image generation API error:", error);
+        return NextResponse.json({ error: error.message || "Failed to generate mock images" }, { status: 500 });
     }
 }

@@ -4,13 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService } from "@/lib/features/story";
+import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
 import type { Story, UserProfile } from "@/lib/features/story";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { compressImage } from "@/lib/core/utils/image";
+import { bookCache } from "@/lib/core/cache";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -32,32 +34,47 @@ export default function StoryMakerPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
 
-    // Poll for shards when story is being read
-    useEffect(() => {
-        if (step !== "reading" || !supabaseBook || supabaseBook.shards?.length > 0) return;
+    // Subscribe to realtime updates
+    useBookMediaSubscription(supabaseBook?.id, useCallback((newImage) => {
+        setSupabaseBook(prev => {
+            if (!prev) return null;
+            const currentImages = prev.images || [];
 
-        let mounted = true;
-        const poll = async () => {
-            try {
-                const res = await fetch(`/api/books/${supabaseBook.id}/narration`);
-                if (res.ok && mounted) {
-                    const shards = await res.json();
-                    if (shards && shards.length > 0) {
-                        setSupabaseBook(prev => prev ? { ...prev, shards } : null);
-                    }
-                }
-            } catch (e) {
-                console.error("Failed to poll shards:", e);
+            // 1. Try to find a placeholder to replace
+            const placeholderIndex = currentImages.findIndex(img =>
+                Number(img.afterWordIndex) === Number(newImage.afterWordIndex) && img.isPlaceholder
+            );
+
+            if (placeholderIndex !== -1) {
+                const updatedImages = [...currentImages];
+                updatedImages[placeholderIndex] = { ...newImage, isPlaceholder: false };
+                return { ...prev, images: updatedImages };
             }
-        };
 
-        const interval = setInterval(poll, 3000);
-        poll();
-        return () => {
-            mounted = false;
-            clearInterval(interval);
-        };
-    }, [step, supabaseBook?.id, supabaseBook?.shards?.length]);
+            // 2. If no placeholder, check if we should update an existing real image
+            const existingIndex = currentImages.findIndex(img =>
+                Number(img.afterWordIndex) === Number(newImage.afterWordIndex)
+            );
+
+            if (existingIndex !== -1) {
+                const updatedImages = [...currentImages];
+                updatedImages[existingIndex] = { ...updatedImages[existingIndex], ...newImage, isPlaceholder: false };
+                return { ...prev, images: updatedImages };
+            }
+
+            // 3. Fallback: append if it's completely new
+            return { ...prev, images: [...currentImages, newImage] };
+        });
+    }, [setSupabaseBook]));
+
+    useBookAudioSubscription(supabaseBook?.id, useCallback((newShard) => {
+        setSupabaseBook(prev => {
+            if (!prev) return null;
+            const shards = prev.shards || [];
+            if (shards.some(s => s.chunk_index === newShard.chunk_index)) return prev;
+            return { ...prev, shards: [...shards, newShard] };
+        });
+    }, [setSupabaseBook]));
 
     const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -102,7 +119,7 @@ export default function StoryMakerPage() {
                 images: content.scenes.map((scene, idx) => ({
                     id: `scene-${idx}`,
                     src: "",
-                    afterWordIndex: scene.after_word_index,
+                    afterWordIndex: Number(scene.after_word_index),
                     caption: "Drawing Magic...",
                     isPlaceholder: true,
                     sceneIndex: idx // Store for easier updates
@@ -111,61 +128,15 @@ export default function StoryMakerPage() {
 
             setStory(initialStory);
             setSupabaseBook(initialSupabaseBook);
-            setStep("reading");
-            setCurrentPage(0);
 
-            // Step 2: Generate Images Progressively in background
-            const CONCURRENCY_LIMIT = 2;
-            const updatedScenes = [...content.scenes];
+            // Prefill cache to make redirect instant
+            await bookCache.put(initialSupabaseBook);
 
-            // Helper to update state with new image
-            const updateImage = (index: number, url: string) => {
-                setStory(prev => {
-                    if (!prev) return prev;
-                    const newScenes = [...prev.scenes];
-                    newScenes[index] = { ...newScenes[index], imageUrl: url };
-                    return { ...prev, scenes: newScenes };
-                });
+            // Redirect to the reader page which now contains the book ID in URL
+            router.push(`/reader/${content.book_id}`);
 
-                setSupabaseBook(prev => {
-                    if (!prev) return prev;
-                    const newImages = [...(prev.images || [])];
-                    const existingIdx = newImages.findIndex(img => (img as any).sceneIndex === index);
-
-                    const newEntry = {
-                        id: `scene-${index}`,
-                        src: url,
-                        afterWordIndex: content.scenes[index].after_word_index,
-                        caption: `Illustration for scene ${index + 1}`,
-                        isPlaceholder: false,
-                        sceneIndex: index
-                    };
-
-                    if (existingIdx !== -1) {
-                        newImages[existingIdx] = newEntry;
-                    } else {
-                        newImages.push(newEntry);
-                    }
-
-                    return { ...prev, images: newImages };
-                });
-            };
-
-            for (let i = 0; i < updatedScenes.length; i += CONCURRENCY_LIMIT) {
-                const chunk = Array.from({ length: Math.min(CONCURRENCY_LIMIT, updatedScenes.length - i) }, (_, k) => i + k);
-                await Promise.all(chunk.map(async (index) => {
-                    const imageUrl = await service.generateImageForScene(
-                        updatedScenes[index],
-                        profile,
-                        content.mainCharacterDescription,
-                        content.book_id,
-                        index
-                    );
-                    if (imageUrl) {
-                        updateImage(index, imageUrl);
-                    }
-                }));
-            }
+            // Trigger backend image generation (non-blocking)
+            service.generateImagesForBook(content.book_id);
 
         } catch (err) {
             console.error(err);
@@ -565,28 +536,6 @@ export default function StoryMakerPage() {
                             />
                         </div>
                     </motion.div>
-                )}
-
-                {step === "reading" && supabaseBook && (
-                    <div className="fixed inset-0 z-[100] page-sky h-screen overflow-hidden px-4 py-4">
-                        <SupabaseReaderShell
-                            books={[supabaseBook]}
-                            initialBookId={supabaseBook.id}
-                            onBack={() => {
-                                setStep("words");
-                                setStory(null);
-                                setSupabaseBook(null);
-                            }}
-                        />
-
-                        {/* Status overlay for background generation */}
-                        {supabaseBook.images?.some(img => img.isPlaceholder) && (
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full bg-white/80 px-6 py-2 shadow-lg backdrop-blur-md border border-accent/20 animate-slide-up z-[110]">
-                                <RefreshCw className="h-4 w-4 animate-spin text-accent" />
-                                <span className="text-sm font-bold text-ink-muted">AI is drawing images...</span>
-                            </div>
-                        )}
-                    </div>
                 )}
             </main>
         </div>

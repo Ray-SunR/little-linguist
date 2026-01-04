@@ -39,7 +39,8 @@ export type Story = {
 export interface IStoryService {
     generateStory(words: string[], userProfile: UserProfile): Promise<Story>;
     generateStoryContent(words: string[], userProfile: UserProfile): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string, book_id: string, tokens: any[] }>;
-    generateImageForScene(scene: StoryScene, userProfile: UserProfile, characterDescription: string, bookId?: string, sceneIndex?: number): Promise<string | undefined>;
+    generateImagesForBook(bookId: string): Promise<void>;
+    generateImageForScene(bookId: string, sceneIndex: number): Promise<void>;
     saveStory(story: Story): Promise<void>;
     getStories(): Promise<Story[]>;
     getStory(id: string): Promise<Story | null>;

@@ -5,6 +5,7 @@ import { Tokenizer } from '@/lib/core/books/tokenizer';
 import { alignSpeechMarksToTokens, getWordTokensForChunk } from '@/lib/core/books/speech-mark-aligner';
 import { PollyNarrationService } from '@/lib/features/narration/polly-service.server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createAuthClient } from '@/lib/supabase/server';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,11 +31,14 @@ export async function GET(
 ) {
     try {
         const { id } = params;
-        const repo = new BookRepository();
-        const book = await repo.getBookById(id);
+        const auth = createAuthClient();
+        const { data: { user } } = await auth.auth.getUser();
 
-        if (!book) {
-            return NextResponse.json({ error: 'Book not found' }, { status: 404 });
+        const repo = new BookRepository();
+        const book = await repo.getBookById(id, { userId: user?.id, includeContent: true });
+
+        if (!book || !book.text) {
+            return NextResponse.json({ error: 'Book content not found' }, { status: 404 });
         }
 
         const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
@@ -112,9 +116,12 @@ export async function POST(
         const { id } = params;
         const { chunkIndex } = await request.json();
 
+        const auth = createAuthClient();
+        const { data: { user } } = await auth.auth.getUser();
+
         const repo = new BookRepository();
-        const book = await repo.getBookById(id);
-        if (!book) return NextResponse.json({ error: 'Book not found' }, { status: 404 });
+        const book = await repo.getBookById(id, { userId: user?.id, includeContent: true });
+        if (!book || !book.text) return NextResponse.json({ error: 'Book content not found' }, { status: 404 });
 
         const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
         const existingChunks = await repo.getNarrationChunks(book.id, voiceId);

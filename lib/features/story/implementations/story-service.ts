@@ -33,55 +33,52 @@ export class StoryService implements IStoryService {
         };
     }
 
-    async generateImageForScene(scene: StoryScene, userProfile: UserProfile, characterDescription: string, bookId?: string, sceneIndex?: number): Promise<string | undefined> {
+    async generateImagesForBook(bookId: string): Promise<void> {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
                 ? "/api/mock/story/images"
                 : "/api/story/images";
 
-            const response = await fetch(apiUrl, {
+            // Fire and forget, or wait? Usually we want to fire and let polling handle it
+            fetch(apiUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    prompt: scene.imagePrompt,
-                    userPhotoBase64: userProfile.avatarUrl,
-                    characterDescription: characterDescription,
-                    bookId: bookId,
-                    afterWordIndex: scene.after_word_index,
-                    sceneIndex: sceneIndex
-                }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                return data.imageUrl;
-            }
+                body: JSON.stringify({ bookId }),
+            }).catch(err => console.error("Background image generation failed:", err));
         } catch (error) {
-            console.error("Failed to generate image for scene:", error);
+            console.error("Failed to trigger book images:", error);
         }
-        return undefined;
+    }
+
+    async generateImageForScene(bookId: string, sceneIndex: number): Promise<void> {
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
+                ? "/api/mock/story/images"
+                : "/api/story/images";
+
+            fetch(apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bookId, sceneIndex }),
+            }).catch(err => console.error(`Background image generation failed for scene ${sceneIndex}:`, err));
+        } catch (error) {
+            console.error(`Failed to generate image for scene ${sceneIndex}:`, error);
+        }
     }
 
     async generateStory(words: string[], userProfile: UserProfile): Promise<Story> {
         try {
             const content = await this.generateStoryContent(words, userProfile);
 
-            const CONCURRENCY_LIMIT = 3;
-            const scenesWithImages = [...content.scenes];
-
-            for (let i = 0; i < scenesWithImages.length; i += CONCURRENCY_LIMIT) {
-                const chunk = Array.from({ length: Math.min(CONCURRENCY_LIMIT, scenesWithImages.length - i) }, (_, k) => i + k);
-                await Promise.all(chunk.map(async (index) => {
-                    const imageUrl = await this.generateImageForScene(scenesWithImages[index], userProfile, content.mainCharacterDescription);
-                    scenesWithImages[index].imageUrl = imageUrl;
-                }));
-            }
+            // Trigger background image generation (non-blocking)
+            this.generateImagesForBook(content.book_id);
 
             return {
                 id: crypto.randomUUID(),
+                book_id: content.book_id,
                 title: content.title,
                 content: content.content,
-                scenes: scenesWithImages,
+                scenes: content.scenes,
                 createdAt: Date.now(),
                 wordsUsed: words,
                 userProfile: userProfile,
