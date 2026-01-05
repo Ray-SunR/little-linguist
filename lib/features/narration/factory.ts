@@ -1,44 +1,73 @@
 import { RemoteTtsNarrationProvider } from "./implementations/remote-tts-provider";
 import { WebSpeechNarrationProvider } from "./implementations/web-speech-provider";
-import type { INarrationProvider, NarrationProviderType } from "./types";
+import { BlobNarrationProvider } from "./implementations/blob-provider";
+import { GeminiNarrationProvider } from "./implementations/gemini-provider";
+import type { INarrationProvider, NarrationProviderType, NarrationProviderConfig } from "./types";
 
-export interface NarrationFactoryConfig {
-    audioUrl?: string;
-}
+const ENV_PROVIDER = process.env.NEXT_PUBLIC_NARRATION_PROVIDER as NarrationProviderType | undefined;
+const FALLBACK_PROVIDER: NarrationProviderType = "web_speech";
 
+/**
+ * Centralized provider selection to keep UI/hooks provider-agnostic.
+ * Mirrors the provider-factory pattern used by image-generation.
+ */
 export class NarrationProviderFactory {
     /**
      * Creates a narration provider instance based on the requested type.
-     * Defaults to WebSpeech if the type is unknown or configuration is missing.
-     * 
-     * @param type - The type of provider to create ("polly", "remote_tts", "web_speech")
-     * @param config - Configuration object (e.g. including audioUrl for remote_tts)
-     * @throws Error if configuration is invalid for the requested type
+     * - Honors env override via NEXT_PUBLIC_NARRATION_PROVIDER.
+     * - If type is "auto", prefers remote_tts when an audioUrl is supplied, else falls back.
+     * - Unknown types fall back to Web Speech with a console warning.
      */
-    static createProvider(type: NarrationProviderType | "auto" | undefined, config: NarrationFactoryConfig = {}): INarrationProvider {
-        // Validation: Ensure type is something we expect, though we fallback safely for unknown strings if needed
-        // But for specific types, we should enforce config validity.
+    static createProvider(
+        type: NarrationProviderType | "auto" | undefined,
+        config: NarrationProviderConfig = {}
+    ): INarrationProvider {
+        const requested = this.resolveType(type, config);
 
-        switch (type as NarrationProviderType) {
-            case "polly":
-                return new WebSpeechNarrationProvider();
-
-            case "remote_tts":
+        switch (requested) {
+            case "blob": {
+                if (!config.audioSource) {
+                    throw new Error("[NarrationFactory] 'blob' requested but no audioSource provided.");
+                }
+                return new BlobNarrationProvider(config.audioSource, undefined);
+            }
+            case "remote_tts": {
                 if (!config.audioUrl) {
                     throw new Error("[NarrationFactory] 'remote_tts' requested but no audioUrl provided.");
                 }
                 return new RemoteTtsNarrationProvider(config.audioUrl);
-
-            case "web_speech":
+            }
+            case "polly": {
+                console.warn("[NarrationFactory] Polly provider not wired on client; using Web Speech fallback.");
                 return new WebSpeechNarrationProvider();
-
+            }
+            case "gemini": {
+                return new GeminiNarrationProvider();
+            }
+            case "web_speech":
             default:
-                // Handle "auto" or unknown types by defaulting to WebSpeech (safe fallback)
-                // But log a warning if it's an unexpected type
-                if (type !== "auto" && type !== undefined) {
-                    console.warn(`[NarrationFactory] Unknown provider type '${type}', falling back to WebSpeech.`);
-                }
                 return new WebSpeechNarrationProvider();
         }
+    }
+
+    private static resolveType(
+        type: NarrationProviderType | "auto" | undefined,
+        config: NarrationProviderConfig
+    ): NarrationProviderType {
+        // Explicit override wins
+        if (type && type !== "auto") {
+            return type as NarrationProviderType;
+        }
+
+        // Env override next
+        if (ENV_PROVIDER) {
+            return ENV_PROVIDER;
+        }
+
+        // Auto selection: prefer blob when explicit source provided, then remote_tts for URLs
+        if (config.audioSource) return "blob";
+        if (config.audioUrl) return "remote_tts";
+
+        return FALLBACK_PROVIDER;
     }
 }

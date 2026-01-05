@@ -61,6 +61,3 @@ export function tokensToWordTokens(tokens: Token[]): WordToken[] {
  * Gets all word tokens from a Token array.
  * Simpler version that just extracts words without punctuation handling.
  */
-export function getWordTokensOnly(tokens: Token[]): Token[] {
-    return tokens.filter(t => t.type === 'w' && t.i !== undefined);
-}

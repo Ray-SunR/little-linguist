@@ -101,7 +101,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
 
     const { saveProgress } = useReaderPersistence({
         bookId: selectedBook?.id || "",
-        tokenIndex: currentWordIndex ?? 0,
+        tokenIndex: currentWordIndex,
         shardIndex: currentShardIndex,
         time: currentTime,
         playbackState,
@@ -116,7 +116,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
 
     const goNextBook = useCallback(() => {
         if (!books.length) return;
-        saveProgress();
+        saveProgress(true, true);
         const currentIndex = books.findIndex((book) => book.id === selectedBookId);
         const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % books.length;
         const nextBookId = books[nextIndex].id;
@@ -127,7 +127,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
         if (!selectedBookId) return;
         pause();
         await seekToWord(0);
-        saveProgress();
+        saveProgress(true);
         lastScrolledBookIdRef.current = null;
     }, [selectedBookId, pause, seekToWord, saveProgress]);
 
@@ -151,7 +151,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
         if (wordIndex === null) return;
         wordInspector.close();
         await seekToWord(wordIndex);
-        saveProgress();
+        saveProgress(true);
         await play();
     }, [wordInspector, seekToWord, play, saveProgress]);
 
@@ -249,7 +249,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
                     <button
                         type="button"
                         onClick={() => {
-                            saveProgress();
+                            saveProgress(true, true);
                             if (onBack) {
                                 onBack();
                             } else {

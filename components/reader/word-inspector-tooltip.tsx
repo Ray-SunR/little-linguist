@@ -196,8 +196,8 @@ export default function WordInspectorTooltip({
 
       <PopoverContent
         className={cn(
-          "w-[420px] rounded-[2.5rem] border-4 border-white bg-white/95 backdrop-blur-2xl p-8 shadow-clay-purple z-[200]",
-          "overflow-visble"
+          "w-[420px] rounded-[2.5rem] border-4 border-white bg-white/95 backdrop-blur-2xl p-6 shadow-clay-purple z-[200]",
+          "overflow-visible"
         )}
         style={{
           maxHeight: 'var(--radix-popper-available-height)',
@@ -205,8 +205,8 @@ export default function WordInspectorTooltip({
         }}
         align="center"
         side="top"
-        sideOffset={20}
-        collisionPadding={32}
+        sideOffset={16}
+        collisionPadding={16}
         avoidCollisions={true}
         onOpenAutoFocus={(e) => e.preventDefault()}
         onInteractOutside={(e) => {

@@ -15,6 +15,7 @@ export type NarratedTextRef = {
     pause: () => Promise<void>;
     stop: () => Promise<void>;
     isPlaying: boolean;
+    isPreparing: boolean;
 };
 
 type NarratedTextProps = {
@@ -34,6 +35,7 @@ type NarratedTextProps = {
     onWordClick?: (word: string, index: number) => void;
     onPlaybackStart?: () => void;
     onPlaybackEnd?: () => void;
+    suppressErrors?: boolean;
 };
 
 export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
@@ -46,20 +48,25 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
             timings,
             autoPlay = false,
             className = "",
-            highlightClassName = "text-accent bg-accent/10 rounded-sm px-0.5",
+            highlightClassName = "text-accent bg-accent/10 ring-2 ring-accent/5 rounded-sm",
             showControls = true,
             onWordClick,
             onPlaybackStart,
             onPlaybackEnd,
+            suppressErrors = false,
         },
         ref
     ) => {
-        // Generate a stable ID for this content
-        const contentId = useMemo(
-            () => `narrated-${text.substring(0, 30)}`,
-            [text]
-        );
-
+        // Generate a stable unique ID for this content to avoid playback state collisions
+        const contentId = useMemo(() => {
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) {
+                const char = text.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return `narrated-${Math.abs(hash).toString(36)}`;
+        }, [text]);
 
         const tokens = useMemo(() => tokenizeText(text), [text]);
 
@@ -75,7 +82,7 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
 
             // 3. Provider Type
             if (voiceProvider === "remote_tts") {
-                // Return null or fallback to web_speech if no audio source provided
+                // Return null if no audio source provided (wait for synthesis)
                 return null;
             }
             if (voiceProvider === "web_speech") {
@@ -86,7 +93,7 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
         }, [audio, timings, explicitProvider, voiceProvider]);
 
         const narration = useAudioNarration({
-            provider: provider as any,
+            provider: provider as any, // Hook handles null/undefined
             contentId,
             rawText: text,
             tokens,
@@ -114,6 +121,7 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
                 await narration.stop();
             },
             isPlaying: narration.state === "PLAYING",
+            isPreparing: narration.isPreparing,
         }));
 
         // Notify parent of playback state changes
@@ -196,7 +204,7 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
                     </div>
                 )}
 
-                {narration.error && (
+                {!suppressErrors && showControls && narration.error && (
                     <div className="text-red-500 text-xs mt-1">{narration.error}</div>
                 )}
             </div>

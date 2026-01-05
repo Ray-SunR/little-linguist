@@ -6,6 +6,11 @@ interface WordInsightResponse {
     definition: string;
     pronunciation?: string;
     examples?: string[];
+    audioUrl?: string;
+    wordAudioUrl?: string;
+    exampleAudioUrls?: string[];
+    wordTimings?: any[];
+    exampleTimings?: any[][];
 }
 
 interface StoryResponse {
@@ -57,8 +62,11 @@ export class GeminiProvider implements AIProvider {
                 definition: data.definition,
                 pronunciation: data.pronunciation || "",
                 examples: Array.isArray(data.examples) ? data.examples.slice(0, 2) : [],
-                audioUrl: (data as any).audioUrl,
-                wordTimings: (data as any).wordTimings,
+                audioUrl: data.audioUrl,
+                wordAudioUrl: data.wordAudioUrl,
+                exampleAudioUrls: data.exampleAudioUrls,
+                wordTimings: data.wordTimings,
+                exampleTimings: data.exampleTimings,
             };
         } catch (error) {
             if (error instanceof AIError) throw error;

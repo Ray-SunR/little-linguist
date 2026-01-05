@@ -7,6 +7,7 @@ export * from "./types";
 // Export React context/provider
 export * from "./provider";
 
-// Export services
+// Export services / factories
 export { AIWordInsightService } from "./ai-service";
 export { LocalStorageWordService } from "./implementations/local-storage-word-service";
+export { getWordInsightProvider } from "./factory";

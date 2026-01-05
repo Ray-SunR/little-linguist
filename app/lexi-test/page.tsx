@@ -105,10 +105,9 @@ function LexiReaderContainer({ book, books, onBookChange }: { book: any, books: 
         }
     });
 
-    // Persistence Hook
     useReaderPersistence({
         bookId: book.id,
-        tokenIndex: currentWordIndex ?? 0,
+        tokenIndex: currentWordIndex,
         shardIndex: currentShardIndex ?? 0,
         time: currentTime,
         playbackState: state,

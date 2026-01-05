@@ -8,6 +8,11 @@ import { splitIntoChunks, CHUNKER_PRESETS, isAndroid, type TextChunk } from "../
 
 export class WebSpeechNarrationProvider implements INarrationProvider {
   type: "web_speech" = "web_speech";
+  capabilities = {
+    supportsStreaming: false,
+    supportsWordTimings: true, // via boundary events
+    supportsVoices: true,
+  };
   private utterances: SpeechSynthesisUtterance[] = [];
   private listeners: Map<NarrationEvent, Set<(payload?: unknown) => void>> = new Map();
   private preparedText = "";

@@ -8,6 +8,11 @@ import {
 
 export class RemoteTtsNarrationProvider implements INarrationProvider {
   type: "remote_tts" = "remote_tts";
+  capabilities = {
+    supportsStreaming: false,
+    supportsWordTimings: true,
+    supportsVoices: false,
+  };
   private audio: HTMLAudioElement | null = null;
   private listeners: Map<NarrationEvent, Set<(payload?: unknown) => void>> = new Map();
   private audioUrl: string | null;

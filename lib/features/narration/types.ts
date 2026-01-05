@@ -1,5 +1,17 @@
 // "polly" is kept for legacy compatibility but currently maps to WebSpeech or RemoteTTS in the factory
-export type NarrationProviderType = "web_speech" | "remote_tts" | "polly" | "auto";
+export type NarrationProviderType =
+  | "web_speech"
+  | "remote_tts"
+  | "polly"
+  | "gemini"
+  | "blob"
+  | "auto";
+
+export type NarrationCapabilities = {
+  supportsStreaming?: boolean;
+  supportsWordTimings?: boolean;
+  supportsVoices?: boolean;
+};
 
 export type TooltipPosition = {
   x: number;
@@ -19,6 +31,11 @@ export type NarrationResult = {
   wordTimings?: WordTiming[];
   provider: NarrationProviderType;
   meta?: Record<string, unknown>;
+};
+
+export type NarrationProviderConfig = {
+  audioUrl?: string | null;
+  audioSource?: Blob | string | null;
 };
 
 export type NarrationPrepareInput = {
@@ -41,4 +58,5 @@ export interface INarrationProvider {
   getCurrentTimeSec(): number | null;
   seekToTime(seconds: number): void;
   on(event: NarrationEvent, cb: (payload?: unknown) => void): () => void;
+  capabilities?: NarrationCapabilities;
 }

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { useWordList, type WordInsight, AIWordInsightService } from "@/lib/features/word-insight";
+import { useWordList, type WordInsight, getWordInsightProvider } from "@/lib/features/word-insight";
 
 export interface TooltipPosition {
   x: number;
@@ -39,7 +39,7 @@ export function useWordInspector(): UseWordInspectorReturn {
 
   // In-memory cache for session
   const cacheRef = useRef<Map<string, WordInsight>>(new Map());
-  const serviceRef = useRef(new AIWordInsightService());
+  const serviceRef = useRef(getWordInsightProvider());
 
   const openWord = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
     const trimmedWord = word.trim();

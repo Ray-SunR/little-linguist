@@ -64,7 +64,7 @@ export function useNarrationEngine({
         // Detect if initial progress updated while we are seemingly at the start/stopped
         // This handles the async loading of progress after book content
         const progressUpdated =
-            stateRef.current === 'stopped' &&
+            (stateRef.current === 'stopped' || stateRef.current === 'buffering') &&
             (initialTokenIndex !== currentWordIndexRef.current || initialTime !== currentTimeRef.current);
 
         if (isNewBook || progressUpdated) {

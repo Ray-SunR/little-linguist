@@ -11,12 +11,19 @@ export interface WordInsight {
     definition: string;
     pronunciation?: string;
     examples: string[];
-    audioUrl?: string; // High-quality cached audio
-    wordTimings?: {
+    audioUrl?: string; // Definition audio URL
+    wordAudioUrl?: string; // High-quality cached audio for the word itself
+    exampleAudioUrls?: string[]; // High-quality cached audio for examples
+    wordTimings?: { // Timings for the definition
         wordIndex: number;
         startMs: number;
         endMs: number;
     }[];
+    exampleTimings?: { // Timings for examples (array of arrays)
+        wordIndex: number;
+        startMs: number;
+        endMs: number;
+    }[][];
 }
 
 /**

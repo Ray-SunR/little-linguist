@@ -8,13 +8,20 @@ import type { WordInsight } from "@/lib/core";
 export type { WordInsight } from "@/lib/core";
 export { normalizeWord } from "@/lib/core";
 
+export type WordInsightProviderType = "ai";
+
 /**
- * Service interface for word insight providers
- * Implementations: AIWordInsightService
+ * Provider interface for word insight lookups.
+ * Implementations: AIWordInsightService (default), future providers can plug in here.
  */
-export interface WordInsightService {
+export interface WordInsightProvider {
   getInsight(word: string): Promise<WordInsight>;
 }
+
+/**
+ * Backward-compatible alias. Keep existing name to avoid breaking imports.
+ */
+export interface WordInsightService extends WordInsightProvider {}
 
 /**
  * Service interface for word list persistence
@@ -26,6 +33,9 @@ export interface IWordService {
   removeWord(wordStr: string): Promise<void>;
   hasWord(wordStr: string): Promise<boolean>;
 }
+
+// Alias for clarity in new code
+export type WordListStore = IWordService;
 
 /**
  * Fallback data when service fails

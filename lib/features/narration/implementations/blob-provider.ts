@@ -7,7 +7,12 @@ import {
 } from "../types";
 
 export class BlobNarrationProvider implements INarrationProvider {
-    type: "remote_tts" = "remote_tts";
+    type: "blob" = "blob";
+    capabilities = {
+        supportsStreaming: false,
+        supportsWordTimings: true,
+        supportsVoices: false,
+    };
     private audio: HTMLAudioElement | null = null;
     private listeners: Map<NarrationEvent, Set<(payload?: unknown) => void>> = new Map();
     private blobUrl: string | null = null;
