@@ -11,28 +11,37 @@ import Link from "next/link";
 interface LibraryViewProps {
     books: SupabaseBook[];
     onSelectBook: (id: string) => void;
+    onDeleteBook?: (id: string) => void;
+    currentUserId?: string | null;
 }
 
 const CATEGORIES = [
     { id: "all", label: "All Stories", icon: Sparkles, color: "from-purple-400 to-pink-500", shadow: "shadow-purple-200/50", bg: "bg-purple-50 dark:bg-purple-900/10" },
+    { id: "my-stories", label: "My Stories", icon: Compass, color: "from-cyan-400 to-blue-500", shadow: "shadow-cyan-200/50", bg: "bg-cyan-50 dark:bg-cyan-900/10" },
     { id: "adventure", label: "Adventures", icon: Rocket, color: "from-orange-400 to-yellow-500", shadow: "shadow-orange-200/50", bg: "bg-orange-50 dark:bg-orange-900/10" },
     { id: "fantasy", label: "Magic & Fantasy", icon: Wand2, color: "from-pink-400 to-rose-500", shadow: "shadow-pink-200/50", bg: "bg-pink-50 dark:bg-pink-900/10" },
     { id: "learning", label: "Learning", icon: BookOpen, color: "from-emerald-400 to-teal-500", shadow: "shadow-emerald-200/50", bg: "bg-emerald-50 dark:bg-emerald-900/10" },
     { id: "favorites", label: "Favorites", icon: Heart, color: "from-red-400 to-rose-500", shadow: "shadow-red-200/50", bg: "bg-red-50 dark:bg-red-900/10" },
 ];
 
-export default function LibraryView({ books, onSelectBook }: LibraryViewProps) {
+export default function LibraryView({ books, onSelectBook, onDeleteBook, currentUserId }: LibraryViewProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
 
     const filteredBooks = useMemo(() => {
         return books.filter((book) => {
             const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase());
-            // Note: Placeholder logic for categories until we have tags in DB
-            const matchesCategory = activeCategory === "all";
+            // Category filtering
+            let matchesCategory = true;
+            if (activeCategory === "my-stories") {
+                matchesCategory = !!book.owner_user_id && book.owner_user_id === currentUserId;
+            } else if (activeCategory !== "all") {
+                // Placeholder for other category logic
+                matchesCategory = true;
+            }
             return matchesSearch && matchesCategory;
         });
-    }, [books, searchQuery, activeCategory]);
+    }, [books, searchQuery, activeCategory, currentUserId]);
 
     return (
         <div className="relative min-h-screen w-full overflow-x-hidden page-story-maker">
@@ -185,6 +194,8 @@ export default function LibraryView({ books, onSelectBook }: LibraryViewProps) {
                                         book={book}
                                         onClick={onSelectBook}
                                         index={index}
+                                        isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
+                                        onDelete={onDeleteBook}
                                     />
                                 ))}
                             </motion.div>

@@ -1,9 +1,9 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Play, BookOpen, Rocket, Star, Clock } from "lucide-react";
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
+import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass } from "lucide-react";
 import { SupabaseBook } from "./supabase-reader-shell";
-import { MouseEvent, useRef } from "react";
+import { MouseEvent, useRef, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/core";
 
@@ -11,10 +11,14 @@ interface LibraryBookCardProps {
     book: SupabaseBook;
     onClick: (id: string) => void;
     index: number;
+    isOwned?: boolean;
+    onDelete?: (id: string) => void;
 }
 
-export default function LibraryBookCard({ book, onClick, index }: LibraryBookCardProps) {
+export default function LibraryBookCard({ book, onClick, index, isOwned, onDelete }: LibraryBookCardProps) {
     const ref = useRef<HTMLDivElement>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Mouse tracking for 3D tilt effect
     const x = useMotionValue(0);
@@ -136,13 +140,36 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
                                 </div>
                             )}
 
-                            {/* Tags Overlay */}
+                            {/* Tags Overlay - Show "My Story" badge for owned books */}
                             <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
-                                <div className="px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 flex items-center gap-1.5 transform transition-all group-hover:scale-110">
-                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">Gold Edition</span>
-                                </div>
+                                {isOwned ? (
+                                    <div className="px-3 py-1.5 rounded-full bg-cyan-500 shadow-lg border border-cyan-400 flex items-center gap-1.5">
+                                        <Compass className="h-4 w-4 text-white" />
+                                        <span className="text-[10px] font-black text-white uppercase tracking-tighter">My Story</span>
+                                    </div>
+                                ) : (
+                                    <div className="px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 flex items-center gap-1.5 transform transition-all group-hover:scale-110">
+                                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                        <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">Gold Edition</span>
+                                    </div>
+                                )}
                             </div>
+
+                            {/* Delete Button - Always visible for owned books */}
+                            {isOwned && onDelete && (
+                                <motion.button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowDeleteConfirm(true);
+                                    }}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="absolute top-3 left-3 z-20 bg-red-500 p-2.5 rounded-full shadow-lg border-2 border-white hover:bg-red-600 transition-colors cursor-pointer"
+                                    aria-label="Delete story"
+                                >
+                                    <Trash2 className="h-4 w-4 text-white" />
+                                </motion.button>
+                            )}
                         </div>
 
                         {/* Text Info Area */}
@@ -218,6 +245,79 @@ export default function LibraryBookCard({ book, onClick, index }: LibraryBookCar
                     </div>
                 </div>
             </motion.div>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {showDeleteConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isDeleting) setShowDeleteConfirm(false);
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-3xl p-8 max-w-sm mx-4 shadow-2xl border-4 border-red-100"
+                        >
+                            <div className="flex flex-col items-center text-center gap-4">
+                                <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
+                                    <AlertTriangle className="h-8 w-8 text-red-500" />
+                                </div>
+                                <h3 className="font-fredoka text-xl font-bold text-slate-800">Delete Story?</h3>
+                                <p className="text-slate-600 text-sm">
+                                    Are you sure you want to delete <span className="font-bold">"{book.title}"</span>? This action cannot be undone.
+                                </p>
+                                <div className="flex gap-3 w-full mt-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowDeleteConfirm(false);
+                                        }}
+                                        disabled={isDeleting}
+                                        className="flex-1 py-3 px-4 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            setIsDeleting(true);
+                                            try {
+                                                await onDelete?.(book.id);
+                                            } finally {
+                                                setIsDeleting(false);
+                                                setShowDeleteConfirm(false);
+                                            }
+                                        }}
+                                        disabled={isDeleting}
+                                        className="flex-1 py-3 px-4 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {isDeleting ? (
+                                            <>
+                                                <motion.div
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                                    className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full"
+                                                />
+                                                Deleting...
+                                            </>
+                                        ) : (
+                                            "Delete"
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }

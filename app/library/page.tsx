@@ -7,12 +7,25 @@ import LibraryView from "@/components/reader/library-view";
 import { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { bookCache } from "@/lib/core/cache";
 import { ttsCache } from "@/lib/features/narration/tts-cache";
+import { createBrowserClient } from "@supabase/ssr";
 
 function LibraryContent() {
     const router = useRouter();
     const [books, setBooks] = useState<SupabaseBook[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+    // Fetch current user on mount
+    useEffect(() => {
+        const supabase = createBrowserClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        supabase.auth.getUser().then(({ data }) => {
+            setCurrentUserId(data.user?.id ?? null);
+        });
+    }, []);
 
     const loadBooks = useCallback(async () => {
         let cachedBooks: SupabaseBook[] = [];
@@ -69,7 +82,8 @@ function LibraryContent() {
                             shards: Array.isArray(shards) ? shards : [],
                             initialProgress: progress,
                             updated_at: bookData.updated_at,
-                            cached_at: Date.now()
+                            cached_at: Date.now(),
+                            owner_user_id: bookData.owner_user_id || book.owner_user_id || null
                         };
 
                         await bookCache.put(fullBook);
@@ -86,7 +100,12 @@ function LibraryContent() {
             const mergedBooks = manifest.map(m => {
                 const fresh = validFetched.find(f => f.id === m.id);
                 if (fresh) return fresh;
-                return cachedBooks.find(c => c.id === m.id);
+                const cached = cachedBooks.find(c => c.id === m.id);
+                if (cached) {
+                    // Merge owner_user_id from manifest in case it wasn't cached
+                    return { ...cached, owner_user_id: m.owner_user_id ?? cached.owner_user_id };
+                }
+                return null;
             }).filter((b): b is SupabaseBook => !!b);
 
             // Fetch fresh progress
@@ -137,6 +156,23 @@ function LibraryContent() {
         router.push(`/reader/${id}`);
     };
 
+    const handleDeleteBook = useCallback(async (id: string) => {
+        try {
+            const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Failed to delete');
+            }
+            // Remove from local state
+            setBooks(prev => prev.filter(b => b.id !== id));
+            // Remove from cache
+            await bookCache.delete(id);
+        } catch (err) {
+            console.error('Delete book failed:', err);
+            alert(err instanceof Error ? err.message : 'Failed to delete book');
+        }
+    }, []);
+
     if (isLoading) {
         return (
             <main className="page-story-maker relative min-h-screen flex items-center justify-center">
@@ -157,7 +193,12 @@ function LibraryContent() {
     }
 
     return (
-        <LibraryView books={books} onSelectBook={handleSelectBook} />
+        <LibraryView
+            books={books}
+            onSelectBook={handleSelectBook}
+            onDeleteBook={handleDeleteBook}
+            currentUserId={currentUserId}
+        />
     );
 }
 

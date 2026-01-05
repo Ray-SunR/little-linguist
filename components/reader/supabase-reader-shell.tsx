@@ -34,6 +34,7 @@ export interface SupabaseBook {
     };
     updated_at?: string;
     cached_at?: number;
+    owner_user_id?: string | null;
 }
 
 type SupabaseReaderShellProps = {
