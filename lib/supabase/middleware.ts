@@ -46,19 +46,35 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Expert UX: If user is logged in and tries to access /login, redirect to home
+    // Helper to create redirect while preserving cookies
+    const createRedirectWithCookies = (url: URL) => {
+        const redirectResponse = NextResponse.redirect(url)
+        // Copy over cookies to prevent session desync
+        supabaseResponse.cookies.getAll().forEach((cookie) => {
+            redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+        })
+        return redirectResponse
+    }
+
+    // Expert UX: If user is logged in and tries to access /login, redirect to dashboard
     if (user && request.nextUrl.pathname === '/login') {
-        return NextResponse.redirect(new URL('/', request.url))
+        return createRedirectWithCookies(new URL('/dashboard', request.url))
+    }
+
+    // Expert UX: If user is logged in and tries to access /, redirect to dashboard
+    if (user && request.nextUrl.pathname === '/') {
+        return createRedirectWithCookies(new URL('/dashboard', request.url))
     }
 
     // Expert UX: If user is NOT logged in and tries to access any PROTECTED route, redirect to /login
-    // Protected routes are everything except /login and /auth/callback
-    const isPublicRoute = request.nextUrl.pathname === '/login' ||
+    // Protected routes are everything except /, /login and /auth/callback
+    const isPublicRoute = request.nextUrl.pathname === '/' ||
+        request.nextUrl.pathname === '/login' ||
         request.nextUrl.pathname.startsWith('/auth/') ||
         request.nextUrl.pathname.startsWith('/api/')
 
     if (!user && !isPublicRoute) {
-        return NextResponse.redirect(new URL('/login', request.url))
+        return createRedirectWithCookies(new URL('/login', request.url))
     }
 
     return supabaseResponse

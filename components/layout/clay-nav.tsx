@@ -7,6 +7,7 @@ import { cn } from "@/lib/core/utils/cn";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navItems = [
     {
@@ -42,7 +43,7 @@ export function ClayNav() {
     const pathname = usePathname();
     const router = useRouter();
     const [isHubOpen, setIsHubOpen] = useState(false);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<SupabaseUser | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
     const supabase = createClient();
 
@@ -70,7 +71,8 @@ export function ClayNav() {
         router.push("/login");
     };
 
-    if (pathname === "/login") return null;
+    // Hide nav on landing, dashboard, and login - these pages have their own layouts
+    if (pathname === "/" || pathname === "/login" || pathname === "/dashboard") return null;
 
     const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || "";
     const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
@@ -78,8 +80,8 @@ export function ClayNav() {
 
     const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
 
-    // Magic Bead Logic for Reader View
-    const showAsBead = isImmersionMode && !isExpanded;
+    // Immersion mode logic for Reader View
+    const isImmersive = isImmersionMode && !isExpanded;
 
     return (
         <>

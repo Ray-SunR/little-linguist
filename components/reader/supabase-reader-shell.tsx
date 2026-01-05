@@ -236,7 +236,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
     }
 
     return (
-        <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out pb-32 ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-7xl gap-4 sm:gap-5'}`}>
+        <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-7xl gap-4 sm:gap-5'}`}>
             {!isMaximized && (
                 <>
                     <div className="pointer-events-none absolute -left-6 top-6 h-28 w-28 blob blob-1" />
