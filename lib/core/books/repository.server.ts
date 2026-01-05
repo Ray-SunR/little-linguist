@@ -38,7 +38,7 @@ export class BookRepository {
      * for rendering book cards, including signed cover image URLs.
      * 
      * Performance optimizations:
-     * - Uses jsonb_array_length to get token count without fetching full tokens array
+     * - Uses total_tokens column to get token count without fetching full tokens array
      * - Fetches cover paths from book_media in a single batched query
      * - Handles signing errors gracefully
      */
@@ -51,17 +51,11 @@ export class BookRepository {
         owner_user_id?: string | null;
         totalTokens?: number;
     }[]> {
-        // Build ownership filter
-        let ownerFilter = 'owner_user_id.is.null';
-        if (userId) {
-            ownerFilter = `owner_user_id.is.null,owner_user_id.eq.${userId}`;
-        }
-
         // Use RPC or raw query to get token count without fetching full array
         // For now, we'll get minimal fields and compute count server-side
         const { data: booksData, error: booksError } = await this.supabase
             .from('books')
-            .select('id, title, updated_at, voice_id, owner_user_id, images, tokens')
+            .select('id, title, updated_at, voice_id, owner_user_id, images, total_tokens')
             .or(userId ? `owner_user_id.is.null,owner_user_id.eq.${userId}` : 'owner_user_id.is.null')
             .order('title');
 
@@ -137,7 +131,7 @@ export class BookRepository {
                 updated_at: book.updated_at,
                 voice_id: book.voice_id,
                 owner_user_id: book.owner_user_id,
-                totalTokens: Array.isArray(book.tokens) ? book.tokens.length : undefined
+                totalTokens: book.total_tokens
             };
         }));
 

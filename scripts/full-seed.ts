@@ -33,6 +33,7 @@ async function fullSeed() {
                 title: bookJson.title,
                 text: bookJson.text,
                 tokens: tokens, // PERSIST MASTER TOKENS
+                total_tokens: tokens.length, // PERSIST TOKEN COUNT for lazy loading
                 images: bookJson.images,
                 origin: 'system',
                 schema_version: 2, // Bumped version for token support
