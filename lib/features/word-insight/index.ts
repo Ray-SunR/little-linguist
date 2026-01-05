@@ -9,5 +9,4 @@ export * from "./provider";
 
 // Export services / factories
 export { AIWordInsightService } from "./ai-service";
-export { LocalStorageWordService } from "./implementations/local-storage-word-service";
 export { getWordInsightProvider } from "./factory";

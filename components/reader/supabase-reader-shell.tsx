@@ -368,6 +368,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
                 onPlaySentence={handlePlaySentence}
                 onPlayFromWord={handlePlayFromWord}
                 provider={tooltipProvider}
+                bookId={selectedBookId}
             />
         </section>
     );

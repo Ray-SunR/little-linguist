@@ -78,7 +78,7 @@ export default function LibraryView({ books, onSelectBook, onDeleteBook, current
                 />
             </div>
 
-            <div className="relative mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex flex-col gap-6 md:gap-8">
+            <div className="relative mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 lg:pl-32 flex flex-col gap-6 md:gap-8">
                 {/* Hero Section */}
                 <header className="flex flex-col gap-6 pt-2 md:pt-4 relative overflow-visible">
                     {/* Floating Decorative Elements - Smaller & more subtle */}

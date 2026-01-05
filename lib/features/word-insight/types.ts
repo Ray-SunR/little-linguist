@@ -21,17 +21,17 @@ export interface WordInsightProvider {
 /**
  * Backward-compatible alias. Keep existing name to avoid breaking imports.
  */
-export interface WordInsightService extends WordInsightProvider {}
+export interface WordInsightService extends WordInsightProvider { }
 
 /**
  * Service interface for word list persistence
- * Implementations: LocalStorageWordService
+ * Implementations: DatabaseWordService
  */
 export interface IWordService {
   getWords(): Promise<WordInsight[]>;
-  addWord(word: WordInsight): Promise<void>;
-  removeWord(wordStr: string): Promise<void>;
-  hasWord(wordStr: string): Promise<boolean>;
+  addWord(word: WordInsight, bookId?: string): Promise<void>;
+  removeWord(wordStr: string, bookId?: string): Promise<void>;
+  hasWord(wordStr: string, bookId?: string): Promise<boolean>;
 }
 
 // Alias for clarity in new code

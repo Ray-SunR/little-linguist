@@ -2,14 +2,16 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { WordInsight } from "./types";
-import { LocalStorageWordService } from "./implementations/local-storage-word-service";
-const wordService = new LocalStorageWordService();
+import { DatabaseWordService } from "./implementations/database-word-service";
+import { createClient } from "@/lib/supabase/client";
+
+const dbService = new DatabaseWordService();
 
 type WordListContextType = {
     words: WordInsight[];
-    addWord: (word: WordInsight) => Promise<void>;
-    removeWord: (word: string) => Promise<void>;
-    hasWord: (word: string) => boolean;
+    addWord: (word: WordInsight, bookId?: string) => Promise<void>;
+    removeWord: (word: string, bookId?: string) => Promise<void>;
+    hasWord: (word: string, bookId?: string) => boolean;
     isLoading: boolean;
 };
 
@@ -18,37 +20,53 @@ const WordListContext = createContext<WordListContextType | undefined>(undefined
 export function WordListProvider({ children }: { children: React.ReactNode }) {
     const [words, setWords] = useState<WordInsight[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const supabase = createClient();
 
-    // Load initial words
+    const loadWords = async () => {
+        try {
+            setIsLoading(true);
+            const list = await dbService.getWords();
+            setWords(list);
+        } catch (error) {
+            console.error("Failed to load words", error);
+            // On 401/403 we just keep words as empty
+            setWords([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Load initial words and refresh on auth change
     useEffect(() => {
-        const loadWords = async () => {
-            try {
-                const list = await wordService.getWords();
-                setWords(list);
-            } catch (error) {
-                console.error("Failed to load words", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
         loadWords();
-    }, []);
 
-    const addWord = async (word: WordInsight) => {
-        await wordService.addWord(word);
-        // Refresh local state
-        const list = await wordService.getWords();
-        setWords(list);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                loadWords();
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [supabase]);
+
+    const addWord = async (word: WordInsight, bookId?: string) => {
+        await dbService.addWord(word, bookId);
+        await loadWords();
     };
 
-    const removeWord = async (wordStr: string) => {
-        await wordService.removeWord(wordStr);
-        const list = await wordService.getWords();
-        setWords(list);
+    const removeWord = async (wordStr: string, bookId?: string) => {
+        await dbService.removeWord(wordStr, bookId);
+        await loadWords();
     };
 
-    const hasWord = (wordStr: string) => {
-        return words.some((w) => w.word.toLowerCase() === wordStr.toLowerCase());
+    const hasWord = (wordStr: string, bookId?: string) => {
+        return words.some((w) => {
+            const wordMatch = w.word.toLowerCase() === wordStr.toLowerCase();
+            if (bookId && (w as any).bookId) {
+                return wordMatch && (w as any).bookId === bookId;
+            }
+            return wordMatch;
+        });
     };
 
     return (

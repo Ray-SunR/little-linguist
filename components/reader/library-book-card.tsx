@@ -166,7 +166,7 @@ export default function LibraryBookCard({ book, onClick, index, isOwned, onDelet
                                 <div className="flex items-center gap-3 text-xs font-black text-ink-muted uppercase tracking-widest">
                                     <span className="flex items-center gap-1.5">
                                         <Clock className="w-4 h-4 text-accent" />
-                                        8m
+                                        {Math.max(1, Math.round(Number(book.estimatedReadingTime) || 0))}m
                                     </span>
                                     <span className="h-1.5 w-1.5 rounded-full bg-slate-200" />
                                     <span className="text-accent/80">Adventure</span>

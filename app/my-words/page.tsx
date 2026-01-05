@@ -127,12 +127,12 @@ export default function MyWordsPage() {
                         <AnimatePresence>
                             {words.map((word, index) => (
                                 <motion.div
-                                    key={word.word}
+                                    key={`${word.word}-${(word as any).bookId || 'none'}`}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                 >
-                                    <Flashcard word={word} onRemove={() => removeWord(word.word)} ttsProvider={tooltipProvider} />
+                                    <Flashcard word={word} onRemove={() => removeWord(word.word, (word as any).bookId)} ttsProvider={tooltipProvider} />
                                 </motion.div>
                             ))}
                         </AnimatePresence>
@@ -141,7 +141,12 @@ export default function MyWordsPage() {
                     <div className="flex flex-col gap-4">
                         <AnimatePresence>
                             {words.map((word) => (
-                                <ListRow key={word.word} word={word} onRemove={() => removeWord(word.word)} ttsProvider={tooltipProvider} />
+                                <ListRow
+                                    key={`${word.word}-${(word as any).bookId || 'none'}`}
+                                    word={word}
+                                    onRemove={() => removeWord(word.word, (word as any).bookId)}
+                                    ttsProvider={tooltipProvider}
+                                />
                             ))}
                         </AnimatePresence>
                     </div>

@@ -49,6 +49,9 @@ function LibraryContent() {
                 voice_id?: string;
                 owner_user_id?: string | null;
                 totalTokens?: number;
+                estimatedReadingTime?: number;
+                isRead?: boolean;
+                lastOpenedAt?: string;
             }
 
             interface ProgressApiResponse {
@@ -83,7 +86,10 @@ function LibraryContent() {
                 progress: progressMap[book.id] ? {
                     last_token_index: progressMap[book.id].last_token_index,
                     total_tokens: book.totalTokens
-                } : undefined
+                } : undefined,
+                estimatedReadingTime: book.estimatedReadingTime,
+                isRead: book.isRead,
+                lastOpenedAt: book.lastOpenedAt
             }));
 
             setBooks(libraryBooks);

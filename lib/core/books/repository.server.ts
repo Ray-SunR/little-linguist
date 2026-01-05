@@ -18,7 +18,7 @@ export class BookRepository {
     async getAvailableBooks(userId?: string): Promise<Partial<Book>[]> {
         let query = this.supabase
             .from('books')
-            .select('id, book_key, title, origin, updated_at, voice_id, owner_user_id');
+            .select('id, book_key, title, origin, updated_at, voice_id, owner_user_id, estimated_reading_time');
 
         if (userId) {
             query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
@@ -50,17 +50,36 @@ export class BookRepository {
         voice_id?: string;
         owner_user_id?: string | null;
         totalTokens?: number;
+        estimatedReadingTime?: number;
+        isRead?: boolean;
+        lastOpenedAt?: string;
     }[]> {
         // Use RPC or raw query to get token count without fetching full array
         // For now, we'll get minimal fields and compute count server-side
         const { data: booksData, error: booksError } = await this.supabase
             .from('books')
-            .select('id, title, updated_at, voice_id, owner_user_id, images, total_tokens')
+            .select('id, title, updated_at, voice_id, owner_user_id, images, total_tokens, estimated_reading_time')
             .or(userId ? `owner_user_id.is.null,owner_user_id.eq.${userId}` : 'owner_user_id.is.null')
             .order('title');
 
         if (booksError) throw booksError;
         if (!booksData || booksData.length === 0) return [];
+
+        // Fetch user progress for these books
+        let userProgressMap = new Map<string, any>();
+        if (userId) {
+            const { data: progressData } = await this.supabase
+                .from('user_progress')
+                .select('book_id, is_completed, updated_at')
+                .eq('user_id', userId)
+                .in('book_id', booksData.map(b => b.id));
+
+            if (progressData) {
+                progressData.forEach(p => {
+                    userProgressMap.set(p.book_id, p);
+                });
+            }
+        }
 
         // Batch fetch cover images from book_media for all books at once (single query)
         const bookIds = booksData.map(b => b.id);
@@ -124,6 +143,8 @@ export class BookRepository {
                 }
             }
 
+            const progress = userProgressMap.get(book.id);
+
             return {
                 id: book.id,
                 title: book.title,
@@ -131,7 +152,10 @@ export class BookRepository {
                 updated_at: book.updated_at,
                 voice_id: book.voice_id,
                 owner_user_id: book.owner_user_id,
-                totalTokens: book.total_tokens
+                totalTokens: book.total_tokens,
+                estimatedReadingTime: book.estimated_reading_time,
+                isRead: progress?.is_completed || false,
+                lastOpenedAt: progress?.updated_at
             };
         }));
 
@@ -303,20 +327,33 @@ export class BookRepository {
     }
 
     async saveProgress(userId: string, bookId: string, progress: {
-        last_token_index: number;
-        last_shard_index: number;
-        last_playback_time: number;
+        last_token_index?: number;
+        last_shard_index?: number;
+        total_tokens?: number;
+        estimatedReadingTime?: number;
+        isRead?: boolean;
+        lastOpenedAt?: string;
+        last_playback_time?: number;
         view_mode?: string;
         playback_speed?: number;
     }) {
+        // Map frontend camelCase fields to database snake_case columns
+        const { isRead, lastOpenedAt, ...rest } = progress;
+
+        const dbProgress: any = {
+            ...rest,
+            user_id: userId,
+            book_id: bookId,
+            updated_at: new Date().toISOString()
+        };
+
+        if (isRead !== undefined) dbProgress.is_completed = isRead;
+        // lastOpenedAt is usually handled by the updated_at column in the DB, 
+        // but we can map it if we really need to store a separate value
+
         const { data, error } = await this.supabase
             .from('user_progress')
-            .upsert({
-                user_id: userId,
-                book_id: bookId,
-                ...progress,
-                updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id,book_id' })
+            .upsert(dbProgress, { onConflict: 'user_id,book_id' })
             .select()
             .single();
 

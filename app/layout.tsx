@@ -3,7 +3,7 @@ import { Fredoka, Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { WordListProvider } from "@/lib/features/word-insight";
 import { NarrationProvider, type NarrationProviderType } from "@/lib/features/narration";
-import { Navigation } from "@/components/layout/navigation";
+import { ClayNav } from "@/components/layout/clay-nav";
 import { GlobalStoryListener } from "@/components/notifications/global-story-listener";
 
 const fredoka = Fredoka({
@@ -32,9 +32,10 @@ export default function RootLayout({
         <WordListProvider>
           <NarrationProvider initialProviderType={process.env.NARRATION_PROVIDER as NarrationProviderType | undefined}>
             <GlobalStoryListener />
-            <div className="relative flex flex-col md:flex-row min-h-screen">
-              <Navigation />
+            <div className="relative flex flex-col lg:flex-row min-h-screen">
+              <ClayNav />
               <div className="flex-1 w-full overflow-y-auto">
+
                 {children}
               </div>
             </div>

@@ -14,4 +14,7 @@ export interface LibraryBookCard {
         last_token_index?: number;
         total_tokens?: number;
     };
+    estimatedReadingTime?: number;
+    isRead?: boolean;
+    lastOpenedAt?: string;
 }

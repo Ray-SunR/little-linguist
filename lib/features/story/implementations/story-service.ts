@@ -4,11 +4,9 @@ import { getAIProvider } from "@/lib/core/integrations/ai";
 import type { Book, BookImage } from "@/lib/core";
 import { tokenizeText } from "@/lib/core/utils/tokenization";
 
-const STORAGE_KEY = "my-generated-stories";
-
 /**
  * Service for managing user stories.
- * Handles persistence (localStorage) and orchestrates generation via AIProvider.
+ * Orchestrates generation via AIProvider and background image generation via API.
  */
 export class StoryService implements IStoryService {
     private provider: AIProvider;
@@ -39,7 +37,6 @@ export class StoryService implements IStoryService {
                 ? "/api/mock/story/images"
                 : "/api/story/images";
 
-            // Fire and forget, or wait? Usually we want to fire and let polling handle it
             fetch(apiUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -88,34 +85,6 @@ export class StoryService implements IStoryService {
             console.error("Story Service generation error:", error);
             throw error;
         }
-    }
-
-    /**
-     * @deprecated Stories are now persisted to Supabase via /api/story
-     */
-    async saveStory(story: Story): Promise<void> {
-        // Redundant as of Supabase migration
-    }
-
-    /**
-     * @deprecated Use the standard library API to fetch stories (origin='user_generated')
-     */
-    async getStories(): Promise<Story[]> {
-        return [];
-    }
-
-    /**
-     * @deprecated Use the Supabase API to fetch individual stories/books
-     */
-    async getStory(id: string): Promise<Story | null> {
-        return null;
-    }
-
-    /**
-     * @deprecated Use the Supabase API to delete stories/books
-     */
-    async deleteStory(id: string): Promise<void> {
-        // No-op
     }
 
     /**

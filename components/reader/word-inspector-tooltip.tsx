@@ -23,6 +23,7 @@ type WordInspectorTooltipProps = {
   onPlaySentence?: (sentence: string) => void;
   onPlayFromWord?: () => void;
   provider?: INarrationProvider;
+  bookId?: string;
 };
 
 /**
@@ -40,6 +41,7 @@ export default function WordInspectorTooltip({
   onPlaySentence,
   onPlayFromWord,
   provider,
+  bookId,
 }: WordInspectorTooltipProps) {
   const anchorRef = useRef<HTMLDivElement>(null);
   const { hasWord, addWord, removeWord } = useWordList();
@@ -53,14 +55,14 @@ export default function WordInspectorTooltip({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const isSaved = insight ? hasWord(insight.word) : false;
+  const isSaved = insight ? hasWord(insight.word, bookId) : false;
 
   const toggleSaveAction = () => {
     if (!insight) return;
     if (isSaved) {
-      removeWord(insight.word);
+      removeWord(insight.word, bookId);
     } else {
-      addWord(insight);
+      addWord(insight, bookId);
     }
   };
 
