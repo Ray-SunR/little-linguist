@@ -40,6 +40,10 @@ export async function DELETE(
     try {
         const { id } = params;
 
+        if (!BookRepository.isValidUuid(id)) {
+            return NextResponse.json({ error: 'Invalid book ID' }, { status: 400 });
+        }
+
         // 1. Authenticate user
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();

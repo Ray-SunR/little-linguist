@@ -2,20 +2,18 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Trash2, BookOpen, Sparkles, LayoutGrid, List, Volume2, ChevronRight, Star } from "lucide-react";
+import { Trash2, BookOpen, Sparkles, LayoutGrid, List, Volume2, ChevronRight, Star } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/core";
 import type { WordInsight } from "@/lib/features/word-insight";
 import { WordInsightView } from "@/components/reader/word-insight-view";
-import { playWordOnly, useNarration } from "@/lib/features/narration";
+import { playWordOnly } from "@/lib/features/narration";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
 import type { INarrationProvider } from "@/lib/features/narration";
 
 export default function MyWordsPage() {
     const { words, removeWord, isLoading } = useWordList();
-    const router = useRouter();
     const [viewMode, setViewMode] = useState<"cards" | "list">("cards");
 
     // Unified TTS Provider for individual words
@@ -32,7 +30,7 @@ export default function MyWordsPage() {
     }
 
     return (
-        <div className="min-h-screen page-story-maker p-6 md:p-10 md:pl-32 pb-24">
+        <div className="min-h-screen page-story-maker p-6 md:p-10 pb-24">
             <motion.header
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}

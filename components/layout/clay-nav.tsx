@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, BookOpen, Wand2, Languages, Settings2, User, LogOut, Mail, Sparkles } from "lucide-react";
+import { BookOpen, Wand2, Languages, User, LogOut, Mail, Sparkles } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -44,11 +44,11 @@ export function ClayNav() {
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
     const supabase = createClient();
 
     const isReaderView = pathname.startsWith("/reader");
-    const isImmersionMode = isReaderView;
+    const isLibraryView = pathname.startsWith("/library");
+    const isImmersionMode = isReaderView || isLibraryView;
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -83,142 +83,34 @@ export function ClayNav() {
 
     return (
         <>
-            {/* Desktop Navigation Link/Rail */}
-            <motion.nav
-                layout
-                className={cn(
-                    "fixed left-6 z-50 hidden lg:flex flex-col items-center gap-6 transition-all duration-500 origin-left ease-out top-1/2 -translate-y-1/2",
-                    showAsBead
-                        ? "w-16 h-16 py-0 px-0 rounded-full bg-white/5 backdrop-blur-md shadow-none ring-1 ring-white/10 border-white/20 opacity-60 hover:opacity-100 scale-75 cursor-pointer"
-                        : "w-24 min-h-[400px] py-8 px-4 clay-card glass-shine shadow-clay-purple/20"
-                )}
-                onClick={() => isImmersionMode && setIsExpanded(!isExpanded)}
-            >
-                {showAsBead ? (
-                    <motion.div
-                        initial={{ rotate: 0 }}
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="flex items-center justify-center w-full h-full"
-                    >
-                        <Sparkles className="w-8 h-8 text-purple-400 opacity-60" />
-                    </motion.div>
-                ) : (
-                    <>
-                        {/* Close button for immersion mode hub */}
-                        {isImmersionMode && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsExpanded(false);
-                                }}
-                                className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-white shadow-clay border-2 border-purple-100 flex items-center justify-center text-purple-400 hover:text-purple-600 transition-colors animate-squish z-10"
-                            >
-                                <Sparkles className="w-5 h-5 rotate-180" />
-                            </button>
-                        )}
-
-                        {/* User Profile - Large Squircle */}
-                        <div className="mb-4">
-                            <motion.button
-                                whileHover={{ scale: 1.15, rotate: -5 }}
-                                whileTap={{ scale: 0.85, rotate: 5 }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsHubOpen(true);
-                                }}
-                                className="w-16 h-16 squircle bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-clay-orange border-4 border-white/60 text-white group relative overflow-hidden active:shadow-inner"
-                            >
-                                {avatarUrl ? (
-                                    <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-                                ) : user ? (
-                                    <span className="text-2xl font-fredoka font-black drop-shadow-md">{userInitial}</span>
-                                ) : (
-                                    <User className="w-8 h-8 drop-shadow-md" />
-                                )}
-                                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </motion.button>
-                        </div>
-
-                        {/* Nav Items - Larger, Bouncier */}
-                        <div className="flex flex-col gap-8">
-                            {navItems.map((item) => {
-                                const active = isActive(item.href);
-                                const Icon = item.icon;
-
-                                return (
-                                    <Link key={item.href} href={item.href} onClick={(e) => e.stopPropagation()}>
-                                        <motion.div
-                                            whileHover={{ scale: 1.25, rotate: -3 }}
-                                            whileTap={{ scale: 0.8, y: 2 }}
-                                            className={cn(
-                                                "w-16 h-16 squircle flex items-center justify-center transition-all duration-300 group relative clay-nav-item",
-                                                active
-                                                    ? "bg-white shadow-clay-purple text-purple-600 ring-4 ring-purple-100"
-                                                    : "bg-slate-50/50 text-slate-400 hover:bg-white hover:text-slate-600 shadow-sm"
-                                            )}
-                                        >
-                                            <Icon className={cn("w-7 h-7", active ? "drop-shadow-md animate-bounce-subtle" : "opacity-80")} />
-
-                                            {/* Playful Tooltip */}
-                                            <span className="absolute left-24 px-5 py-3 bg-white rounded-2xl text-sm font-fredoka font-black text-ink border-2 border-purple-50 opacity-0 group-hover:opacity-100 translate-x-[-15px] group-hover:translate-x-0 transition-all pointer-events-none shadow-clay-purple whitespace-nowrap z-[100]">
-                                                {item.label}
-                                                <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-4 h-4 bg-white rotate-45 border-l-2 border-b-2 border-purple-50" />
-                                            </span>
-                                        </motion.div>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-
-                        {/* Footer Settings */}
-                        <div className="mt-8 pt-8 border-t-4 border-purple-50">
-                            <motion.button
-                                whileHover={{ rotate: 90, scale: 1.25 }}
-                                whileTap={{ scale: 0.75 }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsHubOpen(true);
-                                }}
-                                className="w-14 h-14 squircle bg-slate-100 text-slate-400 hover:text-purple-500 hover:bg-white flex items-center justify-center group relative shadow-sm hover:shadow-clay-purple transition-all"
-                            >
-                                <Settings2 className="w-7 h-7" />
-                                <span className="absolute left-24 px-4 py-2 bg-white rounded-xl text-xs font-fredoka font-black text-ink border-2 border-purple-50 opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all pointer-events-none shadow-clay whitespace-nowrap">
-                                    Adventure Stats
-                                </span>
-                            </motion.button>
-                        </div>
-                    </>
-                )}
-            </motion.nav>
-
-            {/* Mobile Bottom Navigation - Also adheres to "Magic Bead" logic */}
-            <AnimatePresence mode="wait">
+            {/* Bottom Navigation - Unified for all screen sizes */}
+            <AnimatePresence>
                 {(!isImmersionMode || isExpanded) ? (
                     <motion.nav
                         key="nav-full"
                         initial={{ y: 100, opacity: 0, scale: 0.95 }}
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         exit={{ y: 100, opacity: 0, scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         className={cn(
-                            "fixed z-50 lg:hidden w-[calc(100%-3rem)] max-w-sm flex items-center justify-between p-2 rounded-[3rem] bg-white/30 backdrop-blur-3xl border-2 border-white/40 shadow-clay-purple pointer-events-auto overflow-hidden transition-all duration-500",
-                            (isImmersionMode && isExpanded)
-                                ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-110"
-                                : "bottom-6 left-1/2 -translate-x-1/2"
+                            "fixed z-50 w-[calc(100%-3rem)] max-w-md flex items-center justify-between p-2 rounded-[3rem] bg-white/30 backdrop-blur-3xl border-2 border-white/40 shadow-clay-purple pointer-events-auto overflow-hidden bottom-6 left-0 right-0 mx-auto transition-all duration-300",
+                            (isImmersionMode && isExpanded) && "bottom-8 scale-105 sm:scale-110"
                         )}
                     >
                         {/* Collapse button for mobile */}
                         {isImmersionMode && (
-                            <button
+                            <motion.button
+                                whileTap={{ scale: 0.9, x: 5 }}
                                 onClick={() => setIsExpanded(false)}
-                                className="absolute top-0 right-0 w-8 h-full bg-white/10 flex items-center justify-center text-purple-400 hover:text-purple-600 transition-colors"
+                                className="absolute top-0 right-0 w-12 h-full bg-purple-50/80 border-l border-purple-100/50 flex flex-col items-center justify-center text-purple-500 hover:text-purple-700 transition-colors group"
+                                aria-label="Fold Navigation"
                             >
-                                <Sparkles className="w-4 h-4 rotate-180" />
-                            </button>
+                                <Sparkles className="w-4 h-4 rotate-180 group-hover:rotate-0 transition-transform duration-500" />
+                                <span className="text-[7px] font-fredoka font-black uppercase tracking-tighter mt-0.5 opacity-60">Fold</span>
+                            </motion.button>
                         )}
 
-                        <div className={cn("flex items-center justify-between w-full", isImmersionMode && "pr-6")}>
+                        <div className={cn("flex items-center justify-between w-full", isImmersionMode && "pr-10")}>
                             {navItems.map((item) => {
                                 const active = isActive(item.href);
                                 const Icon = item.icon;
@@ -250,6 +142,7 @@ export function ClayNav() {
                                     if (isImmersionMode) setIsExpanded(false);
                                 }}
                                 className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-orange-500 overflow-hidden bg-white/40 border-2 border-white active:bg-orange-100/50 ml-1"
+                                aria-label="Open Adventure Hub"
                             >
                                 {avatarUrl ? (
                                     <img src={avatarUrl} alt={fullName} className="w-8 h-8 rounded-full border-2 border-orange-200 object-cover" />
@@ -265,7 +158,7 @@ export function ClayNav() {
                         </div>
                     </motion.nav>
                 ) : (
-                    <motion.button
+                        <motion.button
                         key="nav-bead"
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -273,9 +166,10 @@ export function ClayNav() {
                         whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.85 }}
                         onClick={() => setIsExpanded(true)}
-                        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 lg:hidden flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-xl shadow-clay-purple border-2 border-white/30 opacity-60 animate-bounce-subtle"
+                        className="fixed bottom-6 left-0 right-0 mx-auto z-50 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 shadow-clay-purple border-2 border-white/50 animate-bounce-subtle"
+                        aria-label="Expand Navigation"
                     >
-                        <Sparkles className="h-6 w-6 text-purple-400 opacity-60" />
+                        <Sparkles className="h-8 w-8 text-white drop-shadow-md" />
                     </motion.button>
                 )}
             </AnimatePresence>

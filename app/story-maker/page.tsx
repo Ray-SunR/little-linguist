@@ -153,7 +153,7 @@ export default function StoryMakerPage() {
     };
 
     return (
-        <div className="min-h-screen page-story-maker p-6 md:p-10 md:pl-28">
+        <div className="min-h-screen page-story-maker p-6 md:p-10 lg:pl-28">
             <header className="mx-auto mb-8 flex max-w-3xl items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-4">

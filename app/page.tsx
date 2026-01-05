@@ -6,7 +6,7 @@ import { BookOpen, Sparkles, Wand2, Star } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen page-story-maker flex flex-col items-center justify-center px-6 py-10 md:pl-28">
+    <main className="min-h-screen page-story-maker flex flex-col items-center justify-center px-6 py-10 lg:pl-28">
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

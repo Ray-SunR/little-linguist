@@ -78,7 +78,7 @@ export default function LibraryView({ books, onSelectBook, onDeleteBook, current
                 />
             </div>
 
-            <div className="relative mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 lg:pl-32 flex flex-col gap-6 md:gap-8">
+            <div className="relative mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 pb-32 flex flex-col gap-6 md:gap-8">
                 {/* Hero Section */}
                 <header className="flex flex-col gap-6 pt-2 md:pt-4 relative overflow-visible">
                     {/* Floating Decorative Elements - Smaller & more subtle */}
@@ -138,6 +138,7 @@ export default function LibraryView({ books, onSelectBook, onDeleteBook, current
                                 placeholder="Find a story..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                aria-label="Search stories"
                                 className="w-full h-14 clay-card pl-14 pr-6 font-fredoka text-lg font-bold text-ink placeholder:text-slate-400/60 focus:outline-none focus:scale-[1.005] transition-all border-4 shadow-clay-inset"
                             />
                         </motion.div>

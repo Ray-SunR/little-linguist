@@ -15,6 +15,10 @@ export class BookRepository {
         );
     }
 
+    static isValidUuid(id: string): boolean {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    }
+
     async getAvailableBooks(userId?: string): Promise<Partial<Book>[]> {
         let query = this.supabase
             .from('books')
@@ -163,7 +167,7 @@ export class BookRepository {
     }
 
     async getBookById(idOrSlug: string, options: { includeContent?: boolean, includeMedia?: boolean, userId?: string } = {}): Promise<any | null> {
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+        const isUuid = BookRepository.isValidUuid(idOrSlug);
 
         const fields = ['id', 'book_key', 'title', 'origin', 'tokens', 'images', 'updated_at', 'voice_id', 'owner_user_id', 'metadata'];
         if (options.includeContent) fields.push('text');
@@ -316,6 +320,10 @@ export class BookRepository {
     }
 
     async getProgress(userId: string, bookId: string) {
+        if (!BookRepository.isValidUuid(bookId)) {
+            return null;
+        }
+
         const { data, error } = await this.supabase
             .from('user_progress')
             .select('*')
@@ -337,6 +345,10 @@ export class BookRepository {
         view_mode?: string;
         playback_speed?: number;
     }) {
+        if (!BookRepository.isValidUuid(bookId)) {
+            throw new Error(`Invalid book ID: ${bookId}`);
+        }
+
         // Map frontend camelCase fields to database snake_case columns
         const { isRead, lastOpenedAt, ...rest } = progress;
 

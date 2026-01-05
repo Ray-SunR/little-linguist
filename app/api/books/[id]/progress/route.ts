@@ -17,6 +17,10 @@ export async function GET(
         const repo = new BookRepository();
         const progress = await repo.getProgress(user.id, params.id);
 
+        if (progress === null && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)) {
+            return NextResponse.json({ error: 'Invalid book ID' }, { status: 400 });
+        }
+
         return NextResponse.json(progress || {});
     } catch (error: any) {
         console.error("GET progress error:", error);
@@ -34,6 +38,10 @@ export async function POST(
 
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        if (!BookRepository.isValidUuid(params.id)) {
+            return NextResponse.json({ error: 'Invalid book ID' }, { status: 400 });
         }
 
         const payload = await request.json();

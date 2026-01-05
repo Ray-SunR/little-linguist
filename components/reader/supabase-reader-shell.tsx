@@ -211,14 +211,14 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
         const rafId = requestAnimationFrame(() => {
             const wordElement = scrollContainer.querySelector(`[data-word-index="${currentWordIndex}"]`) as HTMLElement;
             if (!wordElement) return;
-            const behavior = isNewBook ? "instant" : "smooth";
+            const behavior = isNewBook ? "auto" : "smooth";
             if (viewMode === "spread") {
                 const horizontalContainer = scrollContainer.querySelector(".book-spread-scroll-container") as HTMLElement;
                 if (horizontalContainer) {
                     const containerWidth = horizontalContainer.clientWidth;
                     const wordOffset = wordElement.offsetLeft;
                     const targetScrollLeft = Math.floor(wordOffset / containerWidth) * containerWidth;
-                    horizontalContainer.scrollTo({ left: targetScrollLeft, behavior: isNewBook ? "instant" : "smooth" });
+                    horizontalContainer.scrollTo({ left: targetScrollLeft, behavior: isNewBook ? "auto" : "smooth" });
                 }
             } else {
                 wordElement.scrollIntoView({ behavior, block: "center" });
@@ -236,7 +236,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
     }
 
     return (
-        <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out md:pl-28 ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-7xl gap-4 sm:gap-5'}`}>
+        <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out pb-32 ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-7xl gap-4 sm:gap-5'}`}>
             {!isMaximized && (
                 <>
                     <div className="pointer-events-none absolute -left-6 top-6 h-28 w-28 blob blob-1" />

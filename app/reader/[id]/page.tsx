@@ -6,6 +6,7 @@ import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supa
 import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
 import { bookCache } from "@/lib/core/cache";
 import { ttsCache } from "@/lib/features/narration/tts-cache";
+import { ErrorView } from "@/components/ui/error-view";
 
 interface ReaderPageProps {
     params: { id: string };
@@ -139,11 +140,11 @@ function ReaderContent({ params }: ReaderPageProps) {
 
     if (error && !currentBook) {
         return (
-            <main className="page-story-maker relative h-screen overflow-hidden flex items-center justify-center">
-                <div className="text-center px-4">
-                    <p className="text-red-500 font-bold mb-4">{error}</p>
-                    <button onClick={loadCurrentBook} className="px-4 py-2 bg-purple-600 text-white rounded-lg">Retry</button>
-                </div>
+            <main className="page-story-maker relative min-h-screen overflow-hidden flex items-center justify-center p-4">
+                <ErrorView
+                    message={error}
+                    onRetry={loadCurrentBook}
+                />
             </main>
         );
     }
