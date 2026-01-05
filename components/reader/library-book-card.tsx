@@ -2,13 +2,13 @@
 
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass } from "lucide-react";
-import { SupabaseBook } from "./supabase-reader-shell";
+import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { MouseEvent, useRef, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/core";
 
 interface LibraryBookCardProps {
-    book: SupabaseBook;
+    book: LibraryBookCard;
     onClick: (id: string) => void;
     index: number;
     isOwned?: boolean;
@@ -32,7 +32,8 @@ export default function LibraryBookCard({ book, onClick, index, isOwned, onDelet
     const z = useSpring(useTransform(mouseX, [-0.5, 0.5], [0, 0]), { stiffness: 400, damping: 90 }); // Base z
     const liftZ = useSpring(0, { stiffness: 300, damping: 30 });
 
-    const coverImage = book.images?.[0]?.src || book.images?.[0]?.url;
+    // Use coverImageUrl from library metadata
+    const coverImage = book.coverImageUrl;
 
     // Shiny spotlight effect
     const spotX = useTransform(mouseX, [-0.5, 0.5], ["0%", "100%"]);
@@ -72,12 +73,12 @@ export default function LibraryBookCard({ book, onClick, index, isOwned, onDelet
         liftZ.set(0);
     };
 
-    const progressPercent = book.initialProgress
+    const progressPercent = book.progress
         ? Math.min(
             100,
             Math.max(
                 0,
-                ((book.initialProgress.last_token_index || 0) / (book.tokens?.length || 100)) *
+                ((book.progress.last_token_index || 0) / (book.progress.total_tokens || 100)) *
                 100
             )
         )
@@ -154,22 +155,6 @@ export default function LibraryBookCard({ book, onClick, index, isOwned, onDelet
                                     </div>
                                 )}
                             </div>
-
-                            {/* Delete Button - Always visible for owned books */}
-                            {isOwned && onDelete && (
-                                <motion.button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowDeleteConfirm(true);
-                                    }}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className="absolute top-3 left-3 z-20 bg-red-500 p-2.5 rounded-full shadow-lg border-2 border-white hover:bg-red-600 transition-colors cursor-pointer"
-                                    aria-label="Delete story"
-                                >
-                                    <Trash2 className="h-4 w-4 text-white" />
-                                </motion.button>
-                            )}
                         </div>
 
                         {/* Text Info Area */}
@@ -245,6 +230,23 @@ export default function LibraryBookCard({ book, onClick, index, isOwned, onDelet
                     </div>
                 </div>
             </motion.div>
+
+            {/* Delete Button - Always visible for owned books, positioned OUTSIDE 3D wrapper */}
+            {isOwned && onDelete && (
+                <motion.button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setShowDeleteConfirm(true);
+                    }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="absolute top-7 left-7 z-40 bg-red-500 p-2.5 rounded-full shadow-lg border-2 border-white hover:bg-red-600 transition-colors cursor-pointer"
+                    aria-label="Delete story"
+                >
+                    <Trash2 className="h-4 w-4 text-white" />
+                </motion.button>
+            )}
 
             {/* Delete Confirmation Modal */}
             <AnimatePresence>

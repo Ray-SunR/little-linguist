@@ -1,15 +1,25 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
         const repo = new BookRepository();
 
-        // Fetch all available books in a single query (Public + User-owned)
+        // Check for library mode (optimized for library page)
+        const { searchParams } = new URL(request.url);
+        const mode = searchParams.get('mode');
+
+        if (mode === 'library') {
+            // Return books with cover images and token counts for library view
+            const booksWithCovers = await repo.getAvailableBooksWithCovers(user?.id);
+            return NextResponse.json(booksWithCovers);
+        }
+
+        // Default: Fetch all available books (metadata only)
         const allBooks = await repo.getAvailableBooks(user?.id);
 
         return NextResponse.json(allBooks);
@@ -18,3 +28,4 @@ export async function GET() {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+

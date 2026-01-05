@@ -2,14 +2,14 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Search, Wand2, BookOpen, Rocket, Star, Heart, Compass } from "lucide-react";
-import LibraryBookCard from "./library-book-card";
-import { SupabaseBook } from "./supabase-reader-shell";
+import LibraryBookCardComponent from "./library-book-card";
+import { LibraryBookCard } from "@/lib/core/books/library-types";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/core";
 import Link from "next/link";
 
 interface LibraryViewProps {
-    books: SupabaseBook[];
+    books: LibraryBookCard[];
     onSelectBook: (id: string) => void;
     onDeleteBook?: (id: string) => void;
     currentUserId?: string | null;
@@ -189,7 +189,7 @@ export default function LibraryView({ books, onSelectBook, onDeleteBook, current
                                 className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                             >
                                 {filteredBooks.map((book, index) => (
-                                    <LibraryBookCard
+                                    <LibraryBookCardComponent
                                         key={book.id}
                                         book={book}
                                         onClick={onSelectBook}

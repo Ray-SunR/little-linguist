@@ -4,14 +4,14 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import LibraryView from "@/components/reader/library-view";
-import { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
+import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { bookCache } from "@/lib/core/cache";
 import { ttsCache } from "@/lib/features/narration/tts-cache";
 import { createBrowserClient } from "@supabase/ssr";
 
 function LibraryContent() {
     const router = useRouter();
-    const [books, setBooks] = useState<SupabaseBook[]>([]);
+    const [books, setBooks] = useState<LibraryBookCard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -28,120 +28,69 @@ function LibraryContent() {
     }, []);
 
     const loadBooks = useCallback(async () => {
-        let cachedBooks: SupabaseBook[] = [];
-        try {
-            cachedBooks = await bookCache.getAll();
-            if (cachedBooks.length > 0) {
-                setBooks(cachedBooks);
-                setIsLoading(false);
-            }
-        } catch (err) {
-            console.error("Cache load failed:", err);
-        }
-
-        if (cachedBooks.length === 0) setIsLoading(true);
+        setIsLoading(true);
         setError(null);
 
         try {
-            const booksRes = await fetch('/api/books');
+            // Fetch books with covers and progress in parallel (just 2 API calls!)
+            const [booksRes, progressRes] = await Promise.all([
+                fetch('/api/books?mode=library'),
+                fetch('/api/progress')
+            ]);
+
             if (!booksRes.ok) throw new Error('Failed to fetch books');
-            const manifest: Partial<SupabaseBook>[] = await booksRes.json();
 
-            const now = Date.now();
-            const EXPIRY_MS = 50 * 60 * 1000;
+            // Type definitions for API responses
+            interface BookApiResponse {
+                id: string;
+                title: string;
+                coverImageUrl?: string;
+                updated_at?: string;
+                voice_id?: string;
+                owner_user_id?: string | null;
+                totalTokens?: number;
+            }
 
-            const listToFetch = manifest.filter(remote => {
-                const cached = cachedBooks.find(b => b.id === remote.id);
-                if (!cached) return true;
-                if ((remote.updated_at && cached.updated_at && remote.updated_at !== cached.updated_at) ||
-                    (remote.voice_id !== cached.voice_id)) return true;
-                if (cached.cached_at && (now - cached.cached_at > EXPIRY_MS)) return true;
-                return false;
+            interface ProgressApiResponse {
+                book_id: string;
+                last_token_index?: number;
+                last_shard_index?: number;
+                last_playback_time?: number;
+            }
+
+            const booksData: BookApiResponse[] = await booksRes.json();
+            const progressList: ProgressApiResponse[] = progressRes.ok ? await progressRes.json() : [];
+
+            // Validate required fields
+            const validBooks = booksData.filter(book => book.id && book.title);
+
+            // Build progress map
+            const progressMap: Record<string, ProgressApiResponse> = {};
+            progressList.forEach((p) => {
+                if (p.book_id) {
+                    progressMap[p.book_id] = p;
+                }
             });
 
-            const fetchedBooks = await Promise.all(
-                listToFetch.map(async (book: any) => {
-                    try {
-                        const [bookRes, narrationRes, progressRes] = await Promise.all([
-                            fetch(`/api/books/${book.id}?include=content,images`),
-                            fetch(`/api/books/${book.id}/narration`),
-                            fetch(`/api/books/${book.id}/progress`)
-                        ]);
-
-                        const bookData = await bookRes.json();
-                        const shards = narrationRes.ok ? await narrationRes.json() : [];
-                        const progress = progressRes.ok ? await progressRes.json() : null;
-
-                        const fullBook: SupabaseBook = {
-                            id: book.id,
-                            title: book.title || bookData.title,
-                            voice_id: bookData.voice_id,
-                            text: bookData.text,
-                            tokens: bookData.tokens || [],
-                            images: bookData.images,
-                            shards: Array.isArray(shards) ? shards : [],
-                            initialProgress: progress,
-                            updated_at: bookData.updated_at,
-                            cached_at: Date.now(),
-                            owner_user_id: bookData.owner_user_id || book.owner_user_id || null
-                        };
-
-                        await bookCache.put(fullBook);
-                        return fullBook;
-                    } catch (err) {
-                        console.error(`Failed to load book ${book.id}:`, err);
-                        return null;
-                    }
-                })
-            );
-
-            const validFetched = fetchedBooks.filter((b): b is SupabaseBook => b !== null);
-
-            const mergedBooks = manifest.map(m => {
-                const fresh = validFetched.find(f => f.id === m.id);
-                if (fresh) return fresh;
-                const cached = cachedBooks.find(c => c.id === m.id);
-                if (cached) {
-                    // Merge owner_user_id from manifest in case it wasn't cached
-                    return { ...cached, owner_user_id: m.owner_user_id ?? cached.owner_user_id };
-                }
-                return null;
-            }).filter((b): b is SupabaseBook => !!b);
-
-            // Fetch fresh progress
-            let progressMap: Record<string, any> = {};
-            try {
-                const progressRes = await fetch('/api/progress');
-                if (progressRes.ok) {
-                    const progressList = await progressRes.json();
-                    progressList.forEach((p: any) => {
-                        progressMap[p.book_id] = p;
-                    });
-                }
-            } catch (err) {
-                console.error("Failed to fetch global progress:", err);
-            }
-
-            const finalBooks = mergedBooks.map(book => ({
-                ...book,
-                initialProgress: progressMap[book.id] || null
+            // Merge books with their progress
+            const libraryBooks: LibraryBookCard[] = validBooks.map((book) => ({
+                id: book.id,
+                title: book.title,
+                coverImageUrl: book.coverImageUrl,
+                updated_at: book.updated_at,
+                voice_id: book.voice_id,
+                owner_user_id: book.owner_user_id,
+                progress: progressMap[book.id] ? {
+                    last_token_index: progressMap[book.id].last_token_index,
+                    total_tokens: book.totalTokens
+                } : undefined
             }));
 
-            // Prune cache
-            const finalIds = new Set(finalBooks.map(b => b.id));
-            for (const b of cachedBooks) {
-                if (!finalIds.has(b.id)) {
-                    await bookCache.delete(b.id);
-                }
-            }
-
-            setBooks(finalBooks);
+            setBooks(libraryBooks);
 
         } catch (err) {
             console.error('Failed to load books:', err);
-            if (cachedBooks.length === 0) {
-                setError(err instanceof Error ? err.message : 'Failed to load books');
-            }
+            setError(err instanceof Error ? err.message : 'Failed to load books');
         } finally {
             setIsLoading(false);
         }
@@ -165,7 +114,7 @@ function LibraryContent() {
             }
             // Remove from local state
             setBooks(prev => prev.filter(b => b.id !== id));
-            // Remove from cache
+            // Also remove from cache if it exists there
             await bookCache.delete(id);
         } catch (err) {
             console.error('Delete book failed:', err);
