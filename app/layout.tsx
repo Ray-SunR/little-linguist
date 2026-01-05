@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import { Fredoka, Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { WordListProvider } from "@/lib/features/word-insight";
 import { NarrationProvider, type NarrationProviderType } from "@/lib/features/narration";
 import { Navigation } from "@/components/layout/navigation";
@@ -41,6 +42,7 @@ export default function RootLayout({
           </NarrationProvider>
         </WordListProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
