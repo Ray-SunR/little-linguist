@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import { Fredoka, Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { Metadata } from "next";
 import { WordListProvider } from "@/lib/features/word-insight";
 import { NarrationProvider, type NarrationProviderType } from "@/lib/features/narration";
 import { ClayNav } from "@/components/layout/clay-nav";
@@ -16,9 +17,9 @@ const nunito = Nunito({
   variable: "--font-nunito",
 });
 
-export const metadata = {
-  title: "Core Reader MVP",
-  description: "Kid-friendly read-aloud reader",
+export const metadata: Metadata = {
+  title: "LumoMind | AI-Powered Language Adventure",
+  description: "Your child's magical AI reading companion. Interactive stories, vocabulary building, and language learning adventures.",
 };
 
 export default function RootLayout({

@@ -101,16 +101,14 @@ export function ClayNav() {
                     >
                         {/* Collapse button for mobile */}
                         {isImmersionMode && (
-                            <motion.button
-                                whileTap={{ scale: 0.9, x: 5 }}
-                                onClick={() => setIsExpanded(false)}
-                                className="absolute top-0 right-0 w-12 h-full bg-purple-50/80 border-l border-purple-100/50 flex flex-col items-center justify-center text-purple-500 hover:text-purple-700 transition-colors group"
-                                aria-label="Fold Navigation"
-                            >
-                                <Sparkles className="w-4 h-4 rotate-180 group-hover:rotate-0 transition-transform duration-500" />
-                                <span className="text-[7px] font-fredoka font-black uppercase tracking-tighter mt-0.5 opacity-60">Fold</span>
-                            </motion.button>
-                        )}
+                            <Link href="/" className="flex items-center gap-3 group relative z-50">
+            <span className="relative w-10 h-10 group-hover:scale-110 transition-transform duration-300">
+              <img src="/logo.png" alt="LumoMind Logo" className="w-full h-full object-contain drop-shadow-md" />
+            </span>
+            <span className="font-fredoka font-black text-2xl text-ink tracking-tight group-hover:text-purple-600 transition-colors">
+              LumoMind
+            </span>
+          </Link>              )}
 
                         <div className={cn("flex items-center justify-between w-full", isImmersionMode && "pr-10")}>
                             {navItems.map((item) => {
