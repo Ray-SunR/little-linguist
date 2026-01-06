@@ -21,14 +21,18 @@ export interface ChildProfile extends ChildProfilePayload {
 }
 
 export async function createChildProfile(data: ChildProfilePayload) {
+  console.log(`[profiles:createChildProfile] Starting profile creation for: ${data.first_name}`);
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
+    console.warn('[profiles:createChildProfile] Profile creation failed: Not authenticated');
     return { error: 'Not authenticated' };
   }
+
+  console.log(`[profiles:createChildProfile] Authenticated user: ${user.id}`);
 
   const { data: newChild, error } = await supabase
     .from('children')
@@ -45,27 +49,35 @@ export async function createChildProfile(data: ChildProfilePayload) {
     .single();
 
   if (error) {
-    console.error('Error creating child profile:', error);
+    console.error('[profiles:createChildProfile] Database error creating child profile:', {
+      error,
+      userId: user.id,
+      payload: { ...data, interests: data.interests?.length } // Log count of interests, not full array if large
+    });
     return { error: error.message };
   }
 
+  console.log(`[profiles:createChildProfile] Successfully created profile: ${newChild.id}`);
+
   revalidatePath('/dashboard');
-  
+
   // Auto-select the new child
   if (newChild) {
-      cookies().set('activeChildId', newChild.id, { secure: true, httpOnly: false });
+    cookies().set('activeChildId', newChild.id, { secure: true, httpOnly: false });
   }
 
   return { success: true, data: newChild };
 }
 
 export async function updateChildProfile(id: string, data: Partial<ChildProfilePayload>) {
+  console.log(`[profiles:updateChildProfile] Updating profile: ${id}`);
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
+    console.warn(`[profiles:updateChildProfile] Update failed for ${id}: Not authenticated`);
     return { error: 'Not authenticated' };
   }
 
@@ -83,21 +95,28 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
     .eq('guardian_id', user.id); // Security: ensure ownership
 
   if (error) {
-    console.error('Error updating child profile:', error);
+    console.error(`[profiles:updateChildProfile] Database error updating profile ${id}:`, {
+      error,
+      userId: user.id
+    });
     return { error: error.message };
   }
+
+  console.log(`[profiles:updateChildProfile] Successfully updated profile: ${id}`);
 
   revalidatePath('/dashboard');
   return { success: true };
 }
 
 export async function deleteChildProfile(id: string) {
+  console.log(`[profiles:deleteChildProfile] Deleting profile: ${id}`);
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
+    console.warn(`[profiles:deleteChildProfile] Delete failed for ${id}: Not authenticated`);
     return { error: 'Not authenticated' };
   }
 
@@ -108,9 +127,14 @@ export async function deleteChildProfile(id: string) {
     .eq('guardian_id', user.id);
 
   if (error) {
-    console.error('Error deleting child profile:', error);
+    console.error(`[profiles:deleteChildProfile] Database error deleting profile ${id}:`, {
+      error,
+      userId: user.id
+    });
     return { error: error.message };
   }
+
+  console.log(`[profiles:deleteChildProfile] Successfully deleted profile: ${id}`);
 
   revalidatePath('/dashboard');
   return { success: true };
@@ -141,23 +165,29 @@ export async function getChildren() {
 }
 
 export async function switchActiveChild(childId: string) {
-    // Basic verification that child belongs to user could optionally be done here, 
-    // but since this is just setting a preference cookie, stricty enforcement happens on data access.
-    // However, it's good practice to verify existence.
-    const supabase = createClient();
-     const {
+  console.log(`[profiles:switchActiveChild] Switching to child: ${childId}`);
+  const supabase = createClient();
+  const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { error: 'Not authenticated' };
+  if (!user) {
+    console.warn(`[profiles:switchActiveChild] Switch failed for ${childId}: Not authenticated`);
+    return { error: 'Not authenticated' };
+  }
 
   // Verify ownership
-  const { data } = await supabase.from('children').select('id').eq('id', childId).eq('guardian_id', user.id).single();
-  
-  if (!data) {
-      return { error: 'Child not found or unauthorized' };
+  const { data, error: fetchError } = await supabase.from('children').select('id').eq('id', childId).eq('guardian_id', user.id).single();
+
+  if (fetchError || !data) {
+    console.error(`[profiles:switchActiveChild] verification error or unauthorized for child ${childId}:`, {
+      error: fetchError,
+      userId: user.id
+    });
+    return { error: 'Child not found or unauthorized' };
   }
 
   cookies().set('activeChildId', childId, { secure: true, httpOnly: false });
+  console.log(`[profiles:switchActiveChild] Successfully switched to child: ${childId}`);
   return { success: true };
 }
