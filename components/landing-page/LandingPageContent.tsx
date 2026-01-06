@@ -192,23 +192,23 @@ export default function LandingPageContent() {
                      <motion.div
                         animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
                         transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
-                        className="absolute -top-20 left-20 hidden md:block text-blue-300/40 pointer-events-none -z-10"
+                        className="absolute -top-16 left-10 md:-top-20 md:left-20 text-blue-300/40 pointer-events-none -z-10"
                      >
-                        <Cloud className="w-16 h-16 fill-current" />
+                        <Cloud className="w-12 h-12 md:w-16 md:h-16 fill-current" />
                      </motion.div>
                      <motion.div
                         animate={{ y: [0, 10, 0], rotate: [0, -10, 0] }}
                         transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 2 }}
-                        className="absolute top-10 -right-10 hidden md:block text-amber-300/40 pointer-events-none -z-10"
+                        className="absolute top-0 -right-4 md:top-10 md:-right-10 text-amber-300/40 pointer-events-none -z-10"
                      >
-                        <Star className="w-12 h-12 fill-current" />
+                        <Star className="w-8 h-8 md:w-12 md:h-12 fill-current" />
                      </motion.div>
                       <motion.div
                         animate={{ y: [0, -8, 0], rotate: [0, 15, 0] }}
                         transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 0.5 }}
-                        className="absolute -bottom-10 left-40 hidden md:block text-pink-300/40 pointer-events-none -z-10"
+                        className="absolute -bottom-16 left-20 md:-bottom-10 md:left-40 text-pink-300/40 pointer-events-none -z-10"
                      >
-                        <Music className="w-14 h-14 fill-current" />
+                        <Music className="w-10 h-10 md:w-14 md:h-14 fill-current" />
                      </motion.div>
 
 
@@ -284,7 +284,7 @@ export default function LandingPageContent() {
                 initial={{ opacity: 0, x: 30, scale: 0.9 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 transition={{ duration: 1, type: "spring" }}
-                className="relative hidden lg:block"
+                className="relative block mt-12 lg:mt-0"
             >
                 {/* Floating Image Container - SCALED UP */}
                 <motion.div 

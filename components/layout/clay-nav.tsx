@@ -250,7 +250,7 @@ export function ClayNav() {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => setIsExpanded(true)}
-                        className="fixed bottom-6 left-0 right-0 mx-auto z-50 flex h-32 w-32 items-center justify-center rounded-sm bg-transparent pointer-events-auto cursor-pointer"
+                        className="fixed bottom-6 left-0 right-0 mx-auto z-50 flex h-20 w-20 items-center justify-center rounded-sm bg-transparent pointer-events-auto cursor-pointer"
                         aria-label="Expand Navigation"
                     >
                         <div className="relative group scale-110">
@@ -260,7 +260,7 @@ export function ClayNav() {
                                 animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.5, 0.3] }}
                                 transition={{ duration: 3, repeat: Infinity }}
                             />
-                            <LumoCharacter size="xl" className="drop-shadow-2xl relative z-10" />
+                            <LumoCharacter size="lg" className="drop-shadow-2xl relative z-10" />
                             
                             <motion.div 
                                 initial={{ opacity: 0, y: 10 }}

@@ -5,11 +5,12 @@ import { cn } from "@/lib/core/utils/cn";
 
 interface LumoCharacterProps {
   className?: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
 export function LumoCharacter({ className, size = "md" }: LumoCharacterProps) {
   const sizeClasses = {
+    xs: "w-5 h-5",
     sm: "w-6 h-6",
     md: "w-8 h-8",
     lg: "w-12 h-12",

@@ -165,7 +165,7 @@ function ReaderContent({ params }: ReaderPageProps) {
                     <div className="relative">
                         <div className="absolute inset-0 bg-purple-400/30 blur-xl rounded-full animate-pulse" />
                         <div className="relative animate-bounce-slow">
-                             <LumoCharacter size="lg" className="shadow-2xl" />
+                             <LumoCharacter size="xs" className="shadow-2xl" />
                         </div>
                     </div>
                     
