@@ -1,13 +1,87 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { BookOpen, Sparkles, Brain, ArrowRight, Library, PenTool, Volume2 } from "lucide-react";
+import { BookOpen, Sparkles, Brain, ArrowRight, Library, PenTool, Volume2, Music, Cloud, Star } from "lucide-react";
 
 import SocialProof from "@/components/landing-page/SocialProof";
-import MagicWord from "@/components/landing-page/MagicWord";
+import { LumoCharacter } from "@/components/ui/lumo-character";
+import { useState, useEffect } from "react";
+import confetti from "canvas-confetti";
+
+const HERO_MESSAGES = [
+    "Hi! I'm Lumo! 👋",
+    "I'm your reading buddy! 📚",
+    "Let's learn new words! ✨",
+    "You're doing great! 🌟",
+    "Ready for an adventure? 🚀"
+];
+
+const SPECIAL_MESSAGES = [
+    "Wheeee! 🎉",
+    "That tickles! 🤭",
+    "Let's play! 🎈",
+    "You found me! 🏆",
+    "Yay! 🎊"
+];
 
 export default function LandingPageContent() {
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const [messageList, setMessageList] = useState(HERO_MESSAGES);
+  const [particles, setParticles] = useState<{top: string, left: string, scale: number, duration: number, delay: number, size: string}[]>([]);
+
+  useEffect(() => {
+      // Generate particles on client side only to avoid hydration mismatch
+      const newParticles = Array.from({ length: 20 }).map(() => ({
+          top: `${Math.random() * 100}%`,
+          left: `${Math.random() * 100}%`,
+          scale: Math.random() * 0.5 + 0.2,
+          duration: Math.random() * 5 + 3,
+          delay: Math.random() * 5,
+          size: Math.random() * 10 + 'px'
+      }));
+      setParticles(newParticles);
+  }, []);
+
+  // Switch back to normal messages after interaction
+  useEffect(() => {
+    if (isInteracting) {
+        const timeout = setTimeout(() => {
+            setIsInteracting(false);
+            setMessageList(HERO_MESSAGES);
+        }, 3000);
+        return () => clearTimeout(timeout);
+    }
+  }, [isInteracting]);
+
+  useEffect(() => {
+    if (isInteracting) return; // Pause auto-cycle during interaction
+
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % messageList.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isInteracting, messageList]);
+
+  const handleLumoClick = (e: React.MouseEvent) => {
+      // 1. Trigger Confetti
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
+      
+      confetti({
+        origin: { x, y },
+        particleCount: 100,
+        spread: 70,
+        colors: ['#FBBF24', '#818CF8', '#F472B6'] // Amber, Indigo, Pink
+      });
+
+      // 2. Play Bounce Animation & Message
+      setIsInteracting(true);
+      setMessageList(SPECIAL_MESSAGES);
+      setMessageIndex(Math.floor(Math.random() * SPECIAL_MESSAGES.length));
+  };
+
   return (
     <main className="min-h-screen page-story-maker overflow-x-hidden bg-[--shell]">
       {/* 
@@ -15,15 +89,72 @@ export default function LandingPageContent() {
         Split Layout: Text Left, Image Right
         Compacted padding
       */}
-      <section className="relative min-h-[85vh] flex items-center px-6 lg:pl-28 py-8 lg:py-0 pb-32">
-        {/* Background Decorative Blobs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-[10%] -left-[10%] w-[50vh] h-[50vh] bg-purple-200/30 rounded-full blur-3xl animate-float" />
-            <div className="absolute top-[20%] right-[0%] w-[40vh] h-[40vh] bg-orange-100/40 rounded-full blur-3xl animate-float" style={{ animationDelay: "-3s" }} />
-            <div className="absolute bottom-[0%] left-[20%] w-[30vh] h-[30vh] bg-blue-100/30 rounded-full blur-3xl animate-float" style={{ animationDelay: "-5s" }} />
+      <section className="relative min-h-[85vh] flex items-center px-6 lg:pl-28 py-8 lg:py-0 pb-32 overflow-hidden">
+        {/* Background Decorative Blobs & Aurora & Path */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+             {/* Noise Texture */}
+             <div className="absolute inset-0 opacity-20 bg-[url('/noise.png')] z-0 mix-blend-soft-light" />
+             
+             {/* Adventure Path (Dashed Line) */}
+             <svg className="absolute w-full h-full z-0 opacity-30" viewBox="0 0 1440 900" fill="none" preserveAspectRatio="none">
+                <motion.path 
+                    d="M-50,800 C300,700 400,300 700,450 C1000,600 1200,200 1500,100" 
+                    stroke="url(#pathGradient)" 
+                    strokeWidth="8" 
+                    strokeDasharray="20 20" 
+                    strokeLinecap="round"
+                    fill="none"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 3, ease: "easeOut" }}
+                />
+                <defs>
+                    <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#FDBA74" />
+                        <stop offset="50%" stopColor="#C084FC" />
+                        <stop offset="100%" stopColor="#60A5FA" />
+                    </linearGradient>
+                </defs>
+             </svg>
+
+             {/* Magic Particles (Dust) */}
+             {particles.map((p, i) => (
+                <motion.div
+                    key={i}
+                    className="absolute bg-white rounded-full opacity-40 mix-blend-overlay"
+                    initial={{ 
+                        top: p.top, 
+                        left: p.left,
+                        scale: p.scale
+                    }}
+                    animate={{ 
+                        y: [0, -20, 0],
+                        opacity: [0.4, 0.8, 0.4] 
+                    }}
+                    transition={{ 
+                        duration: p.duration,
+                        repeat: Infinity, 
+                        ease: "easeInOut",
+                        delay: p.delay
+                    }}
+                    style={{
+                        width: p.size,
+                        height: p.size,
+                    }}
+                />
+             ))}
+
+            {/* Rich Aurora Gradients */}
+            <div className="absolute -top-[20%] -left-[10%] w-[70vh] h-[70vh] bg-gradient-to-br from-purple-300/40 to-indigo-300/40 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: "8s" }} />
+            <div className="absolute top-[10%] right-[0%] w-[60vh] h-[60vh] bg-gradient-to-bl from-amber-200/40 to-orange-200/40 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "-3s", animationDuration: "10s" }} />
+            <div className="absolute -bottom-[20%] left-[20%] w-[50vh] h-[50vh] bg-gradient-to-t from-blue-300/30 to-cyan-200/30 rounded-full blur-[90px] animate-pulse" style={{ animationDelay: "-5s", animationDuration: "12s" }} />
 			
-			{/* Sunburst Effect behind Book */}
-            <div className="absolute top-[10%] right-[-10%] w-[80vw] h-[80vw] md:w-[50vw] md:h-[50vw] opacity-20 animate-sunburst origin-center pointer-events-none z-0">
+            {/* Depth Elements (Blurred Balls) */}
+            <div className="absolute top-[15%] left-[40%] w-24 h-24 bg-purple-400/20 rounded-full blur-xl" />
+            <div className="absolute bottom-[20%] right-[40%] w-32 h-32 bg-orange-400/20 rounded-full blur-2xl" />
+
+            {/* Sunburst Effect behind Book */}
+            <div className="absolute top-[10%] right-[-10%] w-[80vw] h-[80vw] md:w-[50vw] md:h-[50vw] opacity-40 animate-sunburst origin-center pointer-events-none z-0">
                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                      <radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
@@ -56,6 +187,30 @@ export default function LandingPageContent() {
                     >
                         Aa
                     </motion.div>
+                    
+                     {/* Floating Decor Icons (New) */}
+                     <motion.div
+                        animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+                        transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+                        className="absolute -top-20 left-20 hidden md:block text-blue-300/40 pointer-events-none -z-10"
+                     >
+                        <Cloud className="w-16 h-16 fill-current" />
+                     </motion.div>
+                     <motion.div
+                        animate={{ y: [0, 10, 0], rotate: [0, -10, 0] }}
+                        transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 2 }}
+                        className="absolute top-10 -right-10 hidden md:block text-amber-300/40 pointer-events-none -z-10"
+                     >
+                        <Star className="w-12 h-12 fill-current" />
+                     </motion.div>
+                      <motion.div
+                        animate={{ y: [0, -8, 0], rotate: [0, 15, 0] }}
+                        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 0.5 }}
+                        className="absolute -bottom-10 left-40 hidden md:block text-pink-300/40 pointer-events-none -z-10"
+                     >
+                        <Music className="w-14 h-14 fill-current" />
+                     </motion.div>
+
 
                     <motion.div 
                         initial={{ scale: 0.8, opacity: 0 }}
@@ -124,7 +279,7 @@ export default function LandingPageContent() {
                 </div>
             </motion.div>
 
-            {/* Right: Hero Image */}
+            {/* Right: Hero Image & Lumo Integration */}
             <motion.div
                 initial={{ opacity: 0, x: 30, scale: 0.9 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -137,13 +292,64 @@ export default function LandingPageContent() {
                     transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
                     className="relative z-10"
                 >
-                     <div className="relative aspect-square w-full max-w-[700px] mx-auto scale-110"> {/* Scaled Up 10% more from original max, and added scale-110 utility */}
+                     <div 
+                        className="relative aspect-square w-full max-w-[700px] mx-auto scale-110"
+                        style={{
+                            maskImage: "radial-gradient(circle at center, black 30%, transparent 70%)",
+                            WebkitMaskImage: "radial-gradient(circle at center, black 30%, transparent 70%)"
+                        }}
+                     >
                          <img 
                             src="/images/hero-book.png" 
                             alt="Magical flying book emitting stories" 
                             className="w-full h-full object-contain drop-shadow-2xl"
                         />
                      </div>
+                </motion.div>
+                
+                {/* Lumo Floating Character - Hero */}
+                <motion.div
+                    className="absolute bottom-20 right-10 z-20 cursor-pointer"
+                    initial={{ scale: 0, opacity: 0, rotate: -20 }}
+                    animate={{ 
+                        scale: isInteracting ? 1.2 : 1, 
+                        opacity: 1, 
+                        rotate: isInteracting ? [0, -10, 10, -10, 0] : 0 
+                    }}
+                    transition={{ 
+                        delay: isInteracting ? 0 : 0.8, 
+                        type: isInteracting ? "tween" : "spring", // Use tween/keyframes for interaction
+                        stiffness: isInteracting ? undefined : 200,
+                        duration: isInteracting ? 0.5 : undefined 
+                    }}
+                    onClick={handleLumoClick}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                >
+                   <motion.div
+                       animate={{ 
+                           y: isInteracting ? [0, -30, 0] : [0, -15, 0], 
+                           rotate: isInteracting ? 0 : [0, 5, 0] 
+                        }}
+                       transition={{ repeat: Infinity, duration: isInteracting ? 0.5 : 3, ease: "easeInOut" }}
+                       className="relative"
+                   >
+                        <LumoCharacter className="w-56 h-56" />
+                        
+                        {/* Speech Bubble */}
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={`${isInteracting}-${messageIndex}`}
+                                initial={{ scale: 0, opacity: 0, y: 10 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0, opacity: 0, y: -10 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                className="absolute -top-16 -left-24 bg-white px-4 py-3 rounded-2xl rounded-tr-none shadow-xl border-2 border-purple-100 z-30 transform -rotate-6 min-w-[140px] flex items-center justify-center"
+                            >
+                                 <p className="text-sm font-bold text-purple-600 whitespace-nowrap font-fredoka">{messageList[messageIndex]}</p>
+                            </motion.div>
+                        </AnimatePresence>
+                   </motion.div>
                 </motion.div>
 
                  {/* Floating 3D Letters B & C */}
@@ -230,7 +436,18 @@ export default function LandingPageContent() {
 
             {/* Feature 2: Reader (Reversed) */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-                <div className="perspective-1000">
+                <div className="perspective-1000 relative">
+                     {/* Lumo Peeking - Interactive Reading Buddy Feature */}
+                     <motion.div
+                         className="absolute -top-12 -left-8 z-20 hidden lg:block"
+                         initial={{ y: 50, opacity: 0 }}
+                         whileInView={{ y: 0, opacity: 1 }}
+                         transition={{ delay: 0.5, type: "spring" }}
+                         viewport={{ once: true }}
+                     >
+                        <LumoCharacter className="w-32 h-32" />
+                     </motion.div>
+
                     <motion.div 
                         whileHover={{ rotateY: 5, scale: 1.02 }}
                         className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
@@ -246,9 +463,11 @@ export default function LandingPageContent() {
                      <div className="inline-block p-3 rounded-2xl bg-amber-100 text-amber-600 mb-4 shadow-sm">
                         <Volume2 className="w-6 h-6" />
                     </div>
-                    <h2 className="text-4xl font-black text-ink font-fredoka mb-4">
-                        Interactive <span className="text-amber-500">Reading Buddy</span>
-                    </h2>
+                    <div className="relative">
+                        <h2 className="text-4xl font-black text-ink font-fredoka mb-4">
+                            Interactive <span className="text-amber-500">Reading Buddy</span>
+                        </h2>
+                    </div>
                     <p className="text-xl text-ink-muted font-medium mb-6">
                         More than just text. Our AI companion listens, narrates, and explains tricky words instantly, making every story a learning moment.
                     </p>
@@ -376,6 +595,16 @@ export default function LandingPageContent() {
             {/* Animated Stars */}
             <div className="absolute top-10 left-10 text-4xl animate-pulse">✨</div>
             <div className="absolute bottom-10 right-10 text-4xl animate-pulse" style={{ animationDelay: "1s" }}>✨</div>
+            
+            {/* CTA Lumo Character */}
+            <div className="absolute top-0 right-10 z-0 opacity-20 md:opacity-100 md:scale-100 scale-75 transform translate-y-10 md:translate-y-0">
+                <motion.div
+                    animate={{ rotate: [0, 10, 0] }}
+                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                >
+                    <LumoCharacter className="w-48 h-48" />
+                </motion.div>
+            </div>
 
             <div className="relative z-10">
                 <h2 className="text-4xl md:text-5xl font-black text-white font-fredoka mb-6 drop-shadow-md">

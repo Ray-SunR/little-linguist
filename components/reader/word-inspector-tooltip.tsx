@@ -1,6 +1,7 @@
 "use client";
 
-import { Volume2, X, RefreshCw, Sparkles, Play, Star } from "lucide-react";
+import { Volume2, X, RefreshCw, Play, Star } from "lucide-react";
+import { LumoCharacter } from "../ui/lumo-character";
 import { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/core";
 import type { WordInsight } from "@/lib/features/word-insight";
@@ -111,7 +112,7 @@ export default function WordInspectorTooltip({
             >
               <RefreshCw className="h-8 w-8 text-purple-500" />
             </motion.div>
-            <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-amber-400 animate-bounce-subtle" />
+            <LumoCharacter size="sm" className="absolute -top-2 -right-2 font-black text-amber-400" />
           </div>
           <div className="text-center">
             <p className="text-xl font-fredoka font-black text-ink uppercase tracking-tight">Casting Spell...</p>

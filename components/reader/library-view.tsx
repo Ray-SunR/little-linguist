@@ -10,7 +10,6 @@ import Link from "next/link";
 
 interface LibraryViewProps {
     books: LibraryBookCard[];
-    onSelectBook: (id: string) => void;
     onDeleteBook?: (id: string) => void;
     currentUserId?: string | null;
 }
@@ -24,7 +23,7 @@ const CATEGORIES = [
     { id: "favorites", label: "Favorites", icon: Heart, color: "from-red-400 to-rose-500", shadow: "shadow-red-200/50", bg: "bg-red-50 dark:bg-red-900/10" },
 ];
 
-export default function LibraryView({ books, onSelectBook, onDeleteBook, currentUserId }: LibraryViewProps) {
+export default function LibraryView({ books, onDeleteBook, currentUserId }: LibraryViewProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
 
@@ -47,34 +46,17 @@ export default function LibraryView({ books, onSelectBook, onDeleteBook, current
         <div className="relative min-h-screen w-full overflow-x-hidden page-story-maker">
             {/* Background Magic Blobs */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <motion.div
-                    animate={{
-                        x: [0, 80, 0],
-                        y: [0, 40, 0],
-                        scale: [1, 1.15, 1],
-                        rotate: [0, 45, 0]
-                    }}
-                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                    className="absolute -left-20 top-20 h-[600px] w-[600px] rounded-full bg-purple-400/10 blur-[100px]"
+                <div
+                    className="absolute -left-20 top-20 h-[600px] w-[600px] rounded-full bg-purple-400/10 blur-[100px] animate-blob-slow"
+                    style={{ willChange: "transform" }}
                 />
-                <motion.div
-                    animate={{
-                        x: [0, -60, 0],
-                        y: [0, 80, 0],
-                        scale: [1, 1.2, 1],
-                        rotate: [0, -30, 0]
-                    }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute right-0 bottom-0 h-[700px] w-[700px] rounded-full bg-blue-400/10 blur-[120px]"
+                <div
+                    className="absolute right-0 bottom-0 h-[700px] w-[700px] rounded-full bg-blue-400/10 blur-[120px] animate-blob-reverse"
+                    style={{ willChange: "transform" }}
                 />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.4, 1],
-                        opacity: [0.1, 0.25, 0.1],
-                        x: [0, 30, 0]
-                    }}
-                    transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute left-1/3 top-1/4 h-[400px] w-[400px] rounded-full bg-pink-400/5 blur-[90px]"
+                <div
+                    className="absolute left-1/3 top-1/4 h-[400px] w-[400px] rounded-full bg-pink-400/5 blur-[90px] animate-blob-pulse"
+                    style={{ willChange: "transform" }}
                 />
             </div>
 
@@ -183,28 +165,23 @@ export default function LibraryView({ books, onSelectBook, onDeleteBook, current
                         </div>
                     </div>
 
-                    <AnimatePresence mode="popLayout">
+                    <div className="flex flex-col gap-8">
                         {filteredBooks.length > 0 ? (
-                            <motion.div
-                                layout
-                                className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                            >
+                            <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {filteredBooks.map((book, index) => (
                                     <LibraryBookCardComponent
                                         key={book.id}
                                         book={book}
-                                        onClick={onSelectBook}
                                         index={index}
                                         isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
                                         onDelete={onDeleteBook}
                                     />
                                 ))}
-                            </motion.div>
+                            </div>
                         ) : (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
                                 className="flex flex-col items-center justify-center py-20 text-center gap-6"
                             >
                                 <div className="relative">
@@ -223,7 +200,7 @@ export default function LibraryView({ books, onSelectBook, onDeleteBook, current
                                 </div>
                             </motion.div>
                         )}
-                    </AnimatePresence>
+                    </div>
                 </div>
 
                 {/* Footer Section */}

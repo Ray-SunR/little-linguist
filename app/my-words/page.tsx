@@ -30,7 +30,7 @@ export default function MyWordsPage() {
     }
 
     return (
-        <div className="min-h-screen page-story-maker p-6 md:p-10 pb-24">
+        <div className="min-h-screen page-story-maker p-6 md:p-10 pb-32">
             <motion.header
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}

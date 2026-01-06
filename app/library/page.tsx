@@ -2,17 +2,20 @@
 
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import LumoLoader from "@/components/ui/lumo-loader";
 import LibraryView from "@/components/reader/library-view";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { bookCache } from "@/lib/core/cache";
 import { ttsCache } from "@/lib/features/narration/tts-cache";
 import { createBrowserClient } from "@supabase/ssr";
 
+// Simple in-memory cache to make return navigation instant
+let cachedLibraryBooks: LibraryBookCard[] | null = null;
+
 function LibraryContent() {
     const router = useRouter();
-    const [books, setBooks] = useState<LibraryBookCard[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [books, setBooks] = useState<LibraryBookCard[]>(cachedLibraryBooks || []);
+    const [isLoading, setIsLoading] = useState(!cachedLibraryBooks);
     const [error, setError] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -22,7 +25,8 @@ function LibraryContent() {
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         );
-        supabase.auth.getUser().then(({ data }) => {
+        supabase.auth.getUser().then(({ data, error }) => {
+            if (error) console.error('Auth check failed:', error);
             setCurrentUserId(data.user?.id ?? null);
         });
     }, []);
@@ -93,6 +97,7 @@ function LibraryContent() {
             }));
 
             setBooks(libraryBooks);
+            cachedLibraryBooks = libraryBooks;
 
         } catch (err) {
             console.error('Failed to load books:', err);
@@ -107,9 +112,6 @@ function LibraryContent() {
         ttsCache.init().catch(console.error);
     }, [loadBooks]);
 
-    const handleSelectBook = (id: string) => {
-        router.push(`/reader/${id}`);
-    };
 
     const handleDeleteBook = useCallback(async (id: string) => {
         try {
@@ -130,9 +132,7 @@ function LibraryContent() {
 
     if (isLoading) {
         return (
-            <main className="page-story-maker relative min-h-screen flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-            </main>
+            <LumoLoader />
         );
     }
 
@@ -150,7 +150,6 @@ function LibraryContent() {
     return (
         <LibraryView
             books={books}
-            onSelectBook={handleSelectBook}
             onDeleteBook={handleDeleteBook}
             currentUserId={currentUserId}
         />
@@ -159,7 +158,7 @@ function LibraryContent() {
 
 export default function LibraryPage() {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin" /></div>}>
+        <Suspense fallback={<LumoLoader />}>
             <LibraryContent />
         </Suspense>
     );

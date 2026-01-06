@@ -6,6 +6,7 @@ import { WordListProvider } from "@/lib/features/word-insight";
 import { NarrationProvider, type NarrationProviderType } from "@/lib/features/narration";
 import { ClayNav } from "@/components/layout/clay-nav";
 import { GlobalStoryListener } from "@/components/notifications/global-story-listener";
+import { ChildGate } from "@/components/auth/child-gate";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function RootLayout({
         <WordListProvider>
           <NarrationProvider initialProviderType={process.env.NARRATION_PROVIDER as NarrationProviderType | undefined}>
             <GlobalStoryListener />
+            <ChildGate />
             <div className="relative flex flex-col lg:flex-row min-h-screen">
               <ClayNav />
               <div className="flex-1 w-full overflow-y-auto">

@@ -477,6 +477,72 @@ h6 {
   animation: mesh-spin 40s linear infinite reverse;
 }
 
+@keyframes blob-slow {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(80px, 40px) scale(1.15) rotate(45deg);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.95) rotate(-15deg);
+  }
+}
+
+@keyframes blob-reverse {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(-60px, 80px) scale(1.2) rotate(-30deg);
+  }
+
+  66% {
+    transform: translate(40px, -20px) scale(0.9) rotate(15deg);
+  }
+}
+
+@keyframes blob-pulse {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) opacity(0.1);
+  }
+
+  50% {
+    transform: translate(30px, 0) scale(1.4) opacity(0.25);
+  }
+}
+
+.animate-blob-slow {
+  animation: blob-slow 25s infinite linear;
+}
+
+.animate-blob-reverse {
+  animation: blob-reverse 20s infinite linear;
+}
+
+.animate-blob-pulse {
+  animation: blob-pulse 12s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .animate-blob-slow,
+  .animate-blob-reverse,
+  .animate-blob-pulse {
+    animation: none;
+    transform: none;
+  }
+}
+
 /* Existing Animations */
 @keyframes slide-down {
   from {

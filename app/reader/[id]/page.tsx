@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useState, useCallback } from "react";
-import { Loader2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+import LumoLoader from "@/components/ui/lumo-loader";
+import { LumoCharacter } from "@/components/ui/lumo-character";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
 import { bookCache } from "@/lib/core/cache";
@@ -132,9 +134,7 @@ function ReaderContent({ params }: ReaderPageProps) {
 
     if (isLoading && !currentBook) {
         return (
-            <main className="page-story-maker relative h-screen overflow-hidden flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-            </main>
+            <LumoLoader />
         );
     }
 
@@ -161,9 +161,18 @@ function ReaderContent({ params }: ReaderPageProps) {
 
             {/* Status overlay for background generation */}
             {currentBook?.images?.some(img => img.isPlaceholder) && (
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full bg-white/80 px-6 py-2 shadow-lg backdrop-blur-md border border-accent/20 animate-slide-up z-[110]">
-                    <RefreshCw className="h-4 w-4 animate-spin text-accent" />
-                    <span className="text-sm font-bold text-ink-muted">AI is drawing images...</span>
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-[110] animate-slide-up">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-purple-400/30 blur-xl rounded-full animate-pulse" />
+                        <div className="relative animate-bounce-slow">
+                             <LumoCharacter size="lg" className="shadow-2xl" />
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 rounded-full bg-white/90 px-6 py-2.5 shadow-clay border-2 border-purple-100 backdrop-blur-md">
+                        <RefreshCw className="h-4 w-4 animate-spin text-purple-500" />
+                        <span className="text-sm font-black text-purple-600 font-fredoka uppercase tracking-wide">AI is drawing images...</span>
+                    </div>
                 </div>
             )}
         </main>
@@ -172,7 +181,7 @@ function ReaderContent({ params }: ReaderPageProps) {
 
 export default function ReaderDetailPage({ params }: ReaderPageProps) {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-purple-500" /></div>}>
+        <Suspense fallback={<LumoLoader />}>
             <ReaderContent params={params} />
         </Suspense>
     );

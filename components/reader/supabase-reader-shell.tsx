@@ -1,8 +1,11 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FastForward, Sparkles, Loader2, ArrowLeft, RotateCcw } from "lucide-react";
+import { FastForward, ArrowLeft, RotateCcw } from "lucide-react";
+import { LumoCharacter } from "@/components/ui/lumo-character";
 import { useRouter } from "next/navigation";
+import Link from 'next/link';
 import { useNarrationEngine, type NarrationShard } from "@/hooks/use-narration-engine";
 import { useReaderPersistence } from "@/hooks/use-reader-persistence";
 import { useWordInspector } from "@/hooks/use-word-inspector";
@@ -247,25 +250,18 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
 
             <div className={`glass-card flex flex-col flex-1 min-h-0 transition-all duration-500 ${isMaximized ? 'p-2 sm:p-4 rounded-none border-none bg-white dark:bg-[#0b0c14]' : 'p-4 sm:p-5'}`}>
                 <header className="flex items-center gap-1.5 sm:gap-3 mb-3">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            saveProgress(true, true);
-                            if (onBack) {
-                                onBack();
-                            } else {
-                                router.push("/library");
-                            }
-                        }}
+                    <Link
+                        href="/library"
+                        onClick={() => saveProgress(true, true)}
                         className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent"
                         aria-label="Back to Library"
                         title="Back to Library"
                     >
                         <ArrowLeft className="h-5 w-5" />
-                    </button>
+                    </Link>
 
                     <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-                        <Sparkles className="hidden sm:flex h-4 w-4 sm:h-5 sm:w-5 text-pink-400 flex-shrink-0" aria-hidden />
+                        <LumoCharacter size="sm" className="hidden sm:flex flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                             <h1 className="text-lg sm:text-xl font-fredoka font-bold text-ink truncate leading-none">
                                 {selectedBook?.title || "Book Reader"}
@@ -294,7 +290,14 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
                         aria-label={playbackState === "playing" ? "Pause" : "Play"}
                         title={playbackState === "playing" ? "Pause (Space)" : "Play (Space)"}
                     >
-                        {isPreparing ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> :
+                        {isPreparing ? (
+                            <motion.img 
+                                src="/logo.png" 
+                                className="h-5 w-5 sm:h-6 sm:w-6" 
+                                animate={{ rotate: 360, scale: [1, 1.2, 1] }} 
+                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            />
+                        ) :
                             playbackState === "playing" ? (
                                 <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" /></svg>
                             ) : (
