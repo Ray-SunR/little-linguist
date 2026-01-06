@@ -180,7 +180,6 @@ The story should be fun, educational, and age-appropriate.`;
                     }, { onConflict: 'book_id,chunk_index,voice_id' });
                 }
 
-                console.log(`Background narration processing complete for book ${book.id}`);
                 // Status will be set to 'completed' by the image generation API
                 // which is triggered by the frontend.
             } catch (err) {

@@ -21,7 +21,6 @@ export interface ChildProfile extends ChildProfilePayload {
 }
 
 export async function createChildProfile(data: ChildProfilePayload) {
-  console.log(`[profiles:createChildProfile] Starting profile creation for: ${data.first_name}`);
   const supabase = createClient();
   const {
     data: { user },
@@ -32,7 +31,7 @@ export async function createChildProfile(data: ChildProfilePayload) {
     return { error: 'Not authenticated' };
   }
 
-  console.log(`[profiles:createChildProfile] Authenticated user: ${user.id}`);
+
 
   const { data: newChild, error } = await supabase
     .from('children')
@@ -57,7 +56,7 @@ export async function createChildProfile(data: ChildProfilePayload) {
     return { error: error.message };
   }
 
-  console.log(`[profiles:createChildProfile] Successfully created profile: ${newChild.id}`);
+
 
   revalidatePath('/dashboard');
 
@@ -70,7 +69,6 @@ export async function createChildProfile(data: ChildProfilePayload) {
 }
 
 export async function updateChildProfile(id: string, data: Partial<ChildProfilePayload>) {
-  console.log(`[profiles:updateChildProfile] Updating profile: ${id}`);
   const supabase = createClient();
   const {
     data: { user },
@@ -102,14 +100,13 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
     return { error: error.message };
   }
 
-  console.log(`[profiles:updateChildProfile] Successfully updated profile: ${id}`);
+
 
   revalidatePath('/dashboard');
   return { success: true };
 }
 
 export async function deleteChildProfile(id: string) {
-  console.log(`[profiles:deleteChildProfile] Deleting profile: ${id}`);
   const supabase = createClient();
   const {
     data: { user },
@@ -134,7 +131,7 @@ export async function deleteChildProfile(id: string) {
     return { error: error.message };
   }
 
-  console.log(`[profiles:deleteChildProfile] Successfully deleted profile: ${id}`);
+
 
   revalidatePath('/dashboard');
   return { success: true };
@@ -165,7 +162,6 @@ export async function getChildren() {
 }
 
 export async function switchActiveChild(childId: string) {
-  console.log(`[profiles:switchActiveChild] Switching to child: ${childId}`);
   const supabase = createClient();
   const {
     data: { user },
@@ -188,6 +184,5 @@ export async function switchActiveChild(childId: string) {
   }
 
   cookies().set('activeChildId', childId, { secure: true, httpOnly: false });
-  console.log(`[profiles:switchActiveChild] Successfully switched to child: ${childId}`);
   return { success: true };
 }

@@ -43,7 +43,6 @@ export async function POST(req: Request) {
             const scene = scenes[i];
             if (!scene) continue;
 
-            console.log(`[Mock/API/Images] Generating mock image for scene ${i} (Book: ${bookId})...`);
 
             // Simulate latency
             await new Promise(resolve => setTimeout(resolve, 800));

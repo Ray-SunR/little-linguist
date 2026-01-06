@@ -10,7 +10,6 @@ import { createClient as createAuthClient } from "@/lib/supabase/server";
 import { StoryRepository } from "@/lib/core/stories/repository.server";
 
 export async function POST(req: Request) {
-    console.log("Mock Mode: Returning story and persisting to `books` and `stories` tables");
 
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -115,7 +114,6 @@ export async function POST(req: Request) {
                 }
 
                 await storyRepo.updateStoryStatus(book.id, 'completed');
-                console.log(`Mock Sharding and status update complete for book ${book.id}`);
             } catch (err) {
                 console.error(`Mock Sharding failed:`, err);
                 await storyRepo.updateStoryStatus(book.id, 'failed').catch(e => console.error(e));

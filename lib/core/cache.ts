@@ -79,9 +79,9 @@ class RaidenCache {
                 const request = store.get(key);
                 request.onsuccess = () => {
                     if (request.result) {
-                        console.log(`[Cache] HIT: ${storeName}/${key}`);
+                        // hit
                     } else {
-                        console.log(`[Cache] MISS: ${storeName}/${key}`);
+                        // miss
                     }
                     resolve(request.result);
                 };

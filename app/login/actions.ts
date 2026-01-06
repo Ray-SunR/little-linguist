@@ -31,8 +31,6 @@ export async function login(formData: FormData) {
     const email = formData.get('email') as string
     const password = formData.get('password') as string
 
-    console.log('Login attempt for:', email)
-
     if (!email || !password) {
         return { error: 'Magic Email and Secret Word are required.' }
     }
@@ -58,8 +56,6 @@ export async function signup(formData: FormData) {
     const password = formData.get('password') as string
     const origin = formData.get('origin') as string
 
-    console.log('Signup attempt for:', email, 'origin:', origin)
-
     if (!email || !password) {
         return { error: 'Magic Email and Secret Word are required.' }
     }
@@ -78,11 +74,8 @@ export async function signup(formData: FormData) {
     }
 
     if (data.user && !data.session) {
-        console.log('Signup success, email verification sent.')
         return { success: 'Check your magic scroll (email) for a verification link!' }
     }
-
-    console.log('Signup success, auto-logged in.')
     revalidatePath('/', 'layout')
     redirect('/')
 }
