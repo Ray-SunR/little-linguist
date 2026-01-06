@@ -19,24 +19,25 @@ export function LumoCharacter({ className, size = "md" }: LumoCharacterProps) {
   };
 
   return (
-    <motion.div
+    <div
       className={cn("relative flex items-center justify-center", sizeClasses[size], className)}
-      animate={{
-        y: [0, -5, 0],
-        rotate: [0, 5, -5, 0],
-      }}
-      transition={{
-        duration: 4,
-        repeat: Infinity,
-        ease: "easeInOut",
+      style={{
+        animation: 'lumo-float 4s ease-in-out infinite'
       }}
     >
+      <style jsx>{`
+        @keyframes lumo-float {
+          0%, 100% { transform: translateY(0) rotate(0); }
+          50% { transform: translateY(-5px) rotate(5deg); }
+        }
+      `}</style>
       <CachedImage
         src="/lumo-mascot.png"
         alt="Lumo Mascot"
         fill
+        sizes="(max-width: 768px) 48px, 64px"
         className="object-contain relative z-10 rounded-full"
       />
-    </motion.div>
+    </div>
   );
 }

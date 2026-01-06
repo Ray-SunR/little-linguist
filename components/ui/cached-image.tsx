@@ -48,7 +48,10 @@ export function CachedImage({ src, storagePath, alt, className, ...props }: Cach
                 }
             } catch (err) {
                 if (err instanceof Error && err.name === 'AbortError') return;
-                console.warn("[CachedImage] Resolution failed:", err);
+                // Silence AbortError logs in production/development as they are expected
+                if (!(err instanceof Error && err.name === 'AbortError')) {
+                    console.warn("[CachedImage] Resolution failed:", err);
+                }
                 if (isMounted) setDisplayUrl(src);
             }
         }
@@ -80,6 +83,7 @@ export function CachedImage({ src, storagePath, alt, className, ...props }: Cach
                 {...props}
                 src={displayUrl}
                 alt={alt}
+                sizes={props.fill ? (props.sizes || "100vw") : props.sizes}
                 onLoad={() => {
                     setIsLoaded(true);
                     if (storagePath) {

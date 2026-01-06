@@ -1,12 +1,9 @@
 import ChildProfileWizard from '@/components/profile/ChildProfileWizard';
-import { ClayNav } from '@/components/layout/clay-nav';
 import { motion } from 'framer-motion';
 
 export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[--shell] font-sans selection:bg-accent selection:text-white overflow-x-hidden flex flex-col">
-      <ClayNav />
-
       <main className="flex-grow flex flex-col items-center justify-center p-6 relative py-12 lg:py-24">
         
         {/* === Background Elements (Matching Story Maker Magic) === */}

@@ -44,19 +44,16 @@ export default function LibraryView({ books, onDeleteBook, currentUserId }: Libr
 
     return (
         <div className="relative min-h-screen w-full overflow-x-hidden page-story-maker">
-            {/* Background Magic Blobs */}
+            {/* Background Magic Blobs (toned down on small screens for perf) */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
                 <div
-                    className="absolute -left-20 top-20 h-[600px] w-[600px] rounded-full bg-purple-400/10 blur-[100px] animate-blob-slow"
-                    style={{ willChange: "transform" }}
+                    className="hidden sm:block absolute -left-20 top-20 h-[400px] w-[400px] rounded-full bg-purple-400/10 blur-[80px] animate-blob-slow"
                 />
                 <div
-                    className="absolute right-0 bottom-0 h-[700px] w-[700px] rounded-full bg-blue-400/10 blur-[120px] animate-blob-reverse"
-                    style={{ willChange: "transform" }}
+                    className="hidden sm:block absolute right-0 bottom-0 h-[500px] w-[500px] rounded-full bg-blue-400/10 blur-[90px] animate-blob-reverse"
                 />
                 <div
-                    className="absolute left-1/3 top-1/4 h-[400px] w-[400px] rounded-full bg-pink-400/5 blur-[90px] animate-blob-pulse"
-                    style={{ willChange: "transform" }}
+                    className="hidden sm:block absolute left-1/3 top-1/4 h-[280px] w-[280px] rounded-full bg-pink-400/5 blur-[70px] animate-blob-pulse"
                 />
             </div>
 

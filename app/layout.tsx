@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   description: "Your child's magical AI reading companion. Interactive stories, vocabulary building, and language learning adventures.",
 };
 
+import { AuthProvider } from "@/components/auth/auth-provider";
+
 export default function RootLayout({
   children,
 }: {
@@ -31,19 +33,20 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${fredoka.variable} ${nunito.variable}`}>
       <body className="min-h-shell bg-shell text-ink font-nunito antialiased">
-        <WordListProvider>
-          <NarrationProvider initialProviderType={process.env.NARRATION_PROVIDER as NarrationProviderType | undefined}>
-            <GlobalStoryListener />
-            <ChildGate />
-            <div className="relative flex flex-col lg:flex-row min-h-screen">
-              <ClayNav />
-              <div className="flex-1 w-full overflow-y-auto">
-
-                {children}
+        <AuthProvider>
+          <WordListProvider>
+            <NarrationProvider initialProviderType={process.env.NARRATION_PROVIDER as NarrationProviderType | undefined}>
+              <GlobalStoryListener />
+              <ChildGate />
+              <div className="relative flex flex-col lg:flex-row min-h-screen">
+                <ClayNav />
+                <div className="flex-1 w-full overflow-y-auto">
+                  {children}
+                </div>
               </div>
-            </div>
-          </NarrationProvider>
-        </WordListProvider>
+            </NarrationProvider>
+          </WordListProvider>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

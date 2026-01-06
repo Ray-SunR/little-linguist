@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getChildren, switchActiveChild, type ChildProfile } from '@/app/actions/profiles';
+import { switchActiveChild, type ChildProfile } from '@/app/actions/profiles';
+import { useAuth } from '@/components/auth/auth-provider';
 import { getCookie } from 'cookies-next';
 import { ChevronDown, Plus, User } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
@@ -10,31 +11,22 @@ import { CachedImage } from '@/components/ui/cached-image';
 
 export function ProfileSwitcher() {
   const router = useRouter();
-  const [children, setChildren] = useState<ChildProfile[]>([]);
+  const { profiles: children, isLoading } = useAuth();
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Initial fetch
-    getChildren().then(res => {
-      if (res.data) {
-        setChildren(res.data);
-
-        // Try to find active child from cookie
-        // Note: In a real app we might pass this as a prop from server component
-        // but reading client-side cookie is fine for this switcher state
-        const activeId = getCookie('activeChildId');
-        if (activeId) {
-          const found = res.data.find(c => c.id === activeId);
-          if (found) setActiveChild(found);
-        } else if (res.data.length > 0) {
-          // Fallback to first if none selected logic could be here, 
-          // but we rely on mandatory onboarding ideally.
-          setActiveChild(res.data[0]);
-        }
-      }
-    });
-  }, []);
+    if (isLoading) return;
+    
+    // Try to find active child from cookie
+    const activeId = getCookie('activeChildId');
+    if (activeId) {
+      const found = children.find(c => c.id === activeId);
+      if (found) setActiveChild(found);
+    } else if (children.length > 0) {
+      setActiveChild(children[0]);
+    }
+  }, [children, isLoading]);
 
   const handleSwitch = async (childId: string) => {
     const result = await switchActiveChild(childId);
@@ -43,7 +35,6 @@ export function ProfileSwitcher() {
       if (selected) setActiveChild(selected);
       setIsOpen(false);
       router.refresh();
-      window.location.reload(); // Hard reload to ensure all server data refreshes with new cookie
     }
   };
 

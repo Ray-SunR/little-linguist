@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PartyPopper, BookOpen, X, AlertCircle } from 'lucide-react';
 
 export function GlobalStoryListener() {
+    const [isReady, setIsReady] = useState(false);
     const [userId, setUserId] = useState<string | undefined>();
     const [notifications, setNotifications] = useState<any[]>([]);
     const router = useRouter();
@@ -16,16 +17,19 @@ export function GlobalStoryListener() {
     useEffect(() => {
         supabase.auth.getUser().then(({ data }) => {
             setUserId(data.user?.id);
+            setIsReady(true);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setUserId(session?.user?.id);
+            setIsReady(true);
         });
 
         return () => subscription.unsubscribe();
     }, [supabase]);
 
-    useStoryStatusSubscription(userId, useCallback((story) => {
+    // Skip subscription if no user (login/onboarding) to avoid extra socket setup
+    useStoryStatusSubscription(isReady ? userId : undefined, useCallback((story) => {
         if (story.status === 'completed' || story.status === 'failed') {
             const id = Math.random().toString(36).substring(7);
             const newNotification = {

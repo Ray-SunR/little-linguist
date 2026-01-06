@@ -5,12 +5,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
-import { useState, useEffect } from "react";
+import { memo, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { motion, AnimatePresence } from "framer-motion";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useAuth } from "@/components/auth/auth-provider";
 import { ProfileSwitcher } from "@/components/profile/ProfileSwitcher";
 import { CachedImage } from "@/components/ui/cached-image";
+import { useMemo } from "react";
+
+const supabase = createClient();
 
 const navItems = [
     {
@@ -51,27 +54,53 @@ const navItems = [
     },
 ];
 
+const MemoizedNavItem = memo(function NavItem({ 
+    item, 
+    isActive 
+}: { 
+    item: typeof navItems[0], 
+    isActive: boolean
+}) {
+    const Icon = item.icon;
+    
+    return (
+        <Link
+            href={item.href}
+            className="flex-1"
+        >
+            <motion.div
+                whileTap={{ scale: 0.8, y: -5 }}
+                className={cn(
+                    "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-colors duration-300 mx-1",
+                    isActive
+                        ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
+                        : "text-slate-500 hover:text-slate-700"
+                )}
+            >
+                <Icon className={cn("w-5 h-5", isActive ? "mb-0.5" : "mb-1")} />
+                <span className="text-[9px] font-fredoka font-black uppercase tracking-wider leading-none">
+                    {item.label.split(' ')[0]}
+                </span>
+            </motion.div>
+        </Link>
+    );
+});
+
 export function ClayNav() {
     const pathname = usePathname();
     const router = useRouter();
+    const prefersReducedMotion = useReducedMotion();
+    const { user } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
-    const [user, setUser] = useState<SupabaseUser | null>(null);
     const isReaderView = pathname.startsWith("/reader");
     const isLibraryView = pathname.startsWith("/library");
-    const isDashboardView = pathname.startsWith("/dashboard");
     const [isExpanded, setIsExpanded] = useState(true);
 
-    // Optimistic UI: Track active tab locally for instant feedback
-    const [activeTab, setActiveTab] = useState(pathname);
-
-    // Sync local state with pathname (handles back/forward navigation)
+    // Prefetch main destinations to reduce perceived nav latency
     useEffect(() => {
-        setActiveTab(pathname);
-    }, [pathname]);
-
-    const handleNavClick = (href: string) => {
-        setActiveTab(href);
-    };
+        navItems.forEach(item => router.prefetch(item.href));
+        router.prefetch("/profiles");
+    }, [router]);
 
     // Auto-fold in reader view, auto-expand on all main navigation pages
     useEffect(() => {
@@ -83,23 +112,9 @@ export function ClayNav() {
         }
     }, [pathname, isReaderView]);
 
-    const supabase = createClient();
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
-        };
-        fetchUser();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-        });
-
-        return () => subscription.unsubscribe();
-    }, [supabase.auth]);
-
     const handleLogout = async () => {
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
         await supabase.auth.signOut();
         setIsHubOpen(false);
         router.push("/login");
@@ -168,12 +183,13 @@ export function ClayNav() {
                 {isExpanded ? (
                     <motion.nav
                         key="nav-full"
-                        initial={{ y: 100, opacity: 0, scale: 0.95 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        exit={{ y: 100, opacity: 0, scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        initial={prefersReducedMotion ? false : { y: 100, opacity: 0, scale: 0.95 }}
+                        animate={prefersReducedMotion ? { opacity: 1, y: 0, scale: 1 } : { y: 0, opacity: 1, scale: 1 }}
+                        exit={prefersReducedMotion ? { opacity: 0 } : { y: 100, opacity: 0, scale: 0.95 }}
+                        transition={prefersReducedMotion ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 30 }}
+                        style={{ transform: "translateZ(0)" }}
                         className={cn(
-                            "fixed z-50 w-[calc(100%-3rem)] max-w-2xl flex items-center justify-between p-2 rounded-[3.5rem] bg-white/60 backdrop-blur-3xl border-4 border-white shadow-2xl pointer-events-auto bottom-6 left-0 right-0 mx-auto transition-all duration-300",
+                            "fixed z-50 w-[calc(100%-3rem)] max-w-2xl flex items-center justify-between p-2 rounded-[3.5rem] bg-white/70 backdrop-blur-xl border-2 border-white/80 shadow-xl pointer-events-auto bottom-6 left-0 right-0 mx-auto transition-shadow duration-200",
                             isExpanded && "shadow-clay-purple"
                         )}
                     >
@@ -196,39 +212,17 @@ export function ClayNav() {
                             )}
 
                             {navItems.map((item) => {
-                                // Match both exact path and sub-paths (e.g. /library matching /library/book-1)
-                                // Use the local activeTab state for optimistic updates if available, falling back to pathname check
-                                const isActiveTab = activeTab === item.href || (activeTab !== "/" && activeTab.startsWith(item.href));
-
-                                const Icon = item.icon;
-
                                 return (
-                                    <Link
+                                    <MemoizedNavItem
                                         key={item.href}
-                                        href={item.href}
-                                        className="flex-1"
-                                        onClick={() => handleNavClick(item.href)}
-                                    >
-                                        <motion.div
-                                            whileTap={{ scale: 0.8, y: -5 }}
-                                            className={cn(
-                                                "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-all duration-300 mx-1",
-                                                isActiveTab
-                                                    ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
-                                                    : "text-slate-500 hover:text-slate-700"
-                                            )}
-                                        >
-                                            <Icon className={cn("w-5 h-5", isActiveTab ? "mb-0.5" : "mb-1")} />
-                                            <span className="text-[9px] font-fredoka font-black uppercase tracking-wider leading-none">
-                                                {item.label.split(' ')[0]}
-                                            </span>
-                                        </motion.div>
-                                    </Link>
+                                        item={item}
+                                        isActive={isActive(item.href)}
+                                    />
                                 );
                             })}
 
                             <motion.button
-                                whileTap={{ scale: 0.8 }}
+                                whileTap={prefersReducedMotion ? undefined : { scale: 0.8 }}
                                 onClick={() => {
                                     setIsHubOpen(true);
                                 }}
@@ -257,11 +251,11 @@ export function ClayNav() {
                 ) : (
                     <motion.button
                         key="nav-bead"
-                        initial={{ scale: 0, opacity: 0, y: 50 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0, opacity: 0, y: 50 }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        initial={prefersReducedMotion ? false : { scale: 0, opacity: 0, y: 50 }}
+                        animate={prefersReducedMotion ? { opacity: 1, y: 0, scale: 1 } : { scale: 1, opacity: 1, y: 0 }}
+                        exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0, opacity: 0, y: 50 }}
+                        whileHover={prefersReducedMotion ? undefined : { scale: 1.1 }}
+                        whileTap={prefersReducedMotion ? undefined : { scale: 0.9 }}
                         onClick={() => setIsExpanded(true)}
                         className="fixed bottom-6 left-0 right-0 mx-auto z-50 flex h-20 w-20 items-center justify-center rounded-sm bg-transparent pointer-events-auto cursor-pointer"
                         aria-label="Expand Navigation"
@@ -270,8 +264,8 @@ export function ClayNav() {
                             {/* Subtle pulse for interaction hint */}
                             <motion.div
                                 className="absolute inset-0 bg-purple-400/20 blur-2xl rounded-full"
-                                animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.5, 0.3] }}
-                                transition={{ duration: 3, repeat: Infinity }}
+                                animate={prefersReducedMotion ? undefined : { scale: [1, 1.4, 1], opacity: [0.3, 0.5, 0.3] }}
+                                transition={prefersReducedMotion ? undefined : { duration: 3, repeat: Infinity }}
                             />
                             <LumoCharacter size="lg" className="drop-shadow-2xl relative z-10" />
 
@@ -292,7 +286,7 @@ export function ClayNav() {
                 {isHubOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
                         <motion.div
-                            initial={{ opacity: 0 }}
+                            initial={prefersReducedMotion ? false : { opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-purple-900/40 backdrop-blur-md"
@@ -300,10 +294,10 @@ export function ClayNav() {
                         />
 
                         <motion.div
-                            initial={{ scale: 0.8, opacity: 0, y: 50, rotate: -5 }}
-                            animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
-                            exit={{ scale: 0.8, opacity: 0, y: 50, rotate: 5 }}
-                            transition={{ type: "spring", damping: 15, stiffness: 250 }}
+                            initial={prefersReducedMotion ? { opacity: 0 } : { scale: 0.8, opacity: 0, y: 50, rotate: -5 }}
+                            animate={prefersReducedMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0, rotate: 0 }}
+                            exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0.8, opacity: 0, y: 50, rotate: 5 }}
+                            transition={prefersReducedMotion ? { duration: 0.14 } : { type: "spring", damping: 15, stiffness: 250 }}
                             className="relative w-full max-w-sm clay-card p-10 text-center bg-white border-8 border-white shadow-2xl overflow-hidden"
                         >
                             {/* Decorative Blobs */}
@@ -397,4 +391,3 @@ export function ClayNav() {
         </>
     );
 }
-

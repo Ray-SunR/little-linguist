@@ -7,29 +7,18 @@ import LibraryView from "@/components/reader/library-view";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { bookCache } from "@/lib/core/cache";
 import { ttsCache } from "@/lib/features/narration/tts-cache";
-import { createBrowserClient } from "@supabase/ssr";
+import { useAuth } from "@/components/auth/auth-provider";
 
 // Simple in-memory cache to make return navigation instant
 let cachedLibraryBooks: LibraryBookCard[] | null = null;
 
 function LibraryContent() {
     const router = useRouter();
+    const { user } = useAuth();
     const [books, setBooks] = useState<LibraryBookCard[]>(cachedLibraryBooks || []);
     const [isLoading, setIsLoading] = useState(!cachedLibraryBooks);
     const [error, setError] = useState<string | null>(null);
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-    // Fetch current user on mount
-    useEffect(() => {
-        const supabase = createBrowserClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-        supabase.auth.getUser().then(({ data, error }) => {
-            if (error) console.error('Auth check failed:', error);
-            setCurrentUserId(data.user?.id ?? null);
-        });
-    }, []);
+    const currentUserId = user?.id ?? null;
 
     const loadBooks = useCallback(async () => {
         setIsLoading(true);
