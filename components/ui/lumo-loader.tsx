@@ -28,43 +28,40 @@ export default function LumoLoader({ fullPage = true }: LumoLoaderProps) {
   }, []);
 
   const content = (
-    <div className="flex flex-col items-center justify-center gap-8 p-8 text-center">
+    <div className="flex flex-col items-center justify-center gap-8 p-8 text-center bg-transparent">
       {/* Mascot Container */}
       <div className="relative">
+        <style jsx>{`
+            @keyframes glow-pulse {
+              0%, 100% { transform: scale(1); opacity: 0.3; }
+              50% { transform: scale(1.1); opacity: 0.6; }
+            }
+            @keyframes lumo-float-large {
+              0%, 100% { transform: translateY(0) rotate(0); }
+              50% { transform: translateY(-20px) rotate(5deg); }
+            }
+            @keyframes progress-slide {
+              0% { transform: translateX(-100%); }
+              100% { transform: translateX(100%); }
+            }
+            .animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+            .animate-lumo-float-large { animation: lumo-float-large 4s ease-in-out infinite; }
+            .animate-progress-slide { animation: progress-slide 2s linear infinite; }
+        `}</style>
+        
         {/* Glow effect */}
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute inset-0 bg-amber-400/30 blur-3xl rounded-full"
-        />
+        <div className="absolute inset-0 bg-amber-400/30 blur-3xl rounded-full animate-glow-pulse" />
 
         {/* Lumo Mascot */}
-        <motion.div
-          animate={{
-            y: [0, -20, 0],
-            rotate: [0, 5, -5, 0],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="relative z-10 w-32 h-32 md:w-40 md:h-40"
-        >
+        <div className="relative z-10 w-32 h-32 md:w-40 md:h-40 animate-lumo-float-large">
           <CachedImage
             src="/lumo-mascot.png"
             alt="Lumo Mascot"
             fill
             className="object-contain relative z-10 rounded-full"
+            sizes="(max-width: 768px) 128px, 160px"
           />
-        </motion.div>
+        </div>
 
         {/* Floating sparkles */}
         <Sparkle delay={0} top="20%" left="-10%" />
@@ -93,16 +90,8 @@ export default function LumoLoader({ fullPage = true }: LumoLoaderProps) {
       </div>
 
       {/* Claymorphic Progress Bar */}
-      <div className="w-48 h-4 bg-white/50 rounded-full border-2 border-white shadow-inner overflow-hidden">
-        <motion.div
-          animate={{ x: [-200, 200] }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="w-32 h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full shadow-clay-sm"
-        />
+      <div className="w-48 h-4 bg-white/50 rounded-full border-2 border-white shadow-inner overflow-hidden relative">
+        <div className="absolute inset-0 w-32 h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full shadow-clay-sm animate-progress-slide" />
       </div>
     </div>
   );
@@ -124,23 +113,21 @@ export default function LumoLoader({ fullPage = true }: LumoLoaderProps) {
 
 function Sparkle({ delay, top, left, right }: { delay: number; top?: string; left?: string; right?: string }) {
   return (
-    <motion.span
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{
-        scale: [0, 1, 0],
-        opacity: [0, 1, 0],
-        rotate: [0, 90, 180],
-      }}
-      transition={{
-        duration: 2,
-        repeat: Infinity,
-        delay,
-        ease: "easeInOut",
-      }}
+    <div
       className="absolute text-2xl z-20"
-      style={{ top, left, right }}
+      style={{ 
+          top, left, right,
+          animation: `sparkle-anim 2s ease-in-out infinite`,
+          animationDelay: `${delay}s`
+      }}
     >
+      <style jsx>{`
+          @keyframes sparkle-anim {
+            0%, 100% { transform: scale(0) rotate(0); opacity: 0; }
+            50% { transform: scale(1) rotate(90deg); opacity: 1; }
+          }
+      `}</style>
       ✨
-    </motion.span>
+    </div>
   );
 }

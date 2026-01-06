@@ -1,7 +1,7 @@
 import { SupabaseBook } from "@/components/reader/supabase-reader-shell";
 
 const DB_NAME = "raiden-local-cache";
-const DB_VERSION = 2; // Incremented for new stores
+const DB_VERSION = 3; // Incremented for USER_WORDS key change
 
 export enum CacheStore {
     BOOKS = "books",
@@ -27,6 +27,7 @@ class RaidenCache {
 
             request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
+                const oldVersion = event.oldVersion;
 
                 // Books store (keyed by id)
                 if (!db.objectStoreNames.contains(CacheStore.BOOKS)) {
@@ -43,9 +44,13 @@ class RaidenCache {
                     db.createObjectStore(CacheStore.WORD_INSIGHTS, { keyPath: "word" });
                 }
 
-                // User Words store (keyed by word)
+                // User Words store (keyed by composite id for book support)
+                if (db.objectStoreNames.contains(CacheStore.USER_WORDS) && oldVersion < 3) {
+                    db.deleteObjectStore(CacheStore.USER_WORDS);
+                }
+                
                 if (!db.objectStoreNames.contains(CacheStore.USER_WORDS)) {
-                    db.createObjectStore(CacheStore.USER_WORDS, { keyPath: "word" });
+                    db.createObjectStore(CacheStore.USER_WORDS, { keyPath: "id" });
                 }
             };
 
@@ -56,6 +61,7 @@ class RaidenCache {
 
             request.onerror = () => {
                 console.error("[Cache] Failed to open DB:", request.error);
+                this.initPromise = null;
                 reject(request.error);
             };
         });
@@ -77,14 +83,7 @@ class RaidenCache {
             const store = await this.getStore(storeName);
             return new Promise((resolve, reject) => {
                 const request = store.get(key);
-                request.onsuccess = () => {
-                    if (request.result) {
-                        // hit
-                    } else {
-                        // miss
-                    }
-                    resolve(request.result);
-                };
+                request.onsuccess = () => resolve(request.result);
                 request.onerror = () => reject(request.error);
             });
         } catch (err) {
@@ -103,7 +102,33 @@ class RaidenCache {
                 request.onerror = () => reject(request.error);
             });
         } catch (err) {
-            console.warn(`[Cache] Put failed for ${storeName}:`, err);
+            console.error(`[Cache] Put failed for ${storeName}:`, err);
+        }
+    }
+
+    async putAll<T>(storeName: CacheStore, dataArray: T[]): Promise<void> {
+        if (typeof window === 'undefined' || dataArray.length === 0) return;
+        try {
+            const db = await this.init();
+            const transaction = db.transaction(storeName, "readwrite");
+            const store = transaction.objectStore(storeName);
+
+            return new Promise((resolve, reject) => {
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error);
+                transaction.onabort = () => reject(new Error("Transaction aborted"));
+
+                dataArray.forEach(data => {
+                    const request = store.put(data);
+                    request.onerror = (e) => {
+                        console.error(`[Cache] PutAll individual error for ${storeName}:`, e);
+                        // We don't necessarily want to kill the whole transaction for one failure,
+                        // but IndexedDB usually aborts the transaction on error anyway unless preventDefault.
+                    };
+                });
+            });
+        } catch (err) {
+            console.error(`[Cache] PutAll failed for ${storeName}:`, err);
         }
     }
 

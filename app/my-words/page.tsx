@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Trash2, BookOpen, Sparkles, LayoutGrid, List, Volume2, ChevronRight, Star } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { cn } from "@/lib/core";
 import type { WordInsight } from "@/lib/features/word-insight";
 import { WordInsightView } from "@/components/reader/word-insight-view";
@@ -220,7 +220,7 @@ export default function MyWordsPage() {
 /**
  * Redesigned Flashcard with Magic Tile theme
  */
-function MagicCard({ word, onRemove, ttsProvider, index }: { word: WordInsight; onRemove: () => void; ttsProvider: INarrationProvider; index: number }) {
+const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }: { word: WordInsight; onRemove: () => void; ttsProvider: INarrationProvider; index: number }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isListening, setIsListening] = useState(false);
 
@@ -292,7 +292,7 @@ function MagicCard({ word, onRemove, ttsProvider, index }: { word: WordInsight; 
                             </motion.div>
 
                             <div className="text-center">
-                                <h3 className={cn("text-5xl font-black font-fredoka uppercase tracking-tight mb-2 drop-shadow-sm", theme.accent)}>
+                                <h3 className={cn("text-4xl lg:text-5xl font-black font-fredoka uppercase tracking-tight mb-2 drop-shadow-sm", theme.accent)}>
                                     {word.word}
                                 </h3>
                                 <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-slate-50 text-slate-400 font-black font-fredoka text-[10px] uppercase tracking-widest border border-slate-100">
@@ -368,4 +368,4 @@ function MagicCard({ word, onRemove, ttsProvider, index }: { word: WordInsight; 
             </div>
         </div>
     );
-}
+});

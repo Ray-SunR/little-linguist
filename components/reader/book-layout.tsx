@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useRef, useMemo, useState } from "react";
+import React, { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import type { WordToken } from "@/lib/core";
 import type { BookImage, ViewMode } from "@/lib/core";
 import BookText from "./book-text";
@@ -14,7 +12,7 @@ type BookLayoutProps = {
   isPlaying?: boolean;
 };
 
-export default function BookLayout({
+const BookLayout = React.memo(function BookLayout({
   tokens,
   images,
   currentWordIndex,
@@ -40,7 +38,6 @@ export default function BookLayout({
 
     const updateSpreadCount = () => {
       // Temporarily hide snap overlay to measure true content width
-      // This prevents a feedback loop where snap anchors extend the scroll width
       const overlay = container.querySelector(".book-snap-overlay") as HTMLElement;
       if (overlay) overlay.style.display = "none";
 
@@ -51,24 +48,19 @@ export default function BookLayout({
       if (overlay) overlay.style.display = "";
 
       if (clientWidth > 0) {
-        // Use floor instead of ceil to be conservative and avoid empty pages at the end
-        // if the overflow is just sub-pixel or padding
         const count = Math.ceil((scrollWidth - 10) / clientWidth);
         setSpreadCount(Math.max(1, count));
       }
     };
 
-    // Initial measure
     updateSpreadCount();
 
-    // Use ResizeObserver to handle layout changes
     const resizeObserver = new ResizeObserver(() => {
       requestAnimationFrame(updateSpreadCount);
     });
 
     resizeObserver.observe(container);
 
-    // Also observe the content specifically for changes
     const content = container.querySelector(".book-spread-section");
     if (content) resizeObserver.observe(content);
 
@@ -82,6 +74,21 @@ export default function BookLayout({
     ));
   }, [spreadCount, viewMode]);
 
+  const handleImageLoad = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const overlay = container.querySelector(".book-snap-overlay") as HTMLElement;
+      if (overlay) overlay.style.display = "none";
+      const scrollWidth = container.scrollWidth;
+      const clientWidth = container.clientWidth;
+      if (overlay) overlay.style.display = "";
+      if (clientWidth > 0) {
+        const count = Math.ceil((scrollWidth - 10) / clientWidth);
+        setSpreadCount(Math.max(1, count));
+      }
+    }
+  }, []);
+
   return (
     <div className={`book-surface h-full ${viewMode === "spread" ? "book-spread" : ""} ${viewMode === "scroll" ? "book-scroll" : ""}`}>
       <div
@@ -90,41 +97,25 @@ export default function BookLayout({
         style={viewMode !== "scroll" ? { columns: columnCount } as React.CSSProperties : {}}
       >
         {viewMode !== "scroll" && (
-          /* Invisible snapping anchors overlay only for horizontal modes */
           <div className="book-snap-overlay">
             {snapAnchors}
           </div>
         )}
 
-        {/* The actual content */}
         <div className={viewMode === "scroll" ? "" : "book-spread-section"}>
           <BookText
             tokens={tokens}
             images={images}
             currentWordIndex={currentWordIndex}
             onWordClick={onWordClick}
-            onImageLoad={() => {
-              // Trigger layout update when image loads
-              const container = scrollContainerRef.current;
-              if (container) {
-                // Same measurement logic as above
-                const overlay = container.querySelector(".book-snap-overlay") as HTMLElement;
-                if (overlay) overlay.style.display = "none";
-
-                const scrollWidth = container.scrollWidth;
-                const clientWidth = container.clientWidth;
-
-                if (overlay) overlay.style.display = "";
-
-                if (clientWidth > 0) {
-                  const count = Math.ceil((scrollWidth - 10) / clientWidth);
-                  setSpreadCount(Math.max(1, count));
-                }
-              }
-            }}
+            onImageLoad={handleImageLoad}
           />
         </div>
       </div>
     </div>
   );
-}
+});
+
+BookLayout.displayName = "BookLayout";
+
+export default BookLayout;

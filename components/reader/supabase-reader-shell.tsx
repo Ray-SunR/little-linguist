@@ -114,7 +114,17 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
     });
 
     const tooltipProvider = useMemo(() => new WebSpeechNarrationProvider(), []);
-    const wordInspector = useWordInspector();
+    const { 
+        openWord: openWordInspector, 
+        close: closeWordInspector, 
+        selectedWordIndex: inspectorSelectedWordIndex,
+        insight: inspectorInsight,
+        isLoading: isInspectorLoading,
+        error: inspectorError,
+        isOpen: isInspectorOpen,
+        position: inspectorPosition,
+        retry: retryInspector
+    } = useWordInspector();
 
     const isEmpty = books.length === 0;
 
@@ -135,11 +145,18 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
         lastScrolledBookIdRef.current = null;
     }, [selectedBookId, pause, seekToWord, saveProgress]);
 
+    // Use a ref for playbackState to keep handeWordClick stable
+    const playbackStateRef = useRef(playbackState);
+    useEffect(() => {
+        playbackStateRef.current = playbackState;
+    }, [playbackState]);
+
     const handleWordClick = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
-        if (playbackState === "playing") pause();
-        await wordInspector.openWord(word, element, wordIndex);
+        if (playbackStateRef.current === "playing") pause();
+        await openWordInspector(word, element, wordIndex);
         await seekToWord(wordIndex);
-    }, [playbackState, pause, wordInspector, seekToWord]);
+    }, [pause, openWordInspector, seekToWord]);
+    // Note: removed playbackState from dependencies
 
 
     const handlePlaySentence = useCallback(async (sentence: string) => {
@@ -151,13 +168,13 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
     }, [tooltipProvider]);
 
     const handlePlayFromWord = useCallback(async () => {
-        const wordIndex = wordInspector.selectedWordIndex;
+        const wordIndex = inspectorSelectedWordIndex;
         if (wordIndex === null) return;
-        wordInspector.close();
+        closeWordInspector();
         await seekToWord(wordIndex);
         saveProgress(true);
         await play();
-    }, [wordInspector, seekToWord, play, saveProgress]);
+    }, [inspectorSelectedWordIndex, closeWordInspector, seekToWord, play, saveProgress]);
 
     const toggleTheme = useCallback(() => {
         const newTheme = theme === "light" ? "dark" : "light";
@@ -361,13 +378,13 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
             </div>
 
             <WordInspectorTooltip
-                insight={wordInspector.insight}
-                isLoading={wordInspector.isLoading}
-                error={wordInspector.error}
-                isOpen={wordInspector.isOpen}
-                position={wordInspector.position}
-                onClose={wordInspector.close}
-                onRetry={wordInspector.retry}
+                insight={inspectorInsight}
+                isLoading={isInspectorLoading}
+                error={inspectorError}
+                isOpen={isInspectorOpen}
+                position={inspectorPosition}
+                onClose={closeWordInspector}
+                onRetry={retryInspector}
                 onPlaySentence={handlePlaySentence}
                 onPlayFromWord={handlePlayFromWord}
                 provider={tooltipProvider}

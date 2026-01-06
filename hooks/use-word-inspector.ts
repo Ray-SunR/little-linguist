@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { useWordList, type WordInsight, getWordInsightProvider } from "@/lib/features/word-insight";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { normalizeWord } from "@/lib/core/types/domain";
@@ -119,7 +119,7 @@ export function useWordInspector(): UseWordInspectorReturn {
     }
   }, [selectedWord, selectedWordIndex, position, openWord]);
 
-  return {
+  return useMemo(() => ({
     selectedWord,
     selectedWordIndex,
     isOpen,
@@ -130,5 +130,16 @@ export function useWordInspector(): UseWordInspectorReturn {
     openWord,
     close,
     retry,
-  };
+  }), [
+    selectedWord,
+    selectedWordIndex,
+    isOpen,
+    isLoading,
+    error,
+    insight,
+    position,
+    openWord,
+    close,
+    retry,
+  ]);
 }

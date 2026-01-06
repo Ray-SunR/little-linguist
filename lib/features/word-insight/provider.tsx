@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import type { WordInsight } from "./types";
 import { DatabaseWordService } from "./implementations/database-word-service";
 import { createClient } from "@/lib/supabase/client";
@@ -21,11 +21,16 @@ const WordListContext = createContext<WordListContextType | undefined>(undefined
 export function WordListProvider({ children }: { children: React.ReactNode }) {
     const [words, setWords] = useState<WordInsight[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const isFetchingRef = useRef(false);
     const supabase = createClient();
 
     const loadWords = async () => {
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
+
         try {
-            setIsLoading(true);
+            // Only set loading if we don't have words yet (visual speedup)
+            if (words.length === 0) setIsLoading(true);
 
             // 1. Try cache first
             const cachedList = await raidenCache.getAll<WordInsight>(CacheStore.USER_WORDS);
@@ -36,18 +41,26 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
 
             // 2. Fetch fresh
             const list = await dbService.getWords();
-            setWords(list);
+            
+            // Map fresh list for cache with IDs
+            const listForCache = list.map(w => ({
+                ...w,
+                id: `${w.word.toLowerCase()}:${(w as any).bookId || 'global'}`
+            }));
 
-            // 3. Update cache
+            setWords(listForCache);
+
+            // 3. Update cache using batched putAll
             await raidenCache.clear(CacheStore.USER_WORDS);
-            for (const word of list) {
-                await raidenCache.put(CacheStore.USER_WORDS, word);
+            if (listForCache.length > 0) {
+                await raidenCache.putAll(CacheStore.USER_WORDS, listForCache);
             }
         } catch (error) {
             console.error("Failed to load words", error);
-            setWords([]);
+            if (words.length === 0) setWords([]);
         } finally {
             setIsLoading(false);
+            isFetchingRef.current = false;
         }
     };
 
@@ -65,13 +78,42 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
     }, [supabase]);
 
     const addWord = async (word: WordInsight, bookId?: string) => {
-        await dbService.addWord(word, bookId);
-        await loadWords();
+        const enrichedWord = { 
+            ...word, 
+            bookId, 
+            id: `${word.word.toLowerCase()}:${bookId || 'global'}` 
+        };
+        const previousWords = words;
+
+        // Optimistic update
+        setWords(prev => [enrichedWord, ...prev]);
+
+        try {
+            await dbService.addWord(word, bookId);
+            // Sync cache
+            await raidenCache.put(CacheStore.USER_WORDS, enrichedWord);
+        } catch (err) {
+            console.error("Failed to add word, rolling back:", err);
+            setWords(previousWords);
+            // Optionally surface error to UI
+        }
     };
 
     const removeWord = async (wordStr: string, bookId?: string) => {
-        await dbService.removeWord(wordStr, bookId);
-        await loadWords();
+        const previousWords = words;
+        const wordId = `${wordStr.toLowerCase()}:${bookId || 'global'}`;
+
+        // Optimistic update
+        setWords(prev => prev.filter(w => (w as any).id !== wordId));
+
+        try {
+            await dbService.removeWord(wordStr, bookId);
+            // Sync cache
+            await raidenCache.delete(CacheStore.USER_WORDS, wordId);
+        } catch (err) {
+            console.error("Failed to remove word, rolling back:", err);
+            setWords(previousWords);
+        }
     };
 
     const hasWord = (wordStr: string, bookId?: string) => {
