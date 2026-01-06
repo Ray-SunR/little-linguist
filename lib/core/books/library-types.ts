@@ -7,6 +7,7 @@ export interface LibraryBookCard {
     id: string;
     title: string;
     coverImageUrl?: string;
+    coverPath?: string;
     updated_at?: string;
     voice_id?: string;
     owner_user_id?: string | null;

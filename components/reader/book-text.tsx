@@ -1,14 +1,15 @@
 "use client";
 
 import React from "react";
-import type { WordToken } from "@/lib/core";
-import type { BookImage } from "@/lib/core";
+import type { BookImage, WordToken } from "@/lib/core";
+import { CachedImage } from "@/components/ui/cached-image";
 
 type BookTextProps = {
   tokens: WordToken[];
   currentWordIndex: number | null;
   onWordClick?: (word: string, element: HTMLElement, wordIndex: number) => void;
   images?: BookImage[];
+  onImageLoad?: () => void;
 };
 
 export default function BookText({
@@ -80,11 +81,13 @@ export default function BookText({
                     </div>
                   </div>
                 ) : (
-                  <img
+                  <CachedImage
                     src={image.src}
+                    storagePath={image.storagePath}
                     alt={image.alt || ""}
-                    className="book-image animate-in fade-in zoom-in-95 duration-700"
-                    loading="lazy"
+                    className="book-image animate-in fade-in zoom-in-95 duration-700 w-full"
+                    width={800} // Approximate width for optimization
+                    height={600}
                     onLoad={onImageLoad}
                   />
                 )}

@@ -13,6 +13,7 @@ import type { Story, UserProfile } from "@/lib/features/story";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { compressImage } from "@/lib/core/utils/image";
 import { bookCache } from "@/lib/core/cache";
+import { CachedImage } from "@/components/ui/cached-image";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -37,10 +38,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     // Initial setup if props change (though usually this component mounts once)
     useEffect(() => {
         if (initialProfile) {
-             setProfile(prev => ({
-                 ...prev,
-                 ...initialProfile
-             }));
+            setProfile(prev => ({
+                ...prev,
+                ...initialProfile
+            }));
         }
     }, [initialProfile]);
 
@@ -287,9 +288,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     )}>
                                         {profile.avatarUrl ? (
                                             <div className="relative w-full h-full p-4">
-                                                <img
+                                                <CachedImage
                                                     src={profile.avatarUrl}
+                                                    storagePath={profile.avatarUrl.startsWith('data:') ? undefined : profile.avatarUrl}
                                                     alt="Preview"
+                                                    fill
                                                     className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
                                                 />
                                                 <motion.button

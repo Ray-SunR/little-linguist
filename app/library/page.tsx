@@ -49,6 +49,7 @@ function LibraryContent() {
                 id: string;
                 title: string;
                 coverImageUrl?: string;
+                coverPath?: string;
                 updated_at?: string;
                 voice_id?: string;
                 owner_user_id?: string | null;
@@ -84,6 +85,7 @@ function LibraryContent() {
                 id: book.id,
                 title: book.title,
                 coverImageUrl: book.coverImageUrl,
+                coverPath: book.coverPath,
                 updated_at: book.updated_at,
                 voice_id: book.voice_id,
                 owner_user_id: book.owner_user_id,

@@ -153,6 +153,7 @@ export class BookRepository {
                 id: book.id,
                 title: book.title,
                 coverImageUrl,
+                coverPath, // Return raw path for stable cache key
                 updated_at: book.updated_at,
                 voice_id: book.voice_id,
                 owner_user_id: book.owner_user_id,
@@ -201,7 +202,11 @@ export class BookRepository {
                     const { data: signedData } = await this.supabase.storage
                         .from('book-assets')
                         .createSignedUrl(img.src, 3600);
-                    return { ...img, src: signedData?.signedUrl || img.src };
+                    return {
+                        ...img,
+                        src: signedData?.signedUrl || img.src,
+                        storagePath: img.src // Preserve original path for caching
+                    };
                 }
                 return img;
             }));
@@ -259,7 +264,11 @@ export class BookRepository {
                             .createSignedUrl(img.src, 3600);
 
                         if (!signError && signedData) {
-                            return { ...img, src: signedData.signedUrl };
+                            return {
+                                ...img,
+                                src: signedData.signedUrl,
+                                storagePath: img.src // Preserve original path for caching
+                            };
                         }
                     }
                     return img;
@@ -283,6 +292,7 @@ export class BookRepository {
                         afterWordIndex: Number(m.after_word_index),
                         ...(m.metadata || {}),
                         src: finalUrl,
+                        storagePath: m.path, // Preserve original path for caching
                         isPlaceholder: false
                     };
                 }));

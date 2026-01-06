@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useWordList, type WordInsight, getWordInsightProvider } from "@/lib/features/word-insight";
+import { raidenCache, CacheStore } from "@/lib/core/cache";
+import { normalizeWord } from "@/lib/core/types/domain";
 
 export interface TooltipPosition {
   x: number;
@@ -37,8 +39,6 @@ export function useWordInspector(): UseWordInspectorReturn {
   const [insight, setInsight] = useState<WordInsight | null>(null);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
 
-  // In-memory cache for session
-  const cacheRef = useRef<Map<string, WordInsight>>(new Map());
   const serviceRef = useRef(getWordInsightProvider());
 
   const openWord = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
@@ -62,8 +62,10 @@ export function useWordInspector(): UseWordInspectorReturn {
     setIsOpen(true);
     setError(null);
 
-    // Check cache first
-    const cached = cacheRef.current.get(trimmedWord.toLowerCase());
+    const normalized = normalizeWord(trimmedWord);
+
+    // Check RaidenCache first
+    const cached = await raidenCache.get<WordInsight>(CacheStore.WORD_INSIGHTS, normalized);
     if (cached) {
       setInsight(cached);
       setIsLoading(false);
@@ -76,8 +78,8 @@ export function useWordInspector(): UseWordInspectorReturn {
     try {
       const result = await serviceRef.current.getInsight(trimmedWord);
 
-      // Cache successful result
-      cacheRef.current.set(trimmedWord.toLowerCase(), result);
+      // Cache persistent result
+      await raidenCache.put(CacheStore.WORD_INSIGHTS, result);
 
       setInsight(result);
       setError(null);
@@ -105,7 +107,7 @@ export function useWordInspector(): UseWordInspectorReturn {
   const retry = useCallback(async () => {
     if (selectedWord && position && selectedWordIndex !== null) {
       // Clear cache for this word and retry
-      cacheRef.current.delete(selectedWord.toLowerCase());
+      await raidenCache.delete(CacheStore.WORD_INSIGHTS, normalizeWord(selectedWord));
       // Need to recreate element for retry - use approximate position
       const fakeElement = document.elementFromPoint(
         position.x + position.width / 2,

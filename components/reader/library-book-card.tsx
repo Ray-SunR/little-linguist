@@ -4,7 +4,7 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass } from "lucide-react";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { MouseEvent, useRef, useState, memo, useCallback } from "react";
-import Image from "next/image";
+import { CachedImage } from "@/components/ui/cached-image";
 import Link from "next/link";
 import { cn } from "@/lib/core";
 
@@ -31,8 +31,9 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete }: LibraryBookCar
     const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-15deg", "15deg"]);
     const liftZ = useSpring(0, { stiffness: 300, damping: 30 });
 
-    // Use coverImageUrl from library metadata
+    // Use coverImageUrl and coverPath from library metadata
     const coverImage = book.coverImageUrl;
+    const coverPath = book.coverPath;
 
     // Shiny spotlight effect
     const spotX = useTransform(mouseX, [-0.5, 0.5], ["0%", "100%"]);
@@ -130,8 +131,9 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete }: LibraryBookCar
                                 {/* Cover Image Area */}
                                 <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[1.8rem] border-4 border-white shadow-clay-inset group-hover:shadow-2xl transition-all duration-500">
                                     {coverImage ? (
-                                        <Image
+                                        <CachedImage
                                             src={coverImage}
+                                            storagePath={coverPath}
                                             alt={book.title}
                                             fill
                                             className="object-cover transition-transform duration-700 group-hover:scale-110"

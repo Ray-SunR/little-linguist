@@ -14,15 +14,16 @@ const supabase = createClient(
 
 // Helper function to generate signed URLs
 async function getSignedUrlForChunk(chunk: any, bucketName: string) {
+    const storagePath = chunk.audio_path; // Keep original path
     if (chunk.audio_path && !chunk.audio_path.startsWith('http')) {
         const { data, error } = await supabase.storage
             .from(bucketName)
-            .createSignedUrl(chunk.audio_path, 3600); // 1 hour expiration
+            .createSignedUrl(chunk.audio_path, 3600);
         if (!error && data) {
-            return { ...chunk, audio_path: data.signedUrl };
+            return { ...chunk, audio_path: data.signedUrl, storagePath };
         }
     }
-    return chunk;
+    return { ...chunk, storagePath };
 }
 
 export async function GET(

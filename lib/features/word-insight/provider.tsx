@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import type { WordInsight } from "./types";
 import { DatabaseWordService } from "./implementations/database-word-service";
 import { createClient } from "@/lib/supabase/client";
+import { raidenCache, CacheStore } from "@/lib/core/cache";
 
 const dbService = new DatabaseWordService();
 
@@ -25,11 +26,25 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
     const loadWords = async () => {
         try {
             setIsLoading(true);
+
+            // 1. Try cache first
+            const cachedList = await raidenCache.getAll<WordInsight>(CacheStore.USER_WORDS);
+            if (cachedList && cachedList.length > 0) {
+                setWords(cachedList);
+                setIsLoading(false);
+            }
+
+            // 2. Fetch fresh
             const list = await dbService.getWords();
             setWords(list);
+
+            // 3. Update cache
+            await raidenCache.clear(CacheStore.USER_WORDS);
+            for (const word of list) {
+                await raidenCache.put(CacheStore.USER_WORDS, word);
+            }
         } catch (error) {
             console.error("Failed to load words", error);
-            // On 401/403 we just keep words as empty
             setWords([]);
         } finally {
             setIsLoading(false);

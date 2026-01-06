@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/core/utils/cn";
+import { CachedImage } from "./cached-image";
 
 interface LumoCharacterProps {
   className?: string;
@@ -30,10 +31,11 @@ export function LumoCharacter({ className, size = "md" }: LumoCharacterProps) {
         ease: "easeInOut",
       }}
     >
-      <img
+      <CachedImage
         src="/lumo-mascot.png"
         alt="Lumo Mascot"
-        className="w-full h-full object-contain relative z-10 rounded-full"
+        fill
+        className="object-contain relative z-10 rounded-full"
       />
     </motion.div>
   );

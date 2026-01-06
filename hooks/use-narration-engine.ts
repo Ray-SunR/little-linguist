@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { resolveMediaUrl } from '@/lib/core/cached-media';
 
 export type PlaybackState = 'playing' | 'paused' | 'stopped' | 'buffering';
 
@@ -8,7 +9,8 @@ export interface NarrationShard {
     chunk_index: number;
     start_word_index: number;
     end_word_index: number;
-    audio_path: string; // This will be the signed URL
+    audio_path: string; // The signed URL
+    storagePath?: string; // Stable storage path for caching
     timings: Array<{
         time: number;
         type: string;
@@ -105,13 +107,24 @@ export function useNarrationEngine({
         const shard = shardsRef.current[shardIndex];
         if (!shard.audio_path) return;
 
+        // Resolve cached URL if possible
+        const resolvedUrl = shard.storagePath
+            ? await resolveMediaUrl(shard.storagePath, shard.audio_path)
+            : shard.audio_path;
+
+        if (shard.storagePath && resolvedUrl.startsWith('blob:')) {
+            console.log(`[Narration] Audio HIT: ${shard.storagePath}`);
+        } else if (shard.storagePath) {
+            console.log(`[Narration] Audio MISS: ${shard.storagePath}`);
+        }
+
         if (!audioRef.current) {
             audioRef.current = new Audio();
-            setAudioReady(true); // Trigger effect to attach event listeners
+            setAudioReady(true);
         }
 
         const audio = audioRef.current;
-        const isSameSource = audio.src === shard.audio_path;
+        const isSameSource = audio.src === resolvedUrl;
 
         const initiatePlayback = async () => {
             audio.playbackRate = speed;
@@ -133,7 +146,7 @@ export function useNarrationEngine({
             await initiatePlayback();
         } else {
             setState('buffering');
-            audio.src = shard.audio_path;
+            audio.src = resolvedUrl;
 
             // Wait for metadata to be loaded before seeking
             await new Promise<void>((resolve) => {

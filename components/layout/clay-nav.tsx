@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { ProfileSwitcher } from "@/components/profile/ProfileSwitcher";
+import { CachedImage } from "@/components/ui/cached-image";
 
 const navItems = [
     {
@@ -59,7 +60,7 @@ export function ClayNav() {
     const isLibraryView = pathname.startsWith("/library");
     const isDashboardView = pathname.startsWith("/dashboard");
     const [isExpanded, setIsExpanded] = useState(true);
-    
+
     // Optimistic UI: Track active tab locally for instant feedback
     const [activeTab, setActiveTab] = useState(pathname);
 
@@ -127,8 +128,14 @@ export function ClayNav() {
                     className="clay-card py-2.5 px-5 bg-white/40 backdrop-blur-2xl border-2 border-white/60 shadow-xl flex items-center gap-4 pointer-events-auto"
                 >
                     <div className="flex items-center gap-3">
-                         {avatarUrl ? (
-                            <img src={avatarUrl} alt={fullName} className="w-9 h-9 rounded-full border-2 border-orange-200 object-cover shadow-sm" />
+                        {avatarUrl ? (
+                            <CachedImage
+                                src={avatarUrl}
+                                alt={fullName}
+                                width={36}
+                                height={36}
+                                className="rounded-full border-2 border-orange-200 object-cover shadow-sm"
+                            />
                         ) : (
                             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center border-2 border-white shadow-sm">
                                 <span className="text-sm font-fredoka font-black text-white">{userInitial}</span>
@@ -139,10 +146,10 @@ export function ClayNav() {
                             <span className="text-sm font-black text-ink font-fredoka leading-none">{fullName || user?.email?.split('@')[0]}</span>
                         </div>
                     </div>
-                    
+
                     <div className="w-[1px] h-6 bg-ink/5 mx-1" />
-                    
-                    <button 
+
+                    <button
                         onClick={handleLogout}
                         className="p-2 transition-colors hover:text-rose-500 text-ink-muted/60"
                         title="Sign Out"
@@ -170,7 +177,7 @@ export function ClayNav() {
                             isExpanded && "shadow-clay-purple"
                         )}
                     >
-                        <button 
+                        <button
                             onClick={() => setIsExpanded(false)}
                             className="flex items-center gap-3 group relative z-50 pl-2"
                             title="Fold Navigation"
@@ -192,13 +199,13 @@ export function ClayNav() {
                                 // Match both exact path and sub-paths (e.g. /library matching /library/book-1)
                                 // Use the local activeTab state for optimistic updates if available, falling back to pathname check
                                 const isActiveTab = activeTab === item.href || (activeTab !== "/" && activeTab.startsWith(item.href));
-                                
+
                                 const Icon = item.icon;
 
                                 return (
-                                    <Link 
-                                        key={item.href} 
-                                        href={item.href} 
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
                                         className="flex-1"
                                         onClick={() => handleNavClick(item.href)}
                                     >
@@ -229,7 +236,13 @@ export function ClayNav() {
                                 aria-label="Open Adventure Hub"
                             >
                                 {avatarUrl ? (
-                                    <img src={avatarUrl} alt={fullName} className="w-8 h-8 rounded-full border-2 border-orange-200 object-cover" />
+                                    <CachedImage
+                                        src={avatarUrl}
+                                        alt={fullName}
+                                        width={32}
+                                        height={32}
+                                        className="rounded-full border-2 border-orange-200 object-cover"
+                                    />
                                 ) : user ? (
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400/80 to-orange-500/80 flex items-center justify-center shadow-clay-orange ring-1 ring-white">
                                         <span className="text-[10px] font-fredoka font-black text-white">{userInitial}</span>
@@ -242,7 +255,7 @@ export function ClayNav() {
                         </div>
                     </motion.nav>
                 ) : (
-                        <motion.button
+                    <motion.button
                         key="nav-bead"
                         initial={{ scale: 0, opacity: 0, y: 50 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -255,14 +268,14 @@ export function ClayNav() {
                     >
                         <div className="relative group scale-110">
                             {/* Subtle pulse for interaction hint */}
-                            <motion.div 
+                            <motion.div
                                 className="absolute inset-0 bg-purple-400/20 blur-2xl rounded-full"
                                 animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.5, 0.3] }}
                                 transition={{ duration: 3, repeat: Infinity }}
                             />
                             <LumoCharacter size="lg" className="drop-shadow-2xl relative z-10" />
-                            
-                            <motion.div 
+
+                            <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 whileHover={{ opacity: 1, y: 0 }}
                                 className="absolute -top-16 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-2xl shadow-2xl border-2 border-purple-100 whitespace-nowrap hidden sm:block"
@@ -305,7 +318,7 @@ export function ClayNav() {
                                 />
                                 <div className="relative w-full h-full squircle bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-clay-orange border-4 border-white overflow-hidden">
                                     {avatarUrl ? (
-                                        <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                                        <CachedImage src={avatarUrl} alt={fullName} fill className="object-cover" />
                                     ) : user ? (
                                         <span className="text-6xl font-fredoka font-black text-white drop-shadow-2xl">{userInitial}</span>
                                     ) : (
@@ -340,16 +353,16 @@ export function ClayNav() {
                             <div className="space-y-4">
                                 {user && (
                                     <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <Link 
-                                            href="/profiles" 
+                                        <Link
+                                            href="/profiles"
                                             onClick={() => setIsHubOpen(false)}
                                             className="flex flex-col items-center justify-center p-4 rounded-2xl bg-purple-50 border-2 border-purple-100 hover:bg-purple-100 transition-all group"
                                         >
                                             <User className="w-6 h-6 text-purple-600 mb-2 group-hover:scale-110 transition-transform" />
                                             <span className="text-xs font-black font-fredoka text-purple-700 uppercase">Manage Heroes</span>
                                         </Link>
-                                        <Link 
-                                            href="/dashboard" 
+                                        <Link
+                                            href="/dashboard"
                                             onClick={() => setIsHubOpen(false)}
                                             className="flex flex-col items-center justify-center p-4 rounded-2xl bg-orange-50 border-2 border-orange-100 hover:bg-orange-100 transition-all group"
                                         >

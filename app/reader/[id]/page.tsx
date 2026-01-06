@@ -6,8 +6,7 @@ import LumoLoader from "@/components/ui/lumo-loader";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
-import { bookCache } from "@/lib/core/cache";
-import { ttsCache } from "@/lib/features/narration/tts-cache";
+import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { ErrorView } from "@/components/ui/error-view";
 
 interface ReaderPageProps {
@@ -30,18 +29,61 @@ function ReaderContent({ params }: ReaderPageProps) {
             // 1. Check cache first
             let cachedBook: SupabaseBook | undefined;
             try {
-                cachedBook = await bookCache.get(bookId);
+                cachedBook = await raidenCache.get<SupabaseBook>(CacheStore.BOOKS, bookId);
                 if (cachedBook) {
-                    // Treat missing cached_at as stale to avoid showing obsolete content
-                    const isStale = !cachedBook.cached_at || (Date.now() - cachedBook.cached_at > CACHE_EXPIRY_MS);
-                    if (!isStale) {
-                        // Use cached version but strip potentially stale progress
+                    // Check if the cached book has storagePath for images (migration check)
+                    const hasStoragePaths = !cachedBook.images || cachedBook.images.every(img => img.isPlaceholder || img.storagePath);
+
+                    if (hasStoragePaths) {
                         setCurrentBook({ ...cachedBook, initialProgress: undefined });
                         setIsLoading(false);
+                    } else {
+                        console.debug(`[Cache] Book ${bookId} missing storage paths, forcing re-fetch.`);
                     }
                 }
             } catch (err) {
                 console.error("Cache load failed:", err);
+            }
+
+            // 2. Fetch fresh metadata to check for updates
+            const headRes = await fetch(`/api/books/${bookId}?mode=metadata`);
+            const remoteBook = headRes.ok ? await headRes.json() : null;
+
+            // If we have a cached version and it's up to date, we can skip full fetch
+            const isUpToDate = cachedBook && remoteBook && cachedBook.updated_at === remoteBook.updated_at;
+
+            if (isUpToDate) {
+                console.debug(`[Cache] Book ${bookId} is up to date.`);
+
+                // 1. Check for cached shards first
+                let cachedShards: any | undefined;
+                try {
+                    const shardsData = await raidenCache.get<{ shards: any[] }>(CacheStore.SHARDS, bookId);
+                    if (shardsData?.shards && Array.isArray(shardsData.shards) && shardsData.shards.length > 0) {
+                        cachedShards = shardsData.shards;
+                    }
+                } catch (err) {
+                    console.warn(`[Cache] Shard load failed:`, err);
+                }
+
+                // 2. Only fetch if shards are missing or empty
+                const [narrationRes, progressRes] = await Promise.all([
+                    !cachedShards ? fetch(`/api/books/${bookId}/narration`) : Promise.resolve(null),
+                    fetch(`/api/books/${bookId}/progress`)
+                ]);
+
+                const shards = cachedShards || (narrationRes && narrationRes.ok ? await narrationRes.json() : []);
+                const progress = progressRes.ok ? await progressRes.json() : null;
+
+                // Persist if we fetched fresh shards
+                if (!cachedShards && shards.length > 0) {
+                    await raidenCache.put(CacheStore.SHARDS, { bookId, shards });
+                }
+
+                if (setCurrentBook) {
+                    setCurrentBook(prev => prev ? { ...prev, shards, initialProgress: progress } : null);
+                }
+                return;
             }
 
             // 2. Fetch fresh data for THIS book only
@@ -73,10 +115,13 @@ function ReaderContent({ params }: ReaderPageProps) {
                 owner_user_id: bookData.owner_user_id
             };
 
-            // 3. Cache this book
-            await bookCache.put(fullBook);
+            // 3. Cache this book (excluding potentially stale progress)
+            const { initialProgress, ...bookToCache } = fullBook;
+            await raidenCache.put(CacheStore.BOOKS, bookToCache);
+            await raidenCache.put(CacheStore.SHARDS, { bookId, shards: fullBook.shards });
 
             setCurrentBook(fullBook);
+
         } catch (err) {
             console.error('Failed to load book:', err);
             setError(err instanceof Error ? err.message : 'Failed to load book');
@@ -99,7 +144,9 @@ function ReaderContent({ params }: ReaderPageProps) {
             if (placeholderIndex !== -1) {
                 const updatedImages = [...currentImages];
                 updatedImages[placeholderIndex] = { ...newImage, isPlaceholder: false };
-                return { ...prev, images: updatedImages };
+                const updated = { ...prev, images: updatedImages };
+                raidenCache.put(CacheStore.BOOKS, updated);
+                return updated;
             }
 
             // 2. If no placeholder, check if we should update an existing real image
@@ -114,7 +161,9 @@ function ReaderContent({ params }: ReaderPageProps) {
             }
 
             // 3. Fallback: append if it's completely new (unlikely with placeholders)
-            return { ...prev, images: [...currentImages, newImage] };
+            const updated = { ...prev, images: [...currentImages, newImage] };
+            raidenCache.put(CacheStore.BOOKS, updated); // Async cache update
+            return updated;
         });
     }, [bookId]));
 
@@ -123,13 +172,17 @@ function ReaderContent({ params }: ReaderPageProps) {
             if (!prev || prev.id !== bookId) return prev;
             const shards = prev.shards || [];
             if (shards.some(s => s.chunk_index === newShard.chunk_index)) return prev;
-            return { ...prev, shards: [...shards, newShard] };
+            const updatedShards = [...shards, newShard];
+
+            // Sync to ShardsCache
+            raidenCache.put(CacheStore.SHARDS, { bookId, shards: updatedShards });
+
+            return { ...prev, shards: updatedShards };
         });
     }, [bookId]));
 
     useEffect(() => {
         loadCurrentBook();
-        ttsCache.init().catch(console.error);
     }, [loadCurrentBook]);
 
     if (isLoading && !currentBook) {
@@ -165,10 +218,10 @@ function ReaderContent({ params }: ReaderPageProps) {
                     <div className="relative">
                         <div className="absolute inset-0 bg-purple-400/30 blur-xl rounded-full animate-pulse" />
                         <div className="relative animate-bounce-slow">
-                             <LumoCharacter size="xs" className="shadow-2xl" />
+                            <LumoCharacter size="xs" className="shadow-2xl" />
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 rounded-full bg-white/90 px-6 py-2.5 shadow-clay border-2 border-purple-100 backdrop-blur-md">
                         <RefreshCw className="h-4 w-4 animate-spin text-purple-500" />
                         <span className="text-sm font-black text-purple-600 font-fredoka uppercase tracking-wide">AI is drawing images...</span>

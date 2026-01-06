@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { CachedImage } from "./cached-image";
 
 const LOADING_MESSAGES = [
   "Lumo is packing your bags for a story adventure...",
@@ -43,7 +44,7 @@ export default function LumoLoader({ fullPage = true }: LumoLoaderProps) {
           }}
           className="absolute inset-0 bg-amber-400/30 blur-3xl rounded-full"
         />
-        
+
         {/* Lumo Mascot */}
         <motion.div
           animate={{
@@ -57,13 +58,14 @@ export default function LumoLoader({ fullPage = true }: LumoLoaderProps) {
           }}
           className="relative z-10 w-32 h-32 md:w-40 md:h-40"
         >
-          <img
-            src="/logo.png"
+          <CachedImage
+            src="/lumo-mascot.png"
             alt="Lumo Mascot"
-            className="w-full h-full object-contain drop-shadow-clay"
+            fill
+            className="object-contain relative z-10 rounded-full"
           />
         </motion.div>
-        
+
         {/* Floating sparkles */}
         <Sparkle delay={0} top="20%" left="-10%" />
         <Sparkle delay={1} top="70%" right="-10%" />
@@ -111,7 +113,7 @@ export default function LumoLoader({ fullPage = true }: LumoLoaderProps) {
         {/* Decorative Blobs */}
         <div className="absolute top-[-10%] left-[-10%] w-[50vh] h-[50vh] bg-purple-200/40 rounded-full blur-3xl" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50vh] h-[50vh] bg-orange-100/40 rounded-full blur-3xl" />
-        
+
         {content}
       </div>
     );

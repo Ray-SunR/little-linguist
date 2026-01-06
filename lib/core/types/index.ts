@@ -8,6 +8,7 @@ export interface BookImage {
   src: string;
   caption: string;
   alt?: string;
+  storagePath?: string; // Optional stable path for caching
   isPlaceholder?: boolean;
 }
 
