@@ -14,6 +14,9 @@ export interface WordInsight {
     audioUrl?: string; // Definition audio URL
     wordAudioUrl?: string; // High-quality cached audio for the word itself
     exampleAudioUrls?: string[]; // High-quality cached audio for examples
+    audioPath?: string; // Definition audio storage path
+    wordAudioPath?: string; // Word audio storage path
+    exampleAudioPaths?: string[]; // Example audio storage paths
     wordTimings?: { // Timings for the definition
         wordIndex: number;
         startMs: number;

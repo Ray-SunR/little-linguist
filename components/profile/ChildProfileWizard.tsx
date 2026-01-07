@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { compressImage } from "@/lib/core/utils/image";
 import { CachedImage } from '@/components/ui/cached-image';
+import { useAuth } from '@/components/auth/auth-provider';
 
 type Step = 'name' | 'age' | 'gender' | 'avatar' | 'interests' | 'saving';
 
@@ -19,6 +20,7 @@ const INTEREST_OPTIONS = [
 
 export default function ChildProfileWizard() {
     const router = useRouter();
+    const { refreshProfiles } = useAuth();
     const [step, setStep] = useState<Step>('name');
     const [formData, setFormData] = useState({
         first_name: '',
@@ -73,8 +75,8 @@ export default function ChildProfileWizard() {
 
             if (result.error) throw new Error(result.error);
 
+            await refreshProfiles();
             router.push('/dashboard');
-            router.refresh();
         } catch (err: any) {
             setError(err.message || 'Something went wrong');
             setStep('interests');

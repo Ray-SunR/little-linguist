@@ -69,6 +69,9 @@ export async function POST(req: Request) {
                     audioUrl, // Definition
                     wordAudioUrl,
                     exampleAudioUrls: exampleAudioUrl ? [exampleAudioUrl] : [],
+                    audioPath: cached.audio_path,
+                    wordAudioPath: cached.word_audio_path,
+                    exampleAudioPaths: cached.example_audio_paths || [],
                     wordTimings: cached.timing_markers, // Definition timings
                     exampleTimings: cached.example_timing_markers || [],
                 });
@@ -147,6 +150,9 @@ export async function POST(req: Request) {
             wordAudioUrl: wordAudio?.url || "",
             audioUrl: defAudio?.url || "",
             exampleAudioUrls: exAudio ? [exAudio.url] : [],
+            audioPath: defAudio?.path || "",
+            wordAudioPath: wordAudio?.path || "",
+            exampleAudioPaths: exAudio ? [exAudio.path] : [],
             wordTimings: defAudio?.timings || [],
             exampleTimings: exAudio ? [exAudio.timings] : [],
         });

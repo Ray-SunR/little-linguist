@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { compressImage } from "@/lib/core/utils/image";
 import { CachedImage } from '@/components/ui/cached-image';
+import { useAuth } from '@/components/auth/auth-provider';
 
 interface Props {
     initialData?: ChildProfilePayload & { id?: string };
@@ -24,6 +25,7 @@ const INTEREST_OPTIONS = [
 
 export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }: Props) {
     const router = useRouter();
+    const { refreshProfiles } = useAuth();
     const [formData, setFormData] = useState<ChildProfilePayload>({
         first_name: initialData?.first_name || '',
         last_name: initialData?.last_name || '',
@@ -76,7 +78,7 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
             }
 
             if (onSuccess) onSuccess();
-            router.refresh();
+            await refreshProfiles();
 
         } catch (err: any) {
             setErrors(err.message || 'Something went wrong');

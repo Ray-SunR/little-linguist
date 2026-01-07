@@ -12,8 +12,9 @@ import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/
 import type { Story, UserProfile } from "@/lib/features/story";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { compressImage } from "@/lib/core/utils/image";
-import { bookCache } from "@/lib/core/cache";
+import { bookCache, raidenCache, CacheStore } from "@/lib/core/cache";
 import { CachedImage } from "@/components/ui/cached-image";
+import { useAuth } from "@/components/auth/auth-provider";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -23,6 +24,7 @@ interface StoryMakerClientProps {
 
 export default function StoryMakerClient({ initialProfile }: StoryMakerClientProps) {
     const { words } = useWordList();
+    const { user } = useAuth();
     const router = useRouter();
     const service = getStoryService();
     const [step, setStep] = useState<Step>("profile");
@@ -142,6 +144,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             // Prefill cache to make redirect instant
             await bookCache.put(initialSupabaseBook);
+
+            // Invalidate library metadata to force re-fetch on next visit
+            if (user?.id) {
+                await raidenCache.delete(CacheStore.LIBRARY_METADATA, user.id);
+            }
 
             // Redirect to the reader page which now contains the book ID in URL
             router.push(`/reader/${content.book_id}`);

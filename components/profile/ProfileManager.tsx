@@ -9,6 +9,7 @@ import ChildProfileWizard from './ChildProfileWizard';
 import ChildProfileForm from './ChildProfileForm';
 import { useRouter } from 'next/navigation';
 import { CachedImage } from '@/components/ui/cached-image';
+import { useAuth } from '@/components/auth/auth-provider';
 
 interface Props {
   initialChildren: ChildProfile[];
@@ -21,6 +22,7 @@ export default function ProfileManager({ initialChildren }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
+  const { refreshProfiles } = useAuth();
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
@@ -32,6 +34,9 @@ export default function ProfileManager({ initialChildren }: Props) {
       const updatedChildren = children.filter(c => c.id !== id);
       setChildren(updatedChildren);
       setDeletingId(null);
+
+      // Refresh global profile cache
+      await refreshProfiles();
 
       // Auto-redirect if no heroes left
       if (updatedChildren.length === 0) {
