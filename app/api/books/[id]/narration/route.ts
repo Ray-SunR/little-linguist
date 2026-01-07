@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { TextChunker } from '@/lib/core/books/text-chunker';
 import { Tokenizer } from '@/lib/core/books/tokenizer';

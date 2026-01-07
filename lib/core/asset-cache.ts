@@ -51,7 +51,10 @@ class AssetCache {
                     this.registry.set(cacheKey, { url, count: 0 });
                     return url;
                 } catch (err) {
-                    console.warn(`[AssetCache] Background fetch failed for ${objectKey}:`, err);
+                    const isAbort = err instanceof Error && (err.name === 'AbortError' || err.message === 'Aborted');
+                    if (!isAbort) {
+                        console.debug(`[AssetCache] Background fetch failed for ${objectKey} (falling back to network):`, err);
+                    }
                     throw err;
                 } finally {
                     this.pendingFetches.delete(cacheKey);
@@ -67,7 +70,7 @@ class AssetCache {
             if (signal?.aborted) {
                 // If we aborted while waiting, we don't increment the count
                 // and the caller should ignore the results.
-                throw new Error("Aborted");
+                throw new DOMException("The operation was aborted", "AbortError");
             }
 
             const activeEntry = this.registry.get(cacheKey);
@@ -79,7 +82,9 @@ class AssetCache {
             // but as a fallback, return the URL and don't increment count.
             return url;
         } catch (err) {
-            if (signal?.aborted) throw new Error("Aborted");
+            if (signal?.aborted || (err instanceof Error && err.name === 'AbortError')) {
+                throw new DOMException("The operation was aborted", "AbortError");
+            }
             return signedUrl;
         }
     }

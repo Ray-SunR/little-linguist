@@ -1,3 +1,5 @@
+"use client";
+
 import { notFound } from "next/navigation";
 import LandingPageContent from "@/components/landing-page/LandingPageContent";
 

@@ -1,18 +1,29 @@
-import { getChildren } from "@/app/actions/profiles";
+"use client";
+
 import ProfileManager from "@/components/profile/ProfileManager";
 import { ClayFooter } from "@/components/layout/clay-footer";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import LumoLoader from "@/components/ui/lumo-loader";
 
-export default async function ProfilesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export default function ProfilesPage() {
+  const { user, profiles, isLoading } = useAuth();
+  const router = useRouter();
 
-  if (!user) {
-    redirect("/login");
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return <LumoLoader />;
   }
 
-  const { data: children, error } = await getChildren();
+  if (!user) {
+    return null; // Handled by redirect
+  }
 
   return (
     <div className="min-h-screen bg-[--shell] font-sans selection:bg-accent selection:text-white overflow-x-hidden flex flex-col">
@@ -25,7 +36,7 @@ export default async function ProfilesPage() {
              <div className="absolute inset-0 bg-noise opacity-15 mix-blend-overlay" />
         </div>
 
-        <ProfileManager initialChildren={children || []} />
+        <ProfileManager initialChildren={profiles || []} />
       </main>
 
       <ClayFooter />

@@ -20,49 +20,60 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
-   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
+  const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
   const supabase = createClient();
   const CACHE_KEY = "raiden:profiles:v1";
-  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-  const hydrateFromCache = () => {
-    if (typeof window === "undefined") return;
+  const hydrateFromCache = async (uid?: string): Promise<ChildProfile[]> => {
+    if (typeof window === "undefined") return [];
     try {
-      const raw = window.localStorage.getItem(CACHE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { profiles: ChildProfile[]; cachedAt: number };
-      if (!parsed || !Array.isArray(parsed.profiles)) return;
-      const isFresh = Date.now() - (parsed.cachedAt || 0) < CACHE_TTL_MS;
-      if (isFresh && parsed.profiles.length > 0) {
-        setProfiles(parsed.profiles);
+      const { raidenCache, CacheStore } = await import("@/lib/core/cache");
+      // Keyed by uid to prevent cross-user leakage
+      const key = uid || "global";
+      const cached = await raidenCache.get<{ id: string; profiles: ChildProfile[]; cachedAt: number }>(
+        CacheStore.PROFILES,
+        key
+      );
+
+      if (cached?.profiles && Array.isArray(cached.profiles) && cached.profiles.length > 0) {
+        setProfiles(cached.profiles);
         const activeId = getCookie("activeChildId");
-        const found = activeId ? parsed.profiles.find((c) => c.id === activeId) : null;
-        setActiveChild(found ?? parsed.profiles[0]);
-        setIsLoading(false);
+        const found = activeId ? cached.profiles.find((c) => c.id === activeId) : null;
+        setActiveChild(found ?? cached.profiles[0]);
+        // Only set loading false if we have a key (meaning we are somewhat sure of the user)
+        if (uid) setIsLoading(false);
+        return cached.profiles;
       }
     } catch (err) {
       console.warn("[AuthProvider] Failed to hydrate profile cache:", err);
     }
+    return [];
   };
 
-  const persistProfiles = (data: ChildProfile[]) => {
-    if (typeof window === "undefined") return;
+  const persistProfiles = async (data: ChildProfile[], uid: string) => {
+    if (typeof window === "undefined" || !uid) return;
     try {
-      window.localStorage.setItem(
-        CACHE_KEY,
-        JSON.stringify({ profiles: data, cachedAt: Date.now() })
-      );
+      const { raidenCache, CacheStore } = await import("@/lib/core/cache");
+      await raidenCache.put(CacheStore.PROFILES, {
+        id: uid,
+        profiles: data,
+        cachedAt: Date.now(),
+      });
+      // Synchronous hint for next reload
+      window.localStorage.setItem(`raiden:has_profiles_cache:${uid}`, "true");
     } catch (err) {
       console.warn("[AuthProvider] Failed to persist profile cache:", err);
     }
   };
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = async (uid: string) => {
+    const { getChildren } = await import("@/app/actions/profiles");
     const { data } = await getChildren();
     if (data) {
       setProfiles(data);
-      persistProfiles(data);
+      await persistProfiles(data, uid);
       const activeId = getCookie("activeChildId");
       const found = activeId ? data.find((c) => c.id === activeId) : null;
       setActiveChild(found ?? (data[0] ?? null));
@@ -70,30 +81,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    hydrateFromCache();
+    const init = async () => {
+      try {
+        // 1. Check session first to avoid cross-user leakage during hydration
+        const { data: { session } } = await supabase.auth.getSession();
+        const uid = session?.user?.id;
+        setUser(session?.user ?? null);
 
-    // Check initial session
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const existingUser = session?.user ?? null;
-      setUser(existingUser);
-      if (existingUser) {
-        await fetchProfiles();
+        // 2. Hydrate from scoped cache if we have a user
+        if (uid) {
+            await hydrateFromCache(uid);
+            await fetchProfiles(uid);
+        }
+      } catch (err) {
+        console.error("[AuthProvider] Init failed:", err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
-    checkUser();
+    init();
 
-    // Listen for auth changes and reuse session payload to avoid extra /user calls
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const newUser = session?.user ?? null;
-      setUser(newUser);
       
       if (newUser && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-        await fetchProfiles();
+        setUser(prev => prev?.id === newUser.id ? prev : newUser);
+        await hydrateFromCache(newUser.id);
+        await fetchProfiles(newUser.id);
       } else if (!newUser) {
+        setUser(null);
         setProfiles([]);
+        if (typeof window !== "undefined") {
+            // Clear current user hint if any (though we usually key them now)
+            Object.keys(window.localStorage).forEach(key => {
+                if (key.startsWith('raiden:has_profiles_cache:')) {
+                    window.localStorage.removeItem(key);
+                }
+            });
+        }
       }
       
       setIsLoading(false);
@@ -105,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshProfiles = async () => {
-    await fetchProfiles();
+    if (user?.id) await fetchProfiles(user.id);
   };
 
   return (

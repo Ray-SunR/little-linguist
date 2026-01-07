@@ -1,3 +1,5 @@
+"use client";
+
 import ChildProfileWizard from '@/components/profile/ChildProfileWizard';
 import { motion } from 'framer-motion';
 

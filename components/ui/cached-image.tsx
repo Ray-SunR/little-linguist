@@ -26,6 +26,13 @@ export function CachedImage({ src, storagePath, alt, className, ...props }: Cach
 
         async function resolveUrl() {
             if (!storagePath) {
+                const isStableUrl = src?.startsWith("/") || src?.startsWith("blob:") || src?.startsWith("data:");
+                // Don't warn for Google or other stable public URLs that don't need caching
+                const isExternalStable = src?.includes("googleusercontent.com");
+                
+                if (src && !isStableUrl && !isExternalStable) {
+                    console.error(`[CachedImage] CRITICAL: Missing storagePath for unstable image. Caching skipped. Src: ${src}`);
+                }
                 if (isMounted) setDisplayUrl(src);
                 return;
             }
@@ -47,11 +54,10 @@ export function CachedImage({ src, storagePath, alt, className, ...props }: Cach
                     setDisplayUrl(cachedUrl);
                 }
             } catch (err) {
-                if (err instanceof Error && err.name === 'AbortError') return;
-                // Silence AbortError logs in production/development as they are expected
-                if (!(err instanceof Error && err.name === 'AbortError')) {
-                    console.warn("[CachedImage] Resolution failed:", err);
-                }
+                const isAbort = err instanceof Error && (err.name === 'AbortError' || err.message === 'Aborted');
+                if (isAbort) return;
+                
+                console.warn("[CachedImage] Resolution failed:", err);
                 if (isMounted) setDisplayUrl(src);
             }
         }

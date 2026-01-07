@@ -57,7 +57,7 @@ const MemoizedNavItem = memo(function NavItem({
 }: { 
     item: typeof navItems[0], 
     isActive: boolean,
-    onClick?: () => void
+    onClick?: (href: string) => void
 }) {
     const Icon = item.icon;
     
@@ -65,7 +65,7 @@ const MemoizedNavItem = memo(function NavItem({
         <Link
             href={item.href}
             className="flex-1"
-            onClick={onClick}
+            onClick={() => onClick?.(item.href)}
         >
             <motion.div
                 whileTap={{ scale: 0.8, y: -5 }}
@@ -101,45 +101,6 @@ export function ClayNav() {
         navItems.forEach(item => router.prefetch(item.href));
         router.prefetch("/profiles");
     }, [router]);
-
-    // Idle prefetch of light data to warm caches (library list)
-    useEffect(() => {
-        const endpoints = ["/api/books?mode=library"];
-        const controller = new AbortController();
-
-        const prefetch = () => {
-            endpoints.forEach((url) => {
-                fetch(url, { signal: controller.signal }).catch(() => {});
-            });
-        };
-
-        if (typeof window !== "undefined") {
-            const idleCb = (window as any).requestIdleCallback as undefined | ((cb: () => void) => number);
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-            if (idleCb) {
-                idleCb(() => {
-                    prefetch();
-                    clearTimeout(timeoutId);
-                });
-            } else {
-                const t = setTimeout(() => {
-                    prefetch();
-                    clearTimeout(timeoutId);
-                }, 1200);
-                return () => {
-                    clearTimeout(t);
-                    clearTimeout(timeoutId);
-                    controller.abort();
-                };
-            }
-
-            return () => {
-                clearTimeout(timeoutId);
-                controller.abort();
-            };
-        }
-    }, []);
 
     // Auto-fold in reader view, auto-expand on all main navigation pages
     useEffect(() => {
@@ -264,8 +225,7 @@ export function ClayNav() {
                                         key={item.href}
                                         item={item}
                                         isActive={activeNow}
-                                        // Optimistic feedback on tap
-                                        onClick={() => setPendingHref(item.href)}
+                                        onClick={(href) => setPendingHref(href)}
                                     />
                                 );
                             })}

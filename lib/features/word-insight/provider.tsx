@@ -35,9 +35,17 @@ const dbService = new DatabaseWordService();
  */
 const hydrateAudio = async (url?: string, storagePath?: string) => {
     if (!url) return undefined;
-    const cacheKey = storagePath || url;
+    
+    if (!storagePath) {
+        const isStableUrl = url.startsWith("/") || url.startsWith("blob:") || url.startsWith("data:");
+        if (!isStableUrl) {
+            console.error(`[WordList] CRITICAL: Missing storagePath for potentially unstable audio URL. Caching skipped. URL: ${url}`);
+        }
+        return url;
+    }
+
     try {
-        return await assetCache.getAsset(cacheKey, url);
+        return await assetCache.getAsset(storagePath, url);
     } catch (err) {
         console.warn("[WordList] audio cache miss:", err);
         return url;
@@ -70,7 +78,12 @@ async function getHydratedWords(): Promise<SavedWord[]> {
 
 export function WordListProvider({ children, fetchOnMount = true }: { children: React.ReactNode; fetchOnMount?: boolean }) {
     const [words, setWords] = useState<SavedWord[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(() => {
+        if (typeof window !== "undefined") {
+            return !window.localStorage.getItem("raiden:has_words_cache");
+        }
+        return true;
+    });
     const isFetchingRef = useRef(false);
     const { user, isLoading: authLoading } = useAuth();
     const pathname = usePathname();
@@ -94,6 +107,9 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
             const cachedList = await getHydratedWords();
             if (cachedList.length > 0) {
                 setWords(cachedList);
+                if (typeof window !== "undefined") {
+                    window.localStorage.setItem("raiden:has_words_cache", "true");
+                }
                 setIsLoading(false);
             }
 
@@ -148,7 +164,18 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
 
     // Load initial words and refresh on auth change
     useEffect(() => {
-        if (authLoading) return;
+        // If we don't want to fetch on mount, just shut down loader and exit
+        if (!fetchOnMount) {
+            setIsLoading(false);
+            return;
+        }
+        
+        // If auth is still loading, but we have a user (from previous render or memory), 
+        // we might be able to start fetching words anyway.
+        // However, we strictly wait for authLoading if we don't have a user yet.
+        if (authLoading && !user) {
+            return;
+        }
         
         const init = async () => {
             const cachedList = await getHydratedWords();
@@ -170,9 +197,9 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
                 }
             }
 
-            // If we are on the My Words page, ALWAYS fetch fresh (when allowed)
-            // If we are NOT on My Words page BUT cache is empty, fetch fresh anyway for tooltips (when allowed)
-            if (fetchOnMount && (isMyWordsRoute || !hasCache)) {
+            // If we are on the My Words page, ALWAYS fetch fresh
+            // If we are NOT on My Words page BUT cache is empty, fetch fresh anyway for tooltips
+            if (isMyWordsRoute || !hasCache) {
                 loadWords();
             } else {
                 setIsLoading(false);

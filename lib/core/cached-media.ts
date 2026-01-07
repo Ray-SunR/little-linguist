@@ -5,7 +5,12 @@ import { assetCache } from "./asset-cache";
  * Primarily used for audio playback to avoid redownloading chunks.
  */
 export async function resolveMediaUrl(storagePath: string, fallbackUrl: string): Promise<string> {
-    if (!storagePath) return fallbackUrl;
+    if (!storagePath) {
+        if (fallbackUrl) {
+            console.error(`[Media] CRITICAL: Missing storagePath for media. Caching skipped. Fallback: ${fallbackUrl}`);
+        }
+        return fallbackUrl;
+    }
 
     try {
         const decodedPath = decodeURIComponent(storagePath);
