@@ -67,6 +67,10 @@ export default function ChildProfileWizard() {
                 avatar_asset_path: avatarPreview || ''
             });
 
+            if (!result) {
+                throw new Error('No response from server. Please try again or use a smaller photo.');
+            }
+
             if (result.error) throw new Error(result.error);
 
             router.push('/dashboard');
@@ -98,8 +102,8 @@ export default function ChildProfileWizard() {
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto">
-            <div className="clay-card bg-white/70 backdrop-blur-xl p-8 md:p-12 rounded-[3.5rem] border-4 border-white shadow-2xl relative overflow-hidden min-h-[500px] flex flex-col">
+        <div className="w-full max-w-2xl mx-auto px-4 md:px-0">
+            <div className="clay-card bg-white/70 backdrop-blur-xl p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border-4 border-white shadow-2xl relative overflow-hidden min-h-[450px] md:min-h-[500px] flex flex-col">
 
                 {/* Progress Bar */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-purple-100/50">
@@ -135,7 +139,7 @@ export default function ChildProfileWizard() {
                                     <div className="w-20 h-20 bg-purple-100 rounded-3xl flex items-center justify-center mx-auto shadow-clay-purple-sm">
                                         <Sparkles className="w-10 h-10 text-purple-600" />
                                     </div>
-                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka">Who is our Hero?</h2>
+                                    <h2 className="text-2xl md:text-4xl font-black text-ink font-fredoka">Who is our Hero?</h2>
                                     <p className="text-ink-muted font-bold font-nunito">Let's start by naming your child's profile.</p>
                                 </div>
 
@@ -167,7 +171,7 @@ export default function ChildProfileWizard() {
                         {step === 'age' && (
                             <div className="w-full space-y-10 text-center">
                                 <div className="space-y-4">
-                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka">How old is <span className="text-purple-600">{formData.first_name}</span>?</h2>
+                                    <h2 className="text-2xl md:text-4xl font-black text-ink font-fredoka">How old is <span className="text-purple-600">{formData.first_name}</span>?</h2>
                                     <p className="text-ink-muted font-bold font-nunito">We'll tailor the stories to their age.</p>
                                 </div>
 
@@ -198,15 +202,15 @@ export default function ChildProfileWizard() {
                                     </motion.button>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-4">
-                                    <button onClick={() => prevStep('name')} className="ghost-btn h-16 px-8 flex items-center gap-2">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button onClick={() => prevStep('name')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 w-full sm:w-auto justify-center">
                                         <ChevronLeft /> Back
                                     </button>
                                     <motion.button
                                         onClick={() => nextStep('gender')}
                                         whileHover={{ scale: 1.05, y: -4 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="primary-btn h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest"
+                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto"
                                     >
                                         Yep! <ChevronRight className="ml-2 inline" />
                                     </motion.button>
@@ -253,15 +257,15 @@ export default function ChildProfileWizard() {
                                     </motion.button>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-4">
-                                    <button onClick={() => prevStep('age')} className="ghost-btn h-16 px-8 flex items-center gap-2 text-ink/70">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button onClick={() => prevStep('age')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
                                         <ChevronLeft /> Back
                                     </button>
                                     <motion.button
                                         onClick={() => nextStep('avatar')}
                                         whileHover={{ scale: 1.05, y: -4 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="primary-btn h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest"
+                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto"
                                     >
                                         Next <ChevronRight className="ml-2 inline" />
                                     </motion.button>
@@ -279,7 +283,7 @@ export default function ChildProfileWizard() {
 
                                 <div className="flex items-center justify-center">
                                     <label className={cn(
-                                        "w-64 h-64 rounded-[3rem] border-4 border-dashed transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group shadow-inner",
+                                        "w-48 h-48 md:w-64 md:h-64 rounded-[2.5rem] md:rounded-[3rem] border-4 border-dashed transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group shadow-inner",
                                         avatarPreview
                                             ? "border-emerald-200 bg-emerald-50/30"
                                             : "border-purple-200 bg-purple-50/30 hover:bg-purple-50 hover:border-purple-300"
@@ -353,15 +357,15 @@ export default function ChildProfileWizard() {
                                     </label>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-4">
-                                    <button onClick={() => prevStep('gender')} className="ghost-btn h-16 px-8 flex items-center gap-2 text-ink/70">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button onClick={() => prevStep('gender')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
                                         <ChevronLeft /> Back
                                     </button>
                                     <motion.button
                                         onClick={() => nextStep('interests')}
                                         whileHover={{ scale: 1.05, y: -4 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="primary-btn h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest"
+                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto"
                                     >
                                         {avatarPreview ? "Stunning!" : "Skip for now"} <ChevronRight className="ml-2 inline" />
                                     </motion.button>
@@ -402,8 +406,8 @@ export default function ChildProfileWizard() {
 
                                 {error && <p className="text-rose-500 font-bold font-nunito">{error}</p>}
 
-                                <div className="flex items-center justify-center gap-4">
-                                    <button onClick={() => prevStep('avatar')} className="ghost-btn h-16 px-8 flex items-center gap-2 text-ink/70">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button onClick={() => prevStep('avatar')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
                                         <ChevronLeft /> Back
                                     </button>
                                     <motion.button
@@ -411,7 +415,7 @@ export default function ChildProfileWizard() {
                                         disabled={formData.interests.length === 0}
                                         whileHover={{ scale: 1.05, y: -4 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="primary-btn h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50"
+                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 w-full sm:w-auto"
                                     >
                                         Complete Journey! ✨
                                     </motion.button>

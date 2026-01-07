@@ -147,7 +147,7 @@ export function ClayNav() {
                 <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="clay-card py-2.5 px-5 bg-white/40 backdrop-blur-2xl border-2 border-white/60 shadow-xl flex items-center gap-4 pointer-events-auto"
+                    className="clay-card py-2.5 px-5 bg-white/40 backdrop-blur-2xl border-2 border-white/60 shadow-xl hidden sm:flex items-center gap-4 pointer-events-auto"
                 >
                     <div className="flex items-center gap-3">
                                 {avatarUrl ? (

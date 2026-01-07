@@ -15,14 +15,14 @@ const inFlightLibraryFetch: Record<string, Promise<void> | null> = {};
 
 export default function LibraryContent() {
     const router = useRouter();
-    const { user } = useAuth();
-    const currentUserId = user?.id ?? "global";
+    const { user, isLoading: authLoading } = useAuth();
+    const currentUserId = user?.id;
     
     // Check for synchronous hints to avoid "Wait for it" flickering on mount
-    const hasCacheHint = typeof window !== "undefined" && !!window.localStorage.getItem(`raiden:has_library_cache:${currentUserId}`);
+    const hasCacheHint = typeof window !== "undefined" && currentUserId && !!window.localStorage.getItem(`raiden:has_library_cache:${currentUserId}`);
 
     const [books, setBooks] = useState<LibraryBookCard[]>(() => {
-        if (typeof window !== "undefined" && cachedLibraryBooks[currentUserId]) {
+        if (typeof window !== "undefined" && currentUserId && cachedLibraryBooks[currentUserId]) {
             return cachedLibraryBooks[currentUserId];
         }
         return [];
@@ -30,7 +30,7 @@ export default function LibraryContent() {
     
     const [isLoading, setIsLoading] = useState(() => {
         // If we have memory cache for THIS user, never show loader
-        if (cachedLibraryBooks[currentUserId]) return false;
+        if (currentUserId && cachedLibraryBooks[currentUserId]) return false;
         // If we have a hint from last session, assume we'll hydrate fast enough via sync effect
         if (hasCacheHint) return false;
         return true;
@@ -39,7 +39,7 @@ export default function LibraryContent() {
     const [error, setError] = useState<string | null>(null);
 
     const loadBooks = useCallback(async () => {
-        if (!currentUserId) return;
+        if (!currentUserId || authLoading) return;
         
         if (inFlightLibraryFetch[currentUserId]) return inFlightLibraryFetch[currentUserId];
 
@@ -116,12 +116,12 @@ export default function LibraryContent() {
         } finally {
             inFlightLibraryFetch[currentUserId] = null;
         }
-    }, [currentUserId]);
+    }, [currentUserId, authLoading]);
 
     // Instant hydration from cache on client
     useEffect(() => {
         const syncHydrate = async () => {
-            if (typeof window === "undefined") return;
+            if (typeof window === "undefined" || !currentUserId) return;
             
             const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, currentUserId);
             if (cached?.books) {
@@ -130,11 +130,13 @@ export default function LibraryContent() {
                 setIsLoading(false);
             }
         };
+        if (!currentUserId || authLoading) return;
+
         syncHydrate();
         loadBooks();
         // Fire and forget ttsCache init to keep main thread free
         setTimeout(() => ttsCache.init().catch(console.error), 0);
-    }, [currentUserId, loadBooks]);
+    }, [currentUserId, authLoading, loadBooks]);
 
 
     const handleDeleteBook = useCallback(async (id: string) => {
@@ -188,7 +190,7 @@ export default function LibraryContent() {
         <LibraryView
             books={books}
             onDeleteBook={handleDeleteBook}
-            currentUserId={currentUserId}
+            currentUserId={currentUserId || "global"}
         />
     );
 }

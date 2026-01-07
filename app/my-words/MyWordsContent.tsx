@@ -43,14 +43,14 @@ export default function MyWordsContent() {
     return (
         <div className="min-h-screen page-story-maker p-6 md:p-10 pb-32">
             <header className="mx-auto mb-10 max-w-6xl">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-8">
-                    <div className="flex items-start gap-6">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 mb-8">
+                    <div className="flex items-start gap-4 md:gap-6">
                         <div className="relative group shrink-0">
                             <motion.div
                                 animate={{ rotate: [0, 5, -5, 0] }}
                                 transition={{ duration: 4, repeat: Infinity }}
                             >
-                                <LumoCharacter size="xl" className="drop-shadow-2xl" />
+                                <LumoCharacter size="lg" className="md:w-32 md:h-32 drop-shadow-2xl" />
                             </motion.div>
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.8, x: 20 }}
@@ -63,7 +63,7 @@ export default function MyWordsContent() {
                             </motion.div>
                         </div>
                         <div>
-                            <h1 className="text-5xl font-black text-ink font-fredoka uppercase tracking-tight leading-none mb-2">
+                            <h1 className="text-3xl md:text-5xl font-black text-ink font-fredoka uppercase tracking-tight leading-none mb-2">
                                 My Treasury
                             </h1>
                             <p className="text-xl text-ink-muted font-bold font-nunito flex items-center gap-2">
@@ -87,7 +87,7 @@ export default function MyWordsContent() {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4 items-center mb-8">
+                <div className="flex overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 flex-nowrap md:flex-wrap items-center gap-3">
                     {[
                         { id: "all", label: "All Words", color: "bg-purple-500", shadow: "shadow-clay-purple", icon: "🌈" },
                         { id: "new", label: "New Sparkles", color: "bg-blue-500", shadow: "shadow-clay-blue", icon: "✨" },
@@ -99,13 +99,13 @@ export default function MyWordsContent() {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setActiveCategory(cat.id as WordCategory)}
                             className={cn(
-                                "relative flex items-center gap-3 px-8 py-4 rounded-[2rem] font-black font-fredoka text-sm uppercase tracking-wider transition-all border-4",
+                                "relative flex items-center gap-2 px-5 py-3 md:px-8 md:py-4 rounded-[1.5rem] md:rounded-[2rem] font-black font-fredoka text-[10px] md:text-sm uppercase tracking-wider transition-all border-4 whitespace-nowrap",
                                 activeCategory === cat.id
                                     ? `${cat.color} text-white ${cat.shadow} border-white shadow-xl`
-                                    : "bg-white/60 text-slate-400 border-white hover:bg-white hover:text-slate-600"
+                                    : "bg-white/60 text-slate-400 border-white hover:bg-white hover:text-slate-600 shadow-sm"
                             )}
                         >
-                            <span className="text-xl">{cat.icon}</span>
+                            <span className="text-lg md:text-xl">{cat.icon}</span>
                             {cat.label}
                             {activeCategory === cat.id && (
                                 <motion.div

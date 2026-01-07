@@ -26,6 +26,7 @@ export default function ProfileManager({ initialChildren }: Props) {
     setIsDeleting(true);
     try {
       const result = await deleteChildProfile(id);
+      if (!result) throw new Error('No response from server. Please try again.');
       if (result.error) throw new Error(result.error);
 
       const updatedChildren = children.filter(c => c.id !== id);

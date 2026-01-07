@@ -78,7 +78,7 @@ export default function LibraryView({ books, onDeleteBook, currentUserId }: Libr
                                 <Star className="h-3 w-3 fill-accent" />
                                 <span>PURE MAGIC • AD-FREE</span>
                             </div>
-                            <h1 className="font-fredoka text-4xl md:text-5xl font-black text-ink dark:text-white tracking-tight leading-tight">
+                            <h1 className="font-fredoka text-3xl md:text-5xl font-black text-ink dark:text-white tracking-tight leading-tight">
                                 Magical <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-purple-500 to-pink-500 drop-shadow-sm">Story Library</span>
                             </h1>
                         </motion.div>
@@ -138,7 +138,7 @@ export default function LibraryView({ books, onDeleteBook, currentUserId }: Libr
                                             "flex items-center gap-2 px-5 py-2.5 rounded-[1.2rem] font-fredoka text-xs font-black transition-all border-[3px] whitespace-nowrap",
                                             isActive
                                                 ? cn("bg-gradient-to-br text-white border-white/30 shadow-lg", cat.color)
-                                                : cn("bg-white/90 border-white/50 text-slate-500 hover:text-ink shadow-sm shadow-clay-inset", cat.bg)
+                                                : cn("bg-white/90 border-white/50 text-slate-500 hover:text-ink shadow-sm shadow-clay-inset px-4", cat.bg)
                                         )}
                                     >
                                         <cat.icon className={cn("h-3.5 w-3.5", !isActive && "opacity-60")} />

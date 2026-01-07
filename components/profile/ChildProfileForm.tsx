@@ -64,9 +64,11 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
             const payload = { ...formData, avatar_asset_path: avatarPreview || '' };
             if (initialData?.id) {
                 const result = await updateChildProfile(initialData.id, payload);
+                if (!result) throw new Error('No response from server. Please try again.');
                 if (result.error) throw new Error(result.error);
             } else {
                 const result = await createChildProfile(payload);
+                if (!result) throw new Error('No response from server. Please try again.');
                 if (result.error) throw new Error(result.error);
                 if (isFirstTime) {
                     router.push('/dashboard');

@@ -90,8 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // 2. Hydrate from scoped cache if we have a user
         if (uid) {
-            await hydrateFromCache(uid);
-            await fetchProfiles(uid);
+            const cachedProfiles = await hydrateFromCache(uid);
+            // Only force a network fetch if cache is empty
+            if (cachedProfiles.length === 0) {
+                await fetchProfiles(uid);
+            }
         }
       } catch (err) {
         console.error("[AuthProvider] Init failed:", err);

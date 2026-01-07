@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[--shell] font-sans selection:bg-accent selection:text-white overflow-x-hidden flex flex-col">
-      <main className="flex-grow flex flex-col items-center justify-center p-6 relative py-12 lg:py-24">
+      <main className="flex-grow flex flex-col items-center justify-center p-4 md:p-6 relative py-8 md:py-12 lg:py-24">
         
         {/* === Background Elements (Matching Story Maker Magic) === */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">

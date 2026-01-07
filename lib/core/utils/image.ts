@@ -2,7 +2,7 @@
  * Image processing utilities
  */
 
-const MAX_SIZE_MB = 4.5;
+const MAX_SIZE_MB = 3.0;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
 /**
@@ -53,7 +53,7 @@ export async function compressImage(file: File): Promise<string> {
                 ctx.drawImage(img, 0, 0, width, height);
 
                 // Recursive quality reduction if still too large
-                let quality = 0.9;
+                let quality = 0.95;
                 let dataUrl = canvas.toDataURL('image/jpeg', quality);
 
                 // Approximate check for size in base64 (roughly 1.33x the binary size)
