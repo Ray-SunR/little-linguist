@@ -8,12 +8,14 @@ import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supa
 import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { ErrorView } from "@/components/ui/error-view";
+import { assetCache } from "@/lib/core/asset-cache";
 
 interface ReaderPageProps {
     params: { id: string };
 }
 
 const CACHE_EXPIRY_MS = 50 * 60 * 1000; // 50 minutes
+type CachedShardRecord = { bookId: string; shards: any[]; updated_at?: string; audioPaths?: string[] };
 
 function ReaderContent({ params }: ReaderPageProps) {
     const bookId = params.id;
@@ -25,13 +27,23 @@ function ReaderContent({ params }: ReaderPageProps) {
         setIsLoading(true);
         setError(null);
 
+        const purgeCaches = async (shardRecord?: CachedShardRecord) => {
+            if (shardRecord?.audioPaths && shardRecord.audioPaths.length > 0) {
+                await Promise.all(shardRecord.audioPaths.map(path => assetCache.purge(path).catch(() => {})));
+            }
+            await raidenCache.delete(CacheStore.BOOKS, bookId);
+            await raidenCache.delete(CacheStore.SHARDS, bookId);
+        };
+
         try {
             // 1. Check cache first
             let cachedBook: SupabaseBook | undefined;
+            let cachedShardsRecord: CachedShardRecord | undefined;
             try {
                 cachedBook = await raidenCache.get<SupabaseBook>(CacheStore.BOOKS, bookId);
+                cachedShardsRecord = await raidenCache.get<CachedShardRecord>(CacheStore.SHARDS, bookId);
+
                 if (cachedBook) {
-                    // Check if the cached book has storagePath for images (migration check)
                     const hasStoragePaths = !cachedBook.images || cachedBook.images.every(img => img.isPlaceholder || img.storagePath);
 
                     if (hasStoragePaths) {
@@ -48,45 +60,28 @@ function ReaderContent({ params }: ReaderPageProps) {
             // 2. Fetch fresh metadata to check for updates
             const headRes = await fetch(`/api/books/${bookId}?mode=metadata`);
             const remoteBook = headRes.ok ? await headRes.json() : null;
+            const remoteUpdatedAt = remoteBook?.updated_at;
 
             // If we have a cached version and it's up to date, we can skip full fetch
-            const isUpToDate = cachedBook && remoteBook && cachedBook.updated_at === remoteBook.updated_at;
+            const isUpToDate = cachedBook && remoteBook && cachedBook.updated_at === remoteUpdatedAt;
 
-            if (isUpToDate) {
+            if (isUpToDate && cachedShardsRecord?.shards?.length) {
                 console.debug(`[Cache] Book ${bookId} is up to date.`);
 
-                // 1. Check for cached shards first
-                let cachedShards: any | undefined;
-                try {
-                    const shardsData = await raidenCache.get<{ shards: any[] }>(CacheStore.SHARDS, bookId);
-                    if (shardsData?.shards && Array.isArray(shardsData.shards) && shardsData.shards.length > 0) {
-                        cachedShards = shardsData.shards;
-                    }
-                } catch (err) {
-                    console.warn(`[Cache] Shard load failed:`, err);
-                }
-
-                // 2. Only fetch if shards are missing or empty
-                const [narrationRes, progressRes] = await Promise.all([
-                    !cachedShards ? fetch(`/api/books/${bookId}/narration`) : Promise.resolve(null),
+                const [progressRes] = await Promise.all([
                     fetch(`/api/books/${bookId}/progress`)
                 ]);
 
-                const shards = cachedShards || (narrationRes && narrationRes.ok ? await narrationRes.json() : []);
                 const progress = progressRes.ok ? await progressRes.json() : null;
 
-                // Persist if we fetched fresh shards
-                if (!cachedShards && shards.length > 0) {
-                    await raidenCache.put(CacheStore.SHARDS, { bookId, shards });
-                }
-
-                if (setCurrentBook) {
-                    setCurrentBook(prev => prev ? { ...prev, shards, initialProgress: progress } : null);
-                }
+                setCurrentBook(prev => {
+                    if (!prev || !cachedShardsRecord) return prev;
+                    return { ...prev, shards: cachedShardsRecord.shards, initialProgress: progress };
+                });
                 return;
             }
 
-            // 2. Fetch fresh data for THIS book only
+            // 2. Fetch fresh data for THIS book ONLY BEFORE purging
             const [bookRes, narrationRes, progressRes] = await Promise.all([
                 fetch(`/api/books/${bookId}?include=content,images`),
                 fetch(`/api/books/${bookId}/narration`),
@@ -94,6 +89,11 @@ function ReaderContent({ params }: ReaderPageProps) {
             ]);
 
             if (!bookRes.ok) {
+                // If network fails but we had a cached book, keep it instead of throwing
+                if (cachedBook) {
+                    console.warn(`[Reader] Fetch failed, keeping stale cached book ${bookId}`);
+                    return;
+                }
                 throw new Error('Book not found');
             }
 
@@ -101,24 +101,30 @@ function ReaderContent({ params }: ReaderPageProps) {
             const shards = narrationRes.ok ? await narrationRes.json() : [];
             const progress = progressRes.ok ? await progressRes.json() : null;
 
+            // Now that we have fresh data, check if we need to purge old assets
+            if (remoteUpdatedAt && cachedBook?.updated_at && cachedBook.updated_at !== remoteUpdatedAt) {
+                await purgeCaches(cachedShardsRecord);
+            } else if (remoteUpdatedAt && cachedShardsRecord?.updated_at && cachedShardsRecord.updated_at !== remoteUpdatedAt) {
+                await purgeCaches(cachedShardsRecord);
+            }
+
+
+            const initialProgress = progress;
             const fullBook: SupabaseBook = {
-                id: bookData.id,
-                title: bookData.title,
-                voice_id: bookData.voice_id,
-                text: bookData.text,
-                tokens: bookData.tokens || [],
-                images: bookData.images,
+                ...bookData,
                 shards: Array.isArray(shards) ? shards : [],
-                initialProgress: progress,
-                updated_at: bookData.updated_at,
+                initialProgress,
                 cached_at: Date.now(),
-                owner_user_id: bookData.owner_user_id
             };
 
             // 3. Cache this book (excluding potentially stale progress)
-            const { initialProgress, ...bookToCache } = fullBook;
+            const { initialProgress: _, ...bookToCache } = fullBook;
+            const audioPaths = (fullBook.shards as any[] || [])
+                .map((s) => s.storagePath)
+                .filter(Boolean);
+
             await raidenCache.put(CacheStore.BOOKS, bookToCache);
-            await raidenCache.put(CacheStore.SHARDS, { bookId, shards: fullBook.shards });
+            await raidenCache.put(CacheStore.SHARDS, { bookId, updated_at: bookData.updated_at, shards: fullBook.shards, audioPaths });
 
             setCurrentBook(fullBook);
 
@@ -174,8 +180,17 @@ function ReaderContent({ params }: ReaderPageProps) {
             if (shards.some(s => s.chunk_index === newShard.chunk_index)) return prev;
             const updatedShards = [...shards, newShard];
 
-            // Sync to ShardsCache
-            raidenCache.put(CacheStore.SHARDS, { bookId, shards: updatedShards });
+            // Sync to ShardsCache - Preserve updated_at if possible
+            const audioPaths = updatedShards
+                .map(s => (s as any).storagePath)
+                .filter(p => !!p);
+
+            raidenCache.put(CacheStore.SHARDS, { 
+                bookId, 
+                updated_at: prev.updated_at, 
+                shards: updatedShards,
+                audioPaths 
+            });
 
             return { ...prev, shards: updatedShards };
         });
@@ -234,8 +249,6 @@ function ReaderContent({ params }: ReaderPageProps) {
 
 export default function ReaderDetailPage({ params }: ReaderPageProps) {
     return (
-        <Suspense fallback={<LumoLoader />}>
-            <ReaderContent params={params} />
-        </Suspense>
+        <ReaderContent params={params} />
     );
 }

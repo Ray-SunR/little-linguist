@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { switchActiveChild, type ChildProfile } from '@/app/actions/profiles';
+import { switchActiveChild } from '@/app/actions/profiles';
 import { useAuth } from '@/components/auth/auth-provider';
 import { getCookie } from 'cookies-next';
 import { ChevronDown, Plus, User } from 'lucide-react';
@@ -11,22 +11,18 @@ import { CachedImage } from '@/components/ui/cached-image';
 
 export function ProfileSwitcher() {
   const router = useRouter();
-  const { profiles: children, isLoading } = useAuth();
-  const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
+  const { profiles: children, isLoading, refreshProfiles, activeChild, setActiveChild } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
-    
-    // Try to find active child from cookie
-    const activeId = getCookie('activeChildId');
-    if (activeId) {
-      const found = children.find(c => c.id === activeId);
-      if (found) setActiveChild(found);
-    } else if (children.length > 0) {
-      setActiveChild(children[0]);
+
+    if (!activeChild && children.length > 0) {
+      const activeId = getCookie('activeChildId');
+      const found = activeId ? children.find(c => c.id === activeId) : null;
+      setActiveChild(found ?? children[0]);
     }
-  }, [children, isLoading]);
+  }, [children, isLoading, activeChild, setActiveChild]);
 
   const handleSwitch = async (childId: string) => {
     const result = await switchActiveChild(childId);
@@ -34,6 +30,9 @@ export function ProfileSwitcher() {
       const selected = children.find(c => c.id === childId);
       if (selected) setActiveChild(selected);
       setIsOpen(false);
+      // Optimistic refresh of cached profiles to pick up latest name/avatar/age
+      await refreshProfiles();
+      // Soft refresh to update server components without full reload
       router.refresh();
     }
   };

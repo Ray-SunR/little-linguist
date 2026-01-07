@@ -1,28 +1,81 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo } from "react";
 import type { WordInsight } from "./types";
 import { DatabaseWordService } from "./implementations/database-word-service";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { useAuth } from "@/components/auth/auth-provider";
+import { usePathname } from "next/navigation";
+import { assetCache } from "@/lib/core/asset-cache";
 
-const dbService = new DatabaseWordService();
+export interface SavedWord extends WordInsight {
+    id: string; // word:bookId or word:global
+    bookId?: string;
+    createdAt?: string;
+    audio_path?: string;
+    word_audio_path?: string;
+    example_audio_paths?: string[];
+    // Status/SRS fields
+    status?: 'new' | 'review' | 'mastered';
+    nextReviewAt?: string;
+}
 
 type WordListContextType = {
-    words: WordInsight[];
+    words: SavedWord[];
     addWord: (word: WordInsight, bookId?: string) => Promise<void>;
     removeWord: (word: string, bookId?: string) => Promise<void>;
     hasWord: (word: string, bookId?: string) => boolean;
     isLoading: boolean;
 };
 
+const dbService = new DatabaseWordService();
+
+/**
+ * Prefetch and cache audio blobs using specific storage paths to avoid collisions.
+ */
+const hydrateAudio = async (url?: string, storagePath?: string) => {
+    if (!url) return undefined;
+    const cacheKey = storagePath || url;
+    try {
+        return await assetCache.getAsset(cacheKey, url);
+    } catch (err) {
+        console.warn("[WordList] audio cache miss:", err);
+        return url;
+    }
+};
+
 const WordListContext = createContext<WordListContextType | undefined>(undefined);
 
-export function WordListProvider({ children }: { children: React.ReactNode }) {
-    const [words, setWords] = useState<WordInsight[]>([]);
+/**
+ * Common logic to read words from cache and hydrate their audio URLs from assetCache.
+ */
+async function getHydratedWords(): Promise<SavedWord[]> {
+    const cachedList = await raidenCache.getAll<SavedWord>(CacheStore.USER_WORDS);
+    if (!cachedList || cachedList.length === 0) return [];
+
+    return await Promise.all(cachedList.map(async (w) => {
+        // Blob URLs don't survive reloads, signed URLs expire. Always try to resolve from assetCache.
+        const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
+        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
+        
+        const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
+            ? await Promise.all(w.exampleAudioUrls.map((u, idx) => 
+                hydrateAudio(u, w.example_audio_paths?.[idx] || u)
+            ))
+            : undefined;
+
+        return { ...w, audioUrl, wordAudioUrl, exampleAudioUrls } as SavedWord;
+    }));
+}
+
+export function WordListProvider({ children, fetchOnMount = true }: { children: React.ReactNode; fetchOnMount?: boolean }) {
+    const [words, setWords] = useState<SavedWord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const isFetchingRef = useRef(false);
     const { user, isLoading: authLoading } = useAuth();
+    const pathname = usePathname();
+
+    const isMyWordsRoute = useMemo(() => pathname?.startsWith("/my-words") ?? false, [pathname]);
 
     const loadWords = async () => {
         if (!user) {
@@ -37,21 +90,45 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
             // Only set loading if we don't have words yet (visual speedup)
             if (words.length === 0) setIsLoading(true);
 
-            // 1. Try cache first
-            const cachedList = await raidenCache.getAll<WordInsight>(CacheStore.USER_WORDS);
-            if (cachedList && cachedList.length > 0) {
+            // 1. Try cache first (hydrated)
+            const cachedList = await getHydratedWords();
+            if (cachedList.length > 0) {
                 setWords(cachedList);
                 setIsLoading(false);
             }
 
             // 2. Fetch fresh
             const list = await dbService.getWords();
+
+            // Batch audio hydration to avoid overloading network/memory
+            const BATCH_SIZE = 5;
+            const listForCache: SavedWord[] = [];
             
-            // Map fresh list for cache with IDs
-            const listForCache = list.map(w => ({
-                ...w,
-                id: `${w.word.toLowerCase()}:${(w as any).bookId || 'global'}`
-            }));
+            for (let i = 0; i < list.length; i += BATCH_SIZE) {
+                const batch = list.slice(i, i + BATCH_SIZE);
+                const processedBatch = await Promise.all(batch.map(async (w: any) => {
+                    const id = `${w.word.toLowerCase()}:${w.bookId || 'global'}`;
+                    
+                    // Use specific paths to avoid collisions
+                    const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
+                    const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
+                    
+                    const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
+                        ? await Promise.all(w.exampleAudioUrls.slice(0, 2).map((u: string, idx: number) =>
+                            hydrateAudio(u, w.example_audio_paths?.[idx] || u)
+                        ))
+                        : undefined;
+
+                    return {
+                        ...w,
+                        id,
+                        audioUrl,
+                        wordAudioUrl,
+                        exampleAudioUrls,
+                    } as SavedWord;
+                }));
+                listForCache.push(...processedBatch);
+            }
 
             setWords(listForCache);
 
@@ -72,20 +149,52 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
     // Load initial words and refresh on auth change
     useEffect(() => {
         if (authLoading) return;
-        loadWords();
-    }, [authLoading, user]);
+        
+        const init = async () => {
+            const cachedList = await getHydratedWords();
+            const hasCache = cachedList.length > 0;
+
+            if (hasCache) {
+                setWords(cachedList);
+                
+                // Background refresh if any item has a non-blob URL (likely expired) 
+                // or if it's been a while since last fetch.
+                const shouldBackgroundFetch = cachedList.some(w => 
+                    (w.audioUrl && !w.audioUrl.startsWith('blob:')) || 
+                    (w.wordAudioUrl && !w.wordAudioUrl.startsWith('blob:'))
+                );
+
+                if (shouldBackgroundFetch && !isMyWordsRoute) {
+                    console.debug("[WordList] Background fetch triggered due to potentially stale links.");
+                    loadWords();
+                }
+            }
+
+            // If we are on the My Words page, ALWAYS fetch fresh (when allowed)
+            // If we are NOT on My Words page BUT cache is empty, fetch fresh anyway for tooltips (when allowed)
+            if (fetchOnMount && (isMyWordsRoute || !hasCache)) {
+                loadWords();
+            } else {
+                setIsLoading(false);
+            }
+        };
+
+        init();
+    }, [authLoading, user, isMyWordsRoute, fetchOnMount]);
 
     const addWord = async (word: WordInsight, bookId?: string) => {
         if (!user) return;
-        const enrichedWord = { 
+        const wordId = `${word.word.toLowerCase()}:${bookId || 'global'}`;
+        const enrichedWord: SavedWord = { 
             ...word, 
             bookId, 
-            id: `${word.word.toLowerCase()}:${bookId || 'global'}` 
+            id: wordId
         };
-        const previousWords = words;
+
+        const wordExists = words.some(w => w.id === wordId);
 
         // Optimistic update
-        setWords(prev => [enrichedWord, ...prev]);
+        setWords(prev => [enrichedWord, ...prev.filter(w => w.id !== wordId)]);
 
         try {
             await dbService.addWord(word, bookId);
@@ -93,18 +202,23 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
             await raidenCache.put(CacheStore.USER_WORDS, enrichedWord);
         } catch (err) {
             console.error("Failed to add word, rolling back:", err);
-            setWords(previousWords);
-            // Optionally surface error to UI
+            // Only remove if it didn't exist before
+            if (!wordExists) {
+                setWords(prev => prev.filter(w => w.id !== wordId));
+            } else {
+                // If it existed, we might want to refetch to restore original state if it changed
+                loadWords();
+            }
         }
     };
 
     const removeWord = async (wordStr: string, bookId?: string) => {
         if (!user) return;
-        const previousWords = words;
         const wordId = `${wordStr.toLowerCase()}:${bookId || 'global'}`;
+        const wordToRestore = words.find(w => w.id === wordId);
 
         // Optimistic update
-        setWords(prev => prev.filter(w => (w as any).id !== wordId));
+        setWords(prev => prev.filter(w => w.id !== wordId));
 
         try {
             await dbService.removeWord(wordStr, bookId);
@@ -112,15 +226,17 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
             await raidenCache.delete(CacheStore.USER_WORDS, wordId);
         } catch (err) {
             console.error("Failed to remove word, rolling back:", err);
-            setWords(previousWords);
+            if (wordToRestore) {
+                setWords(prev => [wordToRestore, ...prev]);
+            }
         }
     };
 
     const hasWord = (wordStr: string, bookId?: string) => {
         return words.some((w) => {
             const wordMatch = w.word.toLowerCase() === wordStr.toLowerCase();
-            if (bookId && (w as any).bookId) {
-                return wordMatch && (w as any).bookId === bookId;
+            if (bookId && w.bookId) {
+                return wordMatch && w.bookId === bookId;
             }
             return wordMatch;
         });

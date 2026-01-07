@@ -52,10 +52,12 @@ const navItems = [
 
 const MemoizedNavItem = memo(function NavItem({ 
     item, 
-    isActive 
+    isActive,
+    onClick
 }: { 
     item: typeof navItems[0], 
-    isActive: boolean
+    isActive: boolean,
+    onClick?: () => void
 }) {
     const Icon = item.icon;
     
@@ -63,6 +65,7 @@ const MemoizedNavItem = memo(function NavItem({
         <Link
             href={item.href}
             className="flex-1"
+            onClick={onClick}
         >
             <motion.div
                 whileTap={{ scale: 0.8, y: -5 }}
@@ -86,8 +89,9 @@ export function ClayNav() {
     const pathname = usePathname();
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
-    const { user } = useAuth();
+    const { user, activeChild } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
+    const [pendingHref, setPendingHref] = useState<string | null>(null);
     const isReaderView = pathname.startsWith("/reader");
     const isLibraryView = pathname.startsWith("/library");
     const [isExpanded, setIsExpanded] = useState(true);
@@ -98,6 +102,45 @@ export function ClayNav() {
         router.prefetch("/profiles");
     }, [router]);
 
+    // Idle prefetch of light data to warm caches (library list)
+    useEffect(() => {
+        const endpoints = ["/api/books?mode=library"];
+        const controller = new AbortController();
+
+        const prefetch = () => {
+            endpoints.forEach((url) => {
+                fetch(url, { signal: controller.signal }).catch(() => {});
+            });
+        };
+
+        if (typeof window !== "undefined") {
+            const idleCb = (window as any).requestIdleCallback as undefined | ((cb: () => void) => number);
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            if (idleCb) {
+                idleCb(() => {
+                    prefetch();
+                    clearTimeout(timeoutId);
+                });
+            } else {
+                const t = setTimeout(() => {
+                    prefetch();
+                    clearTimeout(timeoutId);
+                }, 1200);
+                return () => {
+                    clearTimeout(t);
+                    clearTimeout(timeoutId);
+                    controller.abort();
+                };
+            }
+
+            return () => {
+                clearTimeout(timeoutId);
+                controller.abort();
+            };
+        }
+    }, []);
+
     // Auto-fold in reader view, auto-expand on all main navigation pages
     useEffect(() => {
         if (isReaderView) {
@@ -107,6 +150,13 @@ export function ClayNav() {
             setIsExpanded(true);
         }
     }, [pathname, isReaderView]);
+
+    // Clear pending state when navigation completes
+    useEffect(() => {
+        if (pendingHref && pathname.startsWith(pendingHref)) {
+            setPendingHref(null);
+        }
+    }, [pathname, pendingHref]);
 
     const handleLogout = async () => {
         const { createClient } = await import("@/lib/supabase/client");
@@ -119,7 +169,7 @@ export function ClayNav() {
     // Hide nav on landing, dashboard, and login - these pages have their own layouts
     if (pathname === "/" || pathname === "/login") return null;
 
-    const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || "";
+    const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "";
     const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
     const userInitial = fullName ? fullName[0].toUpperCase() : (user?.email?.[0]?.toUpperCase() ?? "?");
 
@@ -139,19 +189,19 @@ export function ClayNav() {
                     className="clay-card py-2.5 px-5 bg-white/40 backdrop-blur-2xl border-2 border-white/60 shadow-xl flex items-center gap-4 pointer-events-auto"
                 >
                     <div className="flex items-center gap-3">
-                        {avatarUrl ? (
-                            <CachedImage
-                                src={avatarUrl}
-                                alt={fullName}
-                                width={36}
-                                height={36}
-                                className="rounded-full border-2 border-orange-200 object-cover shadow-sm"
-                            />
-                        ) : (
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center border-2 border-white shadow-sm">
-                                <span className="text-sm font-fredoka font-black text-white">{userInitial}</span>
-                            </div>
-                        )}
+                                {avatarUrl ? (
+                                    <CachedImage
+                                        src={avatarUrl}
+                                        alt={fullName}
+                                        width={36}
+                                        height={36}
+                                        className="rounded-full border-2 border-orange-200 object-cover shadow-sm"
+                                    />
+                                ) : (
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center border-2 border-white shadow-sm">
+                                        <span className="text-sm font-fredoka font-black text-white">{userInitial}</span>
+                                    </div>
+                                )}
                         <div className="flex flex-col">
                             <span className="text-[10px] font-fredoka font-black text-ink-muted uppercase tracking-widest leading-none mb-0.5">Signed in as</span>
                             <span className="text-sm font-black text-ink font-fredoka leading-none">{fullName || user?.email?.split('@')[0]}</span>
@@ -208,11 +258,14 @@ export function ClayNav() {
                             )}
 
                             {navItems.map((item) => {
+                                const activeNow = isActive(item.href) || pendingHref === item.href;
                                 return (
                                     <MemoizedNavItem
                                         key={item.href}
                                         item={item}
-                                        isActive={isActive(item.href)}
+                                        isActive={activeNow}
+                                        // Optimistic feedback on tap
+                                        onClick={() => setPendingHref(item.href)}
                                     />
                                 );
                             })}

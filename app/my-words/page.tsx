@@ -3,15 +3,16 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Trash2, BookOpen, Sparkles, LayoutGrid, List, Volume2, ChevronRight, Star } from "lucide-react";
-import { useWordList } from "@/lib/features/word-insight";
+import { useWordList } from "@/lib/features/word-insight/provider";
 import { useState, useMemo, memo } from "react";
-import { cn } from "@/lib/core";
-import type { WordInsight } from "@/lib/features/word-insight";
-import { WordInsightView } from "@/components/reader/word-insight-view";
-import { playWordOnly } from "@/lib/features/narration";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
+import { RemoteTtsNarrationProvider } from "@/lib/features/narration/implementations/remote-tts-provider";
+import { playWordOnly } from "@/lib/features/narration";
+import { WordInsightView } from "@/components/reader/word-insight-view";
+import type { SavedWord } from "@/lib/features/word-insight/provider";
 import type { INarrationProvider } from "@/lib/features/narration";
 import { LumoCharacter } from "@/components/ui/lumo-character";
+import { cn } from "@/lib/core/utils/cn";
 import { Search, Info, RotateCcw } from "lucide-react";
 
 type WordCategory = "all" | "new" | "review";
@@ -29,11 +30,11 @@ export default function MyWordsPage() {
     const filteredWords = useMemo(() => {
         let list = words;
         if (activeCategory === "new") {
-            // Stub for "new" words logic (e.g. added in last 24h or status='new')
-            list = words.filter(w => (w as any).status === 'new' || true); // Default all for now
+            // Updated to use SavedWord status
+            list = words.filter(w => w.status === 'new' || true); // Default all for now
         } else if (activeCategory === "review") {
-            // Stub for "review" words logic (e.g. next_review_at <= now())
-            list = words.filter(w => (w as any).nextReviewAt ? new Date((w as any).nextReviewAt) <= new Date() : false);
+            // Updated to use SavedWord nextReviewAt
+            list = words.filter(w => w.nextReviewAt ? new Date(w.nextReviewAt) <= new Date() : false);
         }
 
         if (searchQuery.trim()) {
@@ -68,7 +69,7 @@ export default function MyWordsPage() {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.8, x: 20 }}
                                 animate={{ opacity: 1, scale: 1, x: 0 }}
-                                className="absolute -top-6 left-28 bg-white px-6 py-4 rounded-[2rem] shadow-clay border-4 border-white whitespace-nowrap hidden lg:block"
+                                className="absolute -top-10 left-32 bg-white px-6 py-4 rounded-[2rem] shadow-clay border-4 border-white whitespace-nowrap hidden lg:block z-20"
                             >
                                 <span className="text-lg font-fredoka font-black text-purple-600 block leading-tight">Look at all these</span>
                                 <span className="text-2xl font-black text-amber-500 font-fredoka uppercase">Magic Words! ✨</span>
@@ -189,7 +190,7 @@ export default function MyWordsPage() {
                         <AnimatePresence mode="popLayout">
                             {filteredWords.map((word, index) => (
                                 <motion.div
-                                    key={`${word.word}-${(word as any).bookId || 'none'}`}
+                                    key={`${word.word}-${word.bookId || 'none'}`}
                                     layout
                                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -203,7 +204,7 @@ export default function MyWordsPage() {
                                 >
                                     <MagicCard 
                                         word={word} 
-                                        onRemove={() => removeWord(word.word, (word as any).bookId)} 
+                                        onRemove={() => removeWord(word.word, word.bookId)} 
                                         ttsProvider={tooltipProvider} 
                                         index={index}
                                     />
@@ -220,7 +221,7 @@ export default function MyWordsPage() {
 /**
  * Redesigned Flashcard with Magic Tile theme
  */
-const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }: { word: WordInsight; onRemove: () => void; ttsProvider: INarrationProvider; index: number }) {
+const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }: { word: SavedWord; onRemove: () => void; ttsProvider: INarrationProvider; index: number }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isListening, setIsListening] = useState(false);
 
@@ -252,9 +253,21 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
         if (isListening) return;
         setIsListening(true);
         try {
-            await playWordOnly(word.word, ttsProvider);
+            // Priority 1: High-quality remote audio from word_insights
+            if (word.wordAudioUrl) {
+                const provider = new RemoteTtsNarrationProvider(word.wordAudioUrl);
+                await provider.prepare({
+                    contentId: `word-only-${word.word}`,
+                    rawText: word.word,
+                    tokens: [{ wordIndex: 0, text: word.word }],
+                });
+                await provider.play();
+            } else {
+                // Priority 2: Web Speech
+                await playWordOnly(word.word, ttsProvider);
+            }
         } catch (err) {
-            console.error("Failed to play word TTS:", err);
+            console.error("Failed to play word narration:", err);
         } finally {
             setIsListening(false);
         }
@@ -268,14 +281,17 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
             <div
                 className={cn(
                     "relative h-full w-full transition-all duration-700 preserve-3d shadow-xl rounded-[2.5rem] group-hover:[transform:rotateX(2deg)_rotateY(2deg)]",
-                    isFlipped ? "rotate-y-180 group-hover:[transform:rotateY(182deg)_rotateX(2deg)]" : ""
+                    isFlipped ? "[transform:rotateY(180deg)] group-hover:[transform:rotateY(182deg)_rotateX(2deg)]" : ""
                 )}
             >
                 {/* Front */}
-                <div className="absolute h-full w-full backface-hidden">
+                <div 
+                    className="absolute h-full w-full backface-hidden z-10"
+                    style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden' }}
+                >
                     <div className="relative h-full w-full bg-white rounded-[2.5rem] border-4 border-white shadow-clay flex flex-col items-center justify-center p-8 overflow-hidden">
                         {/* Status Badge (if due for review) */}
-                        {(word as any).nextReviewAt && new Date((word as any).nextReviewAt) <= new Date() && (
+                        {word.nextReviewAt && new Date(word.nextReviewAt) <= new Date() && (
                             <div className="absolute top-6 left-6 px-4 py-1.5 rounded-full bg-amber-400 text-white font-black font-fredoka text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-clay-amber z-10 animate-bounce-subtle">
                                 <Sparkles className="h-3 w-3 fill-current" />
                                 Ready to Play
@@ -330,7 +346,10 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
                 </div>
 
                 {/* Back */}
-                <div className="absolute h-full w-full rotate-y-180 backface-hidden overflow-hidden rounded-[2.5rem]">
+                <div 
+                    className="absolute h-full w-full [transform:rotateY(180deg)] backface-hidden overflow-hidden rounded-[2.5rem] z-20"
+                    style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden' }}
+                >
                     <div className="glass-card h-full w-full p-8 overflow-y-auto custom-scrollbar group/back border-none bg-white relative">
                         {/* Action Bar (Top of back) */}
                         <div className="flex justify-between items-center mb-6">

@@ -4,12 +4,15 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { getChildren, type ChildProfile } from "@/app/actions/profiles";
+import { getCookie } from "cookies-next";
 
 interface AuthContextType {
   user: User | null;
   profiles: ChildProfile[];
+  activeChild: ChildProfile | null;
   isLoading: boolean;
   refreshProfiles: () => Promise<void>;
+  setActiveChild: (child: ChildProfile | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,17 +20,58 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
+   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
+  const CACHE_KEY = "raiden:profiles:v1";
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+  const hydrateFromCache = () => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(CACHE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { profiles: ChildProfile[]; cachedAt: number };
+      if (!parsed || !Array.isArray(parsed.profiles)) return;
+      const isFresh = Date.now() - (parsed.cachedAt || 0) < CACHE_TTL_MS;
+      if (isFresh && parsed.profiles.length > 0) {
+        setProfiles(parsed.profiles);
+        const activeId = getCookie("activeChildId");
+        const found = activeId ? parsed.profiles.find((c) => c.id === activeId) : null;
+        setActiveChild(found ?? parsed.profiles[0]);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.warn("[AuthProvider] Failed to hydrate profile cache:", err);
+    }
+  };
+
+  const persistProfiles = (data: ChildProfile[]) => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({ profiles: data, cachedAt: Date.now() })
+      );
+    } catch (err) {
+      console.warn("[AuthProvider] Failed to persist profile cache:", err);
+    }
+  };
 
   const fetchProfiles = async () => {
     const { data } = await getChildren();
     if (data) {
       setProfiles(data);
+      persistProfiles(data);
+      const activeId = getCookie("activeChildId");
+      const found = activeId ? data.find((c) => c.id === activeId) : null;
+      setActiveChild(found ?? (data[0] ?? null));
     }
   };
 
   useEffect(() => {
+    hydrateFromCache();
+
     // Check initial session
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -65,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profiles, isLoading, refreshProfiles }}>
+    <AuthContext.Provider value={{ user, profiles, activeChild, isLoading, refreshProfiles, setActiveChild }}>
       {children}
     </AuthContext.Provider>
   );

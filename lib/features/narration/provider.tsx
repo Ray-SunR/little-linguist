@@ -31,10 +31,12 @@ const NarrationContext = createContext<NarrationContextType | undefined>(undefin
 
 export function NarrationProvider({
     children,
-    initialProviderType
+    initialProviderType,
+    enabled = true
 }: {
     children: React.ReactNode;
     initialProviderType?: NarrationProviderType;
+    enabled?: boolean;
 }) {
     const [bookState, setBookState] = useState<{
         id: string;
@@ -45,14 +47,35 @@ export function NarrationProvider({
 
     const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
-    // Memoize provider to avoid multiple instances (fixes "parallel audio" bug)
+    // Disabled mode: provide a lightweight, no-op context to avoid heavy setup on routes that don't need narration
+    const disabledValue: NarrationContextType = {
+        state: "STOPPED",
+        error: null,
+        currentTimeSec: 0,
+        wordTimings: undefined,
+        durationMs: null,
+        boundaryWordIndex: null,
+        isPreparing: false,
+        currentWordIndex: null,
+        activeBookId: null,
+        play: async () => {},
+        pause: async () => {},
+        stop: async () => {},
+        playFromWord: async () => {},
+        loadBook: () => {},
+        setSpeed: () => {},
+        playbackSpeed,
+    };
+
+    // Keep hooks order stable: compute provider but guard downstream usage with enabled
     const provider = useMemo(() => {
+        if (!enabled) return null;
         if (typeof window === "undefined") return null;
 
         return NarrationProviderFactory.createProvider(initialProviderType || "web_speech", {
             audioUrl: bookState?.audioUrl
         });
-    }, [initialProviderType, bookState?.audioUrl]);
+    }, [enabled, initialProviderType, bookState?.audioUrl]);
 
     const tokens = useMemo(() => {
         if (!bookState?.text) return [];

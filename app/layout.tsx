@@ -2,12 +2,19 @@ import "../styles/globals.css";
 import { Fredoka, Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Metadata } from "next";
-import { WordListProvider } from "@/lib/features/word-insight";
-import { NarrationProvider, type NarrationProviderType } from "@/lib/features/narration";
 import { ClayNav } from "@/components/layout/clay-nav";
-import { GlobalStoryListener } from "@/components/notifications/global-story-listener";
 import { ChildGate } from "@/components/auth/child-gate";
+import { WordListGate } from "@/components/providers/word-list-gate";
+import { NarrationGate } from "@/components/providers/narration-gate";
 
+import dynamic from "next/dynamic";
+const GlobalStoryListener = dynamic(
+  () =>
+    import("@/components/notifications/global-story-listener").then(
+      (mod) => mod.GlobalStoryListener
+    ),
+  { ssr: false, loading: () => null }
+);
 const fredoka = Fredoka({
   subsets: ["latin"],
   variable: "--font-fredoka",
@@ -34,8 +41,8 @@ export default function RootLayout({
     <html lang="en" className={`${fredoka.variable} ${nunito.variable}`}>
       <body className="min-h-shell bg-shell text-ink font-nunito antialiased">
         <AuthProvider>
-          <WordListProvider>
-            <NarrationProvider initialProviderType={process.env.NARRATION_PROVIDER as NarrationProviderType | undefined}>
+          <WordListGate>
+            <NarrationGate>
               <GlobalStoryListener />
               <ChildGate />
               <div className="relative flex flex-col lg:flex-row min-h-screen">
@@ -44,8 +51,8 @@ export default function RootLayout({
                   {children}
                 </div>
               </div>
-            </NarrationProvider>
-          </WordListProvider>
+            </NarrationGate>
+          </WordListGate>
         </AuthProvider>
         <Analytics />
       </body>

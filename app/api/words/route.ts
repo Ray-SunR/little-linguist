@@ -31,7 +31,10 @@ export async function GET(request: NextRequest) {
                     pronunciation,
                     examples,
                     audio_path,
-                    timing_markers
+                    word_audio_path,
+                    example_audio_paths,
+                    timing_markers,
+                    example_timing_markers
                 )
             `)
             .eq('user_id', user.id)
@@ -39,13 +42,69 @@ export async function GET(request: NextRequest) {
 
         if (error) throw error;
 
-        // Map to WordInsight-like structure for the frontend
-        const words = (data || []).map((item: any) => ({
-            word: item.word,
-            bookId: item.book_id,
-            createdAt: item.created_at,
-            ...item.word_insights
-        }));
+        // Collect all paths for batch signing (deduped)
+        const bucket = "word-insights-audio";
+        const pathSet = new Set<string>();
+        (data || []).forEach((item) => {
+            const wi = item.word_insights as any;
+            if (wi) {
+                if (wi.audio_path) pathSet.add(wi.audio_path);
+                if (wi.word_audio_path) pathSet.add(wi.word_audio_path);
+                if (wi.example_audio_paths?.length) {
+                    (wi.example_audio_paths as string[]).forEach((p: string) => pathSet.add(p));
+                }
+            }
+        });
+        const allPaths = Array.from(pathSet);
+
+        // Batch sign in chunks of 100 (Supabase limit)
+        let signedMap = new Map<string, string>();
+        if (allPaths.length > 0) {
+            const CHUNK_SIZE = 100;
+            for (let i = 0; i < allPaths.length; i += CHUNK_SIZE) {
+                const chunk = allPaths.slice(i, i + CHUNK_SIZE);
+                const { data: signs, error: signError } = await supabase.storage
+                    .from(bucket)
+                    .createSignedUrls(chunk, 3600);
+                
+                if (signError) {
+                    console.error("[Backend] signing batch error:", signError);
+                    continue; 
+                }
+                
+                if (signs) {
+                    signs.forEach(s => {
+                        if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
+                    });
+                }
+            }
+        }
+
+        // Map to WordInsight structure
+        const words = (data || []).map((item) => {
+            const wi = item.word_insights as any;
+            if (!wi) return { word: item.word, bookId: item.book_id, createdAt: item.created_at };
+
+            return {
+                word: item.word,
+                bookId: item.book_id,
+                createdAt: item.created_at,
+                definition: wi.definition,
+                pronunciation: wi.pronunciation,
+                examples: wi.examples,
+                // Paths
+                audio_path: wi.audio_path,
+                word_audio_path: wi.word_audio_path,
+                example_audio_paths: wi.example_audio_paths,
+                // Signed URLs (empty strings indicate signing failure, client will fallback to TTS)
+                audioUrl: signedMap.get(wi.audio_path) || "",
+                wordAudioUrl: signedMap.get(wi.word_audio_path) || "",
+                exampleAudioUrls: (wi.example_audio_paths || []).map((p: string) => signedMap.get(p) || ""),
+                // Timings
+                wordTimings: wi.timing_markers,
+                exampleTimings: wi.example_timing_markers,
+            };
+        });
 
         return NextResponse.json(words);
     } catch (error: any) {
