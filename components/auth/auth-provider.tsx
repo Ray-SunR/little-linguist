@@ -30,9 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check initial session
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      const existingUser = session?.user ?? null;
+      setUser(existingUser);
+      if (existingUser) {
         await fetchProfiles();
       }
       setIsLoading(false);
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkUser();
 
-    // Listen for auth changes
+    // Listen for auth changes and reuse session payload to avoid extra /user calls
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const newUser = session?.user ?? null;
       setUser(newUser);

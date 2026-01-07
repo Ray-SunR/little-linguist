@@ -6,14 +6,10 @@ import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard } from 
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/components/auth/auth-provider";
 import { ProfileSwitcher } from "@/components/profile/ProfileSwitcher";
 import { CachedImage } from "@/components/ui/cached-image";
-import { useMemo } from "react";
-
-const supabase = createClient();
 
 const navItems = [
     {

@@ -3,8 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import type { WordInsight } from "./types";
 import { DatabaseWordService } from "./implementations/database-word-service";
-import { createClient } from "@/lib/supabase/client";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
+import { useAuth } from "@/components/auth/auth-provider";
 
 const dbService = new DatabaseWordService();
 
@@ -22,9 +22,14 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
     const [words, setWords] = useState<WordInsight[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const isFetchingRef = useRef(false);
-    const supabase = createClient();
+    const { user, isLoading: authLoading } = useAuth();
 
     const loadWords = async () => {
+        if (!user) {
+            setWords([]);
+            setIsLoading(false);
+            return;
+        }
         if (isFetchingRef.current) return;
         isFetchingRef.current = true;
 
@@ -66,18 +71,12 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
 
     // Load initial words and refresh on auth change
     useEffect(() => {
+        if (authLoading) return;
         loadWords();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-                loadWords();
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, [supabase]);
+    }, [authLoading, user]);
 
     const addWord = async (word: WordInsight, bookId?: string) => {
+        if (!user) return;
         const enrichedWord = { 
             ...word, 
             bookId, 
@@ -100,6 +99,7 @@ export function WordListProvider({ children }: { children: React.ReactNode }) {
     };
 
     const removeWord = async (wordStr: string, bookId?: string) => {
+        if (!user) return;
         const previousWords = words;
         const wordId = `${wordStr.toLowerCase()}:${bookId || 'global'}`;
 

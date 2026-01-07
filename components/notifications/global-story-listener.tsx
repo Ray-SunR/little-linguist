@@ -1,35 +1,20 @@
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useCallback } from 'react';
 import { useStoryStatusSubscription } from '@/lib/hooks/use-realtime-subscriptions';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PartyPopper, BookOpen, X, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/components/auth/auth-provider';
 
 export function GlobalStoryListener() {
-    const [isReady, setIsReady] = useState(false);
-    const [userId, setUserId] = useState<string | undefined>();
     const [notifications, setNotifications] = useState<any[]>([]);
     const router = useRouter();
-    const supabase = createClient();
-
-    useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => {
-            setUserId(data.user?.id);
-            setIsReady(true);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUserId(session?.user?.id);
-            setIsReady(true);
-        });
-
-        return () => subscription.unsubscribe();
-    }, [supabase]);
+    const { user, isLoading } = useAuth();
+    const userId = user?.id;
 
     // Skip subscription if no user (login/onboarding) to avoid extra socket setup
-    useStoryStatusSubscription(isReady ? userId : undefined, useCallback((story) => {
+    useStoryStatusSubscription(!isLoading ? userId : undefined, useCallback((story) => {
         if (story.status === 'completed' || story.status === 'failed') {
             const id = Math.random().toString(36).substring(7);
             const newNotification = {
