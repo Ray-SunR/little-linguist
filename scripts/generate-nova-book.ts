@@ -8,7 +8,10 @@ dotenv.config({ path: ".env.local" });
 
 async function main() {
     const service = new NovaStoryService();
-    const artifactDir = "/Users/renchen/.gemini/antigravity/brain/5ce899df-ec37-4616-a13c-2c284d816f9f";
+    const artifactDir = "/Users/renchen/Downloads/lumomind/output";
+    if (!fs.existsSync(artifactDir)){
+        fs.mkdirSync(artifactDir, { recursive: true });
+    }
     const theme = "a brave little penguin named Pip who learns to whistle";
 
     console.log(`Generating story for theme: "${theme}"...`);

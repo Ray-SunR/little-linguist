@@ -429,7 +429,7 @@ export default function LandingPageContent() {
                         <div className="order-1 lg:order-2 perspective-1000">
                             <motion.div
                                 whileHover={{ rotateY: -5, scale: 1.02 }}
-                                className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
+                                className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
                             >
                                 <CachedImage
                                     src="/images/feature-library.png"
@@ -457,7 +457,7 @@ export default function LandingPageContent() {
 
                             <motion.div
                                 whileHover={{ rotateY: 5, scale: 1.02 }}
-                                className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
+                                className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
                             >
                                 <CachedImage
                                     src="/images/feature-reader.png"
@@ -523,7 +523,7 @@ export default function LandingPageContent() {
                         <div className="order-1 lg:order-2 perspective-1000">
                             <motion.div
                                 whileHover={{ rotateY: -5, scale: 1.02 }}
-                                className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
+                                className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
                             >
                                 <CachedImage
                                     src="/images/feature-storymaker.png"

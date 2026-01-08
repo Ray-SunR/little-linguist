@@ -12,6 +12,7 @@ interface LibraryViewProps {
     books: LibraryBookCard[];
     onDeleteBook?: (id: string) => void;
     currentUserId?: string | null;
+    activeChildId?: string;
 }
 
 const CATEGORIES = [
@@ -23,7 +24,7 @@ const CATEGORIES = [
     { id: "favorites", label: "Favorites", icon: Heart, color: "from-red-400 to-rose-500", shadow: "shadow-red-200/50", bg: "bg-red-50 dark:bg-red-900/10" },
 ];
 
-export default function LibraryView({ books, onDeleteBook, currentUserId }: LibraryViewProps) {
+export default function LibraryView({ books, onDeleteBook, currentUserId, activeChildId }: LibraryViewProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
 
@@ -34,6 +35,8 @@ export default function LibraryView({ books, onDeleteBook, currentUserId }: Libr
             let matchesCategory = true;
             if (activeCategory === "my-stories") {
                 matchesCategory = !!book.owner_user_id && book.owner_user_id === currentUserId;
+            } else if (activeCategory === "favorites") {
+                matchesCategory = !!book.isFavorite;
             } else if (activeCategory !== "all") {
                 // Placeholder for other category logic
                 matchesCategory = true;
@@ -171,6 +174,7 @@ export default function LibraryView({ books, onDeleteBook, currentUserId }: Libr
                                         book={book}
                                         index={index}
                                         isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
+                                        activeChildId={activeChildId}
                                         onDelete={onDeleteBook}
                                     />
                                 ))}

@@ -8,6 +8,8 @@ import { alignSpeechMarksToTokens, getWordTokensForChunk } from "@/lib/core/book
 import { createClient as createAuthClient } from "@/lib/supabase/server";
 import { StoryRepository } from "@/lib/core/stories/repository.server";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
     const apiKey = process.env.GEMINI_API_KEY;
 

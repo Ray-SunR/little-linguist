@@ -18,6 +18,7 @@ export function LumoCharacter({ className, size = "md" }: LumoCharacterProps) {
     xl: "w-32 h-32",
   };
 
+
   return (
     <div
       className={cn("relative flex items-center justify-center", sizeClasses[size], className)}

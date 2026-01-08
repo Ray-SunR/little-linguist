@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
-import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass } from "lucide-react";
+import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass, Heart, Hash } from "lucide-react";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { MouseEvent, useRef, useState, memo, useCallback } from "react";
 import { CachedImage } from "@/components/ui/cached-image";
@@ -13,12 +13,14 @@ interface LibraryBookCardProps {
     index: number;
     isOwned?: boolean;
     onDelete?: (id: string) => void;
+    activeChildId?: string;
 }
 
-const LibraryBookCard = memo(({ book, index, isOwned, onDelete }: LibraryBookCardProps) => {
+const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }: LibraryBookCardProps) => {
     const ref = useRef<HTMLDivElement>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(book.isFavorite);
 
     // Mouse tracking for 3D tilt effect
     const x = useMotionValue(0);
@@ -149,7 +151,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete }: LibraryBookCar
                                     )}
 
                                     {/* Tags Overlay - Show "My Story" badge for owned books */}
-                                    <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+                                    <div className="absolute top-3 left-3 flex flex-col gap-2 z-20">
                                         {isOwned ? (
                                             <div className="px-3 py-1.5 rounded-full bg-cyan-500 shadow-lg border border-cyan-400 flex items-center gap-1.5">
                                                 <Compass className="h-4 w-4 text-white" />
@@ -170,13 +172,21 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete }: LibraryBookCar
                                         <h3 className="font-fredoka text-xl font-black text-ink dark:text-slate-800 line-clamp-2 leading-[1.2] group-hover:text-accent transition-colors h-[48px]">
                                             {book.title}
                                         </h3>
-                                        <div className="flex items-center gap-3 text-xs font-black text-ink-muted uppercase tracking-widest">
-                                            <span className="flex items-center gap-1.5">
-                                                <Clock className="w-4 h-4 text-accent" />
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-black text-ink-muted uppercase tracking-wider">
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="w-3 h-3 text-accent" />
                                                 {Math.max(1, Math.round(Number(book.estimatedReadingTime) || 0))}m
                                             </span>
-                                            <span className="h-1.5 w-1.5 rounded-full bg-slate-200" />
-                                            <span className="text-accent/80">Adventure</span>
+                                            <span className="flex items-center gap-1">
+                                                <Hash className="w-3 h-3 text-accent" />
+                                                {book.progress?.total_tokens || 0} words
+                                            </span>
+                                            {book.lastOpenedAt && (
+                                                <span className="flex items-center gap-1">
+                                                    <BookOpen className="w-3 h-3 text-accent" />
+                                                    {new Date(book.lastOpenedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
 
@@ -241,20 +251,65 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete }: LibraryBookCar
 
             {/* Delete Button - Always visible for owned books, positioned OUTSIDE 3D wrapper */}
             {isOwned && onDelete && (
-                <motion.button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setShowDeleteConfirm(true);
-                    }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="absolute top-7 left-7 z-40 bg-red-500 p-2.5 rounded-full shadow-lg border-2 border-white hover:bg-red-600 transition-colors cursor-pointer"
-                    aria-label="Delete story"
-                >
-                    <Trash2 className="h-4 w-4 text-white" />
-                </motion.button>
+                <div className="absolute top-[68px] right-7 z-40 flex flex-col gap-2">
+                    <motion.button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setShowDeleteConfirm(true);
+                        }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="bg-red-500 p-2.5 rounded-full shadow-lg border-2 border-white hover:bg-red-600 transition-colors cursor-pointer"
+                        aria-label="Delete story"
+                    >
+                        <Trash2 className="h-4 w-4 text-white" />
+                    </motion.button>
+                </div>
             )}
+
+            {/* Favorite Button - Right side */}
+            <motion.button
+                onClick={async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    if (!activeChildId) return;
+
+                    const newFavState = !isFavorite;
+                    setIsFavorite(newFavState); // Optimistic UI
+
+                    try {
+                        const res = await fetch(`/api/books/${book.id}/favorite`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                childId: activeChildId,
+                                isFavorite: newFavState
+                            })
+                        });
+                        
+                        if (!res.ok) {
+                            // Rollback on error
+                            setIsFavorite(!newFavState);
+                            const err = await res.json();
+                            console.error('Failed to toggle favorite:', err);
+                        }
+                    } catch (err) {
+                        setIsFavorite(!newFavState);
+                        console.error('Failed to toggle favorite:', err);
+                    }
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className={cn(
+                    "absolute top-7 right-7 z-40 p-2.5 rounded-full shadow-lg border-2 border-white transition-colors cursor-pointer",
+                    isFavorite ? "bg-pink-500 hover:bg-pink-600" : "bg-white/90 hover:bg-white text-slate-400"
+                )}
+                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+                <Heart className={cn("h-4 w-4", isFavorite ? "fill-white text-white" : "text-slate-400")} />
+            </motion.button>
 
             {/* Delete Confirmation Modal */}
             <AnimatePresence>

@@ -86,7 +86,8 @@ export default function LibraryContent() {
                         } : undefined,
                         estimatedReadingTime: book.estimatedReadingTime,
                         isRead: book.isRead,
-                        lastOpenedAt: book.lastOpenedAt
+                        lastOpenedAt: book.lastOpenedAt,
+                        isFavorite: book.isFavorite
                     }));
 
                 // 3. Update state and persistence
@@ -190,6 +191,7 @@ export default function LibraryContent() {
             books={books}
             onDeleteBook={handleDeleteBook}
             currentUserId={currentUserId || "global"}
+            activeChildId={activeChild?.id}
         />
     );
 }

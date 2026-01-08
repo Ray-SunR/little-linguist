@@ -68,7 +68,7 @@ export class BookRepository {
         if (childId) {
             const { data: progressData } = await this.supabase
                 .from('child_book_progress')
-                .select('book_id, is_completed, last_read_at')
+                .select('*')
                 .eq('child_id', childId)
                 .in('book_id', booksData.map(b => b.id));
 
@@ -146,7 +146,8 @@ export class BookRepository {
                 totalTokens: book.total_tokens,
                 estimatedReadingTime: book.estimated_reading_time,
                 isRead: progress?.is_completed || false,
-                lastOpenedAt: progress?.last_read_at
+                lastOpenedAt: progress?.last_read_at,
+                isFavorite: progress?.is_favorite || false
             };
         }));
 
@@ -445,5 +446,22 @@ export class BookRepository {
         return data;
     }
 
+    async toggleFavorite(childId: string, bookId: string, isFavorite: boolean) {
+        if (!BookRepository.isValidUuid(bookId)) {
+            throw new Error(`Invalid book ID: ${bookId}`);
+        }
 
+        const { data, error } = await this.supabase
+            .from('child_book_progress')
+            .upsert({
+                child_id: childId,
+                book_id: bookId,
+                is_favorite: isFavorite
+            }, { onConflict: 'child_id,book_id' })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    }
 }

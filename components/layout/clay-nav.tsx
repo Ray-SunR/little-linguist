@@ -205,7 +205,7 @@ export function ClayNav() {
                             className="flex items-center gap-3 group relative z-50 pl-2"
                             title="Fold Navigation"
                         >
-                            <span className="relative w-12 h-12 group-hover:scale-110 transition-transform duration-300">
+                            <span className="relative w-12 h-12 transition-transform duration-300">
                                 <LumoCharacter size="lg" />
                             </span>
                         </button>
@@ -303,10 +303,10 @@ export function ClayNav() {
                         />
 
                         <motion.div
-                            initial={prefersReducedMotion ? { opacity: 0 } : { scale: 0.8, opacity: 0, y: 50, rotate: -5 }}
-                            animate={prefersReducedMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0, rotate: 0 }}
-                            exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0.8, opacity: 0, y: 50, rotate: 5 }}
-                            transition={prefersReducedMotion ? { duration: 0.14 } : { type: "spring", damping: 15, stiffness: 250 }}
+                            initial={prefersReducedMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0, y: 10 }}
+                            animate={prefersReducedMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0 }}
+                            exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0, y: 10 }}
+                            transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 0.2 }}
                             className="relative w-full max-w-sm clay-card p-10 text-center bg-white border-8 border-white shadow-2xl overflow-hidden"
                         >
                             {/* Decorative Blobs */}
@@ -356,14 +356,14 @@ export function ClayNav() {
                             <div className="space-y-4">
                                 {user && (
                                     <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <Link
-                                            href="/profiles"
-                                            onClick={() => setIsHubOpen(false)}
-                                            className="flex flex-col items-center justify-center p-4 rounded-2xl bg-purple-50 border-2 border-purple-100 hover:bg-purple-100 transition-all group"
-                                        >
-                                            <User className="w-6 h-6 text-purple-600 mb-2 group-hover:scale-110 transition-transform" />
-                                            <span className="text-xs font-black font-fredoka text-purple-700 uppercase">Manage Heroes</span>
-                                        </Link>
+                                            <Link
+                                                href="/profiles"
+                                                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-purple-50 border-2 border-purple-100 hover:bg-purple-100 transition-all group"
+                                                onClick={() => setIsHubOpen(false)}
+                                            >
+                                                <User className="w-6 h-6 text-purple-600 mb-2 group-hover:scale-110 transition-transform" />
+                                                <span className="text-xs font-black font-fredoka text-purple-700 uppercase">Manage Heroes</span>
+                                            </Link>
                                         <Link
                                             href="/dashboard"
                                             onClick={() => setIsHubOpen(false)}

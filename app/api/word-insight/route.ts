@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = 'force-dynamic';
 import { createClient } from "@supabase/supabase-js";
 import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
 import { normalizeWord } from "@/lib/core";

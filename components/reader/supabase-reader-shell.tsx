@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FastForward, ArrowLeft, RotateCcw } from "lucide-react";
+import { FastForward, ArrowLeft, RotateCcw, Heart } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
@@ -15,6 +15,7 @@ import { DEFAULT_SPEED, type SpeedOption } from "@/lib/features/narration/intern
 import { playSentence } from "@/lib/features/narration";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
 import type { ViewMode } from "@/lib/core";
+import { cn } from "@/lib/core";
 
 import BookLayout from "./book-layout";
 import ControlPanel from "./control-panel";
@@ -34,6 +35,7 @@ export interface SupabaseBook {
         last_playback_time?: number;
         view_mode?: string;
         playback_speed?: number;
+        is_favorite?: boolean;
     };
     updated_at?: string;
     cached_at?: number;
@@ -63,6 +65,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
     const [controlsExpanded, setControlsExpanded] = useState(false);
     const [theme, setTheme] = useState<"light" | "dark">("light");
     const [isMaximized, setIsMaximized] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(false);
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const controlsRef = useRef<HTMLDivElement>(null);
@@ -78,9 +81,12 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
 
     useEffect(() => {
         if (selectedBook?.initialProgress) {
-            const { view_mode, playback_speed } = selectedBook.initialProgress;
+            const { view_mode, playback_speed, is_favorite } = selectedBook.initialProgress;
             if (view_mode) setViewMode(view_mode as ViewMode);
             if (playback_speed) setPlaybackSpeed(playback_speed as SpeedOption);
+            setIsFavorite(!!is_favorite);
+        } else {
+            setIsFavorite(false);
         }
     }, [selectedBook]);
 
@@ -212,6 +218,33 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
             console.error("Fullscreen API error:", err);
         }
     }, [isMaximized]);
+    
+    const toggleFavorite = useCallback(async () => {
+        if (!selectedBookId || !childId) return;
+        
+        const newFavState = !isFavorite;
+        setIsFavorite(newFavState); // Optimistic UI
+
+        try {
+            const res = await fetch(`/api/books/${selectedBookId}/favorite`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    childId: childId,
+                    isFavorite: newFavState
+                })
+            });
+            
+            if (!res.ok) {
+                // Rollback on error
+                setIsFavorite(!newFavState);
+                console.error('Failed to toggle favorite');
+            }
+        } catch (err) {
+            setIsFavorite(!newFavState);
+            console.error('Failed to toggle favorite:', err);
+        }
+    }, [selectedBookId, childId, isFavorite]);
 
     useEffect(() => {
         if (!controlsExpanded) return;
@@ -294,6 +327,22 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                             </h1>
                         </div>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={toggleFavorite}
+                        disabled={isEmpty || !childId || !selectedBookId}
+                        className={cn(
+                            "inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border disabled:opacity-50",
+                            isFavorite 
+                                ? "bg-pink-500 border-pink-400 text-white" 
+                                : "bg-white/80 dark:bg-card text-slate-400 border-purple-100 dark:border-transparent"
+                        )}
+                        aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                        title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                    >
+                        <Heart className={cn("h-4 w-4 sm:h-5 sm:w-5", isFavorite && "fill-white")} />
+                    </button>
 
                     <button
                         type="button"

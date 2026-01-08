@@ -18,4 +18,5 @@ export interface LibraryBookCard {
     estimatedReadingTime?: number;
     isRead?: boolean;
     lastOpenedAt?: string;
+    isFavorite?: boolean;
 }

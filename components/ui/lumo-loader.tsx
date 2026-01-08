@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { CachedImage } from "./cached-image";
+import { LumoCharacter } from "./lumo-character";
 
 const LOADING_MESSAGES = [
   "Lumo is packing your bags for a story adventure...",
@@ -54,12 +54,8 @@ export default function LumoLoader({ fullPage = true }: LumoLoaderProps) {
 
         {/* Lumo Mascot */}
         <div className="relative z-10 w-32 h-32 md:w-40 md:h-40 animate-lumo-float-large">
-          <CachedImage
-            src="/lumo-mascot.png"
-            alt="Lumo Mascot"
-            fill
-            className="object-contain relative z-10 rounded-full"
-            sizes="(max-width: 768px) 128px, 160px"
+          <LumoCharacter
+            className="w-full h-full"
           />
         </div>
 
