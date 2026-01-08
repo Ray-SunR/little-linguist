@@ -297,7 +297,7 @@ export class BookRepository {
                     }
                 });
 
-                result.images = await Promise.all(fullImages.map(async img => {
+                result.images = await Promise.all(fullImages.map(async (img: any) => {
                     if (img.src && !img.src.startsWith('http')) {
                         const { data: signedData } = await this.supabase.storage
                             .from('book-assets')
