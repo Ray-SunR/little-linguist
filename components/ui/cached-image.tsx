@@ -25,6 +25,8 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
         let isMounted = true;
         const controller = new AbortController();
 
+        if (isMounted) setIsLoaded(false);
+
         async function resolveUrl() {
             if (!storagePath) {
                 const isStableUrl = src?.startsWith("/") || src?.startsWith("blob:") || src?.startsWith("data:");
@@ -32,7 +34,7 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
                 const isExternalStable = src?.includes("googleusercontent.com");
                 
                 if (src && !isStableUrl && !isExternalStable) {
-                    console.error(`[CachedImage] CRITICAL: Missing storagePath for unstable image. Caching skipped. Src: ${src}`);
+                    // console.error(`[CachedImage] CRITICAL: Missing storagePath for unstable image. Caching skipped. Src: ${src}`);
                 }
                 if (isMounted) setDisplayUrl(src);
                 return;
@@ -47,11 +49,6 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
             try {
                 const cachedUrl = await assetCache.getAsset(storagePath, src, updatedAt, controller.signal);
                 if (isMounted) {
-                    if (cachedUrl.startsWith("blob:")) {
-                        console.debug(`[CachedImage] HIT: ${storagePath}`);
-                    } else {
-                        console.debug(`[CachedImage] MISS: ${storagePath}`);
-                    }
                     setDisplayUrl(cachedUrl);
                 }
             } catch (err) {
@@ -76,25 +73,29 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
         };
     }, [src, storagePath, updatedAt]);
 
-    const isCacheable = !!storagePath;
     const isBlobOrData = displayUrl.startsWith("blob:") || displayUrl.startsWith("data:");
+    
+    // Safety check: Next.js Image requires either fill or width/height
+    const isFill = !!props.fill;
+    const hasDimensions = !!(props.width && props.height);
+    const effectiveFill = isFill || !hasDimensions;
 
     return (
         <div className={cn(
             "relative overflow-hidden",
-            props.fill ? "h-full w-full" : "w-fit h-fit",
+            effectiveFill ? "h-full w-full" : "w-fit h-fit",
             // If fill is true, we need to ensure the container itself doesn't collapse
-            props.fill && "min-h-[1px] min-w-[1px]"
+            effectiveFill && "min-h-[1px] min-w-[1px]"
         )}>
             <Image
                 {...props}
+                fill={effectiveFill}
                 src={displayUrl}
                 alt={alt}
-                sizes={props.fill ? (props.sizes || "100vw") : props.sizes}
+                sizes={effectiveFill ? (props.sizes || "100vw") : props.sizes}
                 onLoad={() => {
-                    setIsLoaded(true);
-                    if (storagePath) {
-                        console.debug(`[CachedImage] Rendered: ${storagePath} (${displayUrl.startsWith('blob:') ? 'CACHE' : 'NETWORK'})`);
+                    if (displayUrl !== TRANSPARENT_PIXEL) {
+                        setIsLoaded(true);
                     }
                 }}
                 className={cn(
@@ -104,11 +105,11 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
                 )}
                 // Force unoptimized if we are handling caching ourselves via AssetCache
                 // OR if it's already a local/blob/data URL that Next.js doesn't need to optimize
-                unoptimized={isCacheable || isBlobOrData || props.unoptimized}
+                unoptimized={!!storagePath || isBlobOrData || props.unoptimized}
             />
-            {!isLoaded && (
-                <div className="absolute inset-0 bg-white/10 animate-pulse flex items-center justify-center">
-                    <span className="text-[10px] text-white/20">Loading...</span>
+            {!isLoaded && src !== TRANSPARENT_PIXEL && (
+                <div className="absolute inset-0 bg-slate-100 animate-pulse flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-slate-400 animate-spin" />
                 </div>
             )}
         </div>

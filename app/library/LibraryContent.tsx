@@ -171,31 +171,13 @@ export default function LibraryContent() {
         }
     }, [currentUserId, cacheKey]);
 
-    if (isLoading) {
-        return (
-            <div suppressHydrationWarning>
-                <LumoLoader />
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <main className="page-story-maker relative min-h-screen flex items-center justify-center px-4">
-                <div className="text-center">
-                    <p className="text-red-500 font-bold mb-4">{error}</p>
-                    <button onClick={loadBooks} className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow-clay-purple">Retry</button>
-                </div>
-            </main>
-        );
-    }
-
     return (
         <LibraryView
             books={books}
             onDeleteBook={handleDeleteBook}
             currentUserId={currentUserId || "global"}
             activeChildId={activeChild?.id}
+            isLoading={isLoading}
         />
     );
 }

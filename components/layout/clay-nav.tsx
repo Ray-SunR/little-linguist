@@ -223,7 +223,7 @@ export function ClayNav() {
                                 </div>
                             )}
 
-                            {navItems.map((item) => {
+                            {navItems.filter(item => user || item.href === "/library").map((item) => {
                                 const activeNow = isActive(item.href) || pendingHref === item.href;
                                 return (
                                     <MemoizedNavItem
@@ -256,14 +256,20 @@ export function ClayNav() {
                                                 <span className="text-[10px] font-fredoka font-black text-white">{userInitial}</span>
                                             </div>
                                         )}
+                                        <span className="text-[8px] font-fredoka font-black uppercase tracking-wider mt-0.5">
+                                            Admin
+                                        </span>
                                     </motion.button>
                                 ) : (
                                     <Link
                                         href="/login"
-                                        className="flex items-center justify-center w-14 h-14 rounded-full bg-accent text-white shadow-clay-accent border-2 border-white/50 hover:scale-105 active:scale-95 transition-all"
+                                        className="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-accent text-white shadow-clay-accent border-2 border-white/50 hover:scale-105 active:scale-95 transition-all"
                                         aria-label="Login"
                                     >
                                         <User className="w-6 h-6" />
+                                        <span className="text-[8px] font-fredoka font-black uppercase tracking-wider mt-0.5">
+                                            Sign In
+                                        </span>
                                     </Link>
                                 )}
                             </div>

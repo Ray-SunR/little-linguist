@@ -13,6 +13,7 @@ interface LibraryViewProps {
     onDeleteBook?: (id: string) => void;
     currentUserId?: string | null;
     activeChildId?: string;
+    isLoading?: boolean;
 }
 
 const CATEGORIES = [
@@ -24,7 +25,7 @@ const CATEGORIES = [
     { id: "favorites", label: "Favorites", icon: Heart, color: "from-red-400 to-rose-500", shadow: "shadow-red-200/50", bg: "bg-red-50 dark:bg-red-900/10" },
 ];
 
-export default function LibraryView({ books, onDeleteBook, currentUserId, activeChildId }: LibraryViewProps) {
+export default function LibraryView({ books, onDeleteBook, currentUserId, activeChildId, isLoading }: LibraryViewProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
 
@@ -170,7 +171,13 @@ export default function LibraryView({ books, onDeleteBook, currentUserId, active
                     </div>
 
                     <div className="flex flex-col gap-8">
-                        {filteredBooks.length > 0 ? (
+                        {isLoading ? (
+                            <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {[...Array(8)].map((_, i) => (
+                                    <div key={i} className="h-[420px] md:h-[460px] w-full rounded-[2.5rem] bg-white/50 backdrop-blur-sm animate-pulse border-4 border-white/30 shadow-clay-inset" />
+                                ))}
+                            </div>
+                        ) : filteredBooks.length > 0 ? (
                             <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {!currentUserId && (
                                     <motion.div

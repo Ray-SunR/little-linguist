@@ -18,6 +18,11 @@ export interface SavedWord extends WordInsight {
     // Status/SRS fields
     status?: 'new' | 'review' | 'mastered';
     nextReviewAt?: string;
+    source_type?: 'clicked' | 'imported' | 'manual';
+    reps?: number;
+    bookTitle?: string;
+    coverImagePath?: string;
+    coverImageUrl?: string;
 }
 
 type WordListContextType = {
@@ -52,6 +57,28 @@ const hydrateAudio = async (url?: string, storagePath?: string) => {
     }
 };
 
+/**
+ * Prefetch and cache image blobs using specific storage paths to avoid collisions.
+ */
+const hydrateImage = async (url?: string, storagePath?: string) => {
+    if (!url) return undefined;
+    
+    if (!storagePath) {
+        const isStableUrl = url.startsWith("/") || url.startsWith("blob:") || url.startsWith("data:");
+        if (!isStableUrl) {
+            console.error(`[WordList] CRITICAL: Missing storagePath for potentially unstable image URL. Caching skipped. URL: ${url}`);
+        }
+        return url;
+    }
+
+    try {
+        return await assetCache.getAsset(storagePath, url);
+    } catch (err) {
+        console.warn("[WordList] image cache miss:", err);
+        return url;
+    }
+};
+
 const WordListContext = createContext<WordListContextType | undefined>(undefined);
 
 /**
@@ -68,6 +95,7 @@ async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
         // Blob URLs don't survive reloads, signed URLs expire. Always try to resolve from assetCache.
         const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
         const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
+        const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
         
         const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
             ? await Promise.all(w.exampleAudioUrls.map((u: string, idx: number) => 
@@ -75,7 +103,7 @@ async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
             ))
             : undefined;
 
-        return { ...w, audioUrl, wordAudioUrl, exampleAudioUrls } as SavedWord;
+        return { ...w, audioUrl, wordAudioUrl, exampleAudioUrls, coverImageUrl } as SavedWord;
     }));
 }
 
@@ -141,6 +169,7 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
                         // Use specific paths to avoid collisions
                         const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
                         const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
+                        const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
                         
                         const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
                             ? await Promise.all(w.exampleAudioUrls.slice(0, 2).map((u: string, idx: number) =>
@@ -154,6 +183,8 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
                             audioUrl,
                             wordAudioUrl,
                             exampleAudioUrls,
+                            coverImagePath: w.coverImagePath,
+                            coverImageUrl,
                         } as SavedWord;
                     }));
                     listForCache.push(...processedBatch);
