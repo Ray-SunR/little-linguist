@@ -33,6 +33,13 @@ export async function GET(request: NextRequest) {
                 status,
                 origin_book_id,
                 created_at,
+                source_type,
+                reps,
+                next_review_at,
+                books:origin_book_id (
+                    title,
+                    cover_image_path
+                ),
                 word_insights (
                     word,
                     definition,
@@ -47,39 +54,66 @@ export async function GET(request: NextRequest) {
 
         if (error) throw error;
 
-        // Collect all paths for batch signing
-        const bucket = "word-insights-audio";
-        const pathSet = new Set<string>();
+        // Collect paths for batch signing, separated by bucket
+        const audioBucket = "word-insights-audio";
+        const imageBucket = "book-assets";
+        
+        const audioPaths = new Set<string>();
+        const imagePaths = new Set<string>();
+
         (data || []).forEach((item) => {
+            const b = item.books as any;
+            if (b?.cover_image_path && !b.cover_image_path.startsWith('http')) {
+                imagePaths.add(b.cover_image_path);
+            }
+
             const wi = item.word_insights as any;
             if (wi && wi.word) {
                 // Determine paths by convention from normalized word
                 // 1. Stored path (likely definition audio)
-                if (wi.audio_path) pathSet.add(wi.audio_path);
+                if (wi.audio_path) audioPaths.add(wi.audio_path);
                 
                 // 2. Convention paths (constructed from normalized word)
-                 // Strict sanitization: only allow lowercase letters and hyphens for storage paths to match creation logic
                 const normalized = normalizeWord(wi.word).replace(/[^a-z0-9-]/g, "");
                 
-                pathSet.add(`${normalized}/word.mp3`);
-                pathSet.add(`${normalized}/definition.mp3`);
-                pathSet.add(`${normalized}/example_0.mp3`);
+                audioPaths.add(`${normalized}/word.mp3`);
+                audioPaths.add(`${normalized}/definition.mp3`);
+                audioPaths.add(`${normalized}/example_0.mp3`);
             }
         });
-        const allPaths = Array.from(pathSet);
 
         // Batch sign
         let signedMap = new Map<string, string>();
-        if (allPaths.length > 0) {
+        
+        // Sign audio paths
+        const allAudioPaths = Array.from(audioPaths);
+        if (allAudioPaths.length > 0) {
             const CHUNK_SIZE = 100;
-            for (let i = 0; i < allPaths.length; i += CHUNK_SIZE) {
-                const chunk = allPaths.slice(i, i + CHUNK_SIZE);
+            for (let i = 0; i < allAudioPaths.length; i += CHUNK_SIZE) {
+                const chunk = allAudioPaths.slice(i, i + CHUNK_SIZE);
                 const { data: signs, error: signError } = await supabase.storage
-                    .from(bucket)
+                    .from(audioBucket)
                     .createSignedUrls(chunk, 3600);
                 
-                if (signError) continue;
-                if (signs) {
+                if (!signError && signs) {
+                    signs.forEach(s => {
+                        if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
+                    });
+                }
+            }
+        }
+
+        // Sign image paths
+        const allImagePaths = Array.from(imagePaths);
+        if (allImagePaths.length > 0) {
+            const CHUNK_SIZE = 100;
+            for (let i = 0; i < allImagePaths.length; i += CHUNK_SIZE) {
+                const chunk = allImagePaths.slice(i, i + CHUNK_SIZE);
+                const { data: signs, error: signError } = await supabase.storage
+                    .from(imageBucket)
+                    .createSignedUrls(chunk, 3600);
+                
+                if (!signError && signs) {
                     signs.forEach(s => {
                         if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
                     });
@@ -96,8 +130,18 @@ export async function GET(request: NextRequest) {
             return {
                 word: wi.word, // Map 'word' directly as display
                 bookId: item.origin_book_id,
+                bookTitle: (item.books as any)?.title,
+                coverImagePath: (item.books as any)?.cover_image_path,
+                coverImageUrl: (item.books as any)?.cover_image_path 
+                    ? ( (item.books as any).cover_image_path.startsWith('http') 
+                        ? (item.books as any).cover_image_path 
+                        : signedMap.get((item.books as any).cover_image_path) ) 
+                    : undefined,
                 createdAt: item.created_at,
                 status: item.status,
+                source_type: item.source_type,
+                reps: item.reps,
+                nextReviewAt: item.next_review_at,
                 definition: wi.definition,
                 pronunciation: wi.pronunciation,
                 examples: wi.examples,

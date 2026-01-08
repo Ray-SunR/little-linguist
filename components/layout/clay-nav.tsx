@@ -89,7 +89,7 @@ export function ClayNav() {
     const pathname = usePathname();
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
-    const { user, activeChild } = useAuth();
+    const { user } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
     const isReaderView = pathname.startsWith("/reader");
@@ -211,7 +211,7 @@ export function ClayNav() {
                             className="flex items-center gap-3 group relative z-50 pl-2 shrink-0"
                             title="Fold Navigation"
                         >
-                            <span className="relative w-12 h-12 transition-transform duration-300">
+                            <span className="relative w-12 h-12 group-hover:scale-110 transition-transform duration-300">
                                 <LumoCharacter size="lg" />
                             </span>
                         </button>

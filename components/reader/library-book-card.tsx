@@ -91,7 +91,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}
-            className="group relative h-[480px] w-full perspective-[2000px] will-change-transform"
+            className="group relative h-[420px] md:h-[460px] w-full perspective-[2000px] will-change-transform"
         >
             <Link
                 href={`/reader/${book.id}`}
@@ -128,7 +128,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                             />
 
                             {/* Content Section */}
-                            <div className="relative h-full w-full p-4 flex flex-col gap-5 overflow-visible">
+                            <div className="relative h-full w-full p-4 flex flex-col gap-3 md:gap-4 overflow-visible">
 
                                 {/* Cover Image Area */}
                                 <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[1.8rem] border-4 border-white shadow-clay-inset group-hover:shadow-2xl transition-all duration-500">
@@ -167,7 +167,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                 </div>
 
                                 {/* Text Info Area */}
-                                <div className="h-[120px] flex flex-col justify-between px-2 py-1">
+                                <div className="h-[90px] md:h-[110px] flex flex-col justify-between px-2 py-1">
                                     <div className="space-y-1.5">
                                         <h3 className="font-fredoka text-xl font-black text-ink dark:text-slate-800 line-clamp-2 leading-[1.2] group-hover:text-accent transition-colors h-[48px]">
                                             {book.title}

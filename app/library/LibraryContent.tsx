@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import LumoLoader from "@/components/ui/lumo-loader";
 import LibraryView from "@/components/reader/library-view";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
@@ -13,7 +12,6 @@ const cachedLibraryBooks: Record<string, LibraryBookCard[]> = {};
 const inFlightLibraryFetch: Record<string, Promise<void> | null> = {};
 
 export default function LibraryContent() {
-    const router = useRouter();
     const { user, activeChild, isLoading: authLoading } = useAuth();
     const currentUserId = user?.id;
     const cacheKey = currentUserId || "anonymous";
@@ -36,7 +34,7 @@ export default function LibraryContent() {
         return true;
     });
 
-    const [error, setError] = useState<string | null>(null);
+    const [_error, setError] = useState<string | null>(null);
 
     const loadBooks = useCallback(async () => {
         if (authLoading) return;
@@ -171,31 +169,13 @@ export default function LibraryContent() {
         }
     }, [currentUserId, cacheKey]);
 
-    if (isLoading) {
-        return (
-            <div suppressHydrationWarning>
-                <LumoLoader />
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <main className="page-story-maker relative min-h-screen flex items-center justify-center px-4">
-                <div className="text-center">
-                    <p className="text-red-500 font-bold mb-4">{error}</p>
-                    <button onClick={loadBooks} className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow-clay-purple">Retry</button>
-                </div>
-            </main>
-        );
-    }
-
     return (
         <LibraryView
             books={books}
             onDeleteBook={handleDeleteBook}
-            currentUserId={currentUserId || "global"}
+            currentUserId={currentUserId}
             activeChildId={activeChild?.id}
+            isLoading={isLoading}
         />
     );
 }
