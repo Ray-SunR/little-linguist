@@ -19,10 +19,18 @@ export async function POST(req: Request) {
     }
 
     try {
-        const { bookId, sceneIndex } = await req.json();
+        const { bookId, sceneIndex: rawSceneIndex } = await req.json();
 
-        if (!bookId) {
-            return NextResponse.json({ error: "bookId is required" }, { status: 400 });
+        if (!bookId || typeof bookId !== 'string') {
+            return NextResponse.json({ error: "Valid bookId is required" }, { status: 400 });
+        }
+
+        let sceneIndex: number | undefined;
+        if (rawSceneIndex !== undefined) {
+            sceneIndex = parseInt(String(rawSceneIndex), 10);
+            if (isNaN(sceneIndex) || sceneIndex < 0) {
+                return NextResponse.json({ error: "Invalid sceneIndex" }, { status: 400 });
+            }
         }
 
         const storyRepo = new StoryRepository(supabase);
@@ -39,13 +47,22 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No scenes found in story" }, { status: 400 });
         }
 
+        if (sceneIndex !== undefined && (sceneIndex < 0 || sceneIndex >= scenes.length)) {
+            return NextResponse.json({ error: `Invalid sceneIndex ${sceneIndex}. Story has ${scenes.length} scenes.` }, { status: 400 });
+        }
+
         let userPhotoBuffer: Buffer | undefined;
-        if (story.avatar_url && story.avatar_url.includes('/user-uploads/')) {
+        if (story.avatar_url) {
             try {
-                const { data: photoData } = await supabase.storage
-                    .from('book-assets')
+                // story.avatar_url now stores the bucket path (e.g. "guardianNo/avatars/childNo/timestamp.jpg")
+                // We need to download this from the 'user-assets' bucket.
+                const { data: photoData, error: downloadError } = await supabase.storage
+                    .from('user-assets')
                     .download(story.avatar_url);
-                if (photoData) {
+
+                if (downloadError) {
+                    console.warn(`Failed to download user photo from user-assets with path ${story.avatar_url}:`, downloadError);
+                } else if (photoData) {
                     const arrayBuffer = await photoData.arrayBuffer();
                     userPhotoBuffer = Buffer.from(arrayBuffer);
                 }
@@ -88,7 +105,8 @@ export async function POST(req: Request) {
                     metadata: {
                         caption: `Illustration for scene ${i + 1}`,
                         alt: scene.image_prompt
-                    }
+                    },
+                    owner_user_id: story.owner_user_id
                 }, { onConflict: 'book_id,path' });
 
                 results.push({ sceneIndex: i, storagePath });
@@ -98,9 +116,15 @@ export async function POST(req: Request) {
             }
         }
 
-        // If we generated the whole book, mark as completed
+        // If we generated the whole book, check if ALL images succeeded before marking as completed
         if (sceneIndex === undefined) {
-            await storyRepo.updateStoryStatus(bookId, 'completed');
+            const anyFailed = results.some(r => r.error);
+            if (!anyFailed) {
+                await storyRepo.updateStoryStatus(bookId, 'completed');
+                console.log(`Book ${bookId} marked as completed (all ${results.length} images generated).`);
+            } else {
+                console.warn(`Book ${bookId} has partial failures. Not marking as completed yet.`, results);
+            }
         }
 
         return NextResponse.json({ success: true, results });

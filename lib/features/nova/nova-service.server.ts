@@ -10,6 +10,7 @@ export interface StoryPage {
 export class NovaStoryService {
     private client: BedrockRuntimeClient;
     private region: string;
+    private static readonly ART_STYLE_SUFFIX = "Professional high-quality digital children's book illustration, vibrant watercolor and ink style, whimsical and charming, expressive characters, soft lighting, clean lines, high resolution.";
 
     constructor() {
         this.region = process.env.POLLY_REGION || "us-west-2";
@@ -61,7 +62,7 @@ export class NovaStoryService {
         return JSON.parse(jsonMatch[0]);
     }
 
-    async generateImage(prompt: string): Promise<string> {
+    async generateImage(prompt: string, seed?: number): Promise<string> {
         // Nova Canvas is primarily available in us-east-1
         const imageClient = new BedrockRuntimeClient({
             region: "us-east-1",
@@ -71,29 +72,72 @@ export class NovaStoryService {
             },
         });
 
+        const body: any = {
+            taskType: "TEXT_IMAGE",
+            textToImageParams: {
+                text: `${prompt}. Style: ${NovaStoryService.ART_STYLE_SUFFIX}`.slice(0, 1000)
+            },
+            imageGenerationConfig: {
+                numberOfImages: 1,
+                quality: "standard",
+                height: 512,
+                width: 512,
+                cfgScale: 8.0,
+            }
+        };
+
+        if (seed !== undefined) {
+            body.imageGenerationConfig.seed = seed;
+        }
+
         const command = new InvokeModelCommand({
             modelId: "amazon.nova-canvas-v1:0",
             contentType: "application/json",
             accept: "application/json",
-            body: JSON.stringify({
-                taskType: "TEXT_IMAGE",
-                textToImageParams: {
-                    text: prompt
-                },
-                imageGenerationConfig: {
-                    numberOfImages: 1,
-                    quality: "standard",
-                    height: 512,
-                    width: 512,
-                    cfgScale: 8.0,
-                }
-            }),
+            body: JSON.stringify(body),
         });
 
         const response = await imageClient.send(command);
         const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
+        if (!responseBody.images || responseBody.images.length === 0) {
+            console.error("Nova Canvas returned no images. Response:", JSON.stringify(responseBody));
+            throw new Error("Nova Canvas returned no images");
+        }
+
         // Nova Canvas returns images as base64 in an array
         return responseBody.images[0];
+    }
+
+    async generateCoverPrompt(storyText: string): Promise<string> {
+        const prompt = `Based on the following children's story, generate a highly descriptive image prompt for a book cover illustration. 
+        Focus on the main characters and the central theme. The style must be high-quality and consistent with: ${NovaStoryService.ART_STYLE_SUFFIX}.
+        
+        Story Text:
+        ${storyText}
+        
+        IMPORTANT: Your output MUST be under 800 characters. Output only the image prompt text, avoiding specific art style keywords as they will be appended automatically.`;
+
+        const command = new InvokeModelCommand({
+            modelId: "us.amazon.nova-lite-v1:0",
+            contentType: "application/json",
+            accept: "application/json",
+            body: JSON.stringify({
+                messages: [
+                    {
+                        role: "user",
+                        content: [{ text: prompt }]
+                    }
+                ],
+                inferenceConfig: {
+                    maxTokens: 500,
+                    temperature: 0.7,
+                }
+            }),
+        });
+
+        const response = await this.client.send(command);
+        const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+        return responseBody.output.message.content[0].text;
     }
 }

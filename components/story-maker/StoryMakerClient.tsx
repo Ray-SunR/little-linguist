@@ -359,6 +359,30 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 </div>
                             </div>
 
+                            {/* Adventure Details: Topic and Setting */}
+                            <div className="grid md:grid-cols-2 gap-8 mb-10 pt-8 border-t-2 border-purple-50">
+                                <div>
+                                    <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">What's the Story About?</label>
+                                    <input
+                                        type="text"
+                                        value={profile.topic || ''}
+                                        onChange={(e) => setProfile({ ...profile, topic: e.target.value })}
+                                        className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
+                                        placeholder="e.g., A trip to Mars, A talking kitten"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Where Does it Happen?</label>
+                                    <input
+                                        type="text"
+                                        value={profile.setting || ''}
+                                        onChange={(e) => setProfile({ ...profile, setting: e.target.value })}
+                                        className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
+                                        placeholder="e.g., Space, Enchanted Forest, Underwater"
+                                    />
+                                </div>
+                            </div>
+
                             <motion.button
                                 whileHover={{ scale: 1.02, y: -4 }}
                                 whileTap={{ scale: 0.98 }}

@@ -16,7 +16,7 @@ export default function LibraryContent() {
     const router = useRouter();
     const { user, activeChild, isLoading: authLoading } = useAuth();
     const currentUserId = user?.id;
-    
+
     // Check for synchronous hints to avoid "Wait for it" flickering on mount
     const hasCacheHint = typeof window !== "undefined" && currentUserId && !!window.localStorage.getItem(`raiden:has_library_cache:${currentUserId}`);
 
@@ -26,7 +26,7 @@ export default function LibraryContent() {
         }
         return [];
     });
-    
+
     const [isLoading, setIsLoading] = useState(() => {
         // If we have memory cache for THIS user, never show loader
         if (currentUserId && cachedLibraryBooks[currentUserId]) return false;
@@ -34,12 +34,12 @@ export default function LibraryContent() {
         if (hasCacheHint) return false;
         return true;
     });
-    
+
     const [error, setError] = useState<string | null>(null);
 
     const loadBooks = useCallback(async () => {
         if (!currentUserId || authLoading) return;
-        
+
         if (inFlightLibraryFetch[currentUserId]) return inFlightLibraryFetch[currentUserId];
 
         const work = async () => {
@@ -56,8 +56,9 @@ export default function LibraryContent() {
             try {
                 // 2. Background fresh fetch
                 const progressUrl = activeChild?.id ? `/api/progress?childId=${activeChild.id}` : '/api/progress';
+                const booksUrl = activeChild?.id ? `/api/books?mode=library&childId=${activeChild.id}` : '/api/books?mode=library';
                 const [booksRes, progressRes] = await Promise.all([
-                    fetch('/api/books?mode=library'),
+                    fetch(booksUrl),
                     fetch(progressUrl)
                 ]);
 
@@ -91,9 +92,9 @@ export default function LibraryContent() {
                 // 3. Update state and persistence
                 setBooks(libraryBooks);
                 cachedLibraryBooks[currentUserId] = libraryBooks;
-                
-                await raidenCache.put(CacheStore.LIBRARY_METADATA, { 
-                    id: currentUserId, 
+
+                await raidenCache.put(CacheStore.LIBRARY_METADATA, {
+                    id: currentUserId,
                     books: libraryBooks,
                     updatedAt: Date.now()
                 });
@@ -122,7 +123,7 @@ export default function LibraryContent() {
     useEffect(() => {
         const syncHydrate = async () => {
             if (typeof window === "undefined" || !currentUserId) return;
-            
+
             const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, currentUserId);
             if (cached?.books) {
                 setBooks(cached.books);
@@ -148,7 +149,7 @@ export default function LibraryContent() {
             setBooks(prev => prev.filter(b => b.id !== id));
             // Also remove from cache if it exists there
             await raidenCache.delete(CacheStore.BOOKS, id);
-            
+
             // Re-persist updated list to library metadata cache
             if (currentUserId) {
                 const updatedBooks = cachedLibraryBooks[currentUserId]?.filter(b => b.id !== id) || [];

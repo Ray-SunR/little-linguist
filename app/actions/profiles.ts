@@ -15,7 +15,7 @@ export interface ChildProfilePayload {
 
 export interface ChildProfile extends ChildProfilePayload {
   id: string;
-  guardian_id: string;
+  owner_user_id: string;
   created_at: string;
   updated_at: string;
   deleted_at?: string;
@@ -31,7 +31,7 @@ const AVATAR_BUCKET = 'user-assets';
  */
 async function uploadAvatarToBucket(
   supabase: ReturnType<typeof createClient>,
-  guardianId: string,
+  ownerUserId: string,
   childId: string,
   base64DataUrl: string
 ): Promise<string | null> {
@@ -53,10 +53,10 @@ async function uploadAvatarToBucket(
     const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
     const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, 'base64');
-    
+
     const timestamp = Date.now();
-    // Use user-assets subfolder strategy: {guardianId}/avatars/{childId}/{timestamp}.{ext}
-    const storagePath = `${guardianId}/avatars/${childId}/${timestamp}.${ext}`;
+    // Use user-assets subfolder strategy: {ownerUserId}/avatars/{childId}/{timestamp}.{ext}
+    const storagePath = `${ownerUserId}/avatars/${childId}/${timestamp}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from(AVATAR_BUCKET)
@@ -91,7 +91,7 @@ export async function createChildProfile(data: ChildProfilePayload) {
 
     // Generate a temporary ID for the avatar path
     const tempChildId = crypto.randomUUID();
-    
+
     // Handle avatar upload
     let avatarPaths: string[] = [];
     if (data.avatar_asset_path) {
@@ -105,7 +105,7 @@ export async function createChildProfile(data: ChildProfilePayload) {
       .from('children')
       .insert({
         id: tempChildId, // Use the same ID we used for avatar path
-        guardian_id: user.id,
+        owner_user_id: user.id,
         first_name: data.first_name,
         last_name: data.last_name,
         birth_year: data.birth_year,
@@ -156,7 +156,7 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
     const updatePayload: Record<string, any> = {
       updated_at: new Date().toISOString(), // explicitly update to trigger cache refresh
     };
-    
+
     if (data.first_name !== undefined) updatePayload.first_name = data.first_name;
     if (data.last_name !== undefined) updatePayload.last_name = data.last_name;
     if (data.birth_year !== undefined) updatePayload.birth_year = data.birth_year;
@@ -172,9 +172,9 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
           .from('children')
           .select('avatar_paths')
           .eq('id', id)
-          .eq('guardian_id', user.id)
+          .eq('owner_user_id', user.id)
           .single();
-        
+
         const currentPaths = (existing?.avatar_paths as string[]) || [];
         // Avoid duplicates
         if (!currentPaths.includes(uploadedPath)) {
@@ -188,7 +188,7 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
       .from('children')
       .update(updatePayload)
       .eq('id', id)
-      .eq('guardian_id', user.id); // Security: ensure ownership
+      .eq('owner_user_id', user.id); // Security: ensure ownership
 
     if (error) {
       console.error(`[profiles:updateChildProfile] Database error updating profile ${id}:`, {
@@ -222,7 +222,7 @@ export async function deleteChildProfile(id: string) {
       .from('children')
       .delete()
       .eq('id', id)
-      .eq('guardian_id', user.id);
+      .eq('owner_user_id', user.id);
 
     if (error) {
       console.error(`[profiles:deleteChildProfile] Database error deleting profile ${id}:`, {
@@ -253,7 +253,7 @@ export async function getChildren() {
   const { data, error } = await supabase
     .from('children')
     .select('*')
-    .eq('guardian_id', user.id)
+    .eq('owner_user_id', user.id)
     .order('created_at', { ascending: true });
 
   if (error) {
@@ -281,7 +281,7 @@ export async function getChildren() {
     const { data: signs, error: signError } = await supabase.storage
       .from(bucket)
       .createSignedUrls(allPaths, 3600);
-    
+
     if (!signError && signs) {
       signs.forEach(s => {
         if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
@@ -294,7 +294,7 @@ export async function getChildren() {
     const avatarPaths = (child.avatar_paths as string[]) || [];
     const primaryIndex = child.primary_avatar_index ?? 0;
     const rawPath = avatarPaths[primaryIndex] || avatarPaths[0] || null;
-    
+
     let avatar_asset_path = rawPath;
     if (rawPath && signedMap.has(rawPath)) {
       avatar_asset_path = signedMap.get(rawPath)!;
@@ -318,7 +318,7 @@ export async function switchActiveChild(childId: string) {
   }
 
   // Verify ownership
-  const { data, error: fetchError } = await supabase.from('children').select('id').eq('id', childId).eq('guardian_id', user.id).single();
+  const { data, error: fetchError } = await supabase.from('children').select('id').eq('id', childId).eq('owner_user_id', user.id).single();
 
   if (fetchError || !data) {
     console.error(`[profiles:switchActiveChild] verification error or unauthorized for child ${childId}:`, {

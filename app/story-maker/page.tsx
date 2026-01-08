@@ -7,7 +7,7 @@ import LumoLoader from "@/components/ui/lumo-loader";
 
 export default function StoryMakerPage() {
     const { activeChild, isLoading } = useAuth();
-    
+
     if (isLoading) {
         return <LumoLoader />;
     }
@@ -17,7 +17,8 @@ export default function StoryMakerPage() {
         name: activeChild.first_name,
         age: activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : 6,
         gender: activeChild.gender === "girl" ? "girl" : "boy",
-        avatarUrl: activeChild.avatar_asset_path
+        avatarUrl: activeChild.avatar_asset_path,
+        id: activeChild.id
     } : {
         name: "",
         age: 6,

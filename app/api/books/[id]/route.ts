@@ -64,7 +64,7 @@ export async function DELETE(
         // 3. Verify ownership
         const { data: book, error: fetchError } = await adminClient
             .from('books')
-            .select('id, guardian_id')
+            .select('id, owner_user_id, child_id')
             .eq('id', id)
             .single();
 
@@ -72,11 +72,25 @@ export async function DELETE(
             return NextResponse.json({ error: 'Book not found' }, { status: 404 });
         }
 
-        if (book.guardian_id !== user.id) {
+        // Parent owns the book (via owner_user_id) or if it's a child's book, the parent still owns it.
+        // We ensure strict ownership by owner_user_id.
+        if (book.owner_user_id !== user.id) {
             return NextResponse.json({ error: 'Forbidden: You do not own this book' }, { status: 403 });
         }
 
-        // 4. Delete associated media from storage (best effort)
+        // 4. Orphan learning data instead of deleting
+        // This preserves the child's learning history even if the book is removed.
+        await adminClient
+            .from('child_vocab')
+            .update({ origin_book_id: null })
+            .eq('origin_book_id', id);
+
+        await adminClient
+            .from('learning_sessions')
+            .update({ book_id: null })
+            .eq('book_id', id);
+
+        // 5. Delete associated media from storage (best effort)
         const { data: mediaItems } = await adminClient
             .from('book_media')
             .select('path')
@@ -89,22 +103,22 @@ export async function DELETE(
             }
         }
 
-        // 5. Delete book audios
+        // 6. Delete book audios
         await adminClient.from('book_audios').delete().eq('book_id', id);
 
-        // 6. Delete book media records
+        // 7. Delete book media records
         await adminClient.from('book_media').delete().eq('book_id', id);
 
-        // 6.5 Delete book contents
+        // 8. Delete book contents
         await adminClient.from('book_contents').delete().eq('book_id', id);
 
-        // 7. Delete child progress for this book
+        // 9. Delete child progress for this book
         await adminClient.from('child_book_progress').delete().eq('book_id', id);
 
-        // 8. Delete stories entry if exists
+        // 10. Delete stories entry if exists
         await adminClient.from('stories').delete().eq('id', id);
 
-        // 9. Delete the book itself
+        // 11. Delete the book itself
         const { error: deleteError } = await adminClient
             .from('books')
             .delete()

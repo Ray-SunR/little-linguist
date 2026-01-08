@@ -22,12 +22,12 @@ export class BookRepository {
     async getAvailableBooks(userId?: string): Promise<Partial<Book>[]> {
         let query = this.supabase
             .from('books')
-            .select('id, book_key, title, origin, updated_at, voice_id, guardian_id, estimated_reading_time');
+            .select('id, book_key, title, origin, updated_at, voice_id, owner_user_id, estimated_reading_time');
 
         if (userId) {
-            query = query.or(`guardian_id.is.null,guardian_id.eq.${userId}`);
+            query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
         } else {
-            query = query.is('guardian_id', null);
+            query = query.is('owner_user_id', null);
         }
 
         const { data, error } = await query.order('title').order('id');
@@ -47,7 +47,7 @@ export class BookRepository {
         coverImageUrl?: string;
         updated_at?: string;
         voice_id?: string;
-        guardian_id?: string | null;
+        owner_user_id?: string | null;
         totalTokens?: number;
         estimatedReadingTime?: number;
         isRead?: boolean;
@@ -56,8 +56,8 @@ export class BookRepository {
         // Fetch metadata only from 'books' table (NO TOKENS)
         const { data: booksData, error: booksError } = await this.supabase
             .from('books')
-            .select('id, title, updated_at, voice_id, guardian_id, total_tokens, estimated_reading_time, cover_image_path')
-            .or(userId ? `guardian_id.is.null,guardian_id.eq.${userId}` : 'guardian_id.is.null')
+            .select('id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path')
+            .or(userId ? `owner_user_id.is.null,owner_user_id.eq.${userId}` : 'owner_user_id.is.null')
             .order('title');
 
         if (booksError) throw booksError;
@@ -121,6 +121,19 @@ export class BookRepository {
 
             const progress = progressMap.get(book.id);
 
+            // Visibility Check:
+            // 1. System books (owner_user_id null) -> Visible to everyone
+            // 2. Family books (child_id null) -> Visible to everyone in family
+            // 3. Child books (child_id set) -> Only visible to THAT child
+            const isSystemBook = !book.owner_user_id;
+            const isFamilyBook = !book.child_id;
+            const isMyBook = childId && book.child_id === childId;
+
+            // If it's another child's book, skip it
+            if (!isSystemBook && !isFamilyBook && !isMyBook) {
+                return null;
+            }
+
             return {
                 id: book.id,
                 title: book.title,
@@ -128,7 +141,8 @@ export class BookRepository {
                 coverPath,
                 updated_at: book.updated_at,
                 voice_id: book.voice_id,
-                guardian_id: book.guardian_id,
+                owner_user_id: book.owner_user_id,
+                child_id: book.child_id,
                 totalTokens: book.total_tokens,
                 estimatedReadingTime: book.estimated_reading_time,
                 isRead: progress?.is_completed || false,
@@ -136,20 +150,20 @@ export class BookRepository {
             };
         }));
 
-        return booksWithCovers;
+        return booksWithCovers.filter(Boolean) as any[];
     }
 
-    async getBookById(idOrSlug: string, options: { 
-        includeTokens?: boolean, 
-        includeContent?: boolean, 
-        includeMedia?: boolean, 
+    async getBookById(idOrSlug: string, options: {
+        includeTokens?: boolean,
+        includeContent?: boolean,
+        includeMedia?: boolean,
         includeAudio?: boolean,
-        userId?: string 
+        userId?: string
     } = {}): Promise<any | null> {
         const isUuid = BookRepository.isValidUuid(idOrSlug);
 
         // Fetch Metadata first (NO TOKENS)
-        const fields = ['id', 'book_key', 'title', 'origin', 'updated_at', 'voice_id', 'guardian_id', 'metadata', 'total_tokens', 'cover_image_path'];
+        const fields = ['id', 'book_key', 'title', 'origin', 'updated_at', 'voice_id', 'owner_user_id', 'child_id', 'metadata', 'total_tokens', 'cover_image_path'];
         let query = this.supabase.from('books').select(fields.join(','));
 
         if (isUuid) {
@@ -159,9 +173,9 @@ export class BookRepository {
         }
 
         if (options.userId) {
-            query = query.or(`guardian_id.is.null,guardian_id.eq.${options.userId}`);
+            query = query.or(`owner_user_id.is.null,owner_user_id.eq.${options.userId}`);
         } else {
-            query = query.is('guardian_id', null);
+            query = query.is('owner_user_id', null);
         }
 
         const { data, error: metadataError } = await query.single();
@@ -169,7 +183,7 @@ export class BookRepository {
         if (!data) return null;
 
         const bookMetadata = data as any;
-        const result = { 
+        const result = {
             ...bookMetadata,
             images: null, // Will be populated from book_media if includeMedia
             assetTimestamps: {
@@ -245,14 +259,24 @@ export class BookRepository {
 
             if (mediaError) throw mediaError;
 
-            const { data: story } = await this.supabase
-                .from('stories')
-                .select('scenes')
-                .eq('id', bookMetadata.id)
-                .maybeSingle();
+            // V2+ Schema: Scenes live in book metadata
+            // V1 Schema: Scenes live in stories table
+            let scenes = [];
+            if (bookMetadata.schema_version >= 2 && Array.isArray(bookMetadata.metadata?.scenes)) {
+                scenes = bookMetadata.metadata.scenes;
+            } else {
+                const { data: story } = await this.supabase
+                    .from('stories')
+                    .select('scenes')
+                    .eq('id', bookMetadata.id)
+                    .maybeSingle();
+                if (story && Array.isArray(story.scenes)) {
+                    scenes = story.scenes;
+                }
+            }
 
-            if (story && Array.isArray(story.scenes)) {
-                const fullImages = story.scenes.map((scene: any, index: number) => {
+            if (scenes.length > 0) {
+                const fullImages = scenes.map((scene: any, index: number) => {
                     const actualMedia = media?.find(m => Number(m.after_word_index) === Number(scene.after_word_index));
                     if (actualMedia) {
                         return {
@@ -306,27 +330,49 @@ export class BookRepository {
         }
 
 
-        
+
         // Sign cover image if exists
         let coverImageUrl = undefined;
         let coverPath = bookMetadata.cover_image_path;
         if (coverPath) {
-             if (coverPath.startsWith('http')) {
-                 coverImageUrl = coverPath;
-             } else {
-                 try {
-                     const { data: signedData } = await this.supabase.storage
-                         .from('book-assets')
-                         .createSignedUrl(coverPath, 3600);
-                     coverImageUrl = signedData?.signedUrl;
-                 } catch (err) {
-                     console.error(`Error signing cover URL for book ${bookMetadata.id}:`, err);
-                 }
-             }
+            if (coverPath.startsWith('http')) {
+                coverImageUrl = coverPath;
+            } else {
+                try {
+                    const { data: signedData } = await this.supabase.storage
+                        .from('book-assets')
+                        .createSignedUrl(coverPath, 3600);
+                    coverImageUrl = signedData?.signedUrl;
+                } catch (err) {
+                    console.error(`Error signing cover URL for book ${bookMetadata.id}:`, err);
+                }
+            }
         }
-        
+
         result.coverImageUrl = coverImageUrl;
         result.coverPath = coverPath;
+
+        if (options.includeAudio) {
+            const audios = await this.getNarrationChunks(bookMetadata.id, bookMetadata.voice_id);
+            result.audios = await Promise.all(audios.map(async (audio: any) => {
+                let finalUrl = audio.audio_path;
+                if (finalUrl && !finalUrl.startsWith('http')) {
+                    const { data: signedData } = await this.supabase.storage
+                        .from('book-assets')
+                        .createSignedUrl(finalUrl, 3600);
+                    if (signedData) finalUrl = signedData.signedUrl;
+                }
+                return {
+                    id: audio.id,
+                    chunk_index: audio.chunk_index,
+                    start_word_index: audio.start_word_index,
+                    end_word_index: audio.end_word_index,
+                    audio_path: finalUrl,
+                    storagePath: audio.audio_path,
+                    timings: audio.timings
+                };
+            }));
+        }
 
         return result;
     }

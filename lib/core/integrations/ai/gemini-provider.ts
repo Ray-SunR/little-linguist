@@ -86,7 +86,7 @@ export class GeminiProvider implements AIProvider {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ words, userProfile: profile }),
+                body: JSON.stringify({ words, userProfile: profile, childId: profile.id }),
                 signal: options?.signal,
             });
 

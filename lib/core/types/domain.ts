@@ -37,6 +37,9 @@ export type UserProfile = {
     age: number;
     gender: 'boy' | 'girl' | 'other';
     avatarUrl?: string; // Base64 or URL for the user's photo
+    id?: string; // Child ID for backend verification
+    topic?: string;
+    setting?: string;
 };
 
 /**

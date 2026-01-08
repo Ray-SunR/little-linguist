@@ -19,19 +19,97 @@ export async function POST(req: Request) {
     const authClient = createAuthClient();
     const { data: { user } } = await authClient.auth.getUser();
 
-    try {
-        const { words, childId } = await req.json();
-        const guardianId = user?.id || null;
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized. Please sign in to create stories." }, { status: 401 });
+    }
 
-        // Fetch child profile if childId is provided
+    // Use regular client for RLS-aware lookups where possible, but we need service role for mock writes
+    const userSupabase = authClient;
+
+    try {
+        const body = await req.json();
+        const { words, childId, userProfile } = body || {};
+
+        const ownerUserId = user.id;
+
+        // 0. Input Validation (Parity with production)
+        if (childId && (typeof childId !== 'string' || !/^[0-9a-f-]{36}$/i.test(childId))) {
+            return NextResponse.json({ error: "Invalid childId format" }, { status: 400 });
+        }
+
+        if (words && (!Array.isArray(words) || words.length > 10)) {
+            return NextResponse.json({ error: "Provide up to 10 words" }, { status: 400 });
+        }
+
+        // Fetch child profile if childId is provided - VALIDATE OWNERSHIP
         let child = null;
         if (childId) {
-            const { data } = await supabase
+            const { data, error: childError } = await userSupabase
                 .from('children')
                 .select('*')
                 .eq('id', childId)
-                .single();
+                .single(); // RLS handles owner_user_id check
+
+            if (childError || !data) {
+                return NextResponse.json({ error: "Child profile not found or unauthorized" }, { status: 404 });
+            }
             child = data;
+        }
+
+        let childAvatar = null;
+        if (child) {
+            const { avatar_paths: avatarPaths, primary_avatar_index: primaryAvatarIndex } = child;
+            childAvatar = (avatarPaths && avatarPaths.length > 0)
+                ? (avatarPaths[primaryAvatarIndex ?? 0] || avatarPaths[0])
+                : null;
+        }
+
+        // Handle custom photo override from userProfile
+        if (userProfile?.avatarUrl && userProfile.avatarUrl.startsWith('data:image/')) {
+            const MAX_OVERRIDE_SIZE = 5 * 1024 * 1024; // 5MB limit
+            const matches = userProfile.avatarUrl.match(/^data:(image\/(\w+));base64,(.+)$/);
+
+            if (!matches) {
+                return NextResponse.json({ error: "Invalid photo format." }, { status: 400 });
+            }
+
+            const mimeType = matches[1];
+            const ext = matches[2] === 'jpeg' ? 'jpg' : matches[2];
+            const base64Data = matches[3];
+            const buffer = Buffer.from(base64Data, 'base64');
+
+            if (buffer.length > MAX_OVERRIDE_SIZE) {
+                return NextResponse.json({ error: "Photo is too large (max 5MB)." }, { status: 400 });
+            }
+
+            // Only allow common image types
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(mimeType)) {
+                return NextResponse.json({ error: "Unsupported image type." }, { status: 400 });
+            }
+
+            try {
+                const timestamp = Date.now();
+                const randomId = crypto.randomUUID().split('-')[0];
+                const storagePath = `${user?.id || 'mock'}/story-overrides/${childId || 'anonymous'}/${timestamp}-${randomId}.${ext}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('user-assets')
+                    .upload(storagePath, buffer, {
+                        contentType: mimeType,
+                        upsert: true
+                    });
+
+                if (uploadError) {
+                    console.error("Failed to upload mock story photo override:", uploadError);
+                    return NextResponse.json({ error: "Failed to upload photo." }, { status: 500 });
+                }
+
+                childAvatar = storagePath;
+            } catch (err) {
+                console.error("Error processing custom photo override in mock:", err);
+                return NextResponse.json({ error: "Error processing photo." }, { status: 500 });
+            }
         }
 
         const mockPath = path.join(process.cwd(), 'data', 'mock', 'response.json');
@@ -42,6 +120,14 @@ export async function POST(req: Request) {
 
         const rawText = fs.readFileSync(mockPath, 'utf8').trim();
         const data = JSON.parse(rawText);
+
+        // Security: Ensure mock data also respects prompt conventions
+        for (const scene of data.scenes) {
+            if (!scene.image_prompt.includes("[1]")) {
+                scene.image_prompt = `[1] ${scene.image_prompt}`; // Auto-fix mock data if missing
+            }
+        }
+
         const bookId = crypto.randomUUID();
 
         // Reconstruct full content from scenes to ensure indices align perfectly.
@@ -66,7 +152,7 @@ export async function POST(req: Request) {
             .upsert({
                 id: bookId,
                 book_key: bookKey,
-                guardian_id: guardianId,
+                owner_user_id: ownerUserId,
                 title: data.title,
                 origin: 'user_generated',
                 voice_id: voiceId,
@@ -86,18 +172,18 @@ export async function POST(req: Request) {
                 tokens,
                 full_text: fullContent
             });
-        
+
         if (contentError) throw contentError;
 
         const storyRepo = new StoryRepository(supabase);
         await storyRepo.createStory({
             id: book.id,
-            guardian_id: guardianId,
+            owner_user_id: ownerUserId,
             child_id: childId,
             main_character_description: data.mainCharacterDescription,
             scenes: scenesWithIndices,
             status: 'generating',
-            avatar_url: child?.avatar_url
+            avatar_url: childAvatar
         });
 
         (async () => {

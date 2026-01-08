@@ -11,7 +11,7 @@ export interface StoryScene {
 
 export interface StoryEntity {
     id: string;
-    guardian_id: string | null;
+    owner_user_id: string | null;
     child_id: string | null;
     main_character_description: string;
     scenes: StoryScene[];
@@ -43,7 +43,7 @@ export class StoryRepository {
             .eq('id', id);
 
         if (userId) {
-            query = query.eq('guardian_id', userId);
+            query = query.eq('owner_user_id', userId);
         }
 
         const { data, error } = await query.single();

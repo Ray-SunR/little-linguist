@@ -219,7 +219,7 @@ children
 
 create table children (
   id uuid primary key default gen_random_uuid(),
-  guardian_id uuid not null references profiles(id) on delete cascade,
+  owner_user_id uuid not null references profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
   deleted_at timestamptz,
 
@@ -234,13 +234,13 @@ create table children (
 
   avatar_asset_path text -- storage path (private); nullable
 );
-create index on children (guardian_id);
+create index on children (owner_user_id);
 
 media_assets (for private storage references)
 
 create table media_assets (
   id uuid primary key default gen_random_uuid(),
-  guardian_id uuid not null references profiles(id) on delete cascade,
+  owner_user_id uuid not null references profiles(id) on delete cascade,
   child_id uuid references children(id) on delete cascade,
 
   bucket text not null,
@@ -251,7 +251,7 @@ create table media_assets (
   created_at timestamptz not null default now(),
   unique(bucket, path)
 );
-create index on media_assets (guardian_id);
+create index on media_assets (owner_user_id);
 create index on media_assets (child_id);
 
 
@@ -271,8 +271,8 @@ create table books (
   origin text not null default 'system', -- system | ai_generated | imported
   schema_version int not null default 1, -- 1 = BookV1 payload; later 2 = BookV2
 
-  -- system books => guardian_id null; user books => guardian_id set
-  guardian_id uuid references profiles(id) on delete cascade,
+  -- system books => owner_user_id null; user books => owner_user_id set
+  owner_user_id uuid references profiles(id) on delete cascade,
   created_by_child_id uuid references children(id) on delete set null,
 
   -- store your current structure unchanged
@@ -282,7 +282,7 @@ create table books (
   updated_at timestamptz not null default now()
 );
 create index on books (origin);
-create index on books (guardian_id);
+create index on books (owner_user_id);
 
 Optional: compatibility view that returns a single JSON array (like your current file)
 
@@ -414,7 +414,7 @@ create index on point_transactions (child_id, created_at desc);
 
 create table story_generation_jobs (
   id uuid primary key default gen_random_uuid(),
-  guardian_id uuid not null references profiles(id) on delete cascade,
+  owner_user_id uuid not null references profiles(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
   created_at timestamptz not null default now(),
   status text not null, -- queued|running|succeeded|failed|discarded
@@ -440,7 +440,7 @@ create table content_moderation_results (
 
 create table word_import_jobs (
   id uuid primary key default gen_random_uuid(),
-  guardian_id uuid not null references profiles(id) on delete cascade,
+  owner_user_id uuid not null references profiles(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
   created_at timestamptz not null default now(),
   status text not null, -- queued|running|done|failed
@@ -470,7 +470,7 @@ create table subscription_plans (
 );
 
 create table subscriptions (
-  guardian_id uuid primary key references profiles(id) on delete cascade,
+  owner_user_id uuid primary key references profiles(id) on delete cascade,
   plan_code text not null references subscription_plans(code),
   status text not null default 'active',
   current_period_start date,
@@ -481,7 +481,7 @@ create table subscriptions (
 
 create table usage_meter (
   id uuid primary key default gen_random_uuid(),
-  guardian_id uuid not null references profiles(id) on delete cascade,
+  owner_user_id uuid not null references profiles(id) on delete cascade,
   child_id uuid references children(id) on delete set null,
   created_at timestamptz not null default now(),
   category text not null, -- story_gen|tts_chars|img_gen|llm_tokens
@@ -489,7 +489,7 @@ create table usage_meter (
   ref_type text,
   ref_id uuid
 );
-create index on usage_meter (guardian_id, created_at desc);
+create index on usage_meter (owner_user_id, created_at desc);
 
 
 ⸻
@@ -522,12 +522,12 @@ create table tts_tracks (
 
 Enable RLS on all household/child tables.
 	•	profiles: only auth.uid() = profiles.id
-	•	children: only rows where children.guardian_id = auth.uid()
+	•	children: only rows where children.owner_user_id = auth.uid()
 	•	books:
-	•	readable if origin='system' (authenticated users) OR guardian_id = auth.uid()
-	•	writable only if guardian_id = auth.uid() (for user-generated/imported)
+	•	readable if origin='system' (authenticated users) OR owner_user_id = auth.uid()
+	•	writable only if owner_user_id = auth.uid() (for user-generated/imported)
 	•	child_*, sessions, vocab, points, jobs, usage:
-	•	join through children.guardian_id = auth.uid()
+	•	join through children.owner_user_id = auth.uid()
 
 (Implementation detail: add helper SQL functions or use exists (...) joins.)
 
@@ -601,10 +601,10 @@ Deliverables
 
 RLS rules
 	•	profiles: user can select/update their own row (profiles.id = auth.uid())
-	•	children/media_assets: only where guardian_id = auth.uid()
+	•	children/media_assets: only where owner_user_id = auth.uid()
 	•	books:
-	•	select allowed if origin=‘system’ OR guardian_id = auth.uid()
-	•	insert/update/delete only if guardian_id = auth.uid() OR (for seeding) allow service role only
+	•	select allowed if origin=‘system’ OR owner_user_id = auth.uid()
+	•	insert/update/delete only if owner_user_id = auth.uid() OR (for seeding) allow service role only
 	•	all child-specific tables must enforce guardian ownership via join to children
 
 Make minimal app changes. Do not modify the BookV1 JSON structure. Keep image src paths unchanged. Ensure seed uses service role key and runtime access uses anon key with RLS.

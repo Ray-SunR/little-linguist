@@ -15,11 +15,16 @@ export interface BookImage {
 export interface Book {
   id: string;
   title: string;
-  text: string;
+  text?: string;
   audioUrl?: string;
   updated_at?: string;
   voice_id?: string;
   cover_image_path?: string;
+  owner_user_id?: string | null;
+  child_id?: string | null;
+  origin?: 'system' | 'user_generated' | 'ai_generated';
+  total_tokens?: number;
+  metadata?: Record<string, any>;
 }
 
 export type ViewMode = 'continuous' | 'spread' | 'scroll';
