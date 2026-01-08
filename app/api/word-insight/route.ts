@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
 import { normalizeWord } from "@/lib/core";
 import { getWordAnalysisProvider } from "@/lib/features/word-insight/server/factory";
+import { createClient as createAuthClient } from "@/lib/supabase/server";
 
 const getSupabase = () => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,8 +16,19 @@ const getSupabase = () => {
 
 export async function POST(req: Request) {
     try {
-        const supabase = getSupabase();
-        const { word: rawWord } = await req.json();
+        // 0. Auth check
+        const authClient = createAuthClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const body = await req.json();
+        const rawWord = body?.word;
+
+        if (typeof rawWord !== 'string') {
+            return NextResponse.json({ error: "Word must be a string" }, { status: 400 });
+        }
 
         // Strict sanitization: only allow lowercase letters and hyphens for storage paths
         const word = normalizeWord(rawWord).replace(/[^a-z0-9-]/g, "");
@@ -25,7 +37,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid word" }, { status: 400 });
         }
 
-        // 1. Check Cache
+        // Instantiate Supabase client (service-role needed for storage and upserts)
+        const supabase = getSupabase();
+
+// 1. Check Cache
         const { data: cached, error: dbError } = await supabase
             .from("word_insights")
             .select("*")
@@ -34,49 +49,36 @@ export async function POST(req: Request) {
 
         if (dbError) {
             console.error("Database fetch error:", dbError);
-            // Non-fatal, proceed to generation
         }
 
-        if (cached) {
+        if (cached && cached.definition) {
             const bucket = "word-insights-audio";
+            const sign = async (path: string) => {
+                if (!path) return "";
+                const { data, error: signError } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+                return data?.signedUrl || "";
+            };
 
-            // Check if this is an "old" entry that needs migration/update
-            // If audio_path exists but word_audio_path doesn't, it might be a partial entry
-            const needsUpdate = !cached.word_audio_path || !cached.example_audio_paths?.length;
+            const [audioUrl, wordAudioUrl, exampleAudioUrl] = await Promise.all([
+                sign(cached.audio_path),
+                sign(`${word}/word.mp3`),
+                sign(`${word}/example_0.mp3`)
+            ]);
 
-            if (!needsUpdate) {
-                const sign = async (path: string) => {
-                    if (!path) return "";
-                    const { data, error: signError } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
-                    if (signError) {
-                        console.warn(`Failed to sign URL for ${path}:`, signError);
-                        return "";
-                    }
-                    return data?.signedUrl || "";
-                };
-
-                const [audioUrl, wordAudioUrl, exampleAudioUrl] = await Promise.all([
-                    sign(cached.audio_path),
-                    sign(cached.word_audio_path),
-                    cached.example_audio_paths?.[0] ? sign(cached.example_audio_paths[0]) : Promise.resolve("")
-                ]);
-
-                return NextResponse.json({
-                    word: cached.word,
-                    definition: cached.definition,
-                    pronunciation: cached.pronunciation,
-                    examples: cached.examples,
-                    audioUrl, // Definition
-                    wordAudioUrl,
-                    exampleAudioUrls: exampleAudioUrl ? [exampleAudioUrl] : [],
-                    audioPath: cached.audio_path,
-                    wordAudioPath: cached.word_audio_path,
-                    exampleAudioPaths: cached.example_audio_paths || [],
-                    wordTimings: cached.timing_markers, // Definition timings
-                    exampleTimings: cached.example_timing_markers || [],
-                });
-            }
-            // Fall through to regeneration if needsUpdate is true
+            return NextResponse.json({
+                word: cached.word,
+                definition: cached.definition,
+                pronunciation: cached.pronunciation,
+                examples: cached.examples,
+                audioUrl,
+                wordAudioUrl,
+                exampleAudioUrls: exampleAudioUrl ? [exampleAudioUrl] : [],
+                audioPath: cached.audio_path,
+                wordAudioPath: `${word}/word.mp3`,
+                exampleAudioPaths: [`${word}/example_0.mp3`],
+                wordTimings: cached.timing_markers,
+                exampleTimings: [],
+            });
         }
 
         // 2. Generate Insight with Provider
@@ -95,9 +97,7 @@ export async function POST(req: Request) {
                     upsert: true
                 });
 
-                if (uploadError) {
-                    throw uploadError;
-                }
+                if (uploadError) throw uploadError;
 
                 const timings = speechMarks.map((mark, idx) => ({
                     wordIndex: idx,
@@ -105,16 +105,9 @@ export async function POST(req: Request) {
                     endMs: speechMarks[idx + 1] ? speechMarks[idx + 1].time : mark.time + 500
                 }));
 
-                const { data: signData, error: signError } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
-                if (signError) {
-                    throw signError;
-                }
+                const { data: signData } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
 
-                return {
-                    path,
-                    url: signData?.signedUrl || "",
-                    timings
-                };
+                return { path, url: signData?.signedUrl || "", timings };
             } catch (err) {
                 console.error(`Synthesis failed for "${text}":`, err);
                 return null;
@@ -128,21 +121,19 @@ export async function POST(req: Request) {
         ]);
 
         // 4. Save to Database
+
         const { error: upsertError } = await supabase.from("word_insights").upsert({
-            word,
+            word: word,
             definition: insight.definition,
             pronunciation: insight.pronunciation,
             examples: insight.examples,
-            audio_path: defAudio?.path || "",
-            word_audio_path: wordAudio?.path || "",
-            example_audio_paths: exAudio ? [exAudio.path] : [],
-            timing_markers: defAudio?.timings || [], // Primary markers are for definition
-            example_timing_markers: exAudio ? [exAudio.timings] : [],
+            audio_path: defAudio?.path || "", // Only supported audio column
+             // Audio paths are generated on-demand, not stored in word_insights
+            timing_markers: defAudio?.timings || [],
         }, { onConflict: "word" });
 
         if (upsertError) {
             console.error("Database upsert error:", upsertError);
-            // Continue to return the freshly generated data even if save failed
         }
 
         return NextResponse.json({

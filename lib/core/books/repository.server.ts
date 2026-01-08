@@ -22,15 +22,15 @@ export class BookRepository {
     async getAvailableBooks(userId?: string): Promise<Partial<Book>[]> {
         let query = this.supabase
             .from('books')
-            .select('id, book_key, title, origin, updated_at, voice_id, owner_user_id, estimated_reading_time');
+            .select('id, book_key, title, origin, updated_at, voice_id, guardian_id, estimated_reading_time');
 
         if (userId) {
-            query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
+            query = query.or(`guardian_id.is.null,guardian_id.eq.${userId}`);
         } else {
-            query = query.is('owner_user_id', null);
+            query = query.is('guardian_id', null);
         }
 
-        const { data, error } = await query.order('title');
+        const { data, error } = await query.order('title').order('id');
 
         if (error) throw error;
         return data || [];
@@ -40,65 +40,55 @@ export class BookRepository {
      * Fetches books with cover images for the library view.
      * This is optimized for the library page - it only returns metadata needed
      * for rendering book cards, including signed cover image URLs.
-     * 
-     * Performance optimizations:
-     * - Uses total_tokens column to get token count without fetching full tokens array
-     * - Fetches cover paths from book_media in a single batched query
-     * - Handles signing errors gracefully
      */
-    async getAvailableBooksWithCovers(userId?: string): Promise<{
+    async getAvailableBooksWithCovers(userId?: string, childId?: string): Promise<{
         id: string;
         title: string;
         coverImageUrl?: string;
         updated_at?: string;
         voice_id?: string;
-        owner_user_id?: string | null;
+        guardian_id?: string | null;
         totalTokens?: number;
         estimatedReadingTime?: number;
         isRead?: boolean;
         lastOpenedAt?: string;
     }[]> {
-        // Use RPC or raw query to get token count without fetching full array
-        // For now, we'll get minimal fields and compute count server-side
+        // Fetch metadata only from 'books' table (NO TOKENS)
         const { data: booksData, error: booksError } = await this.supabase
             .from('books')
-            .select('id, title, updated_at, voice_id, owner_user_id, images, total_tokens, estimated_reading_time')
-            .or(userId ? `owner_user_id.is.null,owner_user_id.eq.${userId}` : 'owner_user_id.is.null')
+            .select('id, title, updated_at, voice_id, guardian_id, total_tokens, estimated_reading_time, cover_image_path')
+            .or(userId ? `guardian_id.is.null,guardian_id.eq.${userId}` : 'guardian_id.is.null')
             .order('title');
 
         if (booksError) throw booksError;
         if (!booksData || booksData.length === 0) return [];
 
-        // Fetch user progress for these books
-        let userProgressMap = new Map<string, any>();
-        if (userId) {
+        // Fetch child-centric progress if childId is available
+        let progressMap = new Map<string, any>();
+        if (childId) {
             const { data: progressData } = await this.supabase
-                .from('user_progress')
-                .select('book_id, is_completed, updated_at')
-                .eq('user_id', userId)
+                .from('child_book_progress')
+                .select('book_id, is_completed, last_read_at')
+                .eq('child_id', childId)
                 .in('book_id', booksData.map(b => b.id));
 
             if (progressData) {
                 progressData.forEach(p => {
-                    userProgressMap.set(p.book_id, p);
+                    progressMap.set(p.book_id, p);
                 });
             }
         }
 
-        // Batch fetch cover images from book_media for all books at once (single query)
+        // Batch fetch cover images from book_media
         const bookIds = booksData.map(b => b.id);
         const { data: mediaData, error: mediaError } = await this.supabase
             .from('book_media')
             .select('book_id, path')
+            .eq('media_type', 'image')
             .in('book_id', bookIds)
-            .order('after_word_index');
+            .order('after_word_index')
+            .order('path');
 
-        if (mediaError) {
-            console.error('Failed to fetch book_media covers:', mediaError);
-            // Continue without media covers - graceful degradation
-        }
-
-        // Build a map of book_id -> first cover path from book_media
         const mediaCoverMap = new Map<string, string>();
         if (mediaData) {
             for (const media of mediaData) {
@@ -111,68 +101,55 @@ export class BookRepository {
         // Process books and sign cover URLs
         const booksWithCovers = await Promise.all(booksData.map(async (book: any) => {
             let coverImageUrl: string | undefined;
-            let coverPath: string | undefined;
+            // Prioritize explicit cover_image_path, fallback to first media image
+            const coverPath = book.cover_image_path || mediaCoverMap.get(book.id);
 
-            // 1. Try to get cover from inline images array first
-            if (Array.isArray(book.images) && book.images.length > 0) {
-                const firstImage = book.images[0];
-                coverPath = firstImage.src || firstImage.url;
-            }
-
-            // 2. Fallback to book_media cover if no inline image
-            if (!coverPath) {
-                coverPath = mediaCoverMap.get(book.id);
-            }
-
-            // 3. Resolve the cover URL
             if (coverPath) {
                 if (coverPath.startsWith('http')) {
-                    // Already a full URL
                     coverImageUrl = coverPath;
                 } else {
-                    // Supabase storage path - needs signing
                     try {
-                        const { data: signedData, error: signError } = await this.supabase.storage
+                        const { data: signedData } = await this.supabase.storage
                             .from('book-assets')
                             .createSignedUrl(coverPath, 3600);
-
-                        if (signError) {
-                            console.error(`Failed to sign cover URL for book ${book.id}:`, signError);
-                        } else {
-                            coverImageUrl = signedData?.signedUrl;
-                        }
+                        coverImageUrl = signedData?.signedUrl;
                     } catch (err) {
                         console.error(`Error signing cover URL for book ${book.id}:`, err);
                     }
                 }
             }
 
-            const progress = userProgressMap.get(book.id);
+            const progress = progressMap.get(book.id);
 
             return {
                 id: book.id,
                 title: book.title,
                 coverImageUrl,
-                coverPath, // Return raw path for stable cache key
+                coverPath,
                 updated_at: book.updated_at,
                 voice_id: book.voice_id,
-                owner_user_id: book.owner_user_id,
+                guardian_id: book.guardian_id,
                 totalTokens: book.total_tokens,
                 estimatedReadingTime: book.estimated_reading_time,
                 isRead: progress?.is_completed || false,
-                lastOpenedAt: progress?.updated_at
+                lastOpenedAt: progress?.last_read_at
             };
         }));
 
         return booksWithCovers;
     }
 
-    async getBookById(idOrSlug: string, options: { includeContent?: boolean, includeMedia?: boolean, userId?: string } = {}): Promise<any | null> {
+    async getBookById(idOrSlug: string, options: { 
+        includeTokens?: boolean, 
+        includeContent?: boolean, 
+        includeMedia?: boolean, 
+        includeAudio?: boolean,
+        userId?: string 
+    } = {}): Promise<any | null> {
         const isUuid = BookRepository.isValidUuid(idOrSlug);
 
-        const fields = ['id', 'book_key', 'title', 'origin', 'tokens', 'images', 'updated_at', 'voice_id', 'owner_user_id', 'metadata'];
-        if (options.includeContent) fields.push('text');
-
+        // Fetch Metadata first (NO TOKENS)
+        const fields = ['id', 'book_key', 'title', 'origin', 'updated_at', 'voice_id', 'guardian_id', 'metadata', 'total_tokens', 'cover_image_path'];
         let query = this.supabase.from('books').select(fields.join(','));
 
         if (isUuid) {
@@ -181,60 +158,102 @@ export class BookRepository {
             query = query.eq('book_key', idOrSlug);
         }
 
-        // Apply ownership filter: public (null) OR owned by user
         if (options.userId) {
-            query = query.or(`owner_user_id.is.null,owner_user_id.eq.${options.userId}`);
+            query = query.or(`guardian_id.is.null,guardian_id.eq.${options.userId}`);
         } else {
-            query = query.is('owner_user_id', null);
+            query = query.is('guardian_id', null);
         }
 
-        const { data, error } = await query.single();
-        if (error && error.code !== 'PGRST116') throw error;
-        const bookData = data as any;
-        if (!bookData) return null;
+        const { data, error: metadataError } = await query.single();
+        if (metadataError && metadataError.code !== 'PGRST116') throw metadataError;
+        if (!data) return null;
 
-        const result = { ...bookData };
+        const bookMetadata = data as any;
+        const result = { 
+            ...bookMetadata,
+            images: null, // Will be populated from book_media if includeMedia
+            assetTimestamps: {
+                metadata: bookMetadata.updated_at,
+                text: null,
+                tokens: null,
+                images: null,
+                audios: null
+            }
+        };
 
-        // Resolve signed URLs for images stored in the main book record
-        if (Array.isArray(result.images)) {
-            result.images = await Promise.all(result.images.map(async (img: any) => {
-                if (img.src && !img.src.startsWith('http')) {
-                    const { data: signedData } = await this.supabase.storage
-                        .from('book-assets')
-                        .createSignedUrl(img.src, 3600);
-                    return {
-                        ...img,
-                        src: signedData?.signedUrl || img.src,
-                        storagePath: img.src // Preserve original path for caching
-                    };
-                }
-                return img;
-            }));
+        // Always fetch timestamps for text/tokens if they exist
+        const { data: contentTime } = await this.supabase
+            .from('book_contents')
+            .select('updated_at')
+            .eq('book_id', bookMetadata.id)
+            .maybeSingle();
+        if (contentTime) {
+            result.assetTimestamps.text = contentTime.updated_at;
+            result.assetTimestamps.tokens = contentTime.updated_at;
         }
+
+        // Always fetch max timestamp for images
+        const { data: mediaTime } = await this.supabase
+            .from('book_media')
+            .select('updated_at')
+            .eq('book_id', bookMetadata.id)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+        if (mediaTime) {
+            result.assetTimestamps.images = mediaTime.updated_at;
+        }
+
+        // Always fetch max timestamp for audios
+        const { data: audioTime } = await this.supabase
+            .from('book_audios')
+            .select('updated_at')
+            .eq('book_id', bookMetadata.id)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+        if (audioTime) {
+            result.assetTimestamps.audios = audioTime.updated_at;
+        }
+
+        // Fetch Tokens/Content only if requested (LAZY LOADING)
+        if (options.includeTokens || options.includeContent) {
+            const contentFields = ['updated_at'];
+            if (options.includeTokens) contentFields.push('tokens');
+            if (options.includeContent) contentFields.push('full_text');
+
+            const { data: contentDataAny } = await this.supabase
+                .from('book_contents')
+                .select(contentFields.join(','))
+                .eq('book_id', bookMetadata.id)
+                .single();
+
+            if (contentDataAny) {
+                const contentData = contentDataAny as any;
+                if (options.includeTokens) result.tokens = contentData.tokens;
+                if (options.includeContent) result.text = contentData.full_text;
+            }
+        }
+
 
         if (options.includeMedia) {
-            // 1. Fetch images from book_media
             const { data: media, error: mediaError } = await this.supabase
                 .from('book_media')
                 .select('*')
-                .eq('book_id', bookData.id)
+                .eq('book_id', bookMetadata.id)
                 .order('after_word_index');
 
             if (mediaError) throw mediaError;
 
-            // 2. Fetch story metadata to see all scenes (for placeholders)
             const { data: story } = await this.supabase
                 .from('stories')
                 .select('scenes')
-                .eq('id', bookData.id)
+                .eq('id', bookMetadata.id)
                 .maybeSingle();
 
             if (story && Array.isArray(story.scenes)) {
-                // Return a combined list based on scenes
                 const fullImages = story.scenes.map((scene: any, index: number) => {
-                    // Find actual image for this scene's word index
                     const actualMedia = media?.find(m => Number(m.after_word_index) === Number(scene.after_word_index));
-
                     if (actualMedia) {
                         return {
                             id: actualMedia.id,
@@ -244,7 +263,6 @@ export class BookRepository {
                             isPlaceholder: false
                         };
                     } else {
-                        // Placeholder
                         return {
                             id: `placeholder-${index}`,
                             afterWordIndex: Number(scene.after_word_index),
@@ -255,49 +273,60 @@ export class BookRepository {
                     }
                 });
 
-                // Resolve signed URLs for each media item
                 result.images = await Promise.all(fullImages.map(async img => {
-                    // If path is already a full URL (legacy), use it, otherwise sign it
                     if (img.src && !img.src.startsWith('http')) {
-                        const { data: signedData, error: signError } = await this.supabase.storage
+                        const { data: signedData } = await this.supabase.storage
                             .from('book-assets')
                             .createSignedUrl(img.src, 3600);
-
-                        if (!signError && signedData) {
-                            return {
-                                ...img,
-                                src: signedData.signedUrl,
-                                storagePath: img.src // Preserve original path for caching
-                            };
+                        if (signedData) {
+                            return { ...img, src: signedData.signedUrl, storagePath: img.src };
                         }
                     }
                     return img;
                 }));
             } else if (media && media.length > 0) {
-                // Fallback for books without 'stories' entry: resolve signed URLs for plain book_media
                 result.images = await Promise.all(media.map(async m => {
                     let finalUrl = m.path;
                     if (!m.path.startsWith('http')) {
-                        const { data: signedData, error: signError } = await this.supabase.storage
+                        const { data: signedData } = await this.supabase.storage
                             .from('book-assets')
                             .createSignedUrl(m.path, 3600);
-
-                        if (!signError && signedData) {
-                            finalUrl = signedData.signedUrl;
-                        }
+                        if (signedData) finalUrl = signedData.signedUrl;
                     }
-
                     return {
                         id: m.id,
                         afterWordIndex: Number(m.after_word_index),
                         ...(m.metadata || {}),
                         src: finalUrl,
-                        storagePath: m.path, // Preserve original path for caching
+                        storagePath: m.path,
                         isPlaceholder: false
                     };
                 }));
             }
         }
+
+
+        
+        // Sign cover image if exists
+        let coverImageUrl = undefined;
+        let coverPath = bookMetadata.cover_image_path;
+        if (coverPath) {
+             if (coverPath.startsWith('http')) {
+                 coverImageUrl = coverPath;
+             } else {
+                 try {
+                     const { data: signedData } = await this.supabase.storage
+                         .from('book-assets')
+                         .createSignedUrl(coverPath, 3600);
+                     coverImageUrl = signedData?.signedUrl;
+                 } catch (err) {
+                     console.error(`Error signing cover URL for book ${bookMetadata.id}:`, err);
+                 }
+             }
+        }
+        
+        result.coverImageUrl = coverImageUrl;
+        result.coverPath = coverPath;
 
         return result;
     }
@@ -329,53 +358,40 @@ export class BookRepository {
         return data;
     }
 
-    async getProgress(userId: string, bookId: string) {
-        if (!BookRepository.isValidUuid(bookId)) {
-            return null;
-        }
+    async getProgress(childId: string, bookId: string) {
+        if (!BookRepository.isValidUuid(bookId)) return null;
 
         const { data, error } = await this.supabase
-            .from('user_progress')
+            .from('child_book_progress')
             .select('*')
-            .match({ user_id: userId, book_id: bookId })
+            .match({ child_id: childId, book_id: bookId })
             .maybeSingle();
 
         if (error) throw error;
         return data;
     }
 
-    async saveProgress(userId: string, bookId: string, progress: {
+    async saveProgress(childId: string, bookId: string, progress: {
         last_token_index?: number;
         last_shard_index?: number;
-        total_tokens?: number;
-        estimatedReadingTime?: number;
-        isRead?: boolean;
-        lastOpenedAt?: string;
-        last_playback_time?: number;
-        view_mode?: string;
+        is_completed?: boolean;
+        total_read_seconds?: number;
         playback_speed?: number;
     }) {
         if (!BookRepository.isValidUuid(bookId)) {
             throw new Error(`Invalid book ID: ${bookId}`);
         }
 
-        // Map frontend camelCase fields to database snake_case columns
-        const { isRead, lastOpenedAt, ...rest } = progress;
-
-        const dbProgress: any = {
-            ...rest,
-            user_id: userId,
+        const dbProgress = {
+            ...progress,
+            child_id: childId,
             book_id: bookId,
-            updated_at: new Date().toISOString()
+            last_read_at: new Date().toISOString()
         };
 
-        if (isRead !== undefined) dbProgress.is_completed = isRead;
-        // lastOpenedAt is usually handled by the updated_at column in the DB, 
-        // but we can map it if we really need to store a separate value
-
         const { data, error } = await this.supabase
-            .from('user_progress')
-            .upsert(dbProgress, { onConflict: 'user_id,book_id' })
+            .from('child_book_progress')
+            .upsert(dbProgress, { onConflict: 'child_id,book_id' })
             .select()
             .single();
 
@@ -383,14 +399,5 @@ export class BookRepository {
         return data;
     }
 
-    private mapRowToBook(row: any): Book {
-        return {
-            id: row.id,
-            title: row.title,
-            text: row.text,
-            images: row.images,
-            // book_key is stored in db but Book type currently treats id as the primary identifier
-            // We might want to add book_key to the Book type in core later if needed.
-        };
-    }
+
 }

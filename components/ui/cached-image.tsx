@@ -8,6 +8,7 @@ import { cn } from "@/lib/core";
 interface CachedImageProps extends Omit<ImageProps, "src"> {
     src: string; // The signed URL (fallback)
     storagePath?: string; // The stable storage path (cache key)
+    updatedAt?: string | number; // Last update timestamp for cache invalidation
     className?: string;
 }
 
@@ -16,7 +17,7 @@ const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAE
 /**
  * A wrapper around next/image that uses local caching via AssetCache.
  */
-export function CachedImage({ src, storagePath, alt, className, ...props }: CachedImageProps) {
+export function CachedImage({ src, storagePath, updatedAt, alt, className, ...props }: CachedImageProps) {
     const [displayUrl, setDisplayUrl] = useState<string>(storagePath ? TRANSPARENT_PIXEL : src);
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -44,7 +45,7 @@ export function CachedImage({ src, storagePath, alt, className, ...props }: Cach
             }
 
             try {
-                const cachedUrl = await assetCache.getAsset(storagePath, src, controller.signal);
+                const cachedUrl = await assetCache.getAsset(storagePath, src, updatedAt, controller.signal);
                 if (isMounted) {
                     if (cachedUrl.startsWith("blob:")) {
                         console.debug(`[CachedImage] HIT: ${storagePath}`);
@@ -73,7 +74,7 @@ export function CachedImage({ src, storagePath, alt, className, ...props }: Cach
                 assetCache.releaseAsset(storagePath);
             }
         };
-    }, [src, storagePath]);
+    }, [src, storagePath, updatedAt]);
 
     const isCacheable = !!storagePath;
     const isBlobOrData = displayUrl.startsWith("blob:") || displayUrl.startsWith("data:");

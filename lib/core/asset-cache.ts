@@ -1,5 +1,8 @@
+import { raidenCache, CacheStore } from "./cache";
+
 /**
  * AssetCache handles caching of binary assets (images, audio) using the Cache API.
+ * This is the primary store for all persistent binary blobs in Raiden.
  * Uses object storage paths (e.g., 'book-assets/...') as cache keys.
  */
 class AssetCache {
@@ -12,19 +15,34 @@ class AssetCache {
      * The signal allows the caller to stop waiting for the asset, but does NOT abort
      * the underlying background fetch (to ensure the cache is still filled for others).
      */
-    async getAsset(objectKey: string, signedUrl: string, signal?: AbortSignal): Promise<string> {
+    async getAsset(objectKey: string, signedUrl: string, updatedAt?: string | number, signal?: AbortSignal): Promise<string> {
         if (typeof window === 'undefined') return signedUrl;
 
         const cacheKey = `https://local.raiden.ai/assets/${objectKey}`;
 
-        // 1. Check registry
+        // 1. Check if we need to invalidate based on timestamp
+        if (updatedAt) {
+            try {
+                const metadata = await raidenCache.get<{ id: string; cachedAt: number }>(CacheStore.ASSET_METADATA, objectKey);
+                const updatedTime = typeof updatedAt === 'string' ? new Date(updatedAt).getTime() : updatedAt;
+                
+                if (metadata && updatedTime > metadata.cachedAt) {
+                    console.debug(`[AssetCache] INVALIDATING stale asset: ${objectKey} (updatedAt: ${updatedTime} > cachedAt: ${metadata.cachedAt})`);
+                    await this.purge(objectKey);
+                }
+            } catch (err) {
+                console.warn(`[AssetCache] Metadata check failed for ${objectKey}:`, err);
+            }
+        }
+
+        // 2. Check registry
         const entry = this.registry.get(cacheKey);
         if (entry) {
             entry.count++;
             return entry.url;
         }
 
-        // 2. Promise sharing
+        // 3. Promise sharing
         let fetchPromise = this.pendingFetches.get(cacheKey);
         if (!fetchPromise) {
             fetchPromise = (async () => {
@@ -45,6 +63,12 @@ class AssetCache {
 
                     const responseToCache = response.clone();
                     await cache.put(cacheKey, responseToCache);
+
+                    // Update metadata
+                    await raidenCache.put(CacheStore.ASSET_METADATA, {
+                        id: objectKey,
+                        cachedAt: Date.now()
+                    });
 
                     const blob = await response.blob();
                     const url = URL.createObjectURL(blob);
@@ -122,6 +146,7 @@ class AssetCache {
             }
 
             await cache.delete(cacheKey);
+            await raidenCache.delete(CacheStore.ASSET_METADATA, objectKey);
             console.debug(`[AssetCache] PURGED: ${objectKey}`);
         } catch (err) {
             console.warn(`[AssetCache] Purge failed:`, err);
@@ -138,6 +163,7 @@ class AssetCache {
         }
         this.registry.clear();
         await caches.delete(this.CACHE_NAME);
+        await raidenCache.clear(CacheStore.ASSET_METADATA);
         console.debug(`[AssetCache] CLEARED`);
     }
 }

@@ -72,13 +72,15 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
                 const result = await createChildProfile(payload);
                 if (!result) throw new Error('No response from server. Please try again.');
                 if (result.error) throw new Error(result.error);
-                if (isFirstTime) {
-                    router.push('/dashboard');
-                }
+            }
+
+            await refreshProfiles();
+
+            if (isFirstTime) {
+                router.push('/dashboard');
             }
 
             if (onSuccess) onSuccess();
-            await refreshProfiles();
 
         } catch (err: any) {
             setErrors(err.message || 'Something went wrong');

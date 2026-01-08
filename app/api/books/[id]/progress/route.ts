@@ -15,14 +15,24 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const repo = new BookRepository();
-        const progress = await repo.getProgress(user.id, params.id);
+        const { searchParams } = new URL(request.url);
+        const childId = searchParams.get('childId');
 
-        if (progress === null && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)) {
-            return NextResponse.json({ error: 'Invalid book ID' }, { status: 400 });
+        const repo = new BookRepository();
+        
+        if (childId) {
+            const progress = await repo.getProgress(childId, params.id);
+            return NextResponse.json(progress || {});
         }
 
-        return NextResponse.json(progress || {});
+        // If no childId, fetch all progress for this book (filtered by RLS to this guardian's children)
+        const { data: progresses, error } = await supabase
+            .from('child_book_progress')
+            .select('*')
+            .eq('book_id', params.id);
+        
+        if (error) throw error;
+        return NextResponse.json(progresses || []);
     } catch (error: any) {
         console.error("GET progress error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -45,14 +55,19 @@ export async function POST(
             return NextResponse.json({ error: 'Invalid book ID' }, { status: 400 });
         }
 
-        const payload = await request.json();
+        const { childId, ...payload } = await request.json();
+
+        if (!childId) {
+            return NextResponse.json({ error: 'childId is required' }, { status: 400 });
+        }
+
         const repo = new BookRepository();
 
-        const result = await repo.saveProgress(user.id, params.id, {
+        const result = await repo.saveProgress(childId, params.id, {
             last_token_index: payload.tokenIndex,
             last_shard_index: payload.shardIndex,
-            last_playback_time: payload.time,
-            view_mode: payload.viewMode,
+            is_completed: payload.isRead,
+            total_read_seconds: payload.totalReadSeconds,
             playback_speed: payload.speed
         });
 

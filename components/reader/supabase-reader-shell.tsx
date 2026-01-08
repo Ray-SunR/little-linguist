@@ -38,15 +38,23 @@ export interface SupabaseBook {
     updated_at?: string;
     cached_at?: number;
     owner_user_id?: string | null;
+    assetTimestamps?: {
+        metadata: string | null;
+        text: string | null;
+        tokens: string | null;
+        images: string | null;
+        audios: string | null;
+    };
 }
 
 type SupabaseReaderShellProps = {
     books: SupabaseBook[];
     initialBookId?: string;
+    childId: string | null;
     onBack?: () => void;
 };
 
-export default function SupabaseReaderShell({ books, initialBookId, onBack }: SupabaseReaderShellProps) {
+export default function SupabaseReaderShell({ books, initialBookId, childId, onBack }: SupabaseReaderShellProps) {
     const router = useRouter();
     const [selectedBookId, setSelectedBookId] = useState(initialBookId || "");
     const [playbackSpeed, setPlaybackSpeed] = useState<SpeedOption>(DEFAULT_SPEED);
@@ -105,6 +113,7 @@ export default function SupabaseReaderShell({ books, initialBookId, onBack }: Su
 
     const { saveProgress } = useReaderPersistence({
         bookId: selectedBook?.id || "",
+        childId,
         tokenIndex: currentWordIndex,
         shardIndex: currentShardIndex,
         time: currentTime,

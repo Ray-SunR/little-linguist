@@ -13,10 +13,11 @@ export async function GET(request: NextRequest) {
         // Check for library mode (optimized for library page)
         const { searchParams } = new URL(request.url);
         const mode = searchParams.get('mode');
+        const childId = searchParams.get('childId');
 
         if (mode === 'library') {
             // Return books with cover images and token counts for library view
-            const booksWithCovers = await repo.getAvailableBooksWithCovers(user?.id);
+            const booksWithCovers = await repo.getAvailableBooksWithCovers(user?.id, childId || undefined);
             return NextResponse.json(booksWithCovers);
         }
 

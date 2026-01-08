@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import type { BookImage } from '@/lib/core';
+
 
 /**
  * Hook to subscribe to new images for a specific book.
@@ -22,6 +22,7 @@ export function useBookMediaSubscription(bookId: string | undefined, onNewImage:
                     filter: `book_id=eq.${bookId}`,
                 },
                 async (payload) => {
+                    if (!payload.new) return;
                     console.log('Realtime image change detected:', payload);
                     const newMedia = payload.new as any;
 
@@ -35,6 +36,7 @@ export function useBookMediaSubscription(bookId: string | undefined, onNewImage:
                             onNewImage({
                                 id: newMedia.id,
                                 src: data.signedUrl,
+                                storagePath: newMedia.path,
                                 afterWordIndex: newMedia.after_word_index,
                                 caption: newMedia.metadata?.caption || 'Illustration',
                                 alt: newMedia.metadata?.alt || '',
@@ -47,6 +49,7 @@ export function useBookMediaSubscription(bookId: string | undefined, onNewImage:
                     onNewImage({
                         id: newMedia.id,
                         src: newMedia.path,
+                        storagePath: newMedia.path,
                         afterWordIndex: newMedia.after_word_index,
                         caption: newMedia.metadata?.caption || 'Illustration',
                         alt: newMedia.metadata?.alt || '',
@@ -117,6 +120,7 @@ export function useBookAudioSubscription(bookId: string | undefined, onNewShard:
                     filter: `book_id=eq.${bookId}`,
                 },
                 async (payload) => {
+                    if (!payload.new) return;
                     console.log('Realtime audio shard change detected:', payload);
                     const newShard = payload.new as any;
 

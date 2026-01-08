@@ -41,5 +41,5 @@ export interface IStoryService {
     generateStoryContent(words: string[], userProfile: UserProfile): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string, book_id: string, tokens: any[] }>;
     generateImagesForBook(bookId: string): Promise<void>;
     generateImageForScene(bookId: string, sceneIndex: number): Promise<void>;
-    convertStoryToBook(story: Story): Book;
+
 }

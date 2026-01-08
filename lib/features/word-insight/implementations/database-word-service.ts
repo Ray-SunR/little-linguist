@@ -1,9 +1,10 @@
 import type { IWordService, WordInsight } from "../types";
 
 export class DatabaseWordService implements IWordService {
-    async getWords(): Promise<WordInsight[]> {
+    async getWords(childId?: string): Promise<WordInsight[]> {
         try {
-            const response = await fetch('/api/words');
+            const url = childId ? `/api/words?childId=${childId}` : '/api/words';
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch words');
             return await response.json();
         } catch (e) {
@@ -12,12 +13,12 @@ export class DatabaseWordService implements IWordService {
         }
     }
 
-    async addWord(word: WordInsight, bookId?: string): Promise<void> {
+    async addWord(word: WordInsight, bookId?: string, childId?: string): Promise<void> {
         try {
             const response = await fetch('/api/words', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ word: word.word, bookId, insight: word })
+                body: JSON.stringify({ word: word.word, bookId, childId, insight: word })
             });
             if (!response.ok) throw new Error('Failed to add word');
         } catch (e) {
@@ -25,12 +26,15 @@ export class DatabaseWordService implements IWordService {
         }
     }
 
-    async removeWord(wordStr: string, bookId?: string): Promise<void> {
+    async removeWord(wordStr: string, bookId?: string, childId?: string): Promise<void> {
         try {
             const url = new URL('/api/words', window.location.origin);
             url.searchParams.append('word', wordStr);
             if (bookId) {
                 url.searchParams.append('bookId', bookId);
+            }
+            if (childId) {
+                url.searchParams.append('childId', childId);
             }
 
             const response = await fetch(url.toString(), {

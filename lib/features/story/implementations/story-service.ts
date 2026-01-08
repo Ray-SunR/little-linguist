@@ -1,7 +1,7 @@
 import type { IStoryService, Story, StoryScene, UserProfile } from "../types";
 import type { AIProvider } from "@/lib/core/integrations/ai";
 import { getAIProvider } from "@/lib/core/integrations/ai";
-import type { Book, BookImage } from "@/lib/core";
+import type { Book } from "@/lib/core";
 import { tokenizeText } from "@/lib/core/utils/tokenization";
 
 /**
@@ -86,52 +86,6 @@ export class StoryService implements IStoryService {
             throw error;
         }
     }
-
-    /**
-     * Converts a Story object to a Book object for use in the SupabaseReaderShell (fallback/legacy)
-     */
-    convertStoryToBook(story: Story): Book {
-        let fullText = "";
-        const images: BookImage[] = [];
-        let runningTokenCount = 0;
-
-        story.scenes.forEach((scene, index) => {
-            const sceneText = scene.text + "\n\n";
-            fullText += sceneText;
-
-            // Use the real tokenizer to get the exact count and alignment
-            const sceneTokens = tokenizeText(scene.text);
-            const tokenCount = sceneTokens.length;
-
-            if (tokenCount > 0) {
-                if (scene.imageUrl) {
-                    images.push({
-                        id: `${story.id}-scene-${index}`,
-                        src: scene.imageUrl,
-                        afterWordIndex: runningTokenCount + tokenCount - 1,
-                        caption: `Illustration for scene ${index + 1}`,
-                        alt: scene.imagePrompt,
-                        isPlaceholder: false
-                    });
-                } else {
-                    images.push({
-                        id: `${story.id}-scene-${index}-placeholder`,
-                        src: "",
-                        afterWordIndex: runningTokenCount + tokenCount - 1,
-                        caption: "Drawing...",
-                        isPlaceholder: true
-                    });
-                }
-            }
-
-            runningTokenCount += tokenCount;
-        });
-
-        return {
-            id: story.id,
-            title: story.title,
-            text: fullText.trim(),
-            images: images
-        };
-    }
 }
+
+

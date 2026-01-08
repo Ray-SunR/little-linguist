@@ -49,7 +49,8 @@ export function ProfileSwitcher() {
           {activeChild?.avatar_asset_path ? (
             <CachedImage
               src={activeChild.avatar_asset_path}
-              storagePath={activeChild.avatar_asset_path.startsWith('http') ? undefined : activeChild.avatar_asset_path}
+              storagePath={activeChild.avatar_paths?.[activeChild.primary_avatar_index ?? 0] || activeChild.avatar_asset_path}
+              updatedAt={activeChild.updated_at}
               alt={activeChild.first_name}
               className="w-8 h-8 rounded-full object-cover"
               width={32}
@@ -89,7 +90,8 @@ export function ProfileSwitcher() {
                 {child.avatar_asset_path ? (
                   <CachedImage
                     src={child.avatar_asset_path}
-                    storagePath={child.avatar_asset_path.startsWith('http') ? undefined : child.avatar_asset_path}
+                    storagePath={child.avatar_paths?.[child.primary_avatar_index ?? 0] || child.avatar_asset_path}
+                    updatedAt={child.updated_at}
                     alt={child.first_name}
                     className="w-8 h-8 rounded-full object-cover border border-shell-2"
                     width={32}

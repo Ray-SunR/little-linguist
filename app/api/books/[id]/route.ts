@@ -18,8 +18,10 @@ export async function GET(
 
         const repo = new BookRepository();
         const book = await repo.getBookById(id, {
+            includeTokens: include.includes('tokens'),
             includeContent: include.includes('content'),
             includeMedia: include.includes('media') || include.includes('images'),
+            includeAudio: include.includes('audio') || include.includes('narration'),
             userId: user?.id
         });
 
@@ -62,7 +64,7 @@ export async function DELETE(
         // 3. Verify ownership
         const { data: book, error: fetchError } = await adminClient
             .from('books')
-            .select('id, owner_user_id')
+            .select('id, guardian_id')
             .eq('id', id)
             .single();
 
@@ -70,7 +72,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'Book not found' }, { status: 404 });
         }
 
-        if (book.owner_user_id !== user.id) {
+        if (book.guardian_id !== user.id) {
             return NextResponse.json({ error: 'Forbidden: You do not own this book' }, { status: 403 });
         }
 
@@ -93,8 +95,11 @@ export async function DELETE(
         // 6. Delete book media records
         await adminClient.from('book_media').delete().eq('book_id', id);
 
-        // 7. Delete user progress for this book
-        await adminClient.from('user_progress').delete().eq('book_id', id);
+        // 6.5 Delete book contents
+        await adminClient.from('book_contents').delete().eq('book_id', id);
+
+        // 7. Delete child progress for this book
+        await adminClient.from('child_book_progress').delete().eq('book_id', id);
 
         // 8. Delete stories entry if exists
         await adminClient.from('stories').delete().eq('id', id);

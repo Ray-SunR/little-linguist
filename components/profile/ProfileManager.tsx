@@ -16,13 +16,12 @@ interface Props {
 }
 
 export default function ProfileManager({ initialChildren }: Props) {
-  const [children, setChildren] = useState<ChildProfile[]>(initialChildren);
+  const { profiles: children, refreshProfiles } = useAuth();
   const [isAdding, setIsAdding] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildProfile | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
-  const { refreshProfiles } = useAuth();
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
@@ -31,15 +30,13 @@ export default function ProfileManager({ initialChildren }: Props) {
       if (!result) throw new Error('No response from server. Please try again.');
       if (result.error) throw new Error(result.error);
 
-      const updatedChildren = children.filter(c => c.id !== id);
-      setChildren(updatedChildren);
       setDeletingId(null);
 
       // Refresh global profile cache
       await refreshProfiles();
 
       // Auto-redirect if no heroes left
-      if (updatedChildren.length === 0) {
+      if (children.length <= 1) { // If it was the last one
         router.push('/onboarding');
       }
     } catch (err) {
@@ -92,7 +89,8 @@ export default function ProfileManager({ initialChildren }: Props) {
                     {child.avatar_asset_path ? (
                       <CachedImage
                         src={child.avatar_asset_path}
-                        storagePath={child.avatar_asset_path.startsWith('http') ? undefined : child.avatar_asset_path}
+                        storagePath={child.avatar_paths?.[child.primary_avatar_index ?? 0] || child.avatar_asset_path}
+                        updatedAt={child.updated_at}
                         alt={child.first_name}
                         fill
                         className="object-cover"

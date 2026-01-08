@@ -23,9 +23,21 @@ export function ChildGate() {
       return;
     }
 
+    console.debug(`[ChildGate] Checking profiles for ${user.email}:`, {
+        count: profiles.length,
+        pathname,
+        isLoading
+    });
+
     if (profiles && profiles.length === 0) {
-      // No children found -> redirect to onboarding
-      router.push('/onboarding');
+      // Small timeout to allow state to settle after navigation/refresh
+      const timer = setTimeout(() => {
+        if (profiles.length === 0) {
+            console.warn('[ChildGate] Redirecting to onboarding because no profiles found.');
+            router.push('/onboarding');
+        }
+      }, 500);
+      return () => clearTimeout(timer);
     } 
   }, [pathname, router, user, profiles, isLoading]);
 

@@ -82,7 +82,6 @@ export async function POST(req: Request) {
 
                 await supabase.from('book_media').upsert({
                     book_id: bookId,
-                    owner_user_id: user?.id || null,
                     media_type: 'image',
                     path: storagePath,
                     after_word_index: scene.after_word_index,
@@ -91,23 +90,6 @@ export async function POST(req: Request) {
                         alt: scene.image_prompt
                     }
                 }, { onConflict: 'book_id,path' });
-
-                // Legacy compatibility: update books.images
-                const { data: currentBook } = await supabase.from('books').select('images').eq('id', bookId).single();
-                const currentImages = Array.isArray(currentBook?.images) ? currentBook.images : [];
-                const newImage = {
-                    id: crypto.randomUUID(),
-                    src: storagePath,
-                    afterWordIndex: scene.after_word_index,
-                    caption: `Illustration for scene ${i + 1}`,
-                    alt: scene.image_prompt,
-                    sceneIndex: i
-                };
-
-                await supabase.from('books').update({
-                    images: [...currentImages, newImage],
-                    updated_at: new Date().toISOString()
-                }).eq('id', bookId);
 
                 results.push({ sceneIndex: i, storagePath });
             } catch (err) {

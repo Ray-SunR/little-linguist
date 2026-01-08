@@ -107,6 +107,7 @@ function LexiReaderContainer({ book, books, onBookChange }: { book: any, books: 
 
     useReaderPersistence({
         bookId: book.id,
+        childId: null,
         tokenIndex: currentWordIndex,
         shardIndex: currentShardIndex ?? 0,
         time: currentTime,

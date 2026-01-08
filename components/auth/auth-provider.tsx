@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   
   const supabase = createClient();
-  const CACHE_KEY = "raiden:profiles:v1";
 
   const hydrateFromCache = async (uid?: string): Promise<ChildProfile[]> => {
     if (typeof window === "undefined") return [];
@@ -69,44 +68,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchProfiles = async (uid: string) => {
-    const { getChildren } = await import("@/app/actions/profiles");
-    const { data } = await getChildren();
-    if (data) {
-      setProfiles(data);
-      await persistProfiles(data, uid);
-      const activeId = getCookie("activeChildId");
-      const found = activeId ? data.find((c) => c.id === activeId) : null;
-      setActiveChild(found ?? (data[0] ?? null));
+    setIsLoading(true);
+    try {
+      const { getChildren } = await import("@/app/actions/profiles");
+      const { data } = await getChildren();
+      if (data) {
+        setProfiles(data);
+        await persistProfiles(data, uid);
+        const activeId = getCookie("activeChildId");
+        const found = activeId ? data.find((c) => c.id === activeId) : null;
+        setActiveChild(found ?? (data[0] ?? null));
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const init = async () => {
       try {
-        // 1. Check session first to avoid cross-user leakage during hydration
         const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
         const uid = session?.user?.id;
         setUser(session?.user ?? null);
 
-        // 2. Hydrate from scoped cache if we have a user
         if (uid) {
-            const cachedProfiles = await hydrateFromCache(uid);
-            // Only force a network fetch if cache is empty
-            if (cachedProfiles.length === 0) {
-                await fetchProfiles(uid);
-            }
+            // 1. Show cached data immediately if available
+            await hydrateFromCache(uid);
+            
+            // 2. Always fetch fresh data to sync with database (e.g. if user cleared it)
+            // fetchProfiles will set state and handle isLoading
+            await fetchProfiles(uid);
+        } else {
+            setIsLoading(false);
         }
       } catch (err) {
         console.error("[AuthProvider] Init failed:", err);
-      } finally {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
 
     init();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
       const newUser = session?.user ?? null;
       
       if (newUser && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
@@ -117,25 +125,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setProfiles([]);
         if (typeof window !== "undefined") {
-            // Clear current user hint if any (though we usually key them now)
             Object.keys(window.localStorage).forEach(key => {
                 if (key.startsWith('raiden:has_profiles_cache:')) {
                     window.localStorage.removeItem(key);
                 }
             });
         }
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
   const refreshProfiles = async () => {
-    if (user?.id) await fetchProfiles(user.id);
+    if (user?.id) {
+      console.debug("[AuthProvider] Manually refreshing profiles...");
+      await fetchProfiles(user.id);
+    }
   };
 
   return (

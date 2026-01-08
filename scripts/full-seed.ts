@@ -32,11 +32,10 @@ async function fullSeed() {
                 book_key: bookJson.id,
                 title: bookJson.title,
                 text: bookJson.text,
-                tokens: tokens, // PERSIST MASTER TOKENS
-                total_tokens: tokens.length, // PERSIST TOKEN COUNT for lazy loading
-                images: bookJson.images,
+                total_tokens: tokens.length,
+                cover_image_path: bookJson.images?.[0]?.src || null, // Set default cover
                 origin: 'system',
-                schema_version: 2, // Bumped version for token support
+                schema_version: 2,
                 voice_id: process.env.POLLY_VOICE_ID || 'Kevin',
                 metadata: {
                     author: bookJson.author,

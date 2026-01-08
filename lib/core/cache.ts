@@ -1,7 +1,8 @@
 import { SupabaseBook } from "@/components/reader/supabase-reader-shell";
 
 const DB_NAME = "raiden-local-cache";
-const DB_VERSION = 6; // Incremented to 6 to add LIBRARY_METADATA store
+// INCREMENT THIS VERSION IF YOU ADD NEW STORES TO CacheStore ENUM
+const DB_VERSION = 7; 
 
 export enum CacheStore {
     BOOKS = "books",
@@ -9,7 +10,8 @@ export enum CacheStore {
     WORD_INSIGHTS = "word-insights",
     USER_WORDS = "user-words",
     LIBRARY_METADATA = "library-metadata",
-    PROFILES = "profiles"
+    PROFILES = "profiles",
+    ASSET_METADATA = "asset-metadata"
 }
 
 /**
@@ -20,8 +22,22 @@ class RaidenCache {
     private db: IDBDatabase | null = null;
     private initPromise: Promise<IDBDatabase> | null = null;
 
+    private validateSchema(db: IDBDatabase): boolean {
+        const stores = Object.values(CacheStore);
+        const missing = stores.filter(s => !db.objectStoreNames.contains(s));
+        if (missing.length > 0) {
+            console.warn(`[Cache] Missing stores in database: ${missing.join(", ")}`);
+            return false;
+        }
+        return true;
+    }
+
     async init(retryOnVersionMismatch = true): Promise<IDBDatabase> {
-        if (this.db) return this.db;
+        if (this.db) {
+            // Even if we have a db, verify it hasn't become stale (unlikely but safe)
+            if (this.validateSchema(this.db)) return this.db;
+            this.db = null; // Stale, fall through to re-init
+        }
         if (this.initPromise) return this.initPromise;
 
         this.initPromise = new Promise((resolve, reject) => {
@@ -32,6 +48,15 @@ class RaidenCache {
                 const oldVersion = event.oldVersion;
 
                 console.debug(`[Cache] Upgrading DB from ${oldVersion} to ${DB_VERSION}`);
+
+                // One-time cleanup of legacy databases
+                try {
+                    indexedDB.deleteDatabase("raiden-tts-cache");
+                    indexedDB.deleteDatabase("polly-cache");
+                    indexedDB.deleteDatabase("polly-cache-v1");
+                } catch (e) {
+                    // Ignore cleanup errors
+                }
 
                 // Books store (keyed by id)
                 if (!db.objectStoreNames.contains(CacheStore.BOOKS)) {
@@ -66,30 +91,35 @@ class RaidenCache {
                 if (!db.objectStoreNames.contains(CacheStore.PROFILES)) {
                     db.createObjectStore(CacheStore.PROFILES, { keyPath: "id" });
                 }
+
+                // Asset Metadata (keyed by objectKey)
+                if (!db.objectStoreNames.contains(CacheStore.ASSET_METADATA)) {
+                    db.createObjectStore(CacheStore.ASSET_METADATA, { keyPath: "id" });
+                }
             };
 
             request.onsuccess = () => {
-                this.db = request.result;
-                resolve(request.result);
+                const db = request.result;
+                // Double check if all stores exist (handles cases where version was bumped but upgrade failed quietly)
+                if (!this.validateSchema(db)) {
+                    console.warn("[Cache] Schema validation failed after open, triggering recovery...");
+                    this.db = null;
+                    this.initPromise = null;
+                    this.handleRecovery(resolve, reject);
+                    return;
+                }
+                this.db = db;
+                resolve(db);
             };
 
             request.onerror = () => {
                 const error = request.error;
                 
                 // Handle version mismatch by deleting and retrying
-                if (retryOnVersionMismatch && error?.name === "VersionError") {
-                    console.warn("[Cache] Version mismatch, deleting stale database and retrying...");
+                if (retryOnVersionMismatch && (error?.name === "VersionError" || error?.name === "NotFoundError")) {
+                    console.warn("[Cache] Version/Store mismatch, deleting stale database and retrying...");
                     this.initPromise = null;
-                    
-                    const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
-                    deleteRequest.onsuccess = () => {
-                        console.debug("[Cache] Stale database deleted, retrying init...");
-                        this.init().then(resolve).catch(reject);
-                    };
-                    deleteRequest.onerror = () => {
-                        console.error("[Cache] Failed to delete stale database:", deleteRequest.error);
-                        reject(error);
-                    };
+                    this.handleRecovery(resolve, reject);
                     return;
                 }
 
@@ -102,10 +132,34 @@ class RaidenCache {
         return this.initPromise;
     }
 
+    private handleRecovery(resolve: any, reject: any) {
+        const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+        deleteRequest.onsuccess = () => {
+            console.debug("[Cache] Stale database deleted, retrying init...");
+            this.init().then(resolve).catch(reject);
+        };
+        deleteRequest.onerror = () => {
+            console.error("[Cache] Failed to delete stale database:", deleteRequest.error);
+            reject(new Error("Failed to recover stale database"));
+        };
+    }
+
     private async getStore(storeName: CacheStore, mode: IDBTransactionMode = "readonly"): Promise<IDBObjectStore> {
         const db = await this.init();
-        const transaction = db.transaction(storeName, mode);
-        return transaction.objectStore(storeName);
+        try {
+            const transaction = db.transaction(storeName, mode);
+            return transaction.objectStore(storeName);
+        } catch (err) {
+            // If transaction fails specifically because store is missing, trigger one more init attempt
+            if (err instanceof DOMException && err.name === "NotFoundError") {
+                console.warn(`[Cache] Store "${storeName}" not found after init, triggering full refresh...`);
+                this.db = null; // Force re-init from scratch
+                const freshDb = await this.init();
+                const transaction = freshDb.transaction(storeName, mode);
+                return transaction.objectStore(storeName);
+            }
+            throw err;
+        }
     }
 
     // --- Generic Methods ---
@@ -211,14 +265,4 @@ class RaidenCache {
 
 export const raidenCache = new RaidenCache();
 
-/**
- * Legacy adapter for backward compatibility during transition.
- * Maps the old BookCache interface to the new multi-store raidenCache.
- */
-export const bookCache = {
-    get: (id: string) => raidenCache.get<SupabaseBook>(CacheStore.BOOKS, id),
-    put: (book: SupabaseBook) => raidenCache.put(CacheStore.BOOKS, book),
-    delete: (id: string) => raidenCache.delete(CacheStore.BOOKS, id),
-    getAll: () => raidenCache.getAll<SupabaseBook>(CacheStore.BOOKS),
-    clear: () => raidenCache.clear(CacheStore.BOOKS),
-};
+

@@ -20,44 +20,55 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { searchParams } = new URL(request.url);
+        const childId = searchParams.get('childId');
+
+        if (!childId) {
+            return NextResponse.json({ error: 'childId is required' }, { status: 400 });
+        }
+
         const { data, error } = await supabase
-            .from('user_words')
+            .from('child_vocab')
             .select(`
-                word,
-                book_id,
+                status,
+                origin_book_id,
                 created_at,
                 word_insights (
+                    word,
                     definition,
                     pronunciation,
                     examples,
                     audio_path,
-                    word_audio_path,
-                    example_audio_paths,
-                    timing_markers,
-                    example_timing_markers
+                    timing_markers
                 )
             `)
-            .eq('user_id', user.id)
+            .eq('child_id', childId)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        // Collect all paths for batch signing (deduped)
+        // Collect all paths for batch signing
         const bucket = "word-insights-audio";
         const pathSet = new Set<string>();
         (data || []).forEach((item) => {
             const wi = item.word_insights as any;
-            if (wi) {
+            if (wi && wi.word) {
+                // Determine paths by convention from normalized word
+                // 1. Stored path (likely definition audio)
                 if (wi.audio_path) pathSet.add(wi.audio_path);
-                if (wi.word_audio_path) pathSet.add(wi.word_audio_path);
-                if (wi.example_audio_paths?.length) {
-                    (wi.example_audio_paths as string[]).forEach((p: string) => pathSet.add(p));
-                }
+                
+                // 2. Convention paths (constructed from normalized word)
+                 // Strict sanitization: only allow lowercase letters and hyphens for storage paths to match creation logic
+                const normalized = normalizeWord(wi.word).replace(/[^a-z0-9-]/g, "");
+                
+                pathSet.add(`${normalized}/word.mp3`);
+                pathSet.add(`${normalized}/definition.mp3`);
+                pathSet.add(`${normalized}/example_0.mp3`);
             }
         });
         const allPaths = Array.from(pathSet);
 
-        // Batch sign in chunks of 100 (Supabase limit)
+        // Batch sign
         let signedMap = new Map<string, string>();
         if (allPaths.length > 0) {
             const CHUNK_SIZE = 100;
@@ -67,11 +78,7 @@ export async function GET(request: NextRequest) {
                     .from(bucket)
                     .createSignedUrls(chunk, 3600);
                 
-                if (signError) {
-                    console.error("[Backend] signing batch error:", signError);
-                    continue; 
-                }
-                
+                if (signError) continue;
                 if (signs) {
                     signs.forEach(s => {
                         if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
@@ -80,31 +87,31 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // Map to WordInsight structure
         const words = (data || []).map((item) => {
             const wi = item.word_insights as any;
-            if (!wi) return { word: item.word, bookId: item.book_id, createdAt: item.created_at };
+            if (!wi) return null;
+
+            const normalized = normalizeWord(wi.word).replace(/[^a-z0-9-]/g, "");
 
             return {
-                word: item.word,
-                bookId: item.book_id,
+                word: wi.word, // Map 'word' directly as display
+                bookId: item.origin_book_id,
                 createdAt: item.created_at,
+                status: item.status,
                 definition: wi.definition,
                 pronunciation: wi.pronunciation,
                 examples: wi.examples,
-                // Paths
-                audio_path: wi.audio_path,
-                word_audio_path: wi.word_audio_path,
-                example_audio_paths: wi.example_audio_paths,
-                // Signed URLs (empty strings indicate signing failure, client will fallback to TTS)
-                audioUrl: signedMap.get(wi.audio_path) || "",
-                wordAudioUrl: signedMap.get(wi.word_audio_path) || "",
-                exampleAudioUrls: (wi.example_audio_paths || []).map((p: string) => signedMap.get(p) || ""),
-                // Timings
+                // audioUrl logic: Prefer explicit audio_path, fallback to definition.mp3 convention
+                audioUrl: signedMap.get(wi.audio_path) || signedMap.get(`${normalized}/definition.mp3`) || "",
+                audio_path: wi.audio_path || `${normalized}/definition.mp3`,
+                wordAudioUrl: signedMap.get(`${normalized}/word.mp3`) || "",
+                word_audio_path: `${normalized}/word.mp3`,
+                exampleAudioUrls: [signedMap.get(`${normalized}/example_0.mp3`) || ""],
+                example_audio_paths: [`${normalized}/example_0.mp3`],
                 wordTimings: wi.timing_markers,
-                exampleTimings: wi.example_timing_markers,
+                exampleTimings: [],
             };
-        });
+        }).filter(Boolean);
 
         return NextResponse.json(words);
     } catch (error: any) {
@@ -119,45 +126,52 @@ export async function POST(request: NextRequest) {
         const adminClient = createAdminClient();
 
         const { data: { user } } = await userClient.auth.getUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const { word: rawWord, bookId, childId, insight } = await request.json();
+        if (!rawWord || !childId) {
+            return NextResponse.json({ error: 'Word and childId are required' }, { status: 400 });
         }
 
-        const { word: rawWord, bookId, insight } = await request.json();
+        const validWord = rawWord; // Use rawWord directly or normalized slightly but lookup against 'word'
+        const normalized = normalizeWord(rawWord).replace(/[^a-z0-9-]/g, "");
 
-        if (!rawWord) {
-            return NextResponse.json({ error: 'Word is required' }, { status: 400 });
-        }
+        // 1. Ensure vocab_term exists
+        let termId: string;
+        const { data: existingTerm } = await adminClient
+            .from('word_insights')
+            .select('id')
+            .eq('word', normalized) // Use 'word' column, assumed normalized in storage
+            .maybeSingle();
 
-        const word = sanitizeWord(rawWord);
-
-        // Ensure the word exists in word_insights first to satisfy the foreign key
-        // We use the admin client here because regular users don't have write access to public.word_insights
-        if (insight) {
-            const { error: insightError } = await adminClient
+        if (existingTerm) {
+            termId = existingTerm.id;
+        } else {
+            // 'word' column serves as both display and unique key
+            const { data: newTerm, error: termError } = await adminClient
                 .from('word_insights')
-                .upsert({
-                    word,
-                    definition: insight.definition,
-                    pronunciation: insight.pronunciation,
-                    examples: insight.examples,
-                }, { onConflict: 'word' });
-
-            if (insightError) {
-                console.error("Failed to upsert word insight:", insightError);
-                // If it fails, we still try the user_words insert, which will fail with a 
-                // more descriptive FK error if the word truly doesn't exist.
-            }
+                .insert({
+                    language: 'en',
+                    word: normalized, // store normalized as 'word'
+                    definition: insight?.definition,
+                    pronunciation: insight?.pronunciation,
+                    examples: insight?.examples,
+                })
+                .select('id')
+                .single();
+            if (termError) throw termError;
+            termId = newTerm.id;
         }
 
-        const { data, error } = await userClient
-            .from('user_words')
+        // 2. Insert into child_vocab
+        const { data, error } = await adminClient
+            .from('child_vocab')
             .upsert({
-                user_id: user.id,
-                word,
-                book_id: bookId || null,
-            }, { onConflict: 'user_id,word,book_id' })
+                child_id: childId,
+                word_id: termId,
+                origin_book_id: bookId || null,
+                source_type: 'clicked'
+            }, { onConflict: 'child_id,word_id' })
             .select()
             .single();
 
@@ -174,32 +188,32 @@ export async function DELETE(request: NextRequest) {
     try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { searchParams } = new URL(request.url);
         const rawWord = searchParams.get('word');
-        const bookId = searchParams.get('bookId');
+        const childId = searchParams.get('childId');
 
-        if (!rawWord) {
-            return NextResponse.json({ error: 'Word is required' }, { status: 400 });
+        if (!rawWord || !childId) {
+            return NextResponse.json({ error: 'Word and childId are required' }, { status: 400 });
         }
 
-        const word = sanitizeWord(rawWord);
+        const normalized = normalizeWord(rawWord).replace(/[^a-z0-9-]/g, "");
 
-        let query = supabase
-            .from('user_words')
+        // Find word_id
+        const { data: term } = await supabase
+            .from('word_insights')
+            .select('id')
+            .eq('word', normalized) // Use 'word' column
+            .maybeSingle();
+
+        if (!term) return NextResponse.json({ success: true });
+
+        const { error } = await supabase
+            .from('child_vocab')
             .delete()
-            .eq('user_id', user.id)
-            .eq('word', word);
-
-        if (bookId) {
-            query = query.eq('book_id', bookId);
-        }
-
-        const { error } = await query;
+            .eq('child_id', childId)
+            .eq('word_id', term.id);
 
         if (error) throw error;
 

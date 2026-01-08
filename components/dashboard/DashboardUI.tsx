@@ -33,7 +33,8 @@ export default function DashboardUI({ activeChild }: Props) {
                         {activeChild?.avatar_asset_path ? (
                             <CachedImage
                                 src={activeChild.avatar_asset_path}
-                                storagePath={activeChild.avatar_asset_path.startsWith('http') ? undefined : activeChild.avatar_asset_path}
+                                storagePath={activeChild.avatar_paths?.[activeChild.primary_avatar_index ?? 0] || activeChild.avatar_asset_path}
+                                updatedAt={activeChild.updated_at}
                                 alt={`${childName}'s Avatar`}
                                 fill
                                 className="object-cover rounded-3xl shadow-clay-purple border-4 border-purple-50"

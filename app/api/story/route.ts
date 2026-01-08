@@ -15,11 +15,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "API Key missing on server" }, { status: 500 });
     }
 
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     const authClient = createAuthClient();
     const { data: { user } } = await authClient.auth.getUser();
 
@@ -27,30 +22,51 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Unauthorized. Please sign in to create stories." }, { status: 401 });
     }
 
+    // Use user-scoped client for most operations to respect RLS
+    const supabase = authClient;
+
     try {
-        const { words, userProfile } = await req.json();
-        const { name, age, gender } = userProfile;
+        // We'll need the service role client ONLY for background operations 
+        // Guard env vars to fail gracefully
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!supabaseUrl || !supabaseServiceKey) {
+            console.error("Missing Supabase env vars for service role client");
+            return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+        }
+        const serviceRoleClient = createClient(supabaseUrl, supabaseServiceKey);
+
+        const body = await req.json();
+        const { words, childId } = body || {};
+        
+        // 0. Input Validation
+        if (!childId || typeof childId !== 'string' || !/^[0-9a-f-]{36}$/i.test(childId)) {
+            return NextResponse.json({ error: "Valid childId is required" }, { status: 400 });
+        }
+
+        if (!Array.isArray(words) || words.length === 0 || words.length > 10) {
+            return NextResponse.json({ error: "Provide between 1 and 10 words" }, { status: 400 });
+        }
+
+        if (words.some(w => typeof w !== 'string' || w.length > 30)) {
+            return NextResponse.json({ error: "Each word must be a string under 30 characters" }, { status: 400 });
+        }
+
+        // 1. Fetch child profile
+        const { data: child, error: childError } = await supabase
+            .from('children')
+            .select('*')
+            .eq('id', childId)
+            .single(); // RLS will handle guardian_id ownership
+
+        if (childError || !child) {
+            return NextResponse.json({ error: "Child profile not found" }, { status: 404 });
+        }
+
+        const { first_name: name, age, gender, avatar_url: childAvatar } = child;
         const wordsList = words.join(", ");
         const bookId = crypto.randomUUID();
-        const ownerId = user.id;
-
-        let finalUserProfile = { ...userProfile };
-        if (userProfile.avatarUrl && userProfile.avatarUrl.startsWith('data:')) {
-            try {
-                const base64Data = userProfile.avatarUrl.split(',')[1];
-                const buffer = Buffer.from(base64Data, 'base64');
-                const photoPath = `${bookId}/user-uploads/seed-photo.png`;
-
-                await supabase.storage.from('book-assets').upload(photoPath, buffer, {
-                    contentType: 'image/png',
-                    upsert: true
-                });
-
-                finalUserProfile.avatarUrl = photoPath;
-            } catch (err) {
-                console.error("Failed to upload user photo:", err);
-            }
-        }
+        const guardianId = user.id;
 
         const systemInstruction = "You are a creative storyteller for children. You output structured JSON stories with scene-by-scene descriptions for illustrators.";
         const userPrompt = `Write a short, engaging children's story for a ${age}-year-old ${gender} named ${name}.
@@ -101,7 +117,6 @@ The story should be fun, educational, and age-appropriate.`;
         const data = JSON.parse(response.text || '{}');
 
         // Reconstruct full content from scenes to ensure indices align perfectly.
-        // LLM might provide a 'content' block that is slightly different from 'scenes'.
         const fullContent = data.scenes.map((s: any) => s.text).join('\n\n');
         const tokens = Tokenizer.tokenize(fullContent);
         const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
@@ -117,19 +132,17 @@ The story should be fun, educational, and age-appropriate.`;
 
         const bookKey = `${data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.random().toString(36).substring(2, 7)}`;
 
+        // 2. Create Book Metadata
         const { data: book, error: bookError } = await supabase
             .from('books')
             .upsert({
                 id: bookId,
                 book_key: bookKey,
-                owner_user_id: ownerId,
+                guardian_id: guardianId,
                 title: data.title,
-                text: fullContent,
-                images: [],
-                tokens: tokens,
                 origin: 'user_generated',
-                schema_version: 2,
                 voice_id: voiceId,
+                total_tokens: tokens.length,
                 metadata: { isAIGenerated: true }
             })
             .select()
@@ -137,20 +150,31 @@ The story should be fun, educational, and age-appropriate.`;
 
         if (bookError) throw bookError;
 
+        // 3. Create Book Content (HEAVY)
+        const { error: contentError } = await supabase
+            .from('book_contents')
+            .upsert({
+                book_id: bookId,
+                tokens,
+                full_text: fullContent
+            });
+        
+        if (contentError) throw contentError;
+
+        // 4. Create Story Record
         const storyRepo = new StoryRepository(supabase);
         await storyRepo.createStory({
             id: book.id,
-            owner_user_id: ownerId,
-            child_name: name,
-            child_age: age,
-            child_gender: gender,
-            words_used: words,
+            guardian_id: guardianId,
+            child_id: childId,
             main_character_description: data.mainCharacterDescription,
             scenes: scenesWithIndices,
             status: 'generating',
-            avatar_url: finalUserProfile.avatarUrl
+            avatar_url: childAvatar
         });
 
+        // 5. Background Narration (uses service-role since user context is lost)
+        const bgStoryRepo = new StoryRepository(serviceRoleClient);
         (async () => {
             try {
                 const textChunks = TextChunker.chunk(fullContent);
@@ -160,7 +184,7 @@ The story should be fun, educational, and age-appropriate.`;
                     const { audioBuffer, speechMarks } = await polly.synthesize(chunk.text);
                     const storagePath = `${book.id}/audio/${voiceId}/${chunk.index}.mp3`;
 
-                    await supabase.storage.from('book-assets').upload(storagePath, audioBuffer, {
+                    await serviceRoleClient.storage.from('book-assets').upload(storagePath, audioBuffer, {
                         contentType: 'audio/mpeg',
                         upsert: true
                     });
@@ -168,9 +192,8 @@ The story should be fun, educational, and age-appropriate.`;
                     const wordTokensForChunk = getWordTokensForChunk(tokens, chunk.startWordIndex, chunk.endWordIndex);
                     const alignedTimings = alignSpeechMarksToTokens(speechMarks, wordTokensForChunk);
 
-                    await supabase.from('book_audios').upsert({
+                    await serviceRoleClient.from('book_audios').upsert({
                         book_id: book.id,
-                        owner_user_id: ownerId,
                         chunk_index: chunk.index,
                         start_word_index: chunk.startWordIndex,
                         end_word_index: chunk.endWordIndex,
@@ -180,11 +203,10 @@ The story should be fun, educational, and age-appropriate.`;
                     }, { onConflict: 'book_id,chunk_index,voice_id' });
                 }
 
-                // Status will be set to 'completed' by the image generation API
-                // which is triggered by the frontend.
+                await bgStoryRepo.updateStoryStatus(book.id, 'completed');
             } catch (err) {
                 console.error(`Background processing failed:`, err);
-                await storyRepo.updateStoryStatus(book.id, 'failed').catch(e => console.error("Failed to set failure status", e));
+                await bgStoryRepo.updateStoryStatus(book.id, 'failed').catch(e => console.error("Failed to set failure status", e));
             }
         })();
 

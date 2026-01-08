@@ -20,9 +20,20 @@ export async function POST(req: Request) {
     const { data: { user } } = await authClient.auth.getUser();
 
     try {
-        const { words, userProfile } = await req.json();
-        const { name, age, gender } = userProfile;
-        const ownerId = user?.id || null;
+        const { words, childId } = await req.json();
+        const guardianId = user?.id || null;
+
+        // Fetch child profile if childId is provided
+        let child = null;
+        if (childId) {
+            const { data } = await supabase
+                .from('children')
+                .select('*')
+                .eq('id', childId)
+                .single();
+            child = data;
+        }
+
         const mockPath = path.join(process.cwd(), 'data', 'mock', 'response.json');
 
         if (!fs.existsSync(mockPath)) {
@@ -55,14 +66,11 @@ export async function POST(req: Request) {
             .upsert({
                 id: bookId,
                 book_key: bookKey,
-                owner_user_id: ownerId,
+                guardian_id: guardianId,
                 title: data.title,
-                text: fullContent,
-                images: [],
-                tokens: tokens,
                 origin: 'user_generated',
-                schema_version: 2,
                 voice_id: voiceId,
+                total_tokens: tokens.length,
                 metadata: { isMock: true }
             })
             .select()
@@ -70,18 +78,26 @@ export async function POST(req: Request) {
 
         if (bookError) throw bookError;
 
+        // Create Book Content
+        const { error: contentError } = await supabase
+            .from('book_contents')
+            .upsert({
+                book_id: bookId,
+                tokens,
+                full_text: fullContent
+            });
+        
+        if (contentError) throw contentError;
+
         const storyRepo = new StoryRepository(supabase);
         await storyRepo.createStory({
             id: book.id,
-            owner_user_id: ownerId,
-            child_name: name,
-            child_age: age,
-            child_gender: gender,
-            words_used: words,
+            guardian_id: guardianId,
+            child_id: childId,
             main_character_description: data.mainCharacterDescription,
             scenes: scenesWithIndices,
             status: 'generating',
-            avatar_url: userProfile.avatarUrl // In mock, we might just pass the URL string
+            avatar_url: child?.avatar_url
         });
 
         (async () => {
@@ -103,7 +119,6 @@ export async function POST(req: Request) {
 
                     await supabase.from('book_audios').upsert({
                         book_id: book.id,
-                        owner_user_id: ownerId,
                         chunk_index: chunk.index,
                         start_word_index: chunk.startWordIndex,
                         end_word_index: chunk.endWordIndex,

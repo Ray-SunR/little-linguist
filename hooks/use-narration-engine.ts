@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { resolveMediaUrl } from '@/lib/core/cached-media';
+import { assetCache } from '@/lib/core/asset-cache';
 
 export type PlaybackState = 'playing' | 'paused' | 'stopped' | 'buffering';
 
@@ -51,6 +52,7 @@ export function useNarrationEngine({
     const stateRef = useRef<PlaybackState>(state);
     const currentShardIndexRef = useRef<number>(currentShardIndex);
     const currentWordIndexRef = useRef<number | null>(currentWordIndex);
+    const lastAudioStoragePathRef = useRef<string | null>(null);
 
     // Keep refs in sync with state
     useEffect(() => { stateRef.current = state; }, [state]);
@@ -111,6 +113,12 @@ export function useNarrationEngine({
         const resolvedUrl = shard.storagePath
             ? await resolveMediaUrl(shard.storagePath, shard.audio_path)
             : shard.audio_path;
+
+        // Release previous shard asset if we are switching
+        if (lastAudioStoragePathRef.current && lastAudioStoragePathRef.current !== shard.storagePath) {
+            assetCache.releaseAsset(lastAudioStoragePathRef.current);
+        }
+        lastAudioStoragePathRef.current = shard.storagePath || null;
 
         if (shard.storagePath && resolvedUrl.startsWith('blob:')) {
             console.log(`[Narration] Audio HIT: ${shard.storagePath}`);
@@ -307,6 +315,10 @@ export function useNarrationEngine({
                 audioRef.current.pause();
                 audioRef.current.src = "";
                 audioRef.current = null;
+            }
+            if (lastAudioStoragePathRef.current) {
+                assetCache.releaseAsset(lastAudioStoragePathRef.current);
+                lastAudioStoragePathRef.current = null;
             }
         };
     }, []);

@@ -17,9 +17,9 @@ export interface Book {
   title: string;
   text: string;
   audioUrl?: string;
-  images?: BookImage[];
   updated_at?: string;
   voice_id?: string;
+  cover_image_path?: string;
 }
 
 export type ViewMode = 'continuous' | 'spread' | 'scroll';

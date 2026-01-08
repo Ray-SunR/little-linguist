@@ -12,19 +12,16 @@ export async function GET(request: NextRequest) {
             return NextResponse.json([]);
         }
 
-        // We can't access BookRepository's private supabase instance to run a custom query easily 
-        // if it doesn't expose a method for "getAllProgress".
-        // So we use the authenticated client here directly for simplicity, 
-        // or we extend BookRepository. 
-        // Extending BookRepository is cleaner.
+        const { searchParams } = new URL(request.url);
+        const childId = searchParams.get('childId');
 
-        // However, BookRepository uses SERVICE_ROLE key.
-        // We want to fetch data for THIS user.
+        let query = supabase.from('child_book_progress').select('*');
 
-        const { data, error } = await supabase
-            .from('user_progress')
-            .select('*')
-            .eq('user_id', user.id);
+        if (childId) {
+            query = query.eq('child_id', childId);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
 

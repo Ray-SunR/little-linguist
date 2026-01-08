@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import LumoLoader from "@/components/ui/lumo-loader";
 import LibraryView from "@/components/reader/library-view";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
-import { raidenCache, CacheStore, bookCache } from "@/lib/core/cache";
-import { ttsCache } from "@/lib/features/narration/tts-cache";
+import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { useAuth } from "@/components/auth/auth-provider";
 
 // Memory caches scoped by userId to prevent cross-user leakage and improve instant navigation
@@ -15,7 +14,7 @@ const inFlightLibraryFetch: Record<string, Promise<void> | null> = {};
 
 export default function LibraryContent() {
     const router = useRouter();
-    const { user, isLoading: authLoading } = useAuth();
+    const { user, activeChild, isLoading: authLoading } = useAuth();
     const currentUserId = user?.id;
     
     // Check for synchronous hints to avoid "Wait for it" flickering on mount
@@ -56,9 +55,10 @@ export default function LibraryContent() {
 
             try {
                 // 2. Background fresh fetch
+                const progressUrl = activeChild?.id ? `/api/progress?childId=${activeChild.id}` : '/api/progress';
                 const [booksRes, progressRes] = await Promise.all([
                     fetch('/api/books?mode=library'),
-                    fetch('/api/progress')
+                    fetch(progressUrl)
                 ]);
 
                 if (!booksRes.ok) throw new Error('Failed to fetch books');
@@ -134,8 +134,6 @@ export default function LibraryContent() {
 
         syncHydrate();
         loadBooks();
-        // Fire and forget ttsCache init to keep main thread free
-        setTimeout(() => ttsCache.init().catch(console.error), 0);
     }, [currentUserId, authLoading, loadBooks]);
 
 
@@ -149,7 +147,7 @@ export default function LibraryContent() {
             // Remove from local state
             setBooks(prev => prev.filter(b => b.id !== id));
             // Also remove from cache if it exists there
-            await bookCache.delete(id);
+            await raidenCache.delete(CacheStore.BOOKS, id);
             
             // Re-persist updated list to library metadata cache
             if (currentUserId) {

@@ -12,7 +12,7 @@ import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/
 import type { Story, UserProfile } from "@/lib/features/story";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { compressImage } from "@/lib/core/utils/image";
-import { bookCache, raidenCache, CacheStore } from "@/lib/core/cache";
+import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { CachedImage } from "@/components/ui/cached-image";
 import { useAuth } from "@/components/auth/auth-provider";
 
@@ -143,7 +143,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             setSupabaseBook(initialSupabaseBook);
 
             // Prefill cache to make redirect instant
-            await bookCache.put(initialSupabaseBook);
+            await raidenCache.put(CacheStore.BOOKS, initialSupabaseBook);
 
             // Invalidate library metadata to force re-fetch on next visit
             if (user?.id) {

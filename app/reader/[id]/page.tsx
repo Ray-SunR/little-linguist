@@ -9,6 +9,7 @@ import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { ErrorView } from "@/components/ui/error-view";
 import { assetCache } from "@/lib/core/asset-cache";
+import { useAuth } from "@/components/auth/auth-provider";
 
 interface ReaderPageProps {
     params: { id: string };
@@ -19,6 +20,8 @@ type CachedShardRecord = { bookId: string; shards: any[]; updated_at?: string; a
 
 function ReaderContent({ params }: ReaderPageProps) {
     const bookId = params.id;
+    const { activeChild } = useAuth();
+    const activeChildId = activeChild?.id;
     const [currentBook, setCurrentBook] = useState<SupabaseBook | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -57,39 +60,17 @@ function ReaderContent({ params }: ReaderPageProps) {
                 console.error("Cache load failed:", err);
             }
 
-            // 2. Fetch fresh metadata to check for updates
-            const headRes = await fetch(`/api/books/${bookId}?mode=metadata`);
-            const remoteBook = headRes.ok ? await headRes.json() : null;
-            const remoteUpdatedAt = remoteBook?.updated_at;
+            // Consolidated fetch: metadata, tokens, images, AND audios
+            // (No need for separate mode=metadata request - this returns everything including assetTimestamps)
 
-            // If we have a cached version and it's up to date, we can skip full fetch
-            const isUpToDate = cachedBook && remoteBook && cachedBook.updated_at === remoteUpdatedAt;
-
-            if (isUpToDate && cachedShardsRecord?.shards?.length) {
-                console.debug(`[Cache] Book ${bookId} is up to date.`);
-
-                const [progressRes] = await Promise.all([
-                    fetch(`/api/books/${bookId}/progress`)
-                ]);
-
-                const progress = progressRes.ok ? await progressRes.json() : null;
-
-                setCurrentBook(prev => {
-                    if (!prev || !cachedShardsRecord) return prev;
-                    return { ...prev, shards: cachedShardsRecord.shards, initialProgress: progress };
-                });
-                return;
-            }
-
-            // 2. Fetch fresh data for THIS book ONLY BEFORE purging
-            const [bookRes, narrationRes, progressRes] = await Promise.all([
-                fetch(`/api/books/${bookId}?include=content,images`),
-                fetch(`/api/books/${bookId}/narration`),
-                fetch(`/api/books/${bookId}/progress`)
+            // 3. Consolidated fetch: metadata, tokens, images, AND audios
+            const progressUrl = activeChildId ? `/api/books/${bookId}/progress?childId=${activeChildId}` : `/api/books/${bookId}/progress`;
+            const [bookRes, progressRes] = await Promise.all([
+                fetch(`/api/books/${bookId}?include=tokens,content,images,audio`),
+                fetch(progressUrl)
             ]);
 
             if (!bookRes.ok) {
-                // If network fails but we had a cached book, keep it instead of throwing
                 if (cachedBook) {
                     console.warn(`[Reader] Fetch failed, keeping stale cached book ${bookId}`);
                     return;
@@ -98,33 +79,35 @@ function ReaderContent({ params }: ReaderPageProps) {
             }
 
             const bookData = await bookRes.json();
-            const shards = narrationRes.ok ? await narrationRes.json() : [];
             const progress = progressRes.ok ? await progressRes.json() : null;
 
-            // Now that we have fresh data, check if we need to purge old assets
-            if (remoteUpdatedAt && cachedBook?.updated_at && cachedBook.updated_at !== remoteUpdatedAt) {
-                await purgeCaches(cachedShardsRecord);
-            } else if (remoteUpdatedAt && cachedShardsRecord?.updated_at && cachedShardsRecord.updated_at !== remoteUpdatedAt) {
+            // Purge audio caches if timestamps changed
+            const remoteAudioTimestamp = bookData.assetTimestamps?.audios;
+            if (cachedShardsRecord?.updated_at !== remoteAudioTimestamp) {
                 await purgeCaches(cachedShardsRecord);
             }
-
 
             const initialProgress = progress;
             const fullBook: SupabaseBook = {
                 ...bookData,
-                shards: Array.isArray(shards) ? shards : [],
+                shards: Array.isArray(bookData.audios) ? bookData.audios : [],
                 initialProgress,
                 cached_at: Date.now(),
             };
 
-            // 3. Cache this book (excluding potentially stale progress)
+            // 4. Cache everything
             const { initialProgress: _, ...bookToCache } = fullBook;
             const audioPaths = (fullBook.shards as any[] || [])
                 .map((s) => s.storagePath)
                 .filter(Boolean);
 
             await raidenCache.put(CacheStore.BOOKS, bookToCache);
-            await raidenCache.put(CacheStore.SHARDS, { bookId, updated_at: bookData.updated_at, shards: fullBook.shards, audioPaths });
+            await raidenCache.put(CacheStore.SHARDS, { 
+                bookId, 
+                updated_at: bookData.assetTimestamps?.audios, 
+                shards: fullBook.shards, 
+                audioPaths 
+            });
 
             setCurrentBook(fullBook);
 
@@ -134,7 +117,7 @@ function ReaderContent({ params }: ReaderPageProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [bookId]);
+    }, [bookId, activeChildId]);
 
     // Realtime subscriptions for the current book
     useBookMediaSubscription(bookId, useCallback((newImage) => {
@@ -225,6 +208,7 @@ function ReaderContent({ params }: ReaderPageProps) {
             <SupabaseReaderShell
                 books={books}
                 initialBookId={bookId}
+                childId={activeChildId ?? null}
             />
 
             {/* Status overlay for background generation */}

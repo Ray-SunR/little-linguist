@@ -4,6 +4,7 @@ import { PlaybackState } from './use-narration-engine';
 
 interface PersistenceProps {
     bookId: string;
+    childId: string | null;
     tokenIndex: number | null;
     shardIndex: number;
     time: number;
@@ -18,6 +19,7 @@ interface PersistenceProps {
  */
 export function useReaderPersistence({
     bookId,
+    childId,
     tokenIndex,
     shardIndex,
     time,
@@ -56,10 +58,11 @@ export function useReaderPersistence({
         const isInitialState = tIdx === 0 && sIdx === 0 && tTime === 0;
         if (isInitialState && !force && !isExiting) return;
 
-        if (!bookId || !isMeaningful) return;
+        if (!bookId || !childId || !isMeaningful) return;
 
         try {
             const payload = {
+                childId,
                 tokenIndex: tIdx,
                 shardIndex: sIdx,
                 time: tTime,
@@ -98,7 +101,7 @@ export function useReaderPersistence({
         } catch (err) {
             console.error("Failed to save progress:", err);
         }
-    }, [bookId]);
+    }, [bookId, childId]);
 
     // Simple custom debounce since lodash is not available
     const debouncedSave = useMemo(() => {

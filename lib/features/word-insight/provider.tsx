@@ -85,7 +85,7 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         return true;
     });
     const isFetchingRef = useRef(false);
-    const { user, isLoading: authLoading } = useAuth();
+    const { user, isLoading: authLoading, activeChild } = useAuth();
     const pathname = usePathname();
 
     const isMyWordsRoute = useMemo(() => pathname?.startsWith("/my-words") ?? false, [pathname]);
@@ -98,6 +98,14 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         }
         if (isFetchingRef.current) return;
         isFetchingRef.current = true;
+
+        // Ensure we have an active child before fetching words
+        if (!activeChild?.id) {
+             setWords([]);
+             setIsLoading(false);
+             isFetchingRef.current = false;
+             return;
+        }
 
         try {
             // Only set loading if we don't have words yet (visual speedup)
@@ -114,7 +122,7 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
             }
 
             // 2. Fetch fresh
-            const list = await dbService.getWords();
+            const list = await dbService.getWords(activeChild?.id);
 
             // Batch audio hydration to avoid overloading network/memory
             const BATCH_SIZE = 5;
@@ -224,7 +232,7 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         setWords(prev => [enrichedWord, ...prev.filter(w => w.id !== wordId)]);
 
         try {
-            await dbService.addWord(word, bookId);
+            await dbService.addWord(word, bookId, activeChild?.id);
             // Sync cache
             await raidenCache.put(CacheStore.USER_WORDS, enrichedWord);
         } catch (err) {
@@ -248,7 +256,7 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         setWords(prev => prev.filter(w => w.id !== wordId));
 
         try {
-            await dbService.removeWord(wordStr, bookId);
+            await dbService.removeWord(wordStr, bookId, activeChild?.id);
             // Sync cache
             await raidenCache.delete(CacheStore.USER_WORDS, wordId);
         } catch (err) {
