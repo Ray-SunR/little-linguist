@@ -57,17 +57,20 @@ const WordListContext = createContext<WordListContextType | undefined>(undefined
 /**
  * Common logic to read words from cache and hydrate their audio URLs from assetCache.
  */
-async function getHydratedWords(): Promise<SavedWord[]> {
+async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
     const cachedList = await raidenCache.getAll<SavedWord>(CacheStore.USER_WORDS);
     if (!cachedList || cachedList.length === 0) return [];
 
-    return await Promise.all(cachedList.map(async (w) => {
+    const prefix = userId ? `u:${userId}:` : 'guest:';
+    const filteredList = cachedList.filter((w: SavedWord) => w.id.startsWith(prefix));
+
+    return await Promise.all(filteredList.map(async (w: SavedWord) => {
         // Blob URLs don't survive reloads, signed URLs expire. Always try to resolve from assetCache.
         const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
         const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
         
         const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
-            ? await Promise.all(w.exampleAudioUrls.map((u, idx) => 
+            ? await Promise.all(w.exampleAudioUrls.map((u: string, idx: number) => 
                 hydrateAudio(u, w.example_audio_paths?.[idx] || u)
             ))
             : undefined;
@@ -91,75 +94,91 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
     const isMyWordsRoute = useMemo(() => pathname?.startsWith("/my-words") ?? false, [pathname]);
 
     const loadWords = async () => {
-        if (!user) {
-            setWords([]);
-            setIsLoading(false);
-            return;
-        }
-        if (isFetchingRef.current) return;
+        if (isFetchingRef.current) return; // Prevent multiple concurrent fetches
         isFetchingRef.current = true;
-
-        // Ensure we have an active child before fetching words
-        if (!activeChild?.id) {
-             setWords([]);
-             setIsLoading(false);
-             isFetchingRef.current = false;
-             return;
-        }
 
         try {
             // Only set loading if we don't have words yet (visual speedup)
             if (words.length === 0) setIsLoading(true);
+            
+            // On identity change, we might want to clear non-guest cache to avoid leakage
+            // but for now we just rely on robust filtering.
 
             // 1. Try cache first (hydrated)
-            const cachedList = await getHydratedWords();
-            if (cachedList.length > 0) {
-                setWords(cachedList);
+            const cachedWords = await getHydratedWords(user?.id);
+            const isGuest = !user;
+
+            if (cachedWords.length > 0) {
+                setWords((prev: SavedWord[]) => {
+                    const wordMap = new Map(prev.map((w: SavedWord) => [w.word, w]));
+                    cachedWords.forEach((w: SavedWord) => {
+                        if (!wordMap.has(w.word)) {
+                            wordMap.set(w.word, w);
+                        }
+                    });
+                    return Array.from(wordMap.values());
+                });
                 if (typeof window !== "undefined") {
                     window.localStorage.setItem("raiden:has_words_cache", "true");
                 }
                 setIsLoading(false);
             }
 
-            // 2. Fetch fresh
-            const list = await dbService.getWords(activeChild?.id);
+            // 2. Fetch fresh from DB if authenticated
+            if (user && activeChild?.id) {
+                const list = await dbService.getWords(activeChild?.id);
 
-            // Batch audio hydration to avoid overloading network/memory
-            const BATCH_SIZE = 5;
-            const listForCache: SavedWord[] = [];
-            
-            for (let i = 0; i < list.length; i += BATCH_SIZE) {
-                const batch = list.slice(i, i + BATCH_SIZE);
-                const processedBatch = await Promise.all(batch.map(async (w: any) => {
-                    const id = `${w.word.toLowerCase()}:${w.bookId || 'global'}`;
-                    
-                    // Use specific paths to avoid collisions
-                    const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
-                    const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
-                    
-                    const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
-                        ? await Promise.all(w.exampleAudioUrls.slice(0, 2).map((u: string, idx: number) =>
-                            hydrateAudio(u, w.example_audio_paths?.[idx] || u)
-                        ))
-                        : undefined;
+                // Batch audio hydration to avoid overloading network/memory
+                const BATCH_SIZE = 5;
+                const listForCache: SavedWord[] = [];
+                
+                for (let i = 0; i < list.length; i += BATCH_SIZE) {
+                    const batch = list.slice(i, i + BATCH_SIZE);
+                    const processedBatch = await Promise.all(batch.map(async (w: any) => {
+                        const baseId = `${w.word.toLowerCase()}:${w.bookId || 'global'}`;
+                        const id = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+                        
+                        // Use specific paths to avoid collisions
+                        const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
+                        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
+                        
+                        const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
+                            ? await Promise.all(w.exampleAudioUrls.slice(0, 2).map((u: string, idx: number) =>
+                                hydrateAudio(u, w.example_audio_paths?.[idx] || u)
+                            ))
+                            : undefined;
 
-                    return {
-                        ...w,
-                        id,
-                        audioUrl,
-                        wordAudioUrl,
-                        exampleAudioUrls,
-                    } as SavedWord;
-                }));
-                listForCache.push(...processedBatch);
-            }
+                        return {
+                            ...w,
+                            id,
+                            audioUrl,
+                            wordAudioUrl,
+                            exampleAudioUrls,
+                        } as SavedWord;
+                    }));
+                    listForCache.push(...processedBatch);
+                }
 
-            setWords(listForCache);
+                setWords((prev: SavedWord[]) => {
+                    const wordMap = new Map(prev.map((w: SavedWord) => [w.id, w])); // Use w.id for map key
+                    listForCache.forEach((w: SavedWord) => {
+                        wordMap.set(w.id, w); // Overwrite with fresh data using w.id
+                    });
+                    return Array.from(wordMap.values());
+                });
 
-            // 3. Update cache using batched putAll
-            await raidenCache.clear(CacheStore.USER_WORDS);
-            if (listForCache.length > 0) {
-                await raidenCache.putAll(CacheStore.USER_WORDS, listForCache);
+                // 3. Update cache using batched putAll (preserving guest words)
+                const currentCache = await raidenCache.getAll<SavedWord>(CacheStore.USER_WORDS);
+                const guestWords = currentCache.filter((w: SavedWord) => w.id.startsWith("guest:"));
+                
+                await raidenCache.clear(CacheStore.USER_WORDS);
+                const finalCache = [...listForCache, ...guestWords];
+                if (finalCache.length > 0) {
+                    await raidenCache.putAll(CacheStore.USER_WORDS, finalCache);
+                }
+            } else if (!user) {
+                // Guest mode: words are already set from cache filtered in step 1
+                setIsLoading(false);
             }
         } catch (error) {
             console.error("Failed to load words", error);
@@ -178,68 +197,43 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
             return;
         }
         
-        // If auth is still loading, but we have a user (from previous render or memory), 
-        // we might be able to start fetching words anyway.
-        // However, we strictly wait for authLoading if we don't have a user yet.
-        if (authLoading && !user) {
-            return;
-        }
+        // Wait for auth to settle if it's currently loading
+        if (authLoading) return;
         
-        const init = async () => {
-            const cachedList = await getHydratedWords();
-            const hasCache = cachedList.length > 0;
-
-            if (hasCache) {
-                setWords(cachedList);
-                
-                // Background refresh if any item has a non-blob URL (likely expired) 
-                // or if it's been a while since last fetch.
-                const shouldBackgroundFetch = cachedList.some(w => 
-                    (w.audioUrl && !w.audioUrl.startsWith('blob:')) || 
-                    (w.wordAudioUrl && !w.wordAudioUrl.startsWith('blob:'))
-                );
-
-                if (shouldBackgroundFetch && !isMyWordsRoute) {
-                    console.debug("[WordList] Background fetch triggered due to potentially stale links.");
-                    loadWords();
-                }
-            }
-
-            // If we are on the My Words page, ALWAYS fetch fresh
-            // If we are NOT on My Words page BUT cache is empty, fetch fresh anyway for tooltips
-            if (isMyWordsRoute || !hasCache) {
-                loadWords();
-            } else {
-                setIsLoading(false);
-            }
-        };
-
-        init();
-    }, [authLoading, user, isMyWordsRoute, fetchOnMount]);
+        setWords([]); // Clear UI state immediately on user change
+        if (fetchOnMount) {
+            loadWords();
+        }
+    }, [user?.id, activeChild?.id, authLoading, isMyWordsRoute, fetchOnMount]);
 
     const addWord = async (word: WordInsight, bookId?: string) => {
-        if (!user) return;
-        const wordId = `${word.word.toLowerCase()}:${bookId || 'global'}`;
+        const baseId = `${word.word.toLowerCase()}:${bookId || 'global'}`;
+        const wordId = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+        
         const enrichedWord: SavedWord = { 
             ...word, 
             bookId, 
-            id: wordId
+            id: wordId,
+            createdAt: new Date().toISOString(),
+            status: 'new'
         };
 
-        const wordExists = words.some(w => w.id === wordId);
+        const wordExists = words.some((w: SavedWord) => w.id === wordId);
 
         // Optimistic update
-        setWords(prev => [enrichedWord, ...prev.filter(w => w.id !== wordId)]);
+        setWords((prev: SavedWord[]) => [enrichedWord, ...prev.filter((w: SavedWord) => w.id !== wordId)]);
 
         try {
-            await dbService.addWord(word, bookId, activeChild?.id);
+            if (user && activeChild?.id) {
+                await dbService.addWord(word, bookId, activeChild?.id);
+            }
             // Sync cache
             await raidenCache.put(CacheStore.USER_WORDS, enrichedWord);
         } catch (err) {
             console.error("Failed to add word, rolling back:", err);
             // Only remove if it didn't exist before
             if (!wordExists) {
-                setWords(prev => prev.filter(w => w.id !== wordId));
+                setWords((prev: SavedWord[]) => prev.filter((w: SavedWord) => w.id !== wordId));
             } else {
                 // If it existed, we might want to refetch to restore original state if it changed
                 loadWords();
@@ -248,27 +242,29 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
     };
 
     const removeWord = async (wordStr: string, bookId?: string) => {
-        if (!user) return;
-        const wordId = `${wordStr.toLowerCase()}:${bookId || 'global'}`;
-        const wordToRestore = words.find(w => w.id === wordId);
+        const baseId = `${wordStr.toLowerCase()}:${bookId || 'global'}`;
+        const wordId = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+        const wordToRestore = words.find((w: SavedWord) => w.id === wordId);
 
         // Optimistic update
-        setWords(prev => prev.filter(w => w.id !== wordId));
+        setWords((prev: SavedWord[]) => prev.filter((w: SavedWord) => w.id !== wordId));
 
         try {
-            await dbService.removeWord(wordStr, bookId, activeChild?.id);
+            if (user && activeChild?.id) {
+                await dbService.removeWord(wordStr, bookId, activeChild?.id);
+            }
             // Sync cache
             await raidenCache.delete(CacheStore.USER_WORDS, wordId);
         } catch (err) {
             console.error("Failed to remove word, rolling back:", err);
             if (wordToRestore) {
-                setWords(prev => [wordToRestore, ...prev]);
+                setWords((prev: SavedWord[]) => [wordToRestore, ...prev]);
             }
         }
     };
 
     const hasWord = (wordStr: string, bookId?: string) => {
-        return words.some((w) => {
+        return words.some((w: SavedWord) => {
             const wordMatch = w.word.toLowerCase() === wordStr.toLowerCase();
             if (bookId && w.bookId) {
                 return wordMatch && w.bookId === bookId;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService } from "@/lib/features/story";
 import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
@@ -26,6 +26,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const { words } = useWordList();
     const { user } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const service = getStoryService();
     const [step, setStep] = useState<Step>("profile");
     const [profile, setProfile] = useState<UserProfile>(initialProfile);
@@ -37,24 +38,59 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
 
-    // Initial setup if props change (though usually this component mounts once)
+    // Load saved draft on mount
     useEffect(() => {
-        if (initialProfile) {
-            setProfile(prev => ({
+        const savedDraft = localStorage.getItem("raiden:story_maker_draft");
+        if (savedDraft) {
+            try {
+                const { profile: savedProfile, selectedWords: savedWords } = JSON.parse(savedDraft);
+                if (savedProfile) setProfile((prev: UserProfile) => ({ ...prev, ...savedProfile }));
+                if (savedWords) setSelectedWords(savedWords);
+            } catch (err) {
+                console.error("Failed to load story maker draft:", err);
+            }
+        } else if (initialProfile) {
+            setProfile((prev: UserProfile) => ({
                 ...prev,
                 ...initialProfile
             }));
         }
     }, [initialProfile]);
 
+    // Auto-trigger generation if returning from login
+    useEffect(() => {
+        const action = searchParams.get("action");
+        if (action === "generate" && user && step === "profile") {
+            const savedDraft = localStorage.getItem("raiden:story_maker_draft");
+            if (savedDraft) {
+                // Clear the action from URL to prevent loop
+                const url = new URL(window.location.href);
+                url.searchParams.delete("action");
+                window.history.replaceState({}, "", url.toString());
+                
+                try {
+                    const draft = JSON.parse(savedDraft);
+                    generateStory(draft.selectedWords, draft.profile);
+                } catch (e) {
+                    generateStory();
+                }
+            }
+        }
+    }, [user, searchParams, step]);
+
+    // Save draft on changes
+    useEffect(() => {
+        localStorage.setItem("raiden:story_maker_draft", JSON.stringify({ profile, selectedWords }));
+    }, [profile, selectedWords]);
+
     // Subscribe to realtime updates
-    useBookMediaSubscription(supabaseBook?.id, useCallback((newImage) => {
-        setSupabaseBook(prev => {
+    useBookMediaSubscription(supabaseBook?.id, useCallback((newImage: any) => {
+        setSupabaseBook((prev: SupabaseBook | null) => {
             if (!prev) return null;
             const currentImages = prev.images || [];
 
             // 1. Try to find a placeholder to replace
-            const placeholderIndex = currentImages.findIndex(img =>
+            const placeholderIndex = currentImages.findIndex((img: any) =>
                 Number(img.afterWordIndex) === Number(newImage.afterWordIndex) && img.isPlaceholder
             );
 
@@ -65,7 +101,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             }
 
             // 2. If no placeholder, check if we should update an existing real image
-            const existingIndex = currentImages.findIndex(img =>
+            const existingIndex = currentImages.findIndex((img: any) =>
                 Number(img.afterWordIndex) === Number(newImage.afterWordIndex)
             );
 
@@ -80,11 +116,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         });
     }, [setSupabaseBook]));
 
-    useBookAudioSubscription(supabaseBook?.id, useCallback((newShard) => {
-        setSupabaseBook(prev => {
+    useBookAudioSubscription(supabaseBook?.id, useCallback((newShard: any) => {
+        setSupabaseBook((prev: SupabaseBook | null) => {
             if (!prev) return null;
             const shards = prev.shards || [];
-            if (shards.some(s => s.chunk_index === newShard.chunk_index)) return prev;
+            if (shards.some((s: any) => s.chunk_index === newShard.chunk_index)) return prev;
             return { ...prev, shards: [...shards, newShard] };
         });
     }, [setSupabaseBook]));
@@ -97,19 +133,29 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
     const toggleWord = (word: string) => {
         if (selectedWords.includes(word)) {
-            setSelectedWords(selectedWords.filter((w) => w !== word));
+            setSelectedWords(selectedWords.filter((w: string) => w !== word));
         } else {
             if (selectedWords.length >= 5) return; // Max 5 words
             setSelectedWords([...selectedWords, word]);
         }
     };
 
-    const generateStory = async () => {
+    const generateStory = async (overrideWords?: string[], overrideProfile?: UserProfile) => {
+        const finalWords = overrideWords || selectedWords;
+        const finalProfile = overrideProfile || profile;
+
+        if (!user) {
+            // Store draft explicitly and redirect to login
+            localStorage.setItem("raiden:story_maker_draft", JSON.stringify({ profile: finalProfile, selectedWords: finalWords }));
+            router.push("/login?returnTo=/story-maker&action=generate");
+            return;
+        }
+
         setStep("generating");
         setError(null);
         try {
             // Step 1: Generate Text/Scenes Content
-            const content = await service.generateStoryContent(selectedWords, profile);
+            const content = await service.generateStoryContent(finalWords, finalProfile);
 
             const initialStory: Story = {
                 id: crypto.randomUUID(),
@@ -118,8 +164,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 content: content.content,
                 scenes: content.scenes,
                 createdAt: Date.now(),
-                wordsUsed: selectedWords,
-                userProfile: profile,
+                wordsUsed: finalWords,
+                userProfile: finalProfile,
                 mainCharacterDescription: content.mainCharacterDescription,
             };
 
@@ -306,7 +352,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                     whileHover={{ scale: 1.1, rotate: 90 }}
                                                     whileTap={{ scale: 0.9 }}
                                                     type="button"
-                                                    onClick={(e) => {
+                                                    onClick={(e: React.MouseEvent) => {
                                                         e.preventDefault();
                                                         setProfile({ ...profile, avatarUrl: undefined });
                                                     }}
@@ -339,7 +385,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             accept="image/*"
                                             className="hidden"
                                             disabled={isUploading}
-                                            onChange={async (e) => {
+                                            onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                                                 const file = e.target.files?.[0];
                                                 if (file) {
                                                     setIsUploading(true);
@@ -366,7 +412,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <input
                                         type="text"
                                         value={profile.topic || ''}
-                                        onChange={(e) => setProfile({ ...profile, topic: e.target.value })}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, topic: e.target.value })}
                                         className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
                                         placeholder="e.g., A trip to Mars, A talking kitten"
                                     />
@@ -376,7 +422,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <input
                                         type="text"
                                         value={profile.setting || ''}
-                                        onChange={(e) => setProfile({ ...profile, setting: e.target.value })}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, setting: e.target.value })}
                                         className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
                                         placeholder="e.g., Space, Enchanted Forest, Underwater"
                                     />
@@ -503,7 +549,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 <motion.button
                                     whileHover={{ scale: 1.02, y: -4 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={generateStory}
+                                    onClick={() => generateStory()}
                                     className="h-16 px-10 rounded-[1.5rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center gap-3 text-xl font-black font-fredoka uppercase tracking-widest"
                                 >
                                     <span>Cast Spell</span>
@@ -541,7 +587,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 </motion.div>
 
                                 {/* Floating Sparkles */}
-                                {[...Array(6)].map((_, i) => (
+                                {[...Array(6)].map((_, i: number) => (
                                     <motion.div
                                         key={i}
                                         className="absolute w-2 h-2 bg-yellow-400 rounded-full"

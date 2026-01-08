@@ -16,20 +16,21 @@ export default function LibraryContent() {
     const router = useRouter();
     const { user, activeChild, isLoading: authLoading } = useAuth();
     const currentUserId = user?.id;
+    const cacheKey = currentUserId || "anonymous";
 
     // Check for synchronous hints to avoid "Wait for it" flickering on mount
-    const hasCacheHint = typeof window !== "undefined" && currentUserId && !!window.localStorage.getItem(`raiden:has_library_cache:${currentUserId}`);
+    const hasCacheHint = typeof window !== "undefined" && !!window.localStorage.getItem(`raiden:has_library_cache:${cacheKey}`);
 
     const [books, setBooks] = useState<LibraryBookCard[]>(() => {
-        if (typeof window !== "undefined" && currentUserId && cachedLibraryBooks[currentUserId]) {
-            return cachedLibraryBooks[currentUserId];
+        if (typeof window !== "undefined" && cachedLibraryBooks[cacheKey]) {
+            return cachedLibraryBooks[cacheKey];
         }
         return [];
     });
 
     const [isLoading, setIsLoading] = useState(() => {
-        // If we have memory cache for THIS user, never show loader
-        if (currentUserId && cachedLibraryBooks[currentUserId]) return false;
+        // If we have memory cache for THIS key, never show loader
+        if (cachedLibraryBooks[cacheKey]) return false;
         // If we have a hint from last session, assume we'll hydrate fast enough via sync effect
         if (hasCacheHint) return false;
         return true;
@@ -38,34 +39,36 @@ export default function LibraryContent() {
     const [error, setError] = useState<string | null>(null);
 
     const loadBooks = useCallback(async () => {
-        if (!currentUserId || authLoading) return;
+        if (authLoading) return;
 
-        if (inFlightLibraryFetch[currentUserId]) return inFlightLibraryFetch[currentUserId];
+        if (inFlightLibraryFetch[cacheKey]) return inFlightLibraryFetch[cacheKey];
 
         const work = async () => {
             setError(null);
 
             // 1. Try reading from raidenCache first
-            const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, currentUserId);
+            const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, cacheKey);
             if (cached?.books) {
                 setBooks(cached.books);
-                cachedLibraryBooks[currentUserId] = cached.books;
+                cachedLibraryBooks[cacheKey] = cached.books;
                 setIsLoading(false);
             }
 
             try {
                 // 2. Background fresh fetch
-                const progressUrl = activeChild?.id ? `/api/progress?childId=${activeChild.id}` : '/api/progress';
-                const booksUrl = activeChild?.id ? `/api/books?mode=library&childId=${activeChild.id}` : '/api/books?mode=library';
+                const childIdQuery = activeChild?.id ? `&childId=${activeChild.id}` : '';
+                const progressUrl = `/api/progress?${childIdQuery}`;
+                const booksUrl = `/api/books?mode=library${childIdQuery}`;
+                
                 const [booksRes, progressRes] = await Promise.all([
                     fetch(booksUrl),
-                    fetch(progressUrl)
+                    fetch(progressUrl).catch(() => ({ ok: false }))
                 ]);
 
                 if (!booksRes.ok) throw new Error('Failed to fetch books');
 
                 const booksData = await booksRes.json();
-                const progressList = progressRes.ok ? await progressRes.json() : [];
+                const progressList = (progressRes as any).ok ? await (progressRes as any).json() : [];
 
                 const progressMap: Record<string, any> = {};
                 progressList.forEach((p: any) => { if (p.book_id) progressMap[p.book_id] = p; });
@@ -92,19 +95,20 @@ export default function LibraryContent() {
 
                 // 3. Update state and persistence
                 setBooks(libraryBooks);
-                cachedLibraryBooks[currentUserId] = libraryBooks;
+                cachedLibraryBooks[cacheKey] = libraryBooks;
 
                 await raidenCache.put(CacheStore.LIBRARY_METADATA, {
-                    id: currentUserId,
+                    id: cacheKey,
                     books: libraryBooks,
                     updatedAt: Date.now()
                 });
+                
                 // Hint for next load
-                window.localStorage.setItem(`raiden:has_library_cache:${currentUserId}`, "true");
+                window.localStorage.setItem(`raiden:has_library_cache:${cacheKey}`, "true");
 
             } catch (err) {
                 console.error('Failed to load books:', err);
-                if (!cachedLibraryBooks[currentUserId]?.length) {
+                if (!cachedLibraryBooks[cacheKey]?.length) {
                     setError(err instanceof Error ? err.message : 'Failed to load books');
                 }
             } finally {
@@ -112,34 +116,36 @@ export default function LibraryContent() {
             }
         };
 
-        inFlightLibraryFetch[currentUserId] = work();
+        inFlightLibraryFetch[cacheKey] = work();
         try {
-            await inFlightLibraryFetch[currentUserId];
+            await inFlightLibraryFetch[cacheKey];
         } finally {
-            inFlightLibraryFetch[currentUserId] = null;
+            inFlightLibraryFetch[cacheKey] = null;
         }
-    }, [currentUserId, authLoading]);
+    }, [cacheKey, authLoading, activeChild?.id]);
 
     // Instant hydration from cache on client
     useEffect(() => {
         const syncHydrate = async () => {
-            if (typeof window === "undefined" || !currentUserId) return;
+            if (typeof window === "undefined") return;
 
-            const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, currentUserId);
+            const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, cacheKey);
             if (cached?.books) {
                 setBooks(cached.books);
-                cachedLibraryBooks[currentUserId] = cached.books;
+                cachedLibraryBooks[cacheKey] = cached.books;
                 setIsLoading(false);
             }
         };
-        if (!currentUserId || authLoading) return;
+
+        if (authLoading) return;
 
         syncHydrate();
         loadBooks();
-    }, [currentUserId, authLoading, loadBooks]);
-
+    }, [cacheKey, authLoading, loadBooks]);
 
     const handleDeleteBook = useCallback(async (id: string) => {
+        if (!currentUserId) return; // Guests can't delete anything
+        
         try {
             const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
             if (!res.ok) {
@@ -148,24 +154,22 @@ export default function LibraryContent() {
             }
             // Remove from local state
             setBooks(prev => prev.filter(b => b.id !== id));
-            // Also remove from cache if it exists there
+            // Also remove from cache
             await raidenCache.delete(CacheStore.BOOKS, id);
 
-            // Re-persist updated list to library metadata cache
-            if (currentUserId) {
-                const updatedBooks = cachedLibraryBooks[currentUserId]?.filter(b => b.id !== id) || [];
-                await raidenCache.put(CacheStore.LIBRARY_METADATA, {
-                    id: currentUserId,
-                    books: updatedBooks,
-                    updatedAt: Date.now()
-                });
-                cachedLibraryBooks[currentUserId] = updatedBooks;
-            }
+            // Re-persist updated list
+            const updatedBooks = cachedLibraryBooks[cacheKey]?.filter(b => b.id !== id) || [];
+            await raidenCache.put(CacheStore.LIBRARY_METADATA, {
+                id: cacheKey,
+                books: updatedBooks,
+                updatedAt: Date.now()
+            });
+            cachedLibraryBooks[cacheKey] = updatedBooks;
         } catch (err) {
             console.error('Delete book failed:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete book');
         }
-    }, [currentUserId]);
+    }, [currentUserId, cacheKey]);
 
     if (isLoading) {
         return (
@@ -180,7 +184,7 @@ export default function LibraryContent() {
             <main className="page-story-maker relative min-h-screen flex items-center justify-center px-4">
                 <div className="text-center">
                     <p className="text-red-500 font-bold mb-4">{error}</p>
-                    <button onClick={loadBooks} className="px-4 py-2 bg-purple-600 text-white rounded-lg">Retry</button>
+                    <button onClick={loadBooks} className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow-clay-purple">Retry</button>
                 </div>
             </main>
         );

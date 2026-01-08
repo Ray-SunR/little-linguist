@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function updateSession(request: NextRequest) {
                 getAll() {
                     return request.cookies.getAll()
                 },
-                setAll(cookiesToSet) {
+                setAll(cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }>) {
                     cookiesToSet.forEach(({ name, value, options }) =>
                         request.cookies.set(name, value)
                     )
@@ -66,12 +66,17 @@ export async function updateSession(request: NextRequest) {
         return createRedirectWithCookies(new URL('/dashboard', request.url))
     }
 
-    // Expert UX: If user is NOT logged in and tries to access any PROTECTED route, redirect to /login
-    // Protected routes are everything except /, /login and /auth/callback
-    const isPublicRoute = request.nextUrl.pathname === '/' ||
-        request.nextUrl.pathname === '/login' ||
-        request.nextUrl.pathname.startsWith('/auth/') ||
-        request.nextUrl.pathname.startsWith('/api/')
+    const isPublicRoute = [
+        "/",
+        "/login",
+        "/library",
+        "/reader/",
+        "/dashboard",
+        "/my-words",
+        "/story-maker",
+        "/auth/",
+        "/api/word-insight"
+    ].some(route => request.nextUrl.pathname.startsWith(route));
 
     if (!user && !isPublicRoute) {
         return createRedirectWithCookies(new URL('/login', request.url))

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard } from "lucide-react";
+import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard, Rocket } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState } from "react";
@@ -124,10 +124,10 @@ export function ClayNav() {
         const supabase = createClient();
         await supabase.auth.signOut();
         setIsHubOpen(false);
-        router.push("/login");
+        router.push("/");
     };
 
-    // Hide nav on landing, dashboard, and login - these pages have their own layouts
+    // Hide nav on landing and login - these pages have their own layouts
     if (pathname === "/" || pathname === "/login") return null;
 
     const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "";
@@ -137,9 +137,6 @@ export function ClayNav() {
     const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
     const isOnboarding = pathname === "/onboarding";
 
-    // Immersion mode logic for Reader View
-    const isImmersive = (isReaderView || isLibraryView) && !isExpanded;
-
     // --- ONBOARDING VARIANT ---
     if (isOnboarding) {
         return (
@@ -147,9 +144,11 @@ export function ClayNav() {
                 <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="clay-card py-2.5 px-5 bg-white/40 backdrop-blur-2xl border-2 border-white/60 shadow-xl hidden sm:flex items-center gap-4 pointer-events-auto"
+                    className="clay-card py-2.5 px-5 bg-white/40 backdrop-blur-2xl border-2 border-white/60 shadow-xl flex items-center gap-4 pointer-events-auto"
                 >
                     <div className="flex items-center gap-3">
+                        {user ? (
+                            <>
                                 {avatarUrl ? (
                                     <CachedImage
                                         src={avatarUrl}
@@ -163,21 +162,28 @@ export function ClayNav() {
                                         <span className="text-sm font-fredoka font-black text-white">{userInitial}</span>
                                     </div>
                                 )}
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-fredoka font-black text-ink-muted uppercase tracking-widest leading-none mb-0.5">Signed in as</span>
-                            <span className="text-sm font-black text-ink font-fredoka leading-none">{fullName || user?.email?.split('@')[0]}</span>
-                        </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-fredoka font-black text-ink-muted uppercase tracking-widest leading-none mb-0.5">Signed in as</span>
+                                    <span className="text-sm font-black text-ink font-fredoka leading-none">{fullName || user?.email?.split('@')[0]}</span>
+                                </div>
+                                <div className="w-[1px] h-6 bg-ink/5 mx-1" />
+                                <button
+                                    onClick={handleLogout}
+                                    className="p-2 transition-colors hover:text-rose-500 text-ink-muted/60"
+                                    title="Sign Out"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                </button>
+                            </>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="px-5 py-2 rounded-xl bg-accent text-white font-fredoka text-sm font-black shadow-clay-accent hover:scale-105 active:scale-95 transition-all"
+                            >
+                                Login to Save Progress
+                            </Link>
+                        )}
                     </div>
-
-                    <div className="w-[1px] h-6 bg-ink/5 mx-1" />
-
-                    <button
-                        onClick={handleLogout}
-                        className="p-2 transition-colors hover:text-rose-500 text-ink-muted/60"
-                        title="Sign Out"
-                    >
-                        <LogOut className="w-5 h-5" />
-                    </button>
                 </motion.div>
             </div>
         );
@@ -196,13 +202,13 @@ export function ClayNav() {
                         transition={prefersReducedMotion ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 30 }}
                         style={{ transform: "translateZ(0)" }}
                         className={cn(
-                            "fixed z-50 w-[calc(100%-3rem)] max-w-2xl flex items-center justify-between p-2 rounded-[3.5rem] bg-white/70 backdrop-blur-xl border-2 border-white/80 shadow-xl pointer-events-auto bottom-6 left-0 right-0 mx-auto transition-shadow duration-200",
+                            "fixed z-50 w-[calc(100%-3rem)] max-w-2xl gap-1 flex items-center justify-between p-2 rounded-[3.5rem] bg-white/70 backdrop-blur-xl border-2 border-white/80 shadow-xl pointer-events-auto bottom-6 left-0 right-0 mx-auto transition-shadow duration-200",
                             isExpanded && "shadow-clay-purple"
                         )}
                     >
                         <button
                             onClick={() => setIsExpanded(false)}
-                            className="flex items-center gap-3 group relative z-50 pl-2"
+                            className="flex items-center gap-3 group relative z-50 pl-2 shrink-0"
                             title="Fold Navigation"
                         >
                             <span className="relative w-12 h-12 transition-transform duration-300">
@@ -210,8 +216,7 @@ export function ClayNav() {
                             </span>
                         </button>
 
-                        <div className={cn("flex items-center justify-between w-full")}>
-                            {/* Profile Switcher - visible on desktop/always if we want, or adjust based on layout */}
+                        <div className={cn("flex items-center justify-between w-full relative")}>
                             {user && (
                                 <div className="mr-2">
                                     <ProfileSwitcher />
@@ -230,67 +235,62 @@ export function ClayNav() {
                                 );
                             })}
 
-                            <motion.button
-                                whileTap={prefersReducedMotion ? undefined : { scale: 0.8 }}
-                                onClick={() => {
-                                    setIsHubOpen(true);
-                                }}
-                                className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-orange-500 overflow-hidden bg-white/40 border-2 border-white active:bg-orange-100/50 ml-1"
-                                aria-label="Open Adventure Hub"
-                            >
-                                {avatarUrl ? (
-                                    <CachedImage
-                                        src={avatarUrl}
-                                        alt={fullName}
-                                        width={32}
-                                        height={32}
-                                        className="rounded-full border-2 border-orange-200 object-cover"
-                                    />
-                                ) : user ? (
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400/80 to-orange-500/80 flex items-center justify-center shadow-clay-orange ring-1 ring-white">
-                                        <span className="text-[10px] font-fredoka font-black text-white">{userInitial}</span>
-                                    </div>
+                            <div className="flex items-center gap-4 ml-1">
+                                {user ? (
+                                    <motion.button
+                                        whileTap={prefersReducedMotion ? undefined : { scale: 0.8 }}
+                                        onClick={() => setIsHubOpen(true)}
+                                        className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-orange-500 overflow-hidden bg-white/40 border-2 border-white shadow-sm active:bg-orange-100/50"
+                                        aria-label="Open Adventure Hub"
+                                    >
+                                        {avatarUrl ? (
+                                            <CachedImage
+                                                src={avatarUrl}
+                                                alt={fullName}
+                                                width={32}
+                                                height={32}
+                                                className="rounded-full border-2 border-orange-200 object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400/80 to-orange-500/80 flex items-center justify-center shadow-clay-orange ring-1 ring-white">
+                                                <span className="text-[10px] font-fredoka font-black text-white">{userInitial}</span>
+                                            </div>
+                                        )}
+                                    </motion.button>
                                 ) : (
-                                    <User className="w-5 h-5" />
+                                    <Link
+                                        href="/login"
+                                        className="flex items-center justify-center w-14 h-14 rounded-full bg-accent text-white shadow-clay-accent border-2 border-white/50 hover:scale-105 active:scale-95 transition-all"
+                                        aria-label="Login"
+                                    >
+                                        <User className="w-6 h-6" />
+                                    </Link>
                                 )}
-                                <span className="text-[8px] font-fredoka font-black uppercase tracking-wider mt-0.5">Admin</span>
-                            </motion.button>
+                            </div>
                         </div>
                     </motion.nav>
                 ) : (
-                    <motion.button
-                        key="nav-bead"
-                        initial={prefersReducedMotion ? false : { scale: 0, opacity: 0, y: 50 }}
-                        animate={prefersReducedMotion ? { opacity: 1, y: 0, scale: 1 } : { scale: 1, opacity: 1, y: 0 }}
-                        exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0, opacity: 0, y: 50 }}
-                        whileHover={prefersReducedMotion ? undefined : { scale: 1.1 }}
-                        whileTap={prefersReducedMotion ? undefined : { scale: 0.9 }}
-                        onClick={() => setIsExpanded(true)}
-                        className="fixed bottom-6 left-0 right-0 mx-auto z-50 flex h-20 w-20 items-center justify-center rounded-sm bg-transparent pointer-events-auto cursor-pointer"
-                        aria-label="Expand Navigation"
+                    <motion.div
+                        key="nav-collapsed"
+                        initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
+                        animate={prefersReducedMotion ? { scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
+                        exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0, opacity: 0 }}
+                        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
                     >
-                        <div className="relative group scale-110">
-                            {/* Subtle pulse for interaction hint */}
-                            <motion.div
-                                className="absolute inset-0 bg-purple-400/20 blur-2xl rounded-full"
-                                animate={prefersReducedMotion ? undefined : { scale: [1, 1.4, 1], opacity: [0.3, 0.5, 0.3] }}
-                                transition={prefersReducedMotion ? undefined : { duration: 3, repeat: Infinity }}
-                            />
-                            <LumoCharacter size="lg" className="drop-shadow-2xl relative z-10" />
-
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                whileHover={{ opacity: 1, y: 0 }}
-                                className="absolute -top-16 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-2xl shadow-2xl border-2 border-purple-100 whitespace-nowrap hidden sm:block"
-                            >
-                                <span className="text-sm font-fredoka font-black text-purple-600 uppercase tracking-wider">Open Magic Menu ✨</span>
-                            </motion.div>
-                        </div>
-                    </motion.button>
+                        <button
+                            onClick={() => setIsExpanded(true)}
+                            className="group relative flex items-center justify-center w-16 h-16 rounded-full bg-white/80 backdrop-blur-lg shadow-xl border-4 border-white hover:scale-105 active:scale-95 transition-all duration-300"
+                        >
+                            <LumoCharacter size="md" />
+                            <div className="absolute -top-1 -right-1 bg-accent text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Rocket className="w-3 h-3" />
+                            </div>
+                        </button>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Adventure Hub Modal */}
+            {/* Hub Modal */}
             <AnimatePresence>
                 {isHubOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
