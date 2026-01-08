@@ -244,7 +244,7 @@ export default function LandingPageContent() {
 
                         <div className="flex flex-wrap items-center gap-4">
                             <motion.a
-                                href="/login"
+                                href="/library"
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.98 }}
                                 className="flex items-center gap-3 px-8 py-4 rounded-[2rem] bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-clay-orange border-2 border-white/30 text-lg font-black font-fredoka transition-all cursor-pointer no-underline"
@@ -253,16 +253,17 @@ export default function LandingPageContent() {
                                 Start Adventure
                             </motion.a>
 
-                            <motion.button
+                            <motion.a
+                                href="/library"
                                 whileHover={{ scale: 1.05, border: "2px solid rgba(147, 51, 234, 0.5)" }}
                                 whileTap={{ scale: 0.98 }}
-                                className="flex items-center gap-3 px-8 py-4 rounded-[2rem] bg-white text-purple-600 shadow-sm border-2 border-transparent text-lg font-black font-fredoka transition-all cursor-pointer"
+                                className="flex items-center gap-3 px-8 py-4 rounded-[2rem] bg-white text-purple-600 shadow-sm border-2 border-transparent text-lg font-black font-fredoka transition-all cursor-pointer no-underline"
                             >
                                 <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-                                    <span className="ml-0.5 text-xs">▶</span>
+                                    <span className="ml-0.5 text-xs text-purple-600">✨</span>
                                 </div>
-                                See How It Works
-                            </motion.button>
+                                Explore Library
+                            </motion.a>
                         </div>
 
                         {/* Quick Stats */}
@@ -631,12 +632,12 @@ export default function LandingPageContent() {
                             Join thousands of young readers on their AI-powered language adventure today.
                         </p>
                         <motion.a
-                            href="/login"
+                            href="/library"
                             whileHover={{ scale: 1.05, y: -2 }}
                             whileTap={{ scale: 0.98 }}
                             className="inline-flex items-center gap-3 px-10 py-5 rounded-[2rem] bg-white text-purple-600 shadow-xl border-4 border-purple-200 text-xl font-black font-fredoka transition-all cursor-pointer no-underline"
                         >
-                            Start Learning Free
+                            Explore Library Free
                             <ArrowRight className="w-6 h-6" />
                         </motion.a>
                     </div>

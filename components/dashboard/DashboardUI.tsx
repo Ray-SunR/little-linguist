@@ -132,26 +132,44 @@ export default function DashboardUI({ activeChild }: Props) {
                         </div>
 
                         {/* XP Bar */}
-                        <div className="w-full h-4 bg-purple-50 rounded-full overflow-hidden mb-1 border border-purple-100">
-                            <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 w-[75%]" />
+                        <div className="w-full h-4 bg-purple-50 rounded-full overflow-hidden mb-1 border border-purple-100 relative">
+                            {activeChild ? (
+                                <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 w-[75%]" />
+                            ) : (
+                                <div className="absolute inset-0 bg-slate-200/50 backdrop-blur-[2px] flex items-center justify-center">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Locked</span>
+                                </div>
+                            )}
                         </div>
                         <div className="flex justify-between text-xs font-bold text-ink-muted">
-                            <span>750 XP</span>
+                            <span>{activeChild ? "750 XP" : "0 XP"}</span>
                             <span>1000 XP</span>
                         </div>
                     </div>
 
-                    {/* Streak */}
+                    {/* Streak / Guest Join CTA */}
                     <div className="mt-6 pt-6 border-t border-dashed border-purple-100">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-500">
-                                <Star className="w-6 h-6 fill-current" />
+                        {activeChild ? (
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-500">
+                                    <Star className="w-6 h-6 fill-current" />
+                                </div>
+                                <div>
+                                    <div className="text-lg font-black text-ink font-fredoka">5 Day Streak</div>
+                                    <div className="text-xs text-ink-muted font-bold">Keep it up, {childName}!</div>
+                                </div>
                             </div>
-                            <div>
-                                <div className="text-lg font-black text-ink font-fredoka">5 Day Streak</div>
-                                <div className="text-xs text-ink-muted font-bold">Keep it up, {childName}!</div>
-                            </div>
-                        </div>
+                        ) : (
+                            <Link href="/login" className="flex items-center justify-between group/cta">
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-black text-purple-600 uppercase tracking-widest leading-none mb-1">Guest Mode</span>
+                                    <span className="text-sm font-black text-ink font-fredoka leading-none group-hover/cta:text-purple-600 transition-colors">Sign in to track progress</span>
+                                </div>
+                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 group-hover/cta:scale-110 transition-transform">
+                                    <ChevronRight className="w-5 h-5" />
+                                </div>
+                            </Link>
+                        )}
                     </div>
                 </motion.div>
             </div>

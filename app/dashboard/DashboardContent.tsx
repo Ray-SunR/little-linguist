@@ -6,14 +6,16 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { useRouter } from "next/navigation";
 
 export default function DashboardContent() {
-  const { profiles, activeChild, isLoading } = useAuth();
+  const { user, profiles, activeChild, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && (!profiles || profiles.length === 0)) {
+    // Only redirect to onboarding if authenticated but no profiles.
+    // Guests (user=null) should be allowed to see the dashboard preview.
+    if (!isLoading && user && (!profiles || profiles.length === 0)) {
        router.push("/onboarding");
     }
-  }, [profiles, isLoading, router]);
+  }, [profiles, isLoading, router, user]);
 
   // DashboardUI handles its own empty states, we just pass activeChild
   return (

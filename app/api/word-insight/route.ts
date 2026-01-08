@@ -6,8 +6,8 @@ import { getWordAnalysisProvider } from "@/lib/features/word-insight/server/fact
 import { createClient as createAuthClient } from "@/lib/supabase/server";
 
 const getSupabase = () => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const url = typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : undefined;
+    const key = typeof process !== 'undefined' ? process.env.SUPABASE_SERVICE_ROLE_KEY : undefined;
     if (!url || !key) {
         throw new Error("Missing Supabase environment variables");
     }
@@ -16,12 +16,10 @@ const getSupabase = () => {
 
 export async function POST(req: Request) {
     try {
-        // 0. Auth check
+        // Explicitly allowed for guest users (Word definitions are public-friendly)
         const authClient = createAuthClient();
         const { data: { user } } = await authClient.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        // guest access allowed, but we still might want to know if it's a user for future logging/limits
 
         const body = await req.json();
         const rawWord = body?.word;
@@ -37,25 +35,29 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid word" }, { status: 400 });
         }
 
-        // Instantiate Supabase client (service-role needed for storage and upserts)
-        const supabase = getSupabase();
+        // Instantiate Supabase client
+        // For guests, we use the regular auth client (anon) for the database check
+        // For generation/upserts (authenticated only), we use the service role client
+        const supabase = user ? getSupabase() : authClient;
 
 // 1. Check Cache
         const { data: cached, error: dbError } = await supabase
             .from("word_insights")
             .select("*")
-            .eq("word", word)
+            .eq(user ? "word" : "normalized", word) // normalized is the unique key
             .maybeSingle();
 
         if (dbError) {
             console.error("Database fetch error:", dbError);
         }
 
-        if (cached && cached.definition) {
+        if (cached && (cached.definition || cached.normalized)) {
             const bucket = "word-insights-audio";
+            // Use service role for signing URLs as the bucket is private
+            const adminSupabase = getSupabase();
             const sign = async (path: string) => {
                 if (!path) return "";
-                const { data, error: signError } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+                const { data } = await adminSupabase.storage.from(bucket).createSignedUrl(path, 3600);
                 return data?.signedUrl || "";
             };
 
@@ -81,7 +83,15 @@ export async function POST(req: Request) {
             });
         }
 
-        // 2. Generate Insight with Provider
+        // 2. If not in cache and user is guest, do NOT trigger generation (safety/cost)
+        if (!user) {
+            return NextResponse.json({ 
+                error: "Sign in to see full insights for new words!",
+                isGuest: true 
+            }, { status: 401 });
+        }
+
+        // 2. Generate Insight with Provider (Authenticated Users Only)
         const provider = getWordAnalysisProvider();
         const insight = await provider.analyzeWord(word);
 

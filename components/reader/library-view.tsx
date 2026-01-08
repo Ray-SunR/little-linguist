@@ -95,8 +95,12 @@ export default function LibraryView({ books, onDeleteBook, currentUserId }: Libr
                                 <div className="h-10 w-10 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md group-hover:rotate-12 transition-transform duration-500 border border-white/30">
                                     <Wand2 className="h-5 w-5" />
                                 </div>
-                                <div className="font-fredoka text-sm font-bold tracking-tight">Story Maker</div>
-                                <div className="absolute -top-1 -right-1 h-4 w-4 bg-pink-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
+                                <div className="font-fredoka text-sm font-bold tracking-tight">
+                                    {currentUserId ? "Story Maker" : "Try Story Maker"}
+                                </div>
+                                {!currentUserId && (
+                                    <div className="absolute -top-1 -right-1 h-4 w-4 bg-pink-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
+                                )}
                             </Link>
                         </motion.div>
                     </div>
@@ -123,7 +127,7 @@ export default function LibraryView({ books, onDeleteBook, currentUserId }: Libr
                         </motion.div>
 
                         <div className="flex overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap items-center gap-2">
-                            {CATEGORIES.map((cat, idx) => {
+                            {CATEGORIES.filter(c => currentUserId || c.id !== "my-stories").map((cat, idx) => {
                                 const isActive = activeCategory === cat.id;
                                 return (
                                     <motion.button
@@ -165,6 +169,27 @@ export default function LibraryView({ books, onDeleteBook, currentUserId }: Libr
                     <div className="flex flex-col gap-8">
                         {filteredBooks.length > 0 ? (
                             <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {!currentUserId && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative group p-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-50 to-purple-50 border-4 border-dashed border-purple-200 flex flex-col items-center justify-center text-center gap-4 hover:border-purple-400 transition-colors shadow-clay-inset"
+                                    >
+                                        <div className="w-16 h-16 rounded-2xl bg-white shadow-clay flex items-center justify-center">
+                                            <Wand2 className="w-8 h-8 text-purple-600 animate-pulse" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-fredoka text-lg font-black text-purple-900 leading-tight">Create Your Own Story</h3>
+                                            <p className="text-xs font-bold text-purple-600/80 font-nunito mt-1">Make a story about anything you can imagine!</p>
+                                        </div>
+                                        <Link
+                                            href="/story-maker"
+                                            className="px-6 py-2.5 rounded-2xl bg-purple-600 text-white font-fredoka text-sm font-black shadow-clay-purple hover:scale-105 active:scale-95 transition-transform"
+                                        >
+                                            Try Wizard
+                                        </Link>
+                                    </motion.div>
+                                )}
                                 {filteredBooks.map((book, index) => (
                                     <LibraryBookCardComponent
                                         key={book.id}

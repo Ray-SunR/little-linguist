@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Trash2, BookOpen, Sparkles, Volume2, Star, Search, RotateCcw } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight/provider";
 import { useState, useMemo, memo } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
 import { RemoteTtsNarrationProvider } from "@/lib/features/narration/implementations/remote-tts-provider";
 import { playWordOnly } from "@/lib/features/narration";
@@ -18,6 +19,7 @@ type WordCategory = "all" | "new" | "review";
 
 export default function MyWordsContent() {
     const { words, removeWord } = useWordList();
+    const { user } = useAuth();
     const [activeCategory, setActiveCategory] = useState<WordCategory>("all");
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -27,21 +29,54 @@ export default function MyWordsContent() {
     }, []);
 
     const filteredWords = useMemo(() => {
-        let list = words;
+        let filtered = words;
         if (activeCategory === "new") {
-            list = words.filter(w => w.status === 'new');
+            filtered = words.filter((w: SavedWord) => w.status === 'new');
         } else if (activeCategory === "review") {
-            list = words.filter(w => w.nextReviewAt ? new Date(w.nextReviewAt) <= new Date() : false);
+            filtered = words.filter((w: SavedWord) => w.nextReviewAt ? new Date(w.nextReviewAt) <= new Date() : false);
         }
-
-        if (searchQuery.trim()) {
-            list = list.filter(w => w.word.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (searchQuery) {
+            filtered = filtered.filter((w: SavedWord) => 
+                w.word.toLowerCase().includes(searchQuery.toLowerCase())
+            );
         }
-        return list;
+        return filtered;
     }, [words, activeCategory, searchQuery]);
+
+    const activeCount = useMemo(() => words.filter((w: SavedWord) => w.status === "new").length, [words]);
+    const learnedCount = useMemo(() => words.filter((w: SavedWord) => w.status === "mastered").length, [words]);
+    const totalCount = words.length;
 
     return (
         <div className="min-h-screen page-story-maker p-6 md:p-10 pb-32">
+            {!user && (
+                <div className="mx-auto max-w-6xl mb-8">
+                    <motion.div 
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-[2rem] p-6 shadow-clay-purple border-4 border-white flex flex-col md:flex-row items-center justify-between gap-6"
+                    >
+                        <div className="flex items-center gap-4 text-white">
+                            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/30">
+                                <Sparkles className="h-6 w-6 text-amber-300" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black font-fredoka uppercase tracking-tight">Save Your Treasury!</h3>
+                                <p className="text-sm font-bold opacity-90 font-nunito">Log in to keep your magic words forever across all your devices.</p>
+                            </div>
+                        </div>
+                        <Link href="/login">
+                            <motion.button
+                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="bg-white text-purple-600 px-8 py-3 rounded-2xl font-black font-fredoka uppercase text-sm shadow-lg whitespace-nowrap"
+                            >
+                                Sign In Now 🚀
+                            </motion.button>
+                        </Link>
+                    </motion.div>
+                </div>
+            )}
             <header className="mx-auto mb-10 max-w-6xl">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 mb-8">
                     <div className="flex items-start gap-4 md:gap-6">

@@ -25,7 +25,7 @@ export async function checkEmail(email: string) {
     return { exists: !!data }
 }
 
-export async function login(formData: FormData) {
+export async function login(formData: FormData, redirectTo?: string) {
     const supabase = createClient()
 
     const email = formData.get('email') as string
@@ -46,10 +46,10 @@ export async function login(formData: FormData) {
     }
 
     revalidatePath('/', 'layout')
-    redirect('/')
+    redirect(redirectTo || '/')
 }
 
-export async function signup(formData: FormData) {
+export async function signup(formData: FormData, redirectTo?: string) {
     const supabase = createClient()
 
     const email = formData.get('email') as string
@@ -64,7 +64,7 @@ export async function signup(formData: FormData) {
         email,
         password,
         options: {
-            emailRedirectTo: `${origin}/auth/callback`,
+            emailRedirectTo: `${origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
         },
     })
 
@@ -77,5 +77,5 @@ export async function signup(formData: FormData) {
         return { success: 'Check your magic scroll (email) for a verification link!' }
     }
     revalidatePath('/', 'layout')
-    redirect('/')
+    redirect(redirectTo || '/')
 }

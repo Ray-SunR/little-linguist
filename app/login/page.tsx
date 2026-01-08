@@ -2,9 +2,10 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { login, signup, checkEmail } from './actions'
-import { useState, useEffect, memo, useMemo } from 'react'
+import { useState, useEffect, memo, useMemo, Suspense } from 'react'
 import { Loader2, MoveRight, Sparkles, Mail, Lock, ChevronLeft, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/core'
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
 
@@ -86,6 +87,27 @@ const StarLayer = ({ layerIndex, count, sizeRange, speed }: { layerIndex: number
 // --- Main Page ---
 
 export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#05060f]"><Loader2 className="w-12 h-12 animate-spin text-purple-500" /></div>}>
+            <LoginForm />
+        </Suspense>
+    )
+}
+
+function LoginForm() {
+    const searchParams = useSearchParams()
+    const returnTo = searchParams.get('returnTo')
+    const action = searchParams.get('action')
+
+    // Construct the full redirect path including original params
+    const redirectTo = useMemo(() => {
+        if (!returnTo) return undefined
+        if (!action) return returnTo
+        const url = new URL(returnTo, 'http://localhost:3000') // Placeholder origin
+        url.searchParams.set('action', action)
+        return url.pathname + url.search
+    }, [returnTo, action])
+
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState<'checking' | 'auth' | 'google' | null>(null)
@@ -142,10 +164,16 @@ export default function LoginPage() {
         setLoading(provider)
         setError(null)
         setSuccess(null)
+        
+        const callbackUrl = new URL(`${location.origin}/auth/callback`)
+        if (redirectTo) {
+            callbackUrl.searchParams.set('next', redirectTo)
+        }
+
         const { error } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: `${location.origin}/auth/callback`,
+                redirectTo: callbackUrl.toString(),
             },
         })
         if (error) {
@@ -186,7 +214,7 @@ export default function LoginPage() {
         formData.append('origin', location.origin)
 
         try {
-            const result = (!emailExists ? await signup(formData) : await login(formData)) as { error?: string; success?: string } | undefined
+            const result = (!emailExists ? await signup(formData, redirectTo) : await login(formData, redirectTo)) as { error?: string; success?: string } | undefined
 
             if (result?.error) {
                 setError(result.error)

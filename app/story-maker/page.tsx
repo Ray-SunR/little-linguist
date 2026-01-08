@@ -4,6 +4,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import StoryMakerClient from "@/components/story-maker/StoryMakerClient";
 import type { UserProfile } from "@/lib/features/story";
 import LumoLoader from "@/components/ui/lumo-loader";
+import { Suspense } from "react";
 
 export default function StoryMakerPage() {
     const { activeChild, isLoading } = useAuth();
@@ -26,6 +27,8 @@ export default function StoryMakerPage() {
     };
 
     return (
-        <StoryMakerClient initialProfile={initialProfile} />
+        <Suspense fallback={<LumoLoader />}>
+            <StoryMakerClient initialProfile={initialProfile} />
+        </Suspense>
     );
 }
