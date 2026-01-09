@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { getBaseUrl } from '@/lib/core/utils/url'
 import { login, signup, checkEmail } from './actions'
 import { useState, useEffect, memo, useMemo, Suspense } from 'react'
 import { Loader2, MoveRight, Sparkles, Mail, Lock, ChevronLeft, RefreshCw } from 'lucide-react'
@@ -174,10 +175,13 @@ function LoginForm() {
         setError(null)
         setSuccess(null)
         
-        const callbackUrl = new URL(`${location.origin}/auth/callback`)
+        const siteUrl = getBaseUrl()
+        const callbackUrl = new URL(`${siteUrl}/auth/callback`)
         if (redirectTo) {
             callbackUrl.searchParams.set('next', redirectTo)
         }
+
+        console.log('[Login] Initiating OAuth with redirectTo:', callbackUrl.toString())
 
         const { error } = await supabase.auth.signInWithOAuth({
             provider,

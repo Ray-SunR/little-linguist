@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
+import { getBaseUrlFromRequest } from '@/lib/core/utils/url'
 
 export async function checkEmail(email: string) {
     const supabase = createClient()
@@ -27,7 +29,6 @@ export async function checkEmail(email: string) {
 
 export async function login(formData: FormData, redirectTo?: string) {
     const supabase = createClient()
-
     const email = formData.get('email') as string
     const password = formData.get('password') as string
 
@@ -45,26 +46,34 @@ export async function login(formData: FormData, redirectTo?: string) {
         return { error: error.message }
     }
 
+    const baseUrl = getBaseUrlFromRequest(headers())
+    const redirectPath = redirectTo || '/dashboard'
+    
+    console.log(`[Login Action] Success. Redirecting to: ${baseUrl}${redirectPath}`)
+    
     revalidatePath('/', 'layout')
-    redirect(redirectTo || '/')
+    redirect(`${baseUrl}${redirectPath}`)
 }
 
 export async function signup(formData: FormData, redirectTo?: string) {
     const supabase = createClient()
-
     const email = formData.get('email') as string
     const password = formData.get('password') as string
-    const origin = formData.get('origin') as string
 
     if (!email || !password) {
         return { error: 'Magic Email and Secret Word are required.' }
     }
 
+    const baseUrl = getBaseUrlFromRequest(headers())
+    const emailRedirectTo = `${baseUrl}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`
+
+    console.log(`[Signup Action] Constructing emailRedirectTo: ${emailRedirectTo}`)
+
     const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
-            emailRedirectTo: `${origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
+            emailRedirectTo,
         },
     })
 
@@ -76,6 +85,8 @@ export async function signup(formData: FormData, redirectTo?: string) {
     if (data.user && !data.session) {
         return { success: 'Check your magic scroll (email) for a verification link!' }
     }
+
     revalidatePath('/', 'layout')
-    redirect(redirectTo || '/')
+    const redirectPath = redirectTo || '/dashboard'
+    redirect(`${baseUrl}${redirectPath}`)
 }

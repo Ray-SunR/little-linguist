@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getBaseUrlFromRequest } from '@/lib/core/utils/url'
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -42,6 +43,9 @@ export async function updateSession(request: NextRequest) {
     // If this is not done, you may be causing the browser and server to go out
     // of sync and terminate the user's session prematurely!
 
+    const baseUrl = getBaseUrlFromRequest(request.headers)
+    console.debug(`[Middleware] Processing ${request.nextUrl.pathname} on ${baseUrl}`)
+
     const {
         data: { user },
         error
@@ -52,8 +56,10 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Helper to create redirect while preserving cookies
-    const createRedirectWithCookies = (url: URL) => {
-        const redirectResponse = NextResponse.redirect(url)
+    const createRedirectWithCookies = (path: string) => {
+        const finalUrl = `${baseUrl}${path}`
+        console.debug(`[Middleware] Redirecting to ${finalUrl}`)
+        const redirectResponse = NextResponse.redirect(finalUrl)
         // Copy over cookies to prevent session desync
         supabaseResponse.cookies.getAll().forEach((cookie) => {
             redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
@@ -63,16 +69,12 @@ export async function updateSession(request: NextRequest) {
 
     // Expert UX: If user is logged in and tries to access /login, redirect to dashboard
     if (user && request.nextUrl.pathname === '/login') {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return createRedirectWithCookies(url)
+        return createRedirectWithCookies('/dashboard')
     }
 
     // Expert UX: If user is logged in and tries to access /, redirect to dashboard
     if (user && request.nextUrl.pathname === '/') {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return createRedirectWithCookies(url)
+        return createRedirectWithCookies('/dashboard')
     }
 
     const publicRoutes = [
@@ -93,9 +95,8 @@ export async function updateSession(request: NextRequest) {
     const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
 
     if (!user && !isPublicRoute && !isApiRoute) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return createRedirectWithCookies(url)
+        const returnTo = encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)
+        return createRedirectWithCookies(`/login?returnTo=${returnTo}`)
     }
 
     return supabaseResponse

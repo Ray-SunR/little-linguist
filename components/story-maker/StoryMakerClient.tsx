@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService } from "@/lib/features/story";
@@ -37,50 +37,101 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [error, setError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    
+    // Track versions to prevent race conditions
+    const saveVersionRef = useRef(0);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        return () => { isMountedRef.current = false; };
+    }, []);
 
     // Load saved draft on mount
     useEffect(() => {
-        const savedDraft = localStorage.getItem("raiden:story_maker_draft");
-        if (savedDraft) {
+        const loadDraft = async () => {
             try {
-                const { profile: savedProfile, selectedWords: savedWords } = JSON.parse(savedDraft);
-                if (savedProfile) setProfile((prev: UserProfile) => ({ ...prev, ...savedProfile }));
-                if (savedWords) setSelectedWords(savedWords);
+                // 1. Try IndexedDB first
+                let savedDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "current");
+                
+                // 2. Migration fallback: check localStorage if IDB is empty
+                if (!savedDraft) {
+                    const legacyDraft = localStorage.getItem("raiden:story_maker_draft");
+                    if (legacyDraft) {
+                        try {
+                            savedDraft = JSON.parse(legacyDraft);
+                            // Force save to IDB immediately for migration
+                            if (savedDraft) {
+                                await raidenCache.put(CacheStore.DRAFTS, { id: "current", ...savedDraft });
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse legacy draft:", e);
+                        }
+                    }
+                }
+
+                if (!isMountedRef.current) return;
+
+                if (savedDraft) {
+                    const { profile: savedProfile, selectedWords: savedWords } = savedDraft;
+                    if (savedProfile) setProfile((prev: UserProfile) => ({ ...prev, ...savedProfile }));
+                    if (savedWords) setSelectedWords(savedWords);
+                    
+                    // 3. Complete migration: cleanup legacy localStorage draft
+                    if (localStorage.getItem("raiden:story_maker_draft")) {
+                        localStorage.removeItem("raiden:story_maker_draft");
+                    }
+                } else if (initialProfile) {
+                    setProfile((prev: UserProfile) => ({
+                        ...prev,
+                        ...initialProfile
+                    }));
+                }
             } catch (err) {
-                console.error("Failed to load story maker draft:", err);
+                console.error("Failed to load/migrate story maker draft:", err);
             }
-        } else if (initialProfile) {
-            setProfile((prev: UserProfile) => ({
-                ...prev,
-                ...initialProfile
-            }));
-        }
+        };
+        loadDraft();
     }, [initialProfile]);
 
     // Auto-trigger generation if returning from login
     useEffect(() => {
-        const action = searchParams.get("action");
-        if (action === "generate" && user && step === "profile") {
-            const savedDraft = localStorage.getItem("raiden:story_maker_draft");
-            if (savedDraft) {
-                // Clear the action from URL to prevent loop
-                const url = new URL(window.location.href);
-                url.searchParams.delete("action");
-                window.history.replaceState({}, "", url.toString());
-                
-                try {
-                    const draft = JSON.parse(savedDraft);
+        const checkAction = async () => {
+            const action = searchParams.get("action");
+            if (action === "generate" && user && step === "profile") {
+                const draft = await raidenCache.get<any>(CacheStore.DRAFTS, "current");
+                if (draft) {
+                    // Clear the action from URL to prevent loop
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete("action");
+                    window.history.replaceState({}, "", url.toString());
+                    
                     generateStory(draft.selectedWords, draft.profile);
-                } catch (e) {
-                    generateStory();
                 }
             }
-        }
+        };
+        checkAction();
     }, [user, searchParams, step]);
 
-    // Save draft on changes
+    // Save draft on changes (Debounced)
     useEffect(() => {
-        localStorage.setItem("raiden:story_maker_draft", JSON.stringify({ profile, selectedWords }));
+        const version = ++saveVersionRef.current;
+        setIsSaving(true);
+
+        const timer = setTimeout(async () => {
+            try {
+                // Only save if this is still the latest version
+                if (version === saveVersionRef.current) {
+                    await raidenCache.put(CacheStore.DRAFTS, { id: "current", profile, selectedWords });
+                    if (isMountedRef.current) setIsSaving(false);
+                }
+            } catch (err) {
+                console.error("Failed to save draft to IndexedDB:", err);
+                if (isMountedRef.current) setIsSaving(false);
+            }
+        }, 1000); // 1s debounce
+
+        return () => clearTimeout(timer);
     }, [profile, selectedWords]);
 
     // Subscribe to realtime updates
@@ -146,7 +197,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
         if (!user) {
             // Store draft explicitly and redirect to login
-            localStorage.setItem("raiden:story_maker_draft", JSON.stringify({ profile: finalProfile, selectedWords: finalWords }));
+            await raidenCache.put(CacheStore.DRAFTS, { id: "current", profile: finalProfile, selectedWords: finalWords });
             router.push("/login?returnTo=/story-maker&action=generate");
             return;
         }

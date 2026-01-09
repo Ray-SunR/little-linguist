@@ -2,7 +2,7 @@ import { SupabaseBook } from "@/components/reader/supabase-reader-shell";
 
 const DB_NAME = "raiden-local-cache";
 // INCREMENT THIS VERSION IF YOU ADD NEW STORES TO CacheStore ENUM
-const DB_VERSION = 7; 
+const DB_VERSION = 8; 
 
 export enum CacheStore {
     BOOKS = "books",
@@ -11,7 +11,8 @@ export enum CacheStore {
     USER_WORDS = "user-words",
     LIBRARY_METADATA = "library-metadata",
     PROFILES = "profiles",
-    ASSET_METADATA = "asset-metadata"
+    ASSET_METADATA = "asset-metadata",
+    DRAFTS = "drafts"
 }
 
 /**
@@ -95,6 +96,11 @@ class RaidenCache {
                 // Asset Metadata (keyed by objectKey)
                 if (!db.objectStoreNames.contains(CacheStore.ASSET_METADATA)) {
                     db.createObjectStore(CacheStore.ASSET_METADATA, { keyPath: "id" });
+                }
+
+                // Drafts store (keyed by id)
+                if (!db.objectStoreNames.contains(CacheStore.DRAFTS)) {
+                    db.createObjectStore(CacheStore.DRAFTS, { keyPath: "id" });
                 }
             };
 
