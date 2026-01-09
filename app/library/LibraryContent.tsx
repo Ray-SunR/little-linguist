@@ -13,7 +13,10 @@ const inFlightLibraryFetch: Record<string, Promise<void> | null> = {};
 export default function LibraryContent() {
     const { user, activeChild, isLoading: authLoading } = useAuth();
     const currentUserId = user?.id;
-    const cacheKey = currentUserId || "anonymous";
+    // Cache key should be scoped by user AND active child to prevent visibility leakage
+    const cacheKey = currentUserId 
+        ? (activeChild?.id ? `${currentUserId}:${activeChild.id}` : currentUserId)
+        : "anonymous";
 
     // Check for synchronous hints to avoid "Wait for it" flickering on mount
     const hasCacheHint = typeof window !== "undefined" && !!window.localStorage.getItem(`raiden:has_library_cache:${cacheKey}`);
@@ -34,14 +37,23 @@ export default function LibraryContent() {
     });
 
     const [_error, setError] = useState<string | null>(null);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [isNextPageLoading, setIsNextPageLoading] = useState(false);
 
-    const loadBooks = useCallback(async () => {
+    const LIMIT = 20;
+
+    const loadBooks = useCallback(async (isInitial = true) => {
         if (authLoading) return;
 
-        if (inFlightLibraryFetch[cacheKey]) return inFlightLibraryFetch[cacheKey];
+        const currentOffset = isInitial ? 0 : offset;
+        const fetchKey = `${cacheKey}:${currentOffset}`;
+
+        if (inFlightLibraryFetch[fetchKey]) return inFlightLibraryFetch[fetchKey];
 
         const work = async () => {
             setError(null);
+            if (!isInitial) setIsNextPageLoading(true);
 
             // 1. Try reading from raidenCache first
             const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, cacheKey);
@@ -55,7 +67,7 @@ export default function LibraryContent() {
                 // 2. Background fresh fetch
                 const childIdQuery = activeChild?.id ? `&childId=${activeChild.id}` : '';
                 const progressUrl = `/api/progress?${childIdQuery}`;
-                const booksUrl = `/api/books?mode=library${childIdQuery}`;
+                const booksUrl = `/api/books?mode=library${childIdQuery}&limit=${LIMIT}&offset=${currentOffset}`;
                 
                 const [booksRes, progressRes] = await Promise.all([
                     fetch(booksUrl),
@@ -93,35 +105,52 @@ export default function LibraryContent() {
                     }));
 
                 // 3. Update state and persistence
-                setBooks(libraryBooks);
-                cachedLibraryBooks[cacheKey] = libraryBooks;
+                if (isInitial) {
+                    setBooks(libraryBooks);
+                    setOffset(LIMIT); // Next page starts at LIMIT
+                    cachedLibraryBooks[cacheKey] = libraryBooks;
 
-                await raidenCache.put(CacheStore.LIBRARY_METADATA, {
-                    id: cacheKey,
-                    books: libraryBooks,
-                    updatedAt: Date.now()
-                });
+                    await raidenCache.put(CacheStore.LIBRARY_METADATA, {
+                        id: cacheKey,
+                        books: libraryBooks,
+                        updatedAt: Date.now()
+                    });
+                } else {
+                    setBooks(prev => {
+                        const existingIds = new Set(prev.map(b => b.id));
+                        const newBooks = libraryBooks.filter(b => !existingIds.has(b.id));
+                        const combined = [...prev, ...newBooks];
+                        cachedLibraryBooks[cacheKey] = combined;
+                        return combined;
+                    });
+                    setOffset(prev => prev + LIMIT);
+                }
+                
+                setHasMore(libraryBooks.length === LIMIT);
                 
                 // Hint for next load
-                window.localStorage.setItem(`raiden:has_library_cache:${cacheKey}`, "true");
+                if (isInitial) {
+                    window.localStorage.setItem(`raiden:has_library_cache:${cacheKey}`, "true");
+                }
 
             } catch (err) {
                 console.error('Failed to load books:', err);
-                if (!cachedLibraryBooks[cacheKey]?.length) {
+                if (isInitial && !cachedLibraryBooks[cacheKey]?.length) {
                     setError(err instanceof Error ? err.message : 'Failed to load books');
                 }
             } finally {
                 setIsLoading(false);
+                setIsNextPageLoading(false);
             }
         };
 
-        inFlightLibraryFetch[cacheKey] = work();
+        inFlightLibraryFetch[fetchKey] = work();
         try {
-            await inFlightLibraryFetch[cacheKey];
+            await inFlightLibraryFetch[fetchKey];
         } finally {
-            inFlightLibraryFetch[cacheKey] = null;
+            inFlightLibraryFetch[fetchKey] = null;
         }
-    }, [cacheKey, authLoading, activeChild?.id, user]);
+    }, [cacheKey, authLoading, activeChild?.id, user, offset]);
 
     // Instant hydration from cache on client
     useEffect(() => {
@@ -177,6 +206,9 @@ export default function LibraryContent() {
             currentUserId={currentUserId}
             activeChildId={activeChild?.id}
             isLoading={isLoading}
+            onLoadMore={() => loadBooks(false)}
+            hasMore={hasMore}
+            isNextPageLoading={isNextPageLoading}
         />
     );
 }

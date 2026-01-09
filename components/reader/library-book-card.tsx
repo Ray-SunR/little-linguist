@@ -3,10 +3,13 @@
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass, Heart, Hash } from "lucide-react";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
-import { MouseEvent, useRef, useState, memo, useCallback } from "react";
+import React, { MouseEvent, useRef, useState, memo, useCallback } from "react";
 import { CachedImage } from "@/components/ui/cached-image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/core";
+import { LumoCharacter } from "@/components/ui/lumo-character";
+import { RefreshCw } from "lucide-react";
 
 interface LibraryBookCardProps {
     book: LibraryBookCard;
@@ -21,6 +24,8 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isFavorite, setIsFavorite] = useState(book.isFavorite);
+    const [isNavigating, setIsNavigating] = useState(false);
+    const router = useRouter();
 
     // Mouse tracking for 3D tilt effect
     const x = useMotionValue(0);
@@ -75,6 +80,14 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
         liftZ.set(0);
     }, [x, y, liftZ]);
 
+    const handleMouseEnter = useCallback(() => {
+        router.prefetch(`/reader/${book.id}`);
+    }, [router, book.id]);
+
+    const handleClick = useCallback(() => {
+        setIsNavigating(true);
+    }, []);
+
     const progressPercent = book.progress
         ? Math.min(
             100,
@@ -96,6 +109,8 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
             <Link
                 href={`/reader/${book.id}`}
                 className="block h-full w-full"
+                onMouseEnter={handleMouseEnter}
+                onClick={handleClick}
             >
                 <div
                     ref={ref}
@@ -113,6 +128,25 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                         }}
                         className="relative h-full w-full transition-shadow duration-500 ease-out will-change-transform"
                     >
+                        {/* Instant Feedback Overlay */}
+                        <AnimatePresence>
+                            {isNavigating && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-white/60 backdrop-blur-md rounded-[2.5rem]"
+                                >
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-purple-400/30 blur-2xl rounded-full animate-pulse" />
+                                        <LumoCharacter size="sm" className="relative animate-bounce-slow" />
+                                    </div>
+                                    <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full shadow-clay-purple border-2 border-purple-100">
+                                        <RefreshCw className="w-4 h-4 animate-spin text-purple-600" />
+                                        <span className="text-xs font-black text-purple-600 font-fredoka uppercase tracking-widest">Opening...</span>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                         {/* Visual Depth Card (The "Clay" Body) */}
                         <div className={cn(
                             "absolute inset-0 rounded-[2.5rem] border-[5px] bg-white/90 backdrop-blur-2xl transition-all duration-300 glass-shine",

@@ -16,8 +16,20 @@ export async function GET(request: NextRequest) {
         const childId = searchParams.get('childId');
 
         if (mode === 'library') {
+            let limit = parseInt(searchParams.get('limit') || '20', 10);
+            let offset = parseInt(searchParams.get('offset') || '0', 10);
+            
+            // Robust validation and clamping
+            if (isNaN(limit) || limit < 1) limit = 20;
+            if (limit > 50) limit = 50; // Max allowed per page
+            if (isNaN(offset) || offset < 0) offset = 0;
+            
             // Return books with cover images and token counts for library view
-            const booksWithCovers = await repo.getAvailableBooksWithCovers(user?.id, childId || undefined);
+            const booksWithCovers = await repo.getAvailableBooksWithCovers(
+                user?.id, 
+                childId || undefined,
+                { limit, offset }
+            );
             return NextResponse.json(booksWithCovers);
         }
 

@@ -1,10 +1,10 @@
 "use client";
 
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Search, Wand2, BookOpen, Rocket, Star, Heart, Compass } from "lucide-react";
 import LibraryBookCardComponent from "./library-book-card";
 import { LibraryBookCard } from "@/lib/core/books/library-types";
-import { useState, useMemo } from "react";
 import { cn } from "@/lib/core";
 import Link from "next/link";
 
@@ -14,6 +14,9 @@ interface LibraryViewProps {
     currentUserId?: string | null;
     activeChildId?: string;
     isLoading?: boolean;
+    onLoadMore?: () => void;
+    hasMore?: boolean;
+    isNextPageLoading?: boolean;
 }
 
 const CATEGORIES = [
@@ -25,7 +28,7 @@ const CATEGORIES = [
     { id: "favorites", label: "Favorites", icon: Heart, color: "from-red-400 to-rose-500", shadow: "shadow-red-200/50", bg: "bg-red-50 dark:bg-red-900/10" },
 ];
 
-export default function LibraryView({ books, onDeleteBook, currentUserId, activeChildId, isLoading }: LibraryViewProps) {
+export default function LibraryView({ books, onDeleteBook, currentUserId, activeChildId, isLoading, onLoadMore, hasMore, isNextPageLoading }: LibraryViewProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
 
@@ -234,6 +237,36 @@ export default function LibraryView({ books, onDeleteBook, currentUserId, active
                             </motion.div>
                         )}
                     </div>
+                    
+                    {/* Load More Section */}
+                    {hasMore && (
+                        <div className="flex justify-center mt-8 mb-12">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={onLoadMore}
+                                disabled={isNextPageLoading}
+                                className={cn(
+                                    "px-10 py-5 rounded-[2rem] font-fredoka text-lg font-black transition-all border-4 shadow-clay flex items-center gap-3",
+                                    isNextPageLoading 
+                                        ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed" 
+                                        : "bg-white text-accent border-white hover:border-purple-100"
+                                )}
+                            >
+                                {isNextPageLoading ? (
+                                    <>
+                                        <div className="h-5 w-5 border-4 border-slate-300 border-t-accent animate-spin rounded-full" />
+                                        <span>Summoning more...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="h-6 w-6" />
+                                        <span>Show More Magic</span>
+                                    </>
+                                )}
+                            </motion.button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer Section */}

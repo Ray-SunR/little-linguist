@@ -41,7 +41,7 @@ export class BookRepository {
      * This is optimized for the library page - it only returns metadata needed
      * for rendering book cards, including signed cover image URLs.
      */
-    async getAvailableBooksWithCovers(userId?: string, childId?: string): Promise<{
+    async getAvailableBooksWithCovers(userId?: string, childId?: string, pagination?: { limit?: number; offset?: number }): Promise<{
         id: string;
         title: string;
         coverImageUrl?: string;
@@ -54,11 +54,32 @@ export class BookRepository {
         lastOpenedAt?: string;
     }[]> {
         // Fetch metadata only from 'books' table (NO TOKENS)
-        const { data: booksData, error: booksError } = await this.supabase
+        let query = this.supabase
             .from('books')
-            .select('id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path')
-            .or(userId ? `owner_user_id.is.null,owner_user_id.eq.${userId}` : 'owner_user_id.is.null')
-            .order('title');
+            .select('id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path', { count: 'exact' });
+
+        // Visibility logic in query:
+        // 1. System books: owner_user_id is null
+        // 2. Personal books: owner_user_id = userId AND (child_id is null OR child_id = childId)
+        let filter = 'owner_user_id.is.null';
+        if (userId) {
+            if (childId) {
+                // PostgREST complex OR with ANDs
+                filter = `owner_user_id.is.null,and(owner_user_id.eq.${userId},child_id.is.null),and(owner_user_id.eq.${userId},child_id.eq.${childId})`;
+            } else {
+                filter = `owner_user_id.is.null,owner_user_id.eq.${userId}`;
+            }
+        }
+        
+        query = query.or(filter);
+        query = query.order('updated_at', { ascending: false }).order('title');
+
+        if (pagination?.limit) {
+            const offset = pagination.offset || 0;
+            query = query.range(offset, offset + pagination.limit - 1);
+        }
+
+        const { data: booksData, error: booksError } = await query;
 
         if (booksError) throw booksError;
         if (!booksData || booksData.length === 0) return [];
@@ -120,19 +141,6 @@ export class BookRepository {
             }
 
             const progress = progressMap.get(book.id);
-
-            // Visibility Check:
-            // 1. System books (owner_user_id null) -> Visible to everyone
-            // 2. Family books (child_id null) -> Visible to everyone in family
-            // 3. Child books (child_id set) -> Only visible to THAT child
-            const isSystemBook = !book.owner_user_id;
-            const isFamilyBook = !book.child_id;
-            const isMyBook = childId && book.child_id === childId;
-
-            // If it's another child's book, skip it
-            if (!isSystemBook && !isFamilyBook && !isMyBook) {
-                return null;
-            }
 
             return {
                 id: book.id,

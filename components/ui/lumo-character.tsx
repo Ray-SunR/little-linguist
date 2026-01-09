@@ -1,8 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import Image from "next/image";
 import { cn } from "@/lib/core/utils/cn";
-import { CachedImage } from "./cached-image";
 
 interface LumoCharacterProps {
   className?: string;
@@ -32,12 +31,13 @@ export function LumoCharacter({ className, size = "md" }: LumoCharacterProps) {
           50% { transform: translateY(-5px) rotate(5deg); }
         }
       `}</style>
-      <CachedImage
+      <Image
         src="/lumo-mascot.png"
         alt="Lumo Mascot"
         fill
         sizes="(max-width: 768px) 48px, 64px"
         className="object-contain relative z-10 rounded-full"
+        priority
       />
     </div>
   );
