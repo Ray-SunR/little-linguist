@@ -8,15 +8,26 @@ import { getCookie } from 'cookies-next';
 import { ChevronDown, Plus, User } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
 import { CachedImage } from '@/components/ui/cached-image';
+import { cn } from '@/lib/core';
 
 export function ProfileSwitcher() {
   const router = useRouter();
   const { profiles: children, isLoading, refreshProfiles, activeChild, setActiveChild } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  async function handleLoadFailure() {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await refreshProfiles();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 5000);
+    }
+  }
 
   useEffect(() => {
     if (isLoading) return;
-
     if (!activeChild && children.length > 0) {
       const activeId = getCookie('activeChildId');
       const found = activeId ? children.find(c => c.id === activeId) : null;
@@ -24,18 +35,38 @@ export function ProfileSwitcher() {
     }
   }, [children, isLoading, activeChild, setActiveChild]);
 
-  const handleSwitch = async (childId: string) => {
+  async function handleSwitch(childId: string) {
     const result = await switchActiveChild(childId);
     if (result.success) {
       const selected = children.find(c => c.id === childId);
       if (selected) setActiveChild(selected);
       setIsOpen(false);
-      // Optimistic refresh of cached profiles to pick up latest name/avatar/age
       await refreshProfiles();
-      // Soft refresh to update server components without full reload
       router.refresh();
     }
-  };
+  }
+
+  function ProfileAvatar({ child, className = "w-8 h-8 rounded-full" }: { child: any, className?: string }) {
+    if (child?.avatar_asset_path) {
+      return (
+        <CachedImage
+          src={child.avatar_asset_path}
+          storagePath={child.avatar_paths?.[child.primary_avatar_index ?? 0] || child.avatar_asset_path}
+          updatedAt={child.updated_at}
+          alt={child.first_name}
+          onLoadFailure={handleLoadFailure}
+          className={cn(className, "object-cover")}
+          width={32}
+          height={32}
+        />
+      );
+    }
+    return (
+      <div className={cn(className, "bg-accent text-white flex items-center justify-center text-sm font-bold shadow-sm")}>
+        {child ? child.first_name[0] : <User size={16} />}
+      </div>
+    );
+  }
 
   if (children.length === 0) return null;
 
@@ -46,25 +77,11 @@ export function ProfileSwitcher() {
           className="flex items-center gap-2 px-3 py-2 rounded-full bg-white/50 hover:bg-white/80 border-2 border-transparent hover:border-accent/20 transition-all outline-none focus-visible:ring-2 focus-visible:ring-accent"
           aria-label="Switch profile"
         >
-          {activeChild?.avatar_asset_path ? (
-            <CachedImage
-              src={activeChild.avatar_asset_path}
-              storagePath={activeChild.avatar_paths?.[activeChild.primary_avatar_index ?? 0] || activeChild.avatar_asset_path}
-              updatedAt={activeChild.updated_at}
-              alt={activeChild.first_name}
-              className="w-8 h-8 rounded-full object-cover"
-              width={32}
-              height={32}
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center text-sm font-bold shadow-sm">
-              {activeChild ? activeChild.first_name[0] : <User size={16} />}
-            </div>
-          )}
+          <ProfileAvatar child={activeChild} />
           <span className="hidden md:block font-bold text-ink text-sm max-w-[100px] truncate">
             {activeChild ? activeChild.first_name : 'Select Child'}
           </span>
-          <ChevronDown size={14} className={`text-ink-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={14} className={cn("text-ink-muted transition-transform", isOpen && "rotate-180")} />
         </button>
       </Popover.Trigger>
 
@@ -82,27 +99,12 @@ export function ProfileSwitcher() {
               <button
                 key={child.id}
                 onClick={() => handleSwitch(child.id)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors text-left ${activeChild?.id === child.id
-                    ? 'bg-accent/10 text-accent font-bold'
-                    : 'hover:bg-shell-2 text-ink font-medium'
-                  }`}
-              >
-                {child.avatar_asset_path ? (
-                  <CachedImage
-                    src={child.avatar_asset_path}
-                    storagePath={child.avatar_paths?.[child.primary_avatar_index ?? 0] || child.avatar_asset_path}
-                    updatedAt={child.updated_at}
-                    alt={child.first_name}
-                    className="w-8 h-8 rounded-full object-cover border border-shell-2"
-                    width={32}
-                    height={32}
-                  />
-                ) : (
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${activeChild?.id === child.id ? 'bg-accent text-white' : 'bg-shell-2 text-ink-muted'
-                    }`}>
-                    {child.first_name[0]}
-                  </div>
+                className={cn(
+                  "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors text-left",
+                  activeChild?.id === child.id ? "bg-accent/10 text-accent font-bold" : "hover:bg-shell-2 text-ink font-medium"
                 )}
+              >
+                <ProfileAvatar child={child} className="w-8 h-8 rounded-full border border-shell-2" />
                 <span className="truncate">{child.first_name}</span>
                 {activeChild?.id === child.id && <span className="ml-auto text-accent">✓</span>}
               </button>

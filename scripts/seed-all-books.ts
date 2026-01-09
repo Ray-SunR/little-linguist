@@ -10,6 +10,7 @@ dotenv.config({ path: ".env.local" });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const SEED_LIBRARY_PATH = "/Users/renchen/Downloads/lumomind/output/seed-library";
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     console.error("Missing Supabase credentials in .env.local");
@@ -30,7 +31,6 @@ function getMimeType(filePath: string): string {
 
 async function uploadAsset(bucket: string, localPath: string, destPath: string) {
     if (!fs.existsSync(localPath)) {
-        console.warn(`Asset not found: ${localPath}`);
         return null;
     }
     const fileContent = fs.readFileSync(localPath);
@@ -50,32 +50,33 @@ async function uploadAsset(bucket: string, localPath: string, destPath: string) 
     return destPath;
 }
 
-async function seedBook(bookDir: string) {
-    console.log(`Seeding book from: ${bookDir}`);
+async function seedBook(relPath: string) {
+    const bookDir = path.join(SEED_LIBRARY_PATH, relPath);
     const metadataPath = path.join(bookDir, "metadata.json");
     
     if (!fs.existsSync(metadataPath)) {
-        throw new Error(`metadata.json not found in ${bookDir}`);
+        console.warn(`[Skip] Metadata not found: ${relPath}`);
+        return;
     }
 
     const metadataContent = fs.readFileSync(metadataPath, "utf-8");
     const metadata = JSON.parse(metadataContent);
-    const bookId = crypto.randomUUID(); 
+    const bookKey = metadata.id || `key-${relPath.replace(/\//g, '-')}`;
 
-    function cleanTitle(rawTitle: string): string {
-        return rawTitle
-            .replace(/^\[TBD\]\s*/, "") // Remove [TBD] prefix
-            .replace(/\s+for\s+(PreK|K|G\d+(?:-\d+)?)/i, "") // Remove " for G1-2" grade part
-            .trim();
-    }
+    // 1. Check if book already exists (to avoid duplicate random IDs)
+    const { data: existingBook } = await supabase
+        .from("books")
+        .select("id")
+        .eq("book_key", bookKey)
+        .maybeSingle();
 
-    const finalTitle = cleanTitle(metadata.title);
-    console.log(`Processing "${finalTitle}" (was: "${metadata.title}")...`);
+    const bookId = existingBook?.id || crypto.randomUUID(); 
 
-    // 1. Upload Cover
+    console.log(`[Processing] "${metadata.title}" (ID: ${bookId}, Key: ${bookKey})`);
+
+    // 2. Upload Cover
     let coverPath = null;
     if (metadata.cover_image_path) {
-        // Check for WebP first (prioritize optimized assets)
         let localCover = path.join(bookDir, metadata.cover_image_path.replace('.png', '.webp'));
         if (!fs.existsSync(localCover)) {
              localCover = path.join(bookDir, metadata.cover_image_path);
@@ -86,16 +87,13 @@ async function seedBook(bookDir: string) {
             const dest = `${bookId}/cover${ext}`;
             await uploadAsset("book-assets", localCover, dest);
             coverPath = dest;
-            console.log(`  ✓ Uploaded cover`);
         }
     }
 
-    // 2. Insert Book Record
-    // Frontend expects minutes, but metadata has seconds.
+    // 3. Insert/Upsert Book Record
     const readingTimeSeconds = Number(metadata.stats?.reading_time_seconds || 60);
     const readingTimeMinutes = Math.ceil(readingTimeSeconds / 60);
 
-    // Map level to min_grade
     let minGrade = 0;
     const level = metadata.level || "PreK";
     if (level.includes("PreK") || level.includes("Pre-K")) minGrade = -1;
@@ -105,38 +103,32 @@ async function seedBook(bookDir: string) {
 
     const { data: book, error: bookError } = await supabase
         .from("books")
-        .insert({
+        .upsert({
             id: bookId,
-            book_key: metadata.id || `key-${bookId}`,
-            title: finalTitle,
+            book_key: bookKey,
+            title: metadata.title,
             cover_image_path: coverPath,
             categories: metadata.category ? [metadata.category] : [], 
             total_tokens: metadata.stats?.word_count || 0,
             estimated_reading_time: readingTimeMinutes, 
             voice_id: metadata.audio?.voice_id || "Kevin",
             origin: "seed_script_v2",
-            schema_version: 2, // Fixed to 2
-            metadata: metadata, // Store full metadata JSON
-            
-            // New columns
+            schema_version: 2,
+            metadata: metadata,
             level: level,
             min_grade: minGrade,
             is_nonfiction: metadata.is_nonfiction || false,
             length_category: metadata.stats?.length_category || "Short"
-        })
+        }, { onConflict: 'book_key' })
         .select()
         .single();
 
     if (bookError) throw bookError;
-    console.log(`  ✓ Inserted book record (${book.id})`);
 
-    // 3. Process Scenes (Images + Text)
-    let pageIndex = 0;
-    
+    // 4. Process Scenes
     if (Array.isArray(metadata.scenes)) {
+        let pageIdx = 0;
         for (const scene of metadata.scenes) {
-            
-            // Upload Scene Image
             let imagePath = null;
             if (scene.image_path) {
                 let localScene = path.join(bookDir, scene.image_path.replace('.png', '.webp'));
@@ -152,25 +144,25 @@ async function seedBook(bookDir: string) {
                 }
             }
 
-            // Insert Media (Image)
             if (imagePath) {
-                const { error: mediaError } = await supabase.from("book_media").insert({
+                const { error: mediaError } = await supabase.from("book_media").upsert({
                     book_id: bookId,
                     media_type: "image",
                     path: imagePath,
-                    // index column does not exist, storing in metadata if needed
-                    metadata: { index: pageIndex },
+                    metadata: { index: pageIdx },
                     after_word_index: scene.after_word_index || 0
-                });
-                if (mediaError) throw new Error(`Failed to insert media for scene ${scene.index}: ${mediaError.message}`);
-                console.log(`  ✓ Processed Scene ${scene.index} Image`);
+                }, { onConflict: 'book_id,path' });
+                if (mediaError) {
+                    console.error(`    [Media Error] ${mediaError.message}`);
+                } else {
+                    console.log(`    ✓ Scene ${pageIdx} Image`);
+                }
             }
-            
-            pageIndex++;
+            pageIdx++;
         }
     }
     
-    // Insert Text Content
+    // 5. Content
     const contentPath = path.join(bookDir, "content.txt");
     let fullText = "";
     if (fs.existsSync(contentPath)) {
@@ -180,18 +172,16 @@ async function seedBook(bookDir: string) {
     }
 
     if (fullText) {
-        const { error: contentError } = await supabase.from("book_contents").insert({
+        const { error: contentError } = await supabase.from("book_contents").upsert({
             book_id: bookId,
             full_text: fullText,
             tokens: metadata.tokens || null, 
-        });
-        if (contentError) throw new Error(`Failed to insert book contents: ${contentError.message}`);
-        console.log(`  ✓ Inserted book text content`);
-    } else {
-        console.warn("  ⚠ No text content found to insert!");
+        }, { onConflict: 'book_id' });
+        if (contentError) console.error(`    [Content Error] ${contentError.message}`);
+        else console.log(`    ✓ Content`);
     }
     
-    // 4. Audio
+    // 6. Audio
     if (metadata.audio && metadata.audio.shards) {
          for (const shard of metadata.audio.shards) {
              const localAudio = path.join(bookDir, shard.path);
@@ -199,35 +189,74 @@ async function seedBook(bookDir: string) {
                  const dest = `${bookId}/audio_${shard.index}.mp3`;
                  await uploadAsset("book-assets", localAudio, dest);
                  
-                 // Insert into book_audios
-                 const { error: audioError } = await supabase.from("book_audios").insert({
+                 const voiceId = metadata.audio.voice_id || "Kevin";
+                 const { error: audioError } = await supabase.from("book_audios").upsert({
                      book_id: bookId,
-                     voice_id: metadata.audio.voice_id || "Kevin",
+                     voice_id: voiceId,
                      audio_path: dest,
                      chunk_index: shard.index,
                      start_word_index: shard.start_word_index,
                      end_word_index: shard.end_word_index,
                      timings: shard.timings 
-                 });
-                 if (audioError) throw new Error(`Failed to insert audio shard ${shard.index}: ${audioError.message}`);
+                 }, { onConflict: 'book_id,chunk_index,voice_id' });
                  
-                 console.log(`  ✓ Processed Audio Shard ${shard.index}`);
+                 if (audioError) {
+                     console.error(`    [Audio Error] Shard ${shard.index}: ${audioError.message}`);
+                 } else {
+                     console.log(`    ✓ Audio Shard ${shard.index}`);
+                 }
              }
          }
     }
 
-    console.log(`\nSuccessfully seeded book: ${metadata.title}`);
-    console.log(`Book ID: ${bookId}`);
+    console.log(`  ✓ Successfully seeded: ${metadata.title}`);
 }
 
-const targetPath = process.argv[2];
-if (!targetPath) {
-    console.error("Please provide the path to the book directory.");
-    console.error("Usage: npx tsx scripts/seed-single-book.ts <path-to-book-folder>");
-    process.exit(1);
+function findAllBooks(dir: string, base: string = ""): string[] {
+    const results: string[] = [];
+    if (!fs.existsSync(dir)) return results;
+    const files = fs.readdirSync(dir);
+
+    for (const file of files) {
+        const fullPath = path.join(dir, file);
+        const relPath = path.join(base, file);
+        if (fs.statSync(fullPath).isDirectory()) {
+            if (fs.existsSync(path.join(fullPath, "metadata.json"))) {
+                results.push(relPath);
+            } else {
+                results.push(...findAllBooks(fullPath, relPath));
+            }
+        }
+    }
+    return results;
 }
 
-seedBook(targetPath).catch((err) => {
-    console.error("Seeding failed:", err);
-    process.exit(1);
-});
+async function run() {
+    const allBooks = findAllBooks(SEED_LIBRARY_PATH);
+    console.log(`Found ${allBooks.length} books to seed.`);
+
+    const CONCURRENCY = 5;
+    const queue = [...allBooks];
+
+    const worker = async () => {
+        while (queue.length > 0) {
+            const relPath = queue.shift();
+            if (relPath) {
+                try {
+                    await seedBook(relPath);
+                } catch (err: any) {
+                    console.error(`  [Error] Failed to seed ${relPath}: ${err.message}`);
+                }
+            }
+        }
+    };
+
+    const workers = Array(Math.min(CONCURRENCY, allBooks.length))
+        .fill(null)
+        .map(() => worker());
+
+    await Promise.all(workers);
+    console.log("\nAll books seeded successfully!");
+}
+
+run().catch(console.error);

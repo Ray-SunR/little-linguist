@@ -1,30 +1,25 @@
 import { NextResponse } from 'next/server'
+// The client you created from the Server-Side Auth instructions
 import { createClient } from '@/lib/supabase/server'
-import { getBaseUrlFromRequest } from '@/lib/core/utils/url'
 
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url)
+    const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
-    
-    // Validate that "next" is an internal path to prevent open redirects
-    let next = searchParams.get('next') ?? '/dashboard'
-    if (next.startsWith('http://') || next.startsWith('https://') || next.includes('//')) {
-        next = '/dashboard'
-    }
-
-    const baseUrl = getBaseUrlFromRequest(request)
-    console.log(`[Auth Callback] Initializing on base: ${baseUrl}`)
+    // if "next" is in param, use it as the redirect URL
+    const next = searchParams.get('next') ?? '/'
 
     if (code) {
         const supabase = createClient()
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
-            console.log(`[Auth Callback] Success. Redirecting to: ${baseUrl}${next}`)
-            return NextResponse.redirect(`${baseUrl}${next}`)
+            // Ensure next is a relative path to prevent open redirect vulnerabilities
+            const isRelative = next.startsWith('/') && !next.startsWith('//')
+            const finalNext = isRelative ? next : '/'
+            
+            return NextResponse.redirect(`${origin}${finalNext}`)
         }
     }
 
     // return the user to an error page with instructions
-    console.warn(`[Auth Callback] Failed or no code. Redirecting to error page.`)
-    return NextResponse.redirect(`${baseUrl}/auth/auth-code-error`)
+    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }

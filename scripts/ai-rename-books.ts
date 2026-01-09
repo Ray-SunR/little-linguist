@@ -55,6 +55,12 @@ async function processBook(relPath: string) {
     const metadataContent = fs.readFileSync(metadataPath, "utf-8");
     const metadata = JSON.parse(metadataContent);
     
+    // Skip if already renamed (has backup and title doesn't contain [TBD])
+    if (metadata.original_title_backup && !metadata.title.includes("[TBD]")) {
+        console.log(`[Skip] Already renamed: ${relPath} ("${metadata.title}")`);
+        return;
+    }
+
     // Construct story text
     const storyText = metadata.scenes.map((s: any) => s.text).join("\n\n");
     

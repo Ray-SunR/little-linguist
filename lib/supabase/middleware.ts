@@ -1,8 +1,18 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { getBaseUrlFromRequest } from '@/lib/core/utils/url'
 
-export async function updateSession(request: NextRequest) {
+const PUBLIC_ROUTES = [
+    '/login',
+    '/library',
+    '/reader',
+    '/auth',
+    '/api/word-insight',
+    '/api/books'
+]
+
+const REDIRECT_TO_DASHBOARD = ['/', '/login']
+
+export async function updateSession(request: NextRequest): Promise<NextResponse> {
     let supabaseResponse = NextResponse.next({
         request,
     })
@@ -16,7 +26,7 @@ export async function updateSession(request: NextRequest) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }>) {
-                    cookiesToSet.forEach(({ name, value, options }) =>
+                    cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     )
                     supabaseResponse = NextResponse.next({
@@ -30,73 +40,45 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-    // creating a new response object with NextResponse.next() make sure to:
-    // 1. Pass the request in it, like so:
-    //    const myNewResponse = NextResponse.next({ request })
-    // 2. Copy over the cookies, like so:
-    //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-    // 3. Change the myNewResponse object to fit your needs, but avoid changing
-    //    the cookies!
-    // 4. Finally:
-    //    return myNewResponse
-    // If this is not done, you may be causing the browser and server to go out
-    // of sync and terminate the user's session prematurely!
-
-    const baseUrl = getBaseUrlFromRequest(request.headers)
-    console.debug(`[Middleware] Processing ${request.nextUrl.pathname} on ${baseUrl}`)
-
     const {
         data: { user },
-        error
     } = await supabase.auth.getUser()
 
-    if (error) {
-        console.error('Supabase middleware auth error:', error.message)
-    }
-
-    // Helper to create redirect while preserving cookies
-    const createRedirectWithCookies = (path: string) => {
-        const finalUrl = `${baseUrl}${path}`
-        console.debug(`[Middleware] Redirecting to ${finalUrl}`)
-        const redirectResponse = NextResponse.redirect(finalUrl)
-        // Copy over cookies to prevent session desync
+    function createRedirectWithCookies(path: string) {
+        const url = new URL(path, request.url)
+        const redirectResponse = NextResponse.redirect(url)
+        
+        // Copy cookies from initial response to preserve session state
         supabaseResponse.cookies.getAll().forEach((cookie) => {
             redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
         })
+        
         return redirectResponse
     }
 
-    // Expert UX: If user is logged in and tries to access /login, redirect to dashboard
-    if (user && request.nextUrl.pathname === '/login') {
+    const { pathname } = request.nextUrl
+
+    // Bypass for static assets and Next.js internals if they somehow bypass the matcher
+    if (
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/static') ||
+        pathname.includes('.') // Simple way to skip files like favicon.ico, images, etc.
+    ) {
+        return supabaseResponse
+    }
+
+    // Redirect logged-in users away from auth pages
+    if (user && REDIRECT_TO_DASHBOARD.includes(pathname)) {
         return createRedirectWithCookies('/dashboard')
     }
 
-    // Expert UX: If user is logged in and tries to access /, redirect to dashboard
-    if (user && request.nextUrl.pathname === '/') {
-        return createRedirectWithCookies('/dashboard')
-    }
+    // Require authentication for protected routes
+    const isPublic = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'))
+    const isDashboardOrTool = ['/dashboard', '/my-words', '/story-maker'].some(route => pathname === route || pathname.startsWith(route + '/'))
+    const isAlwaysAllowed = pathname === '/'
 
-    const publicRoutes = [
-        "/login",
-        "/library",
-        "/reader/",
-        "/dashboard",
-        "/my-words",
-        "/story-maker",
-        "/auth/",
-        "/api/word-insight"
-    ];
-
-    const isPublicRoute = 
-        request.nextUrl.pathname === '/' || 
-        publicRoutes.some(route => request.nextUrl.pathname.startsWith(route));
-
-    const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
-
-    if (!user && !isPublicRoute && !isApiRoute) {
-        const returnTo = encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)
-        return createRedirectWithCookies(`/login?returnTo=${returnTo}`)
+    if (!user && !isPublic && !isDashboardOrTool && !isAlwaysAllowed) {
+        return createRedirectWithCookies('/login')
     }
 
     return supabaseResponse

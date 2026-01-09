@@ -25,9 +25,8 @@ export class AIWordInsightService implements WordInsightService {
             return await this.provider.getWordInsight(normalized);
         } catch (error) {
             console.error("AI Insight Service error:", error);
-            // In case of error (even 429), fall back to the default response for now
-            // Future: could propagate specific error codes to UI
-            return { ...FALLBACK_INSIGHT, word };
+            // Re-throw so the UI can handle specific errors like LIMIT_REACHED
+            throw error;
         }
     }
 }

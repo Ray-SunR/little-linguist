@@ -280,7 +280,7 @@ export async function getChildren() {
   if (allPaths.length > 0) {
     const { data: signs, error: signError } = await supabase.storage
       .from(bucket)
-      .createSignedUrls(allPaths, 3600);
+      .createSignedUrls(allPaths, 86400);
 
     if (!signError && signs) {
       signs.forEach(s => {

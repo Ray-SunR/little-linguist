@@ -10,6 +10,7 @@ interface CachedImageProps extends Omit<ImageProps, "src"> {
     storagePath?: string; // The stable storage path (cache key)
     updatedAt?: string | number; // Last update timestamp for cache invalidation
     className?: string;
+    onLoadFailure?: () => void;
 }
 
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -17,7 +18,15 @@ const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAE
 /**
  * A wrapper around next/image that uses local caching via AssetCache.
  */
-export function CachedImage({ src, storagePath, updatedAt, alt, className, ...props }: CachedImageProps) {
+export function CachedImage({
+    src,
+    storagePath,
+    updatedAt,
+    alt,
+    className,
+    onLoadFailure,
+    ...props
+}: CachedImageProps) {
     const [displayUrl, setDisplayUrl] = useState<string>(storagePath ? TRANSPARENT_PIXEL : src);
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -29,18 +38,10 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
 
         async function resolveUrl() {
             if (!storagePath) {
-                const isStableUrl = src?.startsWith("/") || src?.startsWith("blob:") || src?.startsWith("data:");
-                // Don't warn for Google or other stable public URLs that don't need caching
-                const isExternalStable = src?.includes("googleusercontent.com");
-                
-                if (src && !isStableUrl && !isExternalStable) {
-                    // console.error(`[CachedImage] CRITICAL: Missing storagePath for unstable image. Caching skipped. Src: ${src}`);
-                }
                 if (isMounted) setDisplayUrl(src);
                 return;
             }
 
-            // 1. Reset states for new path
             if (isMounted) {
                 setDisplayUrl(TRANSPARENT_PIXEL);
                 setIsLoaded(false);
@@ -48,13 +49,11 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
 
             try {
                 const cachedUrl = await assetCache.getAsset(storagePath, src, updatedAt, controller.signal);
-                if (isMounted) {
-                    setDisplayUrl(cachedUrl);
-                }
+                if (isMounted) setDisplayUrl(cachedUrl);
             } catch (err) {
                 const isAbort = err instanceof Error && (err.name === 'AbortError' || err.message === 'Aborted');
                 if (isAbort) return;
-                
+
                 console.warn("[CachedImage] Resolution failed:", err);
                 if (isMounted) setDisplayUrl(src);
             }
@@ -65,27 +64,30 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
         return () => {
             isMounted = false;
             controller.abort();
-
-            // 2. Decrement ref-count if we were using a cached asset
-            if (storagePath) {
-                assetCache.releaseAsset(storagePath);
-            }
+            if (storagePath) assetCache.releaseAsset(storagePath);
         };
     }, [src, storagePath, updatedAt]);
 
     const isBlobOrData = displayUrl.startsWith("blob:") || displayUrl.startsWith("data:");
-    
-    // Safety check: Next.js Image requires either fill or width/height
-    const isFill = !!props.fill;
-    const hasDimensions = !!(props.width && props.height);
-    const effectiveFill = isFill || !hasDimensions;
+    const effectiveFill = !!props.fill || !(props.width && props.height);
+
+    function handleLoad() {
+        if (displayUrl !== TRANSPARENT_PIXEL) {
+            setIsLoaded(true);
+        }
+    }
+
+    function handleError() {
+        setIsLoaded(true);
+        if (onLoadFailure && displayUrl !== TRANSPARENT_PIXEL) {
+            onLoadFailure();
+        }
+    }
 
     return (
         <div className={cn(
             "relative overflow-hidden",
-            effectiveFill ? "h-full w-full" : "w-fit h-fit",
-            // If fill is true, we need to ensure the container itself doesn't collapse
-            effectiveFill && "min-h-[1px] min-w-[1px]"
+            effectiveFill ? "h-full w-full min-h-[1px] min-w-[1px]" : "w-fit h-fit"
         )}>
             <Image
                 {...props}
@@ -93,23 +95,14 @@ export function CachedImage({ src, storagePath, updatedAt, alt, className, ...pr
                 src={displayUrl}
                 alt={alt}
                 sizes={effectiveFill ? (props.sizes || "100vw") : props.sizes}
-                onLoad={() => {
-                    if (displayUrl !== TRANSPARENT_PIXEL) {
-                        setIsLoaded(true);
-                    }
-                }}
+                onLoad={handleLoad}
+                onError={handleError}
+                unoptimized={!!storagePath || isBlobOrData || props.unoptimized}
                 className={cn(
                     className,
                     "transition-opacity duration-300",
                     isLoaded ? "opacity-100" : "opacity-0"
                 )}
-                // Force unoptimized if we are handling caching ourselves via AssetCache
-                // OR if it's already a local/blob/data URL that Next.js doesn't need to optimize
-                unoptimized={!!storagePath || isBlobOrData || props.unoptimized}
-                onError={() => {
-                    // Hide spinner on error to prevent infinite loading state
-                    setIsLoaded(true);
-                }}
             />
             {!isLoaded && src !== TRANSPARENT_PIXEL && (
                 <div className="absolute inset-0 bg-slate-100 animate-pulse flex items-center justify-center">

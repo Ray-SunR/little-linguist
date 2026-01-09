@@ -1,7 +1,6 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { getBaseUrl } from '@/lib/core/utils/url'
 import { login, signup, checkEmail } from './actions'
 import { useState, useEffect, memo, useMemo, Suspense } from 'react'
 import { Loader2, MoveRight, Sparkles, Mail, Lock, ChevronLeft, RefreshCw } from 'lucide-react'
@@ -103,18 +102,20 @@ function LoginForm() {
     // Construct the full redirect path including original params
     const redirectTo = useMemo(() => {
         if (!returnTo) return undefined
-        if (!action) return returnTo
+        
+        // Ensure the path is relative and safe
+        const isRelative = returnTo.startsWith('/') && !returnTo.startsWith('//')
+        const safePath = isRelative ? returnTo : '/'
+
+        if (!action) return safePath
         
         try {
-            // Use window.location.origin if available, otherwise a placeholder base
-            // The base is only used to resolve relative paths, and we output only pathname+search
             const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
-            const url = new URL(returnTo, base)
+            const url = new URL(safePath, base)
             url.searchParams.set('action', action)
             return url.pathname + url.search
         } catch (e) {
-            // Fallback for invalid URLs
-            return returnTo
+            return safePath
         }
     }, [returnTo, action])
 
@@ -136,7 +137,7 @@ function LoginForm() {
     }, [password])
 
     const canContinue = authStep === 'email' ? isValidEmail : isValidPassword
-    const supabase = createClient()
+    const supabase = useMemo(() => createClient(), [])
     const [mounted, setMounted] = useState(false)
 
     // Mouse Parallax & Rim Light
@@ -175,13 +176,10 @@ function LoginForm() {
         setError(null)
         setSuccess(null)
         
-        const siteUrl = getBaseUrl()
-        const callbackUrl = new URL(`${siteUrl}/auth/callback`)
+        const callbackUrl = new URL(`${location.origin}/auth/callback`)
         if (redirectTo) {
             callbackUrl.searchParams.set('next', redirectTo)
         }
-
-        console.log('[Login] Initiating OAuth with redirectTo:', callbackUrl.toString())
 
         const { error } = await supabase.auth.signInWithOAuth({
             provider,
@@ -342,8 +340,9 @@ function LoginForm() {
                                                     placeholder="Magic Email"
                                                     value={email}
                                                     autoFocus
+                                                    disabled={loading === 'checking'}
                                                     onChange={(e) => setEmail(e.target.value)}
-                                                    className="w-full pl-12 pr-4 h-[56px] bg-[#f8fafc] dark:bg-white/5 border-2 border-transparent focus:border-purple-500/30 rounded-2xl outline-none transition-all placeholder:text-slate-400 font-bold text-[#1e2238] dark:text-white"
+                                                    className="w-full pl-12 pr-4 h-[56px] bg-[#f8fafc] dark:bg-white/5 border-2 border-transparent focus:border-purple-500/30 rounded-2xl outline-none transition-all placeholder:text-slate-400 font-bold text-[#1e2238] dark:text-white disabled:opacity-50"
                                                     required
                                                 />
                                             </div>

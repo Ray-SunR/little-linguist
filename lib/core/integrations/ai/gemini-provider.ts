@@ -42,13 +42,17 @@ export class GeminiProvider implements AIProvider {
             });
 
             if (!response.ok) {
+                const errorData = await response.json().catch(() => ({})) as { error?: string };
                 if (response.status === 429) {
                     throw new AIError('rate_limit', 'Rate limit exceeded');
                 }
-                if (response.status >= 400 && response.status < 500) {
-                    throw new AIError('invalid_input', `Invalid input: ${response.statusText}`);
+                if (response.status === 403 && errorData.error === "LIMIT_REACHED") {
+                    throw new AIError('limit_reached', errorData.error);
                 }
-                throw new AIError('server_error', `Server error: ${response.statusText}`);
+                if (response.status >= 400 && response.status < 500) {
+                    throw new AIError('invalid_input', errorData.error || `Invalid input: ${response.statusText}`);
+                }
+                throw new AIError('server_error', errorData.error || `Server error: ${response.statusText}`);
             }
 
             const data = await response.json() as WordInsightResponse;

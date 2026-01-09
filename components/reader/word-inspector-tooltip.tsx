@@ -58,53 +58,43 @@ export default function WordInspectorTooltip({
 
   const isSaved = insight ? hasWord(insight.word, bookId) : false;
 
-  const toggleSaveAction = () => {
+  function toggleSaveAction() {
     if (!insight) return;
     if (isSaved) {
       removeWord(insight.word, bookId);
     } else {
       addWord(insight, bookId);
     }
-  };
+  }
 
-  // Handle ESC key to close
   useEffect(() => {
     if (!isOpen) return;
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
     document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  // Update anchor position when position changes
   useEffect(() => {
     if (position && anchorRef.current) {
       const { x, y, width, height } = position;
-      anchorRef.current.style.position = 'fixed';
-      anchorRef.current.style.left = `${x}px`;
-      anchorRef.current.style.top = `${y}px`;
-      anchorRef.current.style.width = `${width}px`;
-      anchorRef.current.style.height = `${height}px`;
+      Object.assign(anchorRef.current.style, {
+        position: 'fixed',
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${width}px`,
+        height: `${height}px`
+      });
     }
   }, [position]);
 
-
   const content = (
     <div className="relative">
-      {/* Loading state */}
       {isLoading && (
         <div className="flex flex-col items-center gap-6 py-10">
           <div className="relative">
-            {/* Radiance Orb */}
             <div className="absolute inset-[-20px] bg-purple-400/20 blur-[30px] rounded-full animate-pulse" />
-
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -112,7 +102,7 @@ export default function WordInspectorTooltip({
             >
               <RefreshCw className="h-8 w-8 text-purple-500" />
             </motion.div>
-                <LumoCharacter size="sm" className="absolute -top-2 -right-2 font-black text-amber-400" />
+            <LumoCharacter size="sm" className="absolute -top-2 -right-2 font-black text-amber-400" />
           </div>
           <div className="text-center">
             <p className="text-xl font-fredoka font-black text-ink uppercase tracking-tight">Casting Spell...</p>
@@ -121,29 +111,52 @@ export default function WordInspectorTooltip({
         </div>
       )}
 
-      {/* Error state */}
       {error && (
-        <div className="flex flex-col items-center gap-6 py-10">
-          <div className="w-16 h-16 rounded-3xl bg-rose-50 shadow-clay-pink flex items-center justify-center border-4 border-rose-100">
-            <X className="h-8 w-8 text-rose-500" />
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-fredoka font-black text-ink uppercase tracking-tight">Magic Fizzled!</p>
-            <p className="text-sm font-nunito font-bold text-ink-muted mt-1 px-4">{error}</p>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onRetry}
-            className="flex items-center gap-2 rounded-2xl bg-white border-2 border-slate-100 px-6 py-3 text-sm font-fredoka font-black text-ink shadow-clay hover:border-purple-100"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Try Again
-          </motion.button>
+        <div className="flex flex-col items-center gap-6 py-10 px-4">
+          {error === "LIMIT_REACHED" ? (
+            <>
+              <div className="w-16 h-16 rounded-3xl bg-purple-50 shadow-clay-purple flex items-center justify-center border-4 border-purple-100">
+                <Star className="h-8 w-8 text-purple-500 fill-purple-500" />
+              </div>
+              <div className="text-center">
+                <p className="text-xl font-fredoka font-black text-ink uppercase tracking-tight">Adventure Awaits!</p>
+                <p className="text-sm font-nunito font-bold text-ink-muted mt-2">
+                  You've unlocked several magical words! <br/>
+                  <span className="text-purple-600 font-black">Sign in</span> to save your progress and discover unlimited insights.
+                </p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => window.location.href = '/login'}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-4 text-lg font-fredoka font-black text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+              >
+                Join the Adventure
+              </motion.button>
+            </>
+          ) : (
+            <>
+              <div className="w-16 h-16 rounded-3xl bg-rose-50 shadow-clay-pink flex items-center justify-center border-4 border-rose-100">
+                <X className="h-8 w-8 text-rose-500" />
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-fredoka font-black text-ink uppercase tracking-tight">Magic Fizzled!</p>
+                <p className="text-sm font-nunito font-bold text-ink-muted mt-1">{error}</p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onRetry}
+                className="flex items-center gap-2 rounded-2xl bg-white border-2 border-slate-100 px-6 py-3 text-sm font-fredoka font-black text-ink shadow-clay hover:border-purple-100"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Try Again
+              </motion.button>
+            </>
+          )}
         </div>
       )}
 
-      {/* Actual Content */}
       {insight && !isLoading && !error && (
         <WordInsightView
           insight={insight}

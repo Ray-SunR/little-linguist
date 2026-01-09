@@ -27,7 +27,7 @@ export interface GeneratedStoryContent {
     }[];
 }
 
-export type AIErrorType = 'rate_limit' | 'invalid_input' | 'server_error' | 'unknown';
+export type AIErrorType = 'rate_limit' | 'invalid_input' | 'server_error' | 'unknown' | 'limit_reached';
 
 export class AIError extends Error {
     constructor(
