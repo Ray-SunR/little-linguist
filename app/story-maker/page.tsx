@@ -6,11 +6,21 @@ import type { UserProfile } from "@/lib/features/story";
 import LumoLoader from "@/components/ui/lumo-loader";
 import { Suspense } from "react";
 
-export default function StoryMakerPage() {
-    const { activeChild, isLoading } = useAuth();
+import ChildProfileWizard from "@/components/profile/ChildProfileWizard";
 
-    if (isLoading) {
+export default function StoryMakerPage() {
+    const { activeChild, isLoading, user } = useAuth();
+
+    if (isLoading && !user) {
         return <LumoLoader />;
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen py-20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+                <ChildProfileWizard mode="story" />
+            </div>
+        );
     }
 
     // Map active child to initial profile

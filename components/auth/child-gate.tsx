@@ -18,8 +18,9 @@ export function ChildGate() {
       return;
     }
 
-    // If already on onboarding, don't redirect loop
-    if (pathname.startsWith('/onboarding') || pathname === '/login') {
+    // If already on onboarding or login, don't redirect loop.
+    // Also ignore story-maker as it handles its own profile creation logic (guest flow)
+    if (pathname.startsWith('/onboarding') || pathname === '/login' || pathname.startsWith('/story-maker')) {
       return;
     }
 

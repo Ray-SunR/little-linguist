@@ -130,7 +130,7 @@ export async function createChildProfile(data: ChildProfilePayload) {
 
     // Auto-select the new child
     if (newChild) {
-      cookies().set('activeChildId', newChild.id, { secure: true, httpOnly: true });
+      cookies().set('activeChildId', newChild.id, { secure: true, httpOnly: false });
     }
 
     return { success: true, data: newChild };
@@ -218,6 +218,86 @@ export async function deleteChildProfile(id: string) {
       return { error: 'Not authenticated' };
     }
 
+    // --- STORAGE CLEANUP ---
+    // We must collect and delete storage assets before deleting database records
+    // database records are deleted via cascading delete on the 'children' table.
+
+    // 1. Collect Child Avatar Paths
+    const { data: childData } = await supabase
+      .from('children')
+      .select('avatar_paths')
+      .eq('id', id)
+      .eq('owner_user_id', user.id)
+      .single();
+
+    const storagePathsUserAssets: string[] = (childData?.avatar_paths as string[]) || [];
+
+    // 2. Find all books associated with this child
+    const { data: books } = await supabase
+      .from('books')
+      .select('id, cover_image_path')
+      .eq('child_id', id)
+      .eq('owner_user_id', user.id);
+
+    const storagePathsBookAssets: string[] = [];
+    const bookIds = books?.map(b => b.id) || [];
+
+    if (books) {
+      books.forEach(b => {
+        if (b.cover_image_path) storagePathsBookAssets.push(b.cover_image_path);
+      });
+    }
+
+    if (bookIds.length > 0) {
+      // 3. Collect book audios
+      const { data: audios } = await supabase
+        .from('book_audios')
+        .select('audio_path')
+        .in('book_id', bookIds);
+      
+      if (audios) {
+        audios.forEach(a => {
+          if (a.audio_path) storagePathsBookAssets.push(a.audio_path);
+        });
+      }
+
+      // 4. Collect book media
+      const { data: media } = await supabase
+        .from('book_media')
+        .select('path')
+        .in('book_id', bookIds);
+      
+      if (media) {
+        media.forEach(m => {
+          if (m.path) storagePathsBookAssets.push(m.path);
+        });
+      }
+    }
+
+    // 5. Delete from 'user-assets' bucket
+    if (storagePathsUserAssets.length > 0) {
+      const { error: userStorageError } = await supabase.storage
+        .from('user-assets')
+        .remove(storagePathsUserAssets);
+      if (userStorageError) {
+        console.error(`[profiles:deleteChildProfile] Error deleting user-assets:`, userStorageError);
+      }
+    }
+
+    // 6. Delete from 'book-assets' bucket
+    // We use service role client if needed, but since owner_user_id check is passed, 
+    // the user's own client should be sufficient if RLS allows.
+    // If RLS is strict, we might need a service role client for storage removal of multiple files.
+    if (storagePathsBookAssets.length > 0) {
+      const { error: bookStorageError } = await supabase.storage
+        .from('book-assets')
+        .remove(storagePathsBookAssets);
+      if (bookStorageError) {
+        console.error(`[profiles:deleteChildProfile] Error deleting book-assets:`, bookStorageError);
+      }
+    }
+
+    // --- DATABASE DELETION ---
     const { error } = await supabase
       .from('children')
       .delete()
@@ -328,6 +408,6 @@ export async function switchActiveChild(childId: string) {
     return { error: 'Child not found or unauthorized' };
   }
 
-  cookies().set('activeChildId', childId, { secure: true, httpOnly: true });
+  cookies().set('activeChildId', childId, { secure: true, httpOnly: false });
   return { success: true };
 }

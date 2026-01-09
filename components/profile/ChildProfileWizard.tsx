@@ -3,14 +3,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createChildProfile } from '@/app/actions/profiles';
-import { Camera, Check, ChevronRight, ChevronLeft, Sparkles, User } from 'lucide-react';
+import { Camera, Check, ChevronRight, ChevronLeft, Sparkles, User, Wand2, BookOpen, Plus, Heart, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { compressImage } from "@/lib/core/utils/image";
 import { CachedImage } from '@/components/ui/cached-image';
 import { useAuth } from '@/components/auth/auth-provider';
+import { raidenCache, CacheStore } from "@/lib/core/cache";
 
-type Step = 'name' | 'age' | 'gender' | 'avatar' | 'interests' | 'saving';
+type Step = 'name' | 'age' | 'gender' | 'avatar' | 'interests' | 'topic' | 'setting' | 'words' | 'save_choice' | 'saving';
+
+interface ChildProfileWizardProps {
+    mode?: 'onboarding' | 'story';
+}
 
 const INTEREST_OPTIONS = [
     'Adventures', 'Princess', 'Nature', 'Animal',
@@ -18,7 +23,12 @@ const INTEREST_OPTIONS = [
     'Vehicles', 'Dinosaurs', 'Sports', 'Music'
 ];
 
-export default function ChildProfileWizard() {
+const GUEST_MAGIC_WORDS = [
+    'Magic', 'Adventure', 'Friendship', 'Dragon', 'Space',
+    'Mystery', 'Forest', 'Treasure', 'Rainbow', 'Robot'
+];
+
+export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfileWizardProps) {
     const router = useRouter();
     const { refreshProfiles } = useAuth();
     const [step, setStep] = useState<Step>('name');
@@ -27,7 +37,11 @@ export default function ChildProfileWizard() {
         birth_year: new Date().getFullYear() - 6,
         gender: 'boy',
         interests: [] as string[],
-        avatar_asset_path: ''
+        avatar_asset_path: '',
+        topic: '',
+        setting: '',
+        selectedWords: [] as string[],
+        shouldSaveProfile: true
     });
 
     const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
@@ -36,30 +50,45 @@ export default function ChildProfileWizard() {
 
     const age = new Date().getFullYear() - formData.birth_year;
 
-    const nextStep = (next: Step) => {
+    function nextStep(next: Step): void {
         setError(null);
         setStep(next);
-    };
+    }
 
-    const prevStep = (prev: Step) => {
+    function prevStep(prev: Step): void {
         setError(null);
         setStep(prev);
-    };
+    }
 
-    const toggleInterest = (interest: string) => {
+    function toggleInterest(interest: string): void {
         setFormData(prev => ({
             ...prev,
             interests: prev.interests.includes(interest)
                 ? prev.interests.filter(i => i !== interest)
                 : [...prev.interests, interest]
         }));
-    };
+    }
 
-    const handleFinish = async () => {
+    function toggleWord(word: string): void {
+        setFormData(prev => ({
+            ...prev,
+            selectedWords: prev.selectedWords.includes(word)
+                ? prev.selectedWords.filter(w => w !== word)
+                : (prev.selectedWords.length < 5 ? [...prev.selectedWords, word] : prev.selectedWords)
+        }));
+    }
+
+    async function handleFinish(): Promise<void> {
         if (formData.interests.length === 0) {
             setError("Please pick at least one thing they love!");
             return;
         }
+
+        if (mode === 'story') {
+            nextStep('topic');
+            return;
+        }
+
         setStep('saving');
         setError(null);
 
@@ -81,7 +110,37 @@ export default function ChildProfileWizard() {
             setError(err.message || 'Something went wrong');
             setStep('interests');
         }
-    };
+    }
+
+    async function handleCompleteStoryDraft(): Promise<void> {
+        setStep('saving');
+        setError(null);
+
+        try {
+            const draft = {
+                profile: {
+                    name: formData.first_name,
+                    age: new Date().getFullYear() - formData.birth_year,
+                    gender: formData.gender,
+                    avatarUrl: avatarPreview,
+                    interests: formData.interests,
+                    topic: formData.topic,
+                    setting: formData.setting,
+                    shouldSaveProfile: formData.shouldSaveProfile
+                },
+                selectedWords: formData.selectedWords,
+                isGuestFlow: true
+            };
+            
+            await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", ...draft });
+            
+            const returnUrl = encodeURIComponent('/story-maker?action=resume_story_maker');
+            router.push(`/login?returnTo=${returnUrl}`);
+        } catch (err: any) {
+            setError(err.message || 'Failed to save magic draft');
+            setStep('words');
+        }
+    }
 
     const stepVariants = {
         enter: (direction: number) => ({
@@ -103,6 +162,16 @@ export default function ChildProfileWizard() {
         })
     };
 
+    const progressPercentage = () => {
+        const stepOrder: Step[] = mode === 'onboarding'
+            ? ['name', 'age', 'gender', 'avatar', 'interests', 'saving']
+            : ['name', 'age', 'gender', 'avatar', 'interests', 'topic', 'setting', 'words', 'save_choice', 'saving'];
+        const currentIndex = stepOrder.indexOf(step);
+        if (currentIndex === -1) return '0%';
+        const denominator = stepOrder.length - 1;
+        return `${Math.min(100, ((currentIndex) / denominator) * 100)}%`;
+    };
+
     return (
         <div className="w-full max-w-2xl mx-auto px-4 md:px-0">
             <div className="clay-card bg-white/70 backdrop-blur-xl p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border-4 border-white shadow-2xl relative overflow-hidden min-h-[450px] md:min-h-[500px] flex flex-col">
@@ -112,14 +181,7 @@ export default function ChildProfileWizard() {
                     <motion.div
                         className="h-full bg-gradient-to-r from-purple-400 to-pink-400"
                         initial={{ width: '0%' }}
-                        animate={{
-                            width:
-                                step === 'name' ? '20%' :
-                                    step === 'age' ? '40%' :
-                                        step === 'gender' ? '60%' :
-                                            step === 'avatar' ? '80%' :
-                                                step === 'interests' ? '95%' : '100%'
-                        }}
+                        animate={{ width: progressPercentage() }}
                     />
                 </div>
 
@@ -419,7 +481,219 @@ export default function ChildProfileWizard() {
                                         whileTap={{ scale: 0.95 }}
                                         className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 w-full sm:w-auto"
                                     >
-                                        Complete Journey! ✨
+                                        {mode === 'onboarding' ? "Complete Journey! ✨" : (
+                                            <>Next <ChevronRight className="ml-2 inline" /></>
+                                        )}
+                                    </motion.button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- STEP: TOPIC --- */}
+                        {step === 'topic' && (
+                            <div className="w-full space-y-10 text-center">
+                                <div className="space-y-4">
+                                    <div className="w-20 h-20 bg-orange-100 rounded-3xl flex items-center justify-center mx-auto shadow-clay-pink-sm">
+                                        <BookOpen className="w-10 h-10 text-orange-600" />
+                                    </div>
+                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka uppercase">What's the Story About?</h2>
+                                    <p className="text-ink-muted font-bold font-nunito">Tell us a theme for <span className="text-purple-600">{formData.first_name}</span>'s adventure.</p>
+                                </div>
+
+                                <div className="relative max-w-sm mx-auto">
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        value={formData.topic}
+                                        onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                                        onKeyDown={(e) => e.key === 'Enter' && nextStep('setting')}
+                                        className="w-full h-20 px-8 rounded-3xl border-4 border-orange-50 bg-white/50 focus:bg-white focus:border-orange-300 outline-none transition-all font-fredoka text-2xl font-black text-ink placeholder:text-slate-300 shadow-inner"
+                                        placeholder="Space, Dinosaurs, Tea Party..."
+                                    />
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button onClick={() => prevStep('interests')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 w-full sm:w-auto justify-center">
+                                        <ChevronLeft /> Back
+                                    </button>
+                                    <motion.button
+                                        onClick={() => nextStep('setting')}
+                                        whileHover={{ scale: 1.05, y: -4 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto"
+                                    >
+                                        Next <ChevronRight className="ml-2 inline" />
+                                    </motion.button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- STEP: SETTING --- */}
+                        {step === 'setting' && (
+                            <div className="w-full space-y-10 text-center">
+                                <div className="space-y-4">
+                                    <div className="w-20 h-20 bg-blue-100 rounded-3xl flex items-center justify-center mx-auto shadow-clay-purple-sm">
+                                        <Sparkles className="w-10 h-10 text-blue-600" />
+                                    </div>
+                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka uppercase">Where Does it Happen?</h2>
+                                    <p className="text-ink-muted font-bold font-nunito">Pick a magical place for the story.</p>
+                                </div>
+
+                                <div className="relative max-w-sm mx-auto">
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        value={formData.setting}
+                                        onChange={(e) => setFormData({ ...formData, setting: e.target.value })}
+                                        onKeyDown={(e) => e.key === 'Enter' && nextStep('words')}
+                                        className="w-full h-20 px-8 rounded-3xl border-4 border-blue-50 bg-white/50 focus:bg-white focus:border-blue-300 outline-none transition-all font-fredoka text-2xl font-black text-ink placeholder:text-slate-300 shadow-inner"
+                                        placeholder="Enchanted Forest, Mars, Underwater..."
+                                    />
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button onClick={() => prevStep('topic')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 w-full sm:w-auto justify-center">
+                                        <ChevronLeft /> Back
+                                    </button>
+                                    <motion.button
+                                        onClick={() => nextStep('words')}
+                                        whileHover={{ scale: 1.05, y: -4 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto"
+                                    >
+                                        Next <ChevronRight className="ml-2 inline" />
+                                    </motion.button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- STEP: WORDS --- */}
+                        {step === 'words' && (
+                            <div className="w-full space-y-10 text-center">
+                                <div className="space-y-4">
+                                    <div className="w-20 h-20 bg-purple-100 rounded-3xl flex items-center justify-center mx-auto shadow-clay-purple-sm">
+                                        <Wand2 className="w-10 h-10 text-purple-600" />
+                                    </div>
+                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka uppercase">Pick Magic Words</h2>
+                                    <p className="text-ink-muted font-bold font-nunito">Choose up to 5 words to include!</p>
+                                </div>
+
+                                <div className="flex flex-wrap justify-center gap-3 md:gap-4 max-w-xl mx-auto">
+                                    {GUEST_MAGIC_WORDS.map(word => {
+                                        const isSelected = formData.selectedWords.includes(word);
+                                        return (
+                                            <motion.button
+                                                key={word}
+                                                type="button"
+                                                onClick={() => toggleWord(word)}
+                                                whileHover={{ scale: 1.1, y: -2 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                className={cn(
+                                                    "px-6 py-4 rounded-3xl text-lg font-black font-fredoka transition-all border-4 shadow-sm",
+                                                    isSelected
+                                                        ? 'bg-purple-500 text-white border-purple-400 shadow-clay-purple-sm'
+                                                        : 'bg-white text-ink border-white hover:border-purple-100'
+                                                )}
+                                            >
+                                                {isSelected && <Check className="w-4 h-4 mr-2 inline" />}
+                                                {word}
+                                            </motion.button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button onClick={() => prevStep('setting')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
+                                        <ChevronLeft /> Back
+                                    </button>
+                                    <motion.button
+                                        onClick={() => nextStep('save_choice')}
+                                        whileHover={{ scale: 1.05, y: -4 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto"
+                                    >
+                                        Create Story! ✨
+                                    </motion.button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- STEP: SAVE CHOICE --- */}
+                        {step === 'save_choice' && (
+                            <div className="w-full space-y-10 text-center">
+                                <div className="space-y-4">
+                                    <div className="w-20 h-20 bg-pink-100 rounded-3xl flex items-center justify-center mx-auto shadow-clay-pink-sm">
+                                        <Heart className="w-10 h-10 text-pink-600" />
+                                    </div>
+                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka uppercase">Save to Family?</h2>
+                                    <p className="text-ink-muted font-bold font-nunito">Would you like to keep <span className="text-purple-600">{formData.first_name}</span> in your collection?</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05, y: -4 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setFormData({ ...formData, shouldSaveProfile: true })}
+                                        className={cn(
+                                            "p-8 rounded-[2.5rem] border-4 flex flex-col items-center gap-4 transition-all shadow-lg ring-offset-4",
+                                            formData.shouldSaveProfile === true
+                                                ? "bg-purple-100 border-purple-400 shadow-clay-purple-sm ring-4 ring-purple-200"
+                                                : "bg-white border-white hover:border-purple-200 opacity-60 hover:opacity-100"
+                                        )}
+                                    >
+                                        <div className="w-12 h-12 bg-purple-500 rounded-2xl flex items-center justify-center">
+                                            <UserPlus className="text-white w-6 h-6 border-white" />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xl font-black font-fredoka text-ink uppercase">Yes, Store Profile</div>
+                                            <div className="text-sm font-bold text-ink-muted font-nunito">Keep their interests and progress for future stories.</div>
+                                        </div>
+                                        {formData.shouldSaveProfile === true && (
+                                            <div className="absolute top-4 right-4 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white">
+                                                <Check className="w-5 h-5" />
+                                            </div>
+                                        )}
+                                    </motion.button>
+
+                                    <motion.button
+                                        whileHover={{ scale: 1.05, y: -4 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setFormData({ ...formData, shouldSaveProfile: false })}
+                                        className={cn(
+                                            "p-8 rounded-[2.5rem] border-4 flex flex-col items-center gap-4 transition-all shadow-lg ring-offset-4",
+                                            formData.shouldSaveProfile === false
+                                                ? "bg-purple-100 border-purple-400 shadow-clay-purple-sm ring-4 ring-purple-200"
+                                                : "bg-white border-white hover:border-purple-200 opacity-60 hover:opacity-100"
+                                        )}
+                                    >
+                                        <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
+                                            <Sparkles className="text-slate-400 w-6 h-6" />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xl font-black font-fredoka text-ink uppercase tracking-tight">Just for now</div>
+                                            <div className="text-sm font-bold text-ink-muted font-nunito">A one-off adventure without saving a profile.</div>
+                                        </div>
+                                        {formData.shouldSaveProfile === false && (
+                                            <div className="absolute top-4 right-4 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white">
+                                                <Check className="w-5 h-5" />
+                                            </div>
+                                        )}
+                                    </motion.button>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                                    <button onClick={() => prevStep('words')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
+                                        <ChevronLeft /> Back
+                                    </button>
+                                    <motion.button
+                                        onClick={handleCompleteStoryDraft}
+                                        whileHover={{ scale: 1.05, y: -4 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        disabled={formData.shouldSaveProfile === undefined}
+                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <span>Create My Story</span>
+                                        <Sparkles className="w-6 h-6" />
                                     </motion.button>
                                 </div>
                             </div>

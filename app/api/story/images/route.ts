@@ -116,14 +116,16 @@ export async function POST(req: Request) {
             }
         }
 
-        // If we generated the whole book, check if ALL images succeeded before marking as completed
+        // Mark the book as completed if we processed all scenes, regardless of individual image failures.
+        // This ensures the user can at least read the story and see the successful images.
         if (sceneIndex === undefined) {
+            await storyRepo.updateStoryStatus(bookId, 'completed');
+            
             const anyFailed = results.some(r => r.error);
-            if (!anyFailed) {
-                await storyRepo.updateStoryStatus(bookId, 'completed');
-                console.log(`Book ${bookId} marked as completed (all ${results.length} images generated).`);
+            if (anyFailed) {
+                console.warn(`Book ${bookId} marked as completed with partial failures.`, results.filter(r => r.error));
             } else {
-                console.warn(`Book ${bookId} has partial failures. Not marking as completed yet.`, results);
+                console.log(`Book ${bookId} marked as completed (all ${results.length} images generated).`);
             }
         }
 

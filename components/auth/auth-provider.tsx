@@ -1,47 +1,64 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { getChildren, type ChildProfile } from "@/app/actions/profiles";
-import { getCookie } from "cookies-next";
+import { getCookie, setCookie, deleteCookie } from "cookies-next";
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
 interface AuthContextType {
   user: User | null;
   profiles: ChildProfile[];
   activeChild: ChildProfile | null;
   isLoading: boolean;
-  refreshProfiles: () => Promise<void>;
+  refreshProfiles: (silent?: boolean) => Promise<void>;
   setActiveChild: (child: ChildProfile | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
-  const hydrateFromCache = async (uid?: string): Promise<ChildProfile[]> => {
+  async function hydrateFromCache(uid?: string): Promise<ChildProfile[]> {
     if (typeof window === "undefined") return [];
     try {
       const { raidenCache, CacheStore } = await import("@/lib/core/cache");
-      // Keyed by uid to prevent cross-user leakage
+      
+      // Post-await check: Ensure session hasn't changed or expired while importing
+      const currentSession = await supabase.auth.getSession();
+      const currentUid = currentSession.data.session?.user.id;
+      if (uid && currentUid !== uid) {
+        console.debug("[AuthProvider] Skipping hydrate: UID changed during async load.");
+        return [];
+      }
+
       const key = uid || "global";
       const cached = await raidenCache.get<{ id: string; profiles: ChildProfile[]; cachedAt: number }>(
         CacheStore.PROFILES,
         key
       );
 
+      // Re-check after IDB read
+      if (uid) {
+          const finalSession = await supabase.auth.getSession();
+          if (finalSession.data.session?.user.id !== uid) return [];
+      }
+
       if (cached?.profiles && Array.isArray(cached.profiles) && cached.profiles.length > 0) {
         setProfiles(cached.profiles);
         const activeId = getCookie("activeChildId");
         const found = activeId ? cached.profiles.find((c) => c.id === activeId) : null;
         setActiveChild(found ?? cached.profiles[0]);
-        // Only set loading false if we have a key (meaning we are somewhat sure of the user)
         if (uid) setIsLoading(false);
         return cached.profiles;
       }
@@ -49,10 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn("[AuthProvider] Failed to hydrate profile cache:", err);
     }
     return [];
-  };
+  }
 
-  const persistProfiles = async (data: ChildProfile[], uid: string) => {
-    if (typeof window === "undefined" || !uid) return;
+  async function persistProfiles(data: ChildProfile[], uid: string): Promise<void> {
+    if (typeof window === "undefined") return;
     try {
       const { raidenCache, CacheStore } = await import("@/lib/core/cache");
       await raidenCache.put(CacheStore.PROFILES, {
@@ -60,18 +77,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profiles: data,
         cachedAt: Date.now(),
       });
-      // Synchronous hint for next reload
       window.localStorage.setItem(`raiden:has_profiles_cache:${uid}`, "true");
     } catch (err) {
       console.warn("[AuthProvider] Failed to persist profile cache:", err);
     }
-  };
+  }
 
-  const fetchProfiles = async (uid: string) => {
-    setIsLoading(true);
+  async function fetchProfiles(uid: string, silent = false): Promise<void> {
+    if (!silent) setIsLoading(true);
     try {
       const { getChildren } = await import("@/app/actions/profiles");
       const { data } = await getChildren();
+      
+      // session-security guard: verify the UID hasn't changed or isn't null 
+      // (in case auth event happened while fetching)
+      const currentSession = await supabase.auth.getSession();
+      if (currentSession.data.session?.user.id !== uid) {
+        console.debug("[AuthProvider] Skipping stale profile fetch result.");
+        return;
+      }
+
       if (data) {
         setProfiles(data);
         await persistProfiles(data, uid);
@@ -82,12 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
     let mounted = true;
 
-    const init = async () => {
+    async function init() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!mounted) return;
@@ -96,12 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
 
         if (uid) {
-            // 1. Show cached data immediately if available
             await hydrateFromCache(uid);
-            
-            // 2. Always fetch fresh data to sync with database (e.g. if user cleared it)
-            // fetchProfiles will set state and handle isLoading
-            await fetchProfiles(uid);
+            await fetchProfiles(uid, true);
         } else {
             setIsLoading(false);
         }
@@ -109,21 +130,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("[AuthProvider] Init failed:", err);
         if (mounted) setIsLoading(false);
       }
-    };
+    }
 
     init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (!mounted) return;
       const newUser = session?.user ?? null;
       
       if (newUser && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         setUser(prev => prev?.id === newUser.id ? prev : newUser);
         await hydrateFromCache(newUser.id);
-        await fetchProfiles(newUser.id);
+        await fetchProfiles(newUser.id, true);
       } else if (!newUser) {
         setUser(null);
         setProfiles([]);
+        setActiveChild(null);
+        deleteCookie("activeChildId");
+        
+        // Clear Story Maker Globals and Drafts here
+        const { clearStoryMakerGlobals } = await import("@/components/story-maker/StoryMakerClient");
+        clearStoryMakerGlobals();
+
+        try {
+            const { raidenCache, CacheStore } = await import("@/lib/core/cache");
+            // Clear all user-specific drafts and guest drafts
+            const keys = await raidenCache.getAllKeys(CacheStore.DRAFTS);
+            for (const key of keys) {
+                if (typeof key === 'string' && (key.startsWith('draft:') || key === 'current')) {
+                    await raidenCache.delete(CacheStore.DRAFTS, key);
+                }
+            }
+        } catch (err) {
+            console.warn("[AuthProvider] Failed to clear drafts on logout:", err);
+        }
+
         if (typeof window !== "undefined") {
             Object.keys(window.localStorage).forEach(key => {
                 if (key.startsWith('raiden:has_profiles_cache:')) {
@@ -139,17 +180,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
-  const refreshProfiles = async () => {
+  async function refreshProfiles(silent = false): Promise<void> {
     if (user?.id) {
-      console.debug("[AuthProvider] Manually refreshing profiles...");
-      await fetchProfiles(user.id);
+      await fetchProfiles(user.id, silent);
     }
-  };
+  }
+
+  function handleSetActiveChild(child: ChildProfile | null): void {
+    setActiveChild(child);
+    if (child) {
+        const expires = new Date();
+        expires.setFullYear(expires.getFullYear() + 1);
+        setCookie('activeChildId', child.id, { 
+            expires,
+            path: '/',
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production'
+        });
+    }
+  }
 
   return (
-    <AuthContext.Provider value={{ user, profiles, activeChild, isLoading, refreshProfiles, setActiveChild }}>
+    <AuthContext.Provider value={{ user, profiles, activeChild, isLoading, refreshProfiles, setActiveChild: handleSetActiveChild }}>
       {children}
     </AuthContext.Provider>
   );

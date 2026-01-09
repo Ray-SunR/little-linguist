@@ -15,6 +15,7 @@ import { compressImage } from "@/lib/core/utils/image";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { CachedImage } from "@/components/ui/cached-image";
 import { useAuth } from "@/components/auth/auth-provider";
+import { createChildProfile, switchActiveChild } from "@/app/actions/profiles";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -22,9 +23,29 @@ interface StoryMakerClientProps {
     initialProfile: UserProfile;
 }
 
+interface GenerationState {
+    isGenerating: boolean;
+    result: Story | null;
+}
+
+// Global store keyed by userId to prevent session leakage
+const generations: Record<string, GenerationState> = {};
+
+function getGenerationState(userId: string): GenerationState {
+    if (!generations[userId]) {
+        generations[userId] = { isGenerating: false, result: null };
+    }
+    return generations[userId];
+}
+
+export function clearStoryMakerGlobals(): void {
+    // Clear all session states (e.g. on logout)
+    Object.keys(generations).forEach(key => delete generations[key]);
+}
+
 export default function StoryMakerClient({ initialProfile }: StoryMakerClientProps) {
     const { words } = useWordList();
-    const { user } = useAuth();
+    const { activeChild, isLoading, user, profiles, refreshProfiles, setActiveChild } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const service = getStoryService();
@@ -35,6 +56,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [supabaseBook, setSupabaseBook] = useState<SupabaseBook | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [isGuestOneOffFlow, setIsGuestOneOffFlow] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -42,17 +64,21 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     // Track versions to prevent race conditions
     const saveVersionRef = useRef(0);
     const isMountedRef = useRef(true);
+    const processingRef = useRef(false);
 
     useEffect(() => {
-        return () => { isMountedRef.current = false; };
+        return () => { 
+            isMountedRef.current = false; 
+        };
     }, []);
 
     // Load saved draft on mount
     useEffect(() => {
         const loadDraft = async () => {
             try {
-                // 1. Try IndexedDB first
-                let savedDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "current");
+                // 1. Try IndexedDB first (session-keyed if user is known)
+                const draftKey = user ? `draft:${user.id}` : "draft:guest";
+                let savedDraft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
                 
                 // 2. Migration fallback: check localStorage if IDB is empty
                 if (!savedDraft) {
@@ -62,7 +88,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                             savedDraft = JSON.parse(legacyDraft);
                             // Force save to IDB immediately for migration
                             if (savedDraft) {
-                                await raidenCache.put(CacheStore.DRAFTS, { id: "current", ...savedDraft });
+                                const draftKey = user ? `draft:${user.id}` : "draft:guest";
+                                await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, ...savedDraft });
                             }
                         } catch (e) {
                             console.error("Failed to parse legacy draft:", e);
@@ -94,24 +121,61 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         loadDraft();
     }, [initialProfile]);
 
-    // Auto-trigger generation if returning from login
+    // Unified Effect for Resuming, Result Polling, and Cleanup
     useEffect(() => {
-        const checkAction = async () => {
+        async function resumeDraftIfNeeded() {
+            if (!user || step !== "profile" || processingRef.current) return;
+
             const action = searchParams.get("action");
-            if (action === "generate" && user && step === "profile") {
-                const draft = await raidenCache.get<any>(CacheStore.DRAFTS, "current");
-                if (draft) {
-                    // Clear the action from URL to prevent loop
-                    const url = new URL(window.location.href);
-                    url.searchParams.delete("action");
-                    window.history.replaceState({}, "", url.toString());
-                    
-                    generateStory(draft.selectedWords, draft.profile);
-                }
+            const isResuming = action === "resume_story_maker" || action === "generate";
+            if (!isResuming) return;
+
+            const draftKey = user ? `draft:${user.id}` : "draft:guest";
+            const draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
+            if (!draft) return;
+
+            // Session check: Ensure draft belongs to current user
+            const state = getGenerationState(user.id);
+
+            // Update local state immediately to match draft
+            setProfile(draft.profile);
+            setSelectedWords(draft.selectedWords);
+
+            if (state.isGenerating) {
+                console.debug("[StoryMakerClient] Resuming: Background generation in progress.");
+                setStep("generating");
+                processingRef.current = true;
+                return;
             }
-        };
-        checkAction();
+
+            if (state.result) {
+                console.debug("[StoryMakerClient] Resuming: Story result found.");
+                setStory(state.result);
+                setStep("reading");
+                state.result = null; // Consume
+                processingRef.current = true;
+                return;
+            }
+
+            processingRef.current = true;
+            generateStory(draft.selectedWords, draft.profile);
+        }
+
+        resumeDraftIfNeeded();
     }, [user, searchParams, step]);
+
+    // Polling effect for results (if unmounted/remounted into generating state)
+    useEffect(() => {
+        if (user && step === "generating") {
+            const state = getGenerationState(user.id);
+            if (state.result) {
+                console.debug("[StoryMakerClient] Applying caught-up story result.");
+                setStory(state.result);
+                setStep("reading");
+                state.result = null;
+            }
+        }
+    }, [step, user]);
 
     // Save draft on changes (Debounced)
     useEffect(() => {
@@ -122,7 +186,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             try {
                 // Only save if this is still the latest version
                 if (version === saveVersionRef.current) {
-                    await raidenCache.put(CacheStore.DRAFTS, { id: "current", profile, selectedWords });
+                    const draftKey = user ? `draft:${user.id}` : "draft:guest";
+                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords });
                     if (isMountedRef.current) setIsSaving(false);
                 }
             } catch (err) {
@@ -176,37 +241,92 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         });
     }, [setSupabaseBook]));
 
-    const handleProfileSubmit = (e: React.FormEvent) => {
+    function handleProfileSubmit(e: React.FormEvent<HTMLFormElement>): void {
         e.preventDefault();
-        if (!profile.name) return;
-        setStep("words");
-    };
-
-    const toggleWord = (word: string) => {
-        if (selectedWords.includes(word)) {
-            setSelectedWords(selectedWords.filter((w: string) => w !== word));
-        } else {
-            if (selectedWords.length >= 5) return; // Max 5 words
-            setSelectedWords([...selectedWords, word]);
+        if (profile.name) {
+            setStep("words");
         }
-    };
+    }
 
-    const generateStory = async (overrideWords?: string[], overrideProfile?: UserProfile) => {
+    function toggleWord(word: string): void {
+        setSelectedWords(prev => 
+            prev.includes(word)
+                ? prev.filter(w => w !== word)
+                : (prev.length < 5 ? [...prev, word] : prev)
+        );
+    }
+
+    async function generateStory(overrideWords?: string[], overrideProfile?: UserProfile): Promise<void> {
         const finalWords = overrideWords || selectedWords;
         const finalProfile = overrideProfile || profile;
 
         if (!user) {
-            // Store draft explicitly and redirect to login
-            await raidenCache.put(CacheStore.DRAFTS, { id: "current", profile: finalProfile, selectedWords: finalWords });
+            await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", profile: finalProfile, selectedWords: finalWords });
             router.push("/login?returnTo=/story-maker&action=generate");
             return;
         }
 
+        const currentUid = user.id;
+        const state = getGenerationState(currentUid);
+        state.isGenerating = true;
+
+        if (overrideProfile) setProfile(finalProfile);
+        if (overrideWords) setSelectedWords(finalWords);
+
         setStep("generating");
         setError(null);
+        
         try {
-            // Step 1: Generate Text/Scenes Content
-            const content = await service.generateStoryContent(finalWords, finalProfile);
+            let currentProfile = finalProfile;
+
+            // Profile auto-creation logic
+            const shouldCreateProfile = !currentProfile.id && (
+                currentProfile.shouldSaveProfile === true || 
+                profiles.length === 0
+            );
+
+            if (shouldCreateProfile) {
+                const profileData = {
+                    first_name: currentProfile.name,
+                    birth_year: new Date().getFullYear() - currentProfile.age,
+                    gender: currentProfile.gender,
+                    interests: currentProfile.interests || [],
+                    avatar_asset_path: currentProfile.avatarUrl
+                };
+
+                const result = await createChildProfile(profileData);
+                
+                // Post-await session validation
+                const { createClient } = await import("@/lib/supabase/client");
+                const supabase = createClient();
+                const postFetchSession = await supabase.auth.getSession();
+                if (postFetchSession.data.session?.user.id !== currentUid) {
+                    console.warn("[StoryMakerClient] Aborting: Session changed during profile creation.");
+                    return;
+                }
+
+                if (result.success && result.data) {
+                    currentProfile = { ...currentProfile, id: result.data.id };
+                    setProfile(currentProfile);
+                    await raidenCache.put(CacheStore.DRAFTS, { id: `draft:${currentUid}`, profile: currentProfile, selectedWords: finalWords });
+                    
+                    setActiveChild(result.data);
+                    await refreshProfiles(true);
+                } else {
+                    throw new Error("We couldn't save your profile. Please try again.");
+                }
+            }
+
+            const content = await service.generateStoryContent(finalWords, currentProfile);
+
+            // Post-await session validation
+            const { createClient } = await import("@/lib/supabase/client");
+            const supabase = createClient();
+            const finalSession = await supabase.auth.getSession();
+            if (finalSession.data.session?.user.id !== currentUid) {
+                console.warn("[StoryMakerClient] Aborting: Session changed during story generation.");
+                return;
+            }
 
             const initialStory: Story = {
                 id: crypto.randomUUID(),
@@ -216,7 +336,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 scenes: content.scenes,
                 createdAt: Date.now(),
                 wordsUsed: finalWords,
-                userProfile: finalProfile,
+                userProfile: currentProfile, // Use the one with ID now
                 mainCharacterDescription: content.mainCharacterDescription,
             };
 
@@ -232,40 +352,37 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     afterWordIndex: Number(scene.after_word_index),
                     caption: "Drawing Magic...",
                     isPlaceholder: true,
-                    sceneIndex: idx // Store for easier updates
+                    sceneIndex: idx
                 })),
             };
 
             setStory(initialStory);
             setSupabaseBook(initialSupabaseBook);
+            
+            // Capture result in session-keyed global
+            state.result = initialStory;
 
-            // Prefill cache to make redirect instant
             await raidenCache.put(CacheStore.BOOKS, initialSupabaseBook);
+            if (user?.id) await raidenCache.delete(CacheStore.LIBRARY_METADATA, user.id);
 
-            // Invalidate library metadata to force re-fetch on next visit
-            if (user?.id) {
-                await raidenCache.delete(CacheStore.LIBRARY_METADATA, user.id);
-            }
-
-            // Redirect to the reader page which now contains the book ID in URL
             router.push(`/reader/${content.book_id}`);
-
-            // Trigger backend image generation (non-blocking)
             service.generateImagesForBook(content.book_id);
 
         } catch (err) {
             console.error(err);
             setError("Oops! Something went wrong while making your story. Please try again.");
-            setStep("words");
+        } finally {
+            state.isGenerating = false;
+            processingRef.current = false;
         }
-    };
+    }
 
-    const reset = () => {
+    function reset(): void {
         setStep("profile");
         setStory(null);
         setSelectedWords([]);
         setError(null);
-    };
+    }
 
     return (
         <div className="min-h-screen page-story-maker p-6 md:p-10 pb-32">
@@ -295,203 +412,278 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 <Wand2 className="h-8 w-8 text-white animate-bounce-subtle" />
                             </div>
                             <div>
-                                <h2 className="text-3xl font-black text-ink font-fredoka uppercase tracking-tight">About the Hero</h2>
-                                <p className="text-ink-muted font-medium font-nunito">Tell us who's going on this adventure!</p>
+                                <h2 className="text-3xl font-black text-ink font-fredoka uppercase tracking-tight">
+                                    {isGuestOneOffFlow ? "Welcome Back! ✨" : "About the Hero"}
+                                </h2>
+                                <p className="text-ink-muted font-medium font-nunito">
+                                    {isGuestOneOffFlow ? "Pick a child for this adventure." : "Tell us who's going on this adventure!"}
+                                </p>
                             </div>
                         </div>
 
-                        <form onSubmit={handleProfileSubmit} className="relative">
-                            <div className="grid md:grid-cols-2 gap-10 mb-10">
-                                <div className="space-y-8">
-                                    <div>
-                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero's Name</label>
-                                        <input
-                                            type="text"
-                                            value={profile.name}
-                                            onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                            className="w-full h-16 px-6 rounded-[1.5rem] border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-fredoka text-xl font-bold text-ink placeholder:text-slate-300 shadow-inner"
-                                            placeholder="e.g., Leo, Mia"
-                                            autoFocus
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="mb-4 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Age Explorer</label>
-                                        <div className="flex items-center justify-between p-2 rounded-[2rem] bg-purple-50 shadow-inner border-2 border-white/50">
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                type="button"
-                                                className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
-                                                onClick={() => setProfile({ ...profile, age: Math.max(3, profile.age - 1) })}
-                                                disabled={profile.age <= 3}
-                                            >
-                                                −
-                                            </motion.button>
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-3xl font-black text-purple-600 font-fredoka">{profile.age}</span>
-                                                <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">years old</span>
-                                            </div>
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                type="button"
-                                                className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
-                                                onClick={() => setProfile({ ...profile, age: Math.min(10, profile.age + 1) })}
-                                                disabled={profile.age >= 10}
-                                            >
-                                                +
-                                            </motion.button>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Gender Choice</label>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <motion.button
-                                                whileHover={{ y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                type="button"
-                                                className={cn(
-                                                    "flex items-center justify-center gap-3 p-4 rounded-2xl border-4 transition-all font-fredoka font-bold text-lg",
-                                                    profile.gender === "boy"
-                                                        ? "bg-blue-500 text-white border-blue-400 shadow-clay-purple"
-                                                        : "bg-white text-ink-muted border-slate-50 hover:border-blue-100 shadow-sm"
-                                                )}
-                                                onClick={() => setProfile({ ...profile, gender: "boy" })}
-                                            >
-                                                <span className="text-2xl">👦</span>
-                                                Boy
-                                            </motion.button>
-                                            <motion.button
-                                                whileHover={{ y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                type="button"
-                                                className={cn(
-                                                    "flex items-center justify-center gap-3 p-4 rounded-2xl border-4 transition-all font-fredoka font-bold text-lg",
-                                                    profile.gender === "girl"
-                                                        ? "bg-pink-500 text-white border-pink-400 shadow-clay-pink"
-                                                        : "bg-white text-ink-muted border-slate-50 hover:border-pink-100 shadow-sm"
-                                                )}
-                                                onClick={() => setProfile({ ...profile, gender: "girl" })}
-                                            >
-                                                <span className="text-2xl">👧</span>
-                                                Girl
-                                            </motion.button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-center">
-                                    <label className={cn(
-                                        "w-full aspect-square rounded-[2.5rem] border-4 border-dashed transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group",
-                                        profile.avatarUrl
-                                            ? "border-emerald-200 bg-emerald-50/30"
-                                            : "border-purple-200 bg-purple-50/30 hover:bg-purple-50 hover:border-purple-300"
-                                    )}>
-                                        {profile.avatarUrl ? (
-                                            <div className="relative w-full h-full p-4">
-                                                <CachedImage
-                                                    src={profile.avatarUrl}
-                                                    storagePath={profile.avatarUrl.startsWith('data:') ? undefined : profile.avatarUrl}
-                                                    alt="Preview"
-                                                    fill
-                                                    className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
-                                                />
-                                                <motion.button
-                                                    whileHover={{ scale: 1.1, rotate: 90 }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                    type="button"
-                                                    onClick={(e: React.MouseEvent) => {
-                                                        e.preventDefault();
-                                                        setProfile({ ...profile, avatarUrl: undefined });
-                                                    }}
-                                                    className="absolute top-6 right-6 w-10 h-10 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-xl border-2 border-white"
-                                                >
-                                                    ×
-                                                </motion.button>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center p-8">
-                                                <motion.div
-                                                    animate={{ y: [0, -5, 0] }}
-                                                    transition={{ duration: 3, repeat: Infinity }}
-                                                    className="w-20 h-20 rounded-[1.5rem] bg-white shadow-clay flex items-center justify-center mx-auto mb-6 border-2 border-purple-100"
-                                                >
-                                                    {isUploading ? (
-                                                        <RefreshCw className="h-10 w-10 text-purple-400 animate-spin" />
-                                                    ) : (
-                                                        <Sparkles className="h-10 w-10 text-purple-400" />
-                                                    )}
-                                                </motion.div>
-                                                <span className="text-xl font-black text-purple-600 font-fredoka block mb-1">
-                                                    {isUploading ? "Magical Pixels..." : "Hero Photo"}
-                                                </span>
-                                                <p className="text-sm font-medium text-purple-400 font-nunito">Tap to upload your picture!</p>
-                                            </div>
-                                        )}
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            disabled={isUploading}
-                                            onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) {
-                                                    setIsUploading(true);
-                                                    try {
-                                                        const compressed = await compressImage(file);
-                                                        setProfile({ ...profile, avatarUrl: compressed });
-                                                    } catch (err) {
-                                                        console.error("Compression failed:", err);
-                                                        setError("Failed to process image. Please try another one.");
-                                                    } finally {
-                                                        setIsUploading(false);
-                                                    }
+                        {isGuestOneOffFlow ? (
+                            <div className="max-w-4xl mx-auto mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                    {profiles.map((p) => (
+                                        <motion.button
+                                            key={p.id}
+                                            type="button"
+                                            whileHover={{ scale: 1.05, y: -4 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={async () => {
+                                                const birthYear = p.birth_year || new Date().getFullYear() - 5;
+                                                const selectedProfile: UserProfile = {
+                                                    id: p.id,
+                                                    name: p.first_name,
+                                                    age: new Date().getFullYear() - birthYear,
+                                                    gender: (p.gender as any) || 'neutral',
+                                                    avatarUrl: (p.avatar_paths && p.avatar_paths.length > 0) ? p.avatar_paths[0] : '',
+                                                    interests: p.interests || []
+                                                };
+                                                setProfile(selectedProfile);
+                                                const draftKey = user ? `draft:${user.id}` : "draft:guest";
+                                                const draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
+                                                if (draft) {
+                                                    generateStory(draft.selectedWords, selectedProfile);
                                                 }
                                             }}
+                                            className="p-6 rounded-[2.5rem] bg-white border-4 border-purple-50 hover:border-purple-200 transition-all shadow-lg flex flex-col items-center gap-4 group"
+                                        >
+                                            <div className="relative w-24 h-24">
+                                                <div className="absolute inset-0 bg-purple-100 rounded-full scale-110 group-hover:scale-125 transition-transform duration-500" />
+                                                <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md">
+                                                    {(p.avatar_paths && p.avatar_paths.length > 0) ? (
+                                                        <CachedImage
+                                                            src={p.avatar_paths[0]}
+                                                            storagePath={p.avatar_paths[0]}
+                                                            alt={p.first_name}
+                                                            fill
+                                                            className="object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                                                            <User className="w-10 h-10 text-slate-300" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-xl font-black font-fredoka text-ink uppercase">{p.first_name}</div>
+                                                <div className="text-xs font-bold text-ink-muted font-nunito uppercase tracking-widest">{new Date().getFullYear() - (p.birth_year || new Date().getFullYear())} Years Old</div>
+                                            </div>
+                                        </motion.button>
+                                    ))}
+                                    <motion.button
+                                        whileHover={{ scale: 1.05, y: -4 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        type="button"
+                                        onClick={() => setIsGuestOneOffFlow(false)}
+                                        className="p-6 rounded-[2.5rem] bg-purple-50 border-4 border-dashed border-purple-200 hover:border-purple-400 transition-all flex flex-col items-center justify-center gap-4 text-purple-600 group"
+                                    >
+                                        <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                                            <Plus className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-lg font-black font-fredoka uppercase leading-tight">Create New Hero</div>
+                                            <div className="text-[10px] font-bold opacity-60 font-nunito max-w-[120px]">If this story is for someone new.</div>
+                                        </div>
+                                    </motion.button>
+                                </div>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleProfileSubmit} className="relative">
+                                <div className="grid md:grid-cols-2 gap-10 mb-10">
+                                    <div className="space-y-8">
+                                        <div>
+                                            <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero's Name</label>
+                                            <input
+                                                type="text"
+                                                value={profile.name}
+                                                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                                                className="w-full h-16 px-6 rounded-[1.5rem] border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-fredoka text-xl font-bold text-ink placeholder:text-slate-300 shadow-inner"
+                                                placeholder="e.g., Leo, Mia"
+                                                autoFocus
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="mb-4 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Age Explorer</label>
+                                            <div className="flex items-center justify-between p-2 rounded-[2rem] bg-purple-50 shadow-inner border-2 border-white/50">
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    type="button"
+                                                    className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
+                                                    onClick={() => setProfile({ ...profile, age: Math.max(3, profile.age - 1) })}
+                                                    disabled={profile.age <= 3}
+                                                >
+                                                    −
+                                                </motion.button>
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-3xl font-black text-purple-600 font-fredoka">{profile.age}</span>
+                                                    <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">years old</span>
+                                                </div>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    type="button"
+                                                    className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
+                                                    onClick={() => setProfile({ ...profile, age: Math.min(10, profile.age + 1) })}
+                                                    disabled={profile.age >= 10}
+                                                >
+                                                    +
+                                                </motion.button>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Gender Choice</label>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <motion.button
+                                                    whileHover={{ y: -2 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    type="button"
+                                                    className={cn(
+                                                        "flex items-center justify-center gap-3 p-4 rounded-2xl border-4 transition-all font-fredoka font-bold text-lg",
+                                                        profile.gender === "boy"
+                                                            ? "bg-blue-500 text-white border-blue-400 shadow-clay-purple"
+                                                            : "bg-white text-ink-muted border-slate-50 hover:border-blue-100 shadow-sm"
+                                                    )}
+                                                    onClick={() => setProfile({ ...profile, gender: "boy" })}
+                                                >
+                                                    <span className="text-2xl">👦</span>
+                                                    Boy
+                                                </motion.button>
+                                                <motion.button
+                                                    whileHover={{ y: -2 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    type="button"
+                                                    className={cn(
+                                                        "flex items-center justify-center gap-3 p-4 rounded-2xl border-4 transition-all font-fredoka font-bold text-lg",
+                                                        profile.gender === "girl"
+                                                            ? "bg-pink-500 text-white border-pink-400 shadow-clay-pink"
+                                                            : "bg-white text-ink-muted border-slate-50 hover:border-pink-100 shadow-sm"
+                                                    )}
+                                                    onClick={() => setProfile({ ...profile, gender: "girl" })}
+                                                >
+                                                    <span className="text-2xl">👧</span>
+                                                    Girl
+                                                </motion.button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-center">
+                                        <label className={cn(
+                                            "w-full aspect-square rounded-[2.5rem] border-4 border-dashed transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group",
+                                            profile.avatarUrl
+                                                ? "border-emerald-200 bg-emerald-50/30"
+                                                : "border-purple-200 bg-purple-50/30 hover:bg-purple-50 hover:border-purple-300"
+                                        )}>
+                                            {profile.avatarUrl ? (
+                                                <div className="relative w-full h-full p-4">
+                                                    <CachedImage
+                                                        src={profile.avatarUrl}
+                                                        storagePath={profile.avatarUrl.startsWith('data:') ? undefined : profile.avatarUrl}
+                                                        alt="Preview"
+                                                        fill
+                                                        className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
+                                                    />
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.1, rotate: 90 }}
+                                                        whileTap={{ scale: 0.9 }}
+                                                        type="button"
+                                                        onClick={(e: React.MouseEvent) => {
+                                                            e.preventDefault();
+                                                            setProfile({ ...profile, avatarUrl: undefined });
+                                                        }}
+                                                        className="absolute top-6 right-6 w-10 h-10 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-xl border-2 border-white"
+                                                    >
+                                                        ×
+                                                    </motion.button>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center p-8">
+                                                    <motion.div
+                                                        animate={{ y: [0, -5, 0] }}
+                                                        transition={{ duration: 3, repeat: Infinity }}
+                                                        className="w-20 h-20 rounded-[1.5rem] bg-white shadow-clay flex items-center justify-center mx-auto mb-6 border-2 border-purple-100"
+                                                    >
+                                                        {isUploading ? (
+                                                            <RefreshCw className="h-10 w-10 text-purple-400 animate-spin" />
+                                                        ) : (
+                                                            <Sparkles className="h-10 w-10 text-purple-400" />
+                                                        )}
+                                                    </motion.div>
+                                                    <span className="text-xl font-black text-purple-600 font-fredoka block mb-1">
+                                                        {isUploading ? "Magical Pixels..." : "Hero Photo"}
+                                                    </span>
+                                                    <p className="text-sm font-medium text-purple-400 font-nunito">Tap to upload your picture!</p>
+                                                </div>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={isUploading}
+                                                onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        setIsUploading(true);
+                                                        try {
+                                                            const compressed = await compressImage(file);
+                                                            setProfile({ ...profile, avatarUrl: compressed });
+                                                        } catch (err) {
+                                                            console.error("Compression failed:", err);
+                                                            setError("Failed to process image. Please try another one.");
+                                                        } finally {
+                                                            setIsUploading(false);
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Adventure Details: Topic and Setting */}
+                                <div className="grid md:grid-cols-2 gap-8 mb-10 pt-8 border-t-2 border-purple-50">
+                                    <div>
+                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">What's the Story About?</label>
+                                        <input
+                                            type="text"
+                                            value={profile.topic || ''}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, topic: e.target.value })}
+                                            className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
+                                            placeholder="e.g., A trip to Mars, A talking kitten"
                                         />
-                                    </label>
+                                    </div>
+                                    <div>
+                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Where Does it Happen?</label>
+                                        <input
+                                            type="text"
+                                            value={profile.setting || ''}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, setting: e.target.value })}
+                                            className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
+                                            placeholder="e.g., Space, Enchanted Forest, Underwater"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Adventure Details: Topic and Setting */}
-                            <div className="grid md:grid-cols-2 gap-8 mb-10 pt-8 border-t-2 border-purple-50">
-                                <div>
-                                    <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">What's the Story About?</label>
-                                    <input
-                                        type="text"
-                                        value={profile.topic || ''}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, topic: e.target.value })}
-                                        className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
-                                        placeholder="e.g., A trip to Mars, A talking kitten"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Where Does it Happen?</label>
-                                    <input
-                                        type="text"
-                                        value={profile.setting || ''}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, setting: e.target.value })}
-                                        className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
-                                        placeholder="e.g., Space, Enchanted Forest, Underwater"
-                                    />
-                                </div>
-                            </div>
-
-                            <motion.button
-                                whileHover={{ scale: 1.02, y: -4 }}
-                                whileTap={{ scale: 0.98 }}
-                                type="submit"
-                                disabled={!profile.name}
-                                className="w-full h-20 rounded-[2rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center justify-center gap-3 text-2xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 transition-all"
-                            >
-                                <span>Next Step</span>
-                                <ChevronRight className="h-8 w-8" />
-                            </motion.button>
-                        </form>
-                    </motion.div>
+                                <motion.button
+                                    whileHover={{ scale: 1.02, y: -4 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    type="submit"
+                                    disabled={!profile.name}
+                                    className="w-full h-20 rounded-[2rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center justify-center gap-3 text-2xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 transition-all"
+                                >
+                                    <span>Next Step</span>
+                                    <ChevronRight className="h-8 w-8" />
+                                </motion.button>
+                            </form>
+                        )}
+</motion.div>
                 )}
 
                 {step === "words" && (
@@ -621,61 +813,121 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5" />
                         <div className="absolute top-[-20%] left-[-20%] w-full h-full bg-purple-400/10 blur-[100px] rounded-full animate-floaty" />
 
-                        <div className="relative mb-12">
-                            {/* Outer Radiance */}
-                            <div className="absolute inset-[-40px] bg-purple-400/20 blur-[60px] rounded-full animate-pulse" />
-
-                            {/* Main Wand Hexagon/Circle */}
-                            <div className="relative w-32 h-32 rounded-[2.5rem] bg-white shadow-clay-purple flex items-center justify-center border-4 border-purple-100 ring-8 ring-purple-50/50">
-                                <motion.div
-                                    animate={{
-                                        rotate: [0, 15, -15, 0],
-                                        scale: [1, 1.1, 1],
-                                    }}
-                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                                >
-                                    <Wand2 className="h-14 w-14 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
-                                </motion.div>
-
-                                {/* Floating Sparkles */}
-                                {[...Array(6)].map((_, i: number) => (
-                                    <motion.div
-                                        key={i}
-                                        className="absolute w-2 h-2 bg-yellow-400 rounded-full"
-                                        animate={{
-                                            x: [0, (i % 2 === 0 ? 50 : -50) * Math.cos(i)],
-                                            y: [0, (i % 2 === 0 ? 50 : -50) * Math.sin(i)],
-                                            opacity: [0, 1, 0],
-                                            scale: [0, 1.2, 0],
+                        {error ? (
+                            <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
+                                <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center border-4 border-red-100 mb-2">
+                                    <span className="text-4xl">😅</span>
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <h2 className="text-3xl font-black font-fredoka text-ink uppercase">Oh no!</h2>
+                                    <p className="text-lg font-bold text-ink-muted font-nunito max-w-sm mx-auto">{error}</p>
+                                </div>
+                                <div className="flex gap-4 mt-4">
+                                    <button 
+                                        onClick={() => setStep("words")}
+                                        className="ghost-btn h-12 px-6 rounded-xl font-bold text-ink-muted uppercase tracking-wider"
+                                    >
+                                        Go Back
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setError(null);
+                                            // Retry based on context (profile creation or generation)
+                                            // Since we don't easily know which failed without complexity, 
+                                            // we restart generation which handles both idempotent-ly enough
+                                            // or we redirect user to restart.
+                                            // Simplest is to restart generation logic if profile exists, or profile logic if not.
+                                            // But for now, let's just let them go back or try generating again.
+                                            if (isGuestOneOffFlow && !profile.id) {
+                                                // Retry profile creation by clearing error (useEffect will NOT re-run merely on error clear)
+                                                // So we need to manually trigger logic? 
+                                                // Actually, "Go Back" is safer.
+                                                // Let's make "Try Again" just call generateStory if profile exists?
+                                                if (profile.id) generateStory();
+                                                else setStep("profile"); // If no profile, go back to start
+                                            } else {
+                                                generateStory();
+                                            }
                                         }}
-                                        transition={{
-                                            duration: 2,
-                                            repeat: Infinity,
-                                            delay: i * 0.3,
-                                        }}
-                                    />
-                                ))}
+                                        className="primary-btn h-12 px-8 rounded-xl text-lg font-black font-fredoka uppercase shadow-lg shadow-purple-500/20"
+                                    >
+                                        Try Again
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <>
+                                <div className="relative mb-12">
+                                    {/* Outer Radiance */}
+                                    <div className="absolute inset-[-40px] bg-purple-400/20 blur-[60px] rounded-full animate-pulse" />
 
-                        <h2 className="text-4xl font-black font-fredoka text-ink uppercase tracking-tight mb-4 relative">
-                            Making Magic...
-                        </h2>
-                        <p className="text-xl text-ink-muted font-bold font-nunito mb-2">
-                            Writing a special adventure for <span className="text-purple-600">{profile.name}</span>
-                        </p>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-full border border-purple-100 mt-6">
-                            <RefreshCw className="h-4 w-4 text-purple-400 animate-spin" />
-                            <span className="text-xs font-black text-purple-400 uppercase tracking-widest font-fredoka">Creating original art & story</span>
-                        </div>
+                                    {/* Main Wand Hexagon/Circle */}
+                                    <div className="relative w-32 h-32 rounded-[2.5rem] bg-white shadow-clay-purple flex items-center justify-center border-4 border-purple-100 ring-8 ring-purple-50/50">
+                                        <motion.div
+                                            animate={{
+                                                rotate: [0, 15, -15, 0],
+                                                scale: [1, 1.1, 1],
+                                            }}
+                                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                        >
+                                            <Wand2 className="h-14 w-14 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
+                                        </motion.div>
 
-                        <div className="mt-12 w-full max-w-xs h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner p-0.5">
-                            <motion.div
-                                className="h-full bg-gradient-to-r from-purple-500 via-pink-400 to-indigo-500 rounded-full"
-                                animate={{ width: ["10%", "90%"] }}
-                                transition={{ duration: 15, ease: "linear" }}
-                            />
-                        </div>
+                                        {/* Floating Sparkles */}
+                                        {[...Array(6)].map((_, i: number) => (
+                                            <motion.div
+                                                key={i}
+                                                className="absolute w-2 h-2 bg-yellow-400 rounded-full"
+                                                animate={{
+                                                    x: [0, (i % 2 === 0 ? 50 : -50) * Math.cos(i)],
+                                                    y: [0, (i % 2 === 0 ? 50 : -50) * Math.sin(i)],
+                                                    opacity: [0, 1, 0],
+                                                    scale: [0, 1.2, 0],
+                                                }}
+                                                transition={{
+                                                    duration: 2,
+                                                    repeat: Infinity,
+                                                    delay: i * 0.3,
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <h2 className="text-4xl font-black font-fredoka text-ink uppercase tracking-tight mb-4 relative">
+                                    Making Magic...
+                                </h2>
+                                <motion.p 
+                                    key={profile.name}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xl text-ink-muted font-bold font-nunito mb-2"
+                                >
+                                    Writing a special adventure for <span className="text-purple-600">{profile.name}</span>
+                                </motion.p>
+                                
+                                <div className="flex flex-col items-center gap-4 mt-8">
+                                   <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-full border border-purple-100">
+                                       <RefreshCw className="h-4 w-4 text-purple-400 animate-spin" />
+                                       <span className="text-xs font-black text-purple-400 uppercase tracking-widest font-fredoka">Creating original art & story</span>
+                                   </div>
+                                   
+                                   {profile.topic && (
+                                       <div className="text-sm font-bold text-ink-muted/60 font-nunito italic">
+                                           "A story about {profile.topic}..."
+                                       </div>
+                                   )}
+                                </div>
+
+                                <div className="mt-12 w-full max-w-xs h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner p-0.5">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-purple-500 via-pink-400 to-indigo-500 rounded-full"
+                                        animate={{ width: ["10%", "90%"] }}
+                                        transition={{ duration: 15, ease: "linear" }}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </motion.div>
                 )}
             </main>

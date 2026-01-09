@@ -254,6 +254,21 @@ class RaidenCache {
         }
     }
 
+    async getAllKeys(storeName: CacheStore): Promise<IDBValidKey[]> {
+        if (typeof window === 'undefined') return [];
+        try {
+            const store = await this.getStore(storeName);
+            return new Promise((resolve, reject) => {
+                const request = store.getAllKeys();
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = () => reject(request.error);
+            });
+        } catch (err) {
+            console.warn(`[Cache] GetAllKeys failed for ${storeName}:`, err);
+            return [];
+        }
+    }
+
     async clear(storeName: CacheStore): Promise<void> {
         if (typeof window === 'undefined') return;
         try {

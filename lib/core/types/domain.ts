@@ -35,11 +35,13 @@ export interface WordInsight {
 export type UserProfile = {
     name: string;
     age: number;
-    gender: 'boy' | 'girl' | 'other';
+    gender: 'boy' | 'girl' | 'other' | 'neutral';
     avatarUrl?: string; // Base64 or URL for the user's photo
     id?: string; // Child ID for backend verification
     topic?: string;
     setting?: string;
+    interests?: string[];
+    shouldSaveProfile?: boolean;
 };
 
 /**
