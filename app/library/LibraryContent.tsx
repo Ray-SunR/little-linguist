@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import LibraryView from "@/components/reader/library-view";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
@@ -60,7 +59,8 @@ export default function LibraryContent() {
                 
                 const [booksRes, progressRes] = await Promise.all([
                     fetch(booksUrl),
-                    fetch(progressUrl).catch(() => ({ ok: false }))
+                    // Only fetch progress if logged in
+                    user ? fetch(progressUrl).catch(() => ({ ok: false })) : Promise.resolve({ ok: false })
                 ]);
 
                 if (!booksRes.ok) throw new Error('Failed to fetch books');
@@ -88,7 +88,8 @@ export default function LibraryContent() {
                         estimatedReadingTime: book.estimatedReadingTime,
                         isRead: book.isRead,
                         lastOpenedAt: book.lastOpenedAt,
-                        isFavorite: book.isFavorite
+                        isFavorite: book.isFavorite,
+                        totalTokens: book.totalTokens
                     }));
 
                 // 3. Update state and persistence
@@ -120,7 +121,7 @@ export default function LibraryContent() {
         } finally {
             inFlightLibraryFetch[cacheKey] = null;
         }
-    }, [cacheKey, authLoading, activeChild?.id]);
+    }, [cacheKey, authLoading, activeChild?.id, user]);
 
     // Instant hydration from cache on client
     useEffect(() => {

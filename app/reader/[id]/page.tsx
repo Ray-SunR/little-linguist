@@ -64,10 +64,10 @@ function ReaderContent({ params }: ReaderPageProps) {
             // (No need for separate mode=metadata request - this returns everything including assetTimestamps)
 
             // 3. Consolidated fetch: metadata, tokens, images, AND audios
-            const progressUrl = activeChildId ? `/api/books/${bookId}/progress?childId=${activeChildId}` : `/api/books/${bookId}/progress`;
+            const progressUrl = activeChildId ? `/api/books/${bookId}/progress?childId=${activeChildId}` : null;
             const [bookRes, progressRes] = await Promise.all([
                 fetch(`/api/books/${bookId}?include=tokens,content,images,audio`),
-                fetch(progressUrl)
+                progressUrl ? fetch(progressUrl) : Promise.resolve({ ok: false, json: async () => null })
             ]);
 
             if (!bookRes.ok) {

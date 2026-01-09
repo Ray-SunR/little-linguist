@@ -179,7 +179,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                             </span>
                                             <span className="flex items-center gap-1">
                                                 <Hash className="w-3 h-3 text-accent" />
-                                                {book.progress?.total_tokens || 0} words
+                                                {book.totalTokens || book.progress?.total_tokens || 0} words
                                             </span>
                                             {book.lastOpenedAt && (
                                                 <span className="flex items-center gap-1">
@@ -269,47 +269,50 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
             )}
 
             {/* Favorite Button - Right side */}
-            <motion.button
-                onClick={async (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    
-                    if (!activeChildId) return;
-
-                    const newFavState = !isFavorite;
-                    setIsFavorite(newFavState); // Optimistic UI
-
-                    try {
-                        const res = await fetch(`/api/books/${book.id}/favorite`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                childId: activeChildId,
-                                isFavorite: newFavState
-                            })
-                        });
+            {activeChildId && (
+                <motion.button
+                    onClick={async (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
                         
-                        if (!res.ok) {
-                            // Rollback on error
+                        // Redundant check but keeps type safety
+                        if (!activeChildId) return;
+
+                        const newFavState = !isFavorite;
+                        setIsFavorite(newFavState); // Optimistic UI
+
+                        try {
+                            const res = await fetch(`/api/books/${book.id}/favorite`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    childId: activeChildId,
+                                    isFavorite: newFavState
+                                })
+                            });
+                            
+                            if (!res.ok) {
+                                // Rollback on error
+                                setIsFavorite(!newFavState);
+                                const err = await res.json();
+                                console.error('Failed to toggle favorite:', err);
+                            }
+                        } catch (err) {
                             setIsFavorite(!newFavState);
-                            const err = await res.json();
                             console.error('Failed to toggle favorite:', err);
                         }
-                    } catch (err) {
-                        setIsFavorite(!newFavState);
-                        console.error('Failed to toggle favorite:', err);
-                    }
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className={cn(
-                    "absolute top-7 right-7 z-40 p-2.5 rounded-full shadow-lg border-2 border-white transition-colors cursor-pointer",
-                    isFavorite ? "bg-pink-500 hover:bg-pink-600" : "bg-white/90 hover:bg-white text-slate-400"
-                )}
-                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-                <Heart className={cn("h-4 w-4", isFavorite ? "fill-white text-white" : "text-slate-400")} />
-            </motion.button>
+                    }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={cn(
+                        "absolute top-7 right-7 z-40 p-2.5 rounded-full shadow-lg border-2 border-white transition-colors cursor-pointer",
+                        isFavorite ? "bg-pink-500 hover:bg-pink-600" : "bg-white/90 hover:bg-white text-slate-400"
+                    )}
+                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                    <Heart className={cn("h-4 w-4", isFavorite ? "fill-white text-white" : "text-slate-400")} />
+                </motion.button>
+            )}
 
             {/* Delete Confirmation Modal */}
             <AnimatePresence>
