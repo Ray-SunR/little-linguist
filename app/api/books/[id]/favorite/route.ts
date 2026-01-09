@@ -32,19 +32,36 @@ export async function PATCH(
 
         // SECURITY: Verify child belongs to user
         const { data: verifyChild, error: verifyError } = await supabase
-            .from('profiles')
+            .from('children')
             .select('id')
             .eq('id', childId)
-            .eq('user_id', user.id)
+            .eq('owner_user_id', user.id)
             .maybeSingle();
         
         if (verifyError) {
             console.error("Profile verification error:", verifyError);
-            return NextResponse.json({ error: "Database error during verification" }, { status: 500 });
+            return NextResponse.json({ error: "Internal server error" }, { status: 500 });
         }
         
         if (!verifyChild) {
             return NextResponse.json({ error: "Unauthorized access to child profile" }, { status: 403 });
+        }
+
+        // SECURITY: Verify book is accessible (system book, family book, or child-specific book)
+        // We use OR logic similar to getAvailableBooksWithCovers but for a single ID
+        const { data: verifyBook, error: bookError } = await supabase
+            .from('books')
+            .select('id')
+            .eq('id', bookId)
+            .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
+            .maybeSingle();
+
+        if (bookError) {
+            console.error("Book verification error:", bookError);
+            return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        }
+        if (!verifyBook) {
+            return NextResponse.json({ error: "Book not found or access denied" }, { status: 404 });
         }
 
         const repo = new BookRepository();

@@ -45,14 +45,14 @@ export async function POST(req: Request) {
         const { data: cached, error: dbError } = await supabase
             .from("word_insights")
             .select("*")
-            .eq(user ? "word" : "normalized", word) // normalized is the unique key
+            .eq("word", word) // word is the unique key
             .maybeSingle();
 
         if (dbError) {
             console.error("Database fetch error:", dbError);
         }
 
-        if (cached && (cached.definition || cached.normalized)) {
+        if (cached && (cached.definition || cached.word)) {
             const bucket = "word-insights-audio";
             // Use service role for signing URLs as the bucket is private
             const adminSupabase = getSupabase();

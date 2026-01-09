@@ -15,7 +15,7 @@ This workflow defines the process for validating implementation plans and code c
 3. **Construct Prompt**:
    - **Plan Review**:
      ```text
-     I have created an implementation plan for [Task Description]. Please review it for architecture flaws, missing edge cases, and best practices.
+     I have created an implementation plan for [Task Description]. Please review it for architecture flaws, missing edge cases, future maintainability, extendability and best practices.
      
      [Content of implementation_plan.md]
      ```

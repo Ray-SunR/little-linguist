@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
             .from('child_book_progress')
             .select(`
                 *,
-                profiles!inner(user_id)
+                children!inner(owner_user_id)
             `)
-            .eq('profiles.user_id', user.id);
+            .eq('children.owner_user_id', user.id);
 
         if (childId) {
             query = query.eq('child_id', childId);
@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
 
         if (error) throw error;
 
-        // Strip the profiles data before returning
-        const sanitized = (data || []).map(({ profiles, ...rest }) => rest);
+        // Strip the children metadata before returning
+        const sanitized = (data || []).map(({ children, ...rest }) => rest);
         return NextResponse.json(sanitized);
     } catch (error: any) {
         console.error("GET all-progress error:", error);
@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { bookId, childId, ...progressData } = body;
 
-        if (!bookId) {
-            return NextResponse.json({ error: "Book ID is required" }, { status: 400 });
+        if (!bookId || !BookRepository.isValidUuid(bookId)) {
+            return NextResponse.json({ error: "Valid Book ID is required" }, { status: 400 });
         }
 
         const repo = new BookRepository();
@@ -62,18 +62,29 @@ export async function POST(request: NextRequest) {
         // Use active child if not provided in body
         let targetChildId = childId;
         if (!targetChildId) {
-             const { data: authChild } = await supabase.from('profiles').select('id').eq('user_id', user.id).limit(1).maybeSingle();
+             const { data: authChild, error: authChildError } = await supabase.from('profiles').select('id').eq('user_id', user.id).limit(1).maybeSingle();
+             if (authChildError) {
+                 console.error("Profile fetch error:", authChildError);
+                 return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+             }
              targetChildId = authChild?.id;
         } else {
+            if (!BookRepository.isValidUuid(targetChildId)) {
+                return NextResponse.json({ error: "Invalid Child ID" }, { status: 400 });
+            }
             // SECURITY: Verify child belongs to user
             const { data: verifyChild, error: verifyError } = await supabase
-                .from('profiles')
+                .from('children')
                 .select('id')
                 .eq('id', targetChildId)
-                .eq('user_id', user.id)
+                .eq('owner_user_id', user.id)
                 .maybeSingle();
             
-            if (verifyError || !verifyChild) {
+            if (verifyError) {
+                console.error("Child verification error:", verifyError);
+                return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+            }
+            if (!verifyChild) {
                 return NextResponse.json({ error: "Unauthorized access to child profile" }, { status: 403 });
             }
         }
@@ -82,7 +93,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "No active child profile found" }, { status: 400 });
         }
 
-        const result = await repo.saveProgress(targetChildId, bookId, progressData);
+        // Whitelist progress data
+        const whitelistedProgress = {
+            last_token_index: typeof progressData.last_token_index === 'number' ? progressData.last_token_index : undefined,
+            last_shard_index: typeof progressData.last_shard_index === 'number' ? progressData.last_shard_index : undefined,
+            is_completed: typeof progressData.is_completed === 'boolean' ? progressData.is_completed : undefined,
+            total_read_seconds: typeof progressData.total_read_seconds === 'number' ? progressData.total_read_seconds : undefined,
+            playback_speed: typeof progressData.playback_speed === 'number' ? progressData.playback_speed : undefined,
+        };
+
+        const result = await repo.saveProgress(targetChildId, bookId, whitelistedProgress);
 
         return NextResponse.json(result);
     } catch (error: any) {

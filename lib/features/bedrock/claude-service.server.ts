@@ -94,4 +94,45 @@ export class ClaudeStoryService {
         const responseBody = JSON.parse(new TextDecoder().decode(response.body));
         return responseBody.content[0].text.trim();
     }
+
+    async generateBookTitle(storyText: string): Promise<string> {
+        const prompt = `You are a professional children's book editor. Based on the story text below, generate a catchy, concise, and engaging title.
+        
+        Story Text:
+        ${storyText}
+
+        Constraints:
+        - Maximum 5 words.
+        - Fun and appealing to kids (4-8 years).
+        - No grade levels or "[TBD]" tags.
+        - Return ONLY the title text. No quotes.`;
+
+        const body = {
+            anthropic_version: "bedrock-2023-05-31",
+            max_tokens: 100,
+            temperature: 0.7,
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: prompt
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const command = new InvokeModelCommand({
+            modelId: "anthropic.claude-3-5-sonnet-20240620-v1:0",
+            contentType: "application/json",
+            accept: "application/json",
+            body: JSON.stringify(body),
+        });
+
+        const response = await this.client.send(command);
+        const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+        return responseBody.content[0].text.trim().replace(/^"|"$/g, '');
+    }
 }

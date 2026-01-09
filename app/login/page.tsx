@@ -103,9 +103,18 @@ function LoginForm() {
     const redirectTo = useMemo(() => {
         if (!returnTo) return undefined
         if (!action) return returnTo
-        const url = new URL(returnTo, 'http://localhost:3000') // Placeholder origin
-        url.searchParams.set('action', action)
-        return url.pathname + url.search
+        
+        try {
+            // Use window.location.origin if available, otherwise a placeholder base
+            // The base is only used to resolve relative paths, and we output only pathname+search
+            const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
+            const url = new URL(returnTo, base)
+            url.searchParams.set('action', action)
+            return url.pathname + url.search
+        } catch (e) {
+            // Fallback for invalid URLs
+            return returnTo
+        }
     }, [returnTo, action])
 
     const [email, setEmail] = useState('')
