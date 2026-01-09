@@ -3,28 +3,56 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
+    const { searchParams } = new URL(request.url)
     const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get('next') ?? '/'
+    
+    // Validate that "next" is a internal path to prevent open redirects
+    let next = searchParams.get('next') ?? '/'
+    if (next.startsWith('http://') || next.startsWith('https://') || next.includes('//')) {
+        next = '/'
+    }
 
     if (code) {
         const supabase = createClient()
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
-            const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
             const isLocalEnv = process.env.NODE_ENV === 'development'
+            
+            // Prefer request.url for base if possible, as it's more standard in Next.js
+            const requestUrl = new URL(request.url)
+
             if (isLocalEnv) {
-                // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-                return NextResponse.redirect(`${origin}${next}`)
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`)
-            } else {
-                return NextResponse.redirect(`${origin}${next}`)
+                return NextResponse.redirect(new URL(next, request.url))
             }
+
+            // In production, try to use headers to get the public host
+            const forwardedHost = request.headers.get('x-forwarded-host')
+            const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+            
+            // SECURITY: Ideally, we should validate forwardedHost against an allowlist
+            if (forwardedHost) {
+                return NextResponse.redirect(`${forwardedProto}://${forwardedHost}${next}`)
+            }
+
+            // Fallback: Use the request URL but ensure it's not localhost if we're in production
+            return NextResponse.redirect(new URL(next, request.url))
         }
     }
 
     // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    const isLocalEnv = process.env.NODE_ENV === 'development'
+    const errorPath = '/auth/auth-code-error'
+
+    if (isLocalEnv) {
+        return NextResponse.redirect(new URL(errorPath, request.url))
+    }
+
+    const forwardedHost = request.headers.get('x-forwarded-host')
+    const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+    
+    if (forwardedHost) {
+        return NextResponse.redirect(`${forwardedProto}://${forwardedHost}${errorPath}`)
+    }
+
+    return NextResponse.redirect(new URL(errorPath, request.url))
 }

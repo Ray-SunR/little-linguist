@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Search, Wand2, BookOpen, Rocket, Star, Heart, Compass } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Search, Wand2, BookOpen, Rocket, Star, Heart, Compass, SlidersHorizontal, ArrowUpDown, ChevronDown, Check, GraduationCap, Shapes, Library } from "lucide-react";
 import LibraryBookCardComponent from "./library-book-card";
 import { LibraryBookCard } from "@/lib/core/books/library-types";
 import { cn } from "@/lib/core";
@@ -17,6 +17,14 @@ interface LibraryViewProps {
     onLoadMore?: () => void;
     hasMore?: boolean;
     isNextPageLoading?: boolean;
+    sortBy: string;
+    onSortChange: (val: string) => void;
+    filters: {
+        level?: string;
+        origin?: string;
+        type?: "fiction" | "nonfiction";
+    };
+    onFiltersChange: (val: any) => void;
 }
 
 const CATEGORIES = [
@@ -28,26 +36,52 @@ const CATEGORIES = [
     { id: "favorites", label: "Favorites", icon: Heart, color: "from-red-400 to-rose-500", shadow: "shadow-red-200/50", bg: "bg-red-50 dark:bg-red-900/10" },
 ];
 
-export default function LibraryView({ books, onDeleteBook, currentUserId, activeChildId, isLoading, onLoadMore, hasMore, isNextPageLoading }: LibraryViewProps) {
+export default function LibraryView({ 
+    books, 
+    onDeleteBook, 
+    currentUserId, 
+    activeChildId, 
+    isLoading, 
+    onLoadMore, 
+    hasMore, 
+    isNextPageLoading,
+    sortBy,
+    onSortChange,
+    filters,
+    onFiltersChange
+}: LibraryViewProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
+    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+    const [isSortOpen, setIsSortOpen] = useState(false);
 
     const filteredBooks = useMemo(() => {
         return books.filter((book) => {
             const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase());
-            // Category filtering
-            let matchesCategory = true;
-            if (activeCategory === "my-stories") {
-                matchesCategory = !!book.owner_user_id && book.owner_user_id === currentUserId;
-            } else if (activeCategory === "favorites") {
-                matchesCategory = !!book.isFavorite;
-            } else if (activeCategory !== "all") {
-                // Placeholder for other category logic
-                matchesCategory = true;
-            }
-            return matchesSearch && matchesCategory;
+            return matchesSearch;
         });
-    }, [books, searchQuery, activeCategory, currentUserId]);
+    }, [books, searchQuery]);
+
+    const levels = [
+        { id: "Pre-K", label: "Pre-K" },
+        { id: "K", label: "Kindergarten" },
+        { id: "G1-2", label: "Grades 1-2" },
+        { id: "G3-5", label: "Grades 3-5" }
+    ];
+    const types = [
+        { id: "fiction", label: "Fiction", icon: Sparkles },
+        { id: "nonfiction", label: "Non-fiction", icon: Shapes }
+    ];
+    const origins = [
+        { id: "system", label: "Magic Library", icon: Library },
+        { id: "user_generated", label: "My Creations", icon: Wand2 }
+    ];
+
+    const sortOptions = [
+        { id: "newest", label: "Newest Magic First" },
+        { id: "alphabetical", label: "Title (A-Z)" },
+        { id: "reading_time", label: "Shortest Read First" }
+    ];
 
     return (
         <div className="relative min-h-screen w-full overflow-x-hidden page-story-maker">
@@ -114,24 +148,191 @@ export default function LibraryView({ books, onDeleteBook, currentUserId, active
 
                     {/* Magic Search & Filters */}
                     <div className="flex flex-col gap-4">
-                        <motion.div
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="relative group w-full"
-                        >
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-5 z-10">
-                                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-accent transition-colors" />
+                        <div className="flex flex-col md:flex-row gap-3">
+                            <motion.div
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="relative group flex-1"
+                            >
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-5 z-10">
+                                    <Search className="h-5 w-5 text-slate-400 group-focus-within:text-accent transition-colors" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Find a story..."
+                                    value={searchQuery}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                                    aria-label="Search stories"
+                                    className="w-full h-14 clay-card pl-14 pr-6 font-fredoka text-lg font-bold text-ink placeholder:text-slate-400/60 focus:outline-none focus:scale-[1.01] transition-all border-4 shadow-clay-inset"
+                                />
+                            </motion.div>
+
+                            <div className="flex gap-2 h-14">
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+                                    className={cn(
+                                        "px-4 md:px-6 rounded-2xl font-fredoka text-sm font-bold flex items-center gap-2 border-4 transition-all shadow-clay",
+                                        isFilterPanelOpen || Object.values(filters).some(v => v !== undefined)
+                                            ? "bg-accent text-white border-white/20"
+                                            : "bg-white text-slate-500 border-white hover:border-purple-100"
+                                    )}
+                                >
+                                    <SlidersHorizontal className="h-5 w-5" />
+                                    <span className="hidden sm:inline">Filters</span>
+                                    {Object.values(filters).some(v => v !== undefined) && (
+                                        <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                    )}
+                                </motion.button>
+
+                                <div className="relative">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setIsSortOpen(!isSortOpen)}
+                                        className={cn(
+                                            "h-full px-4 md:px-6 rounded-2xl font-fredoka text-sm font-bold flex items-center gap-2 border-4 bg-white text-slate-500 border-white hover:border-purple-100 transition-all shadow-clay shadow-clay-inset"
+                                        )}
+                                    >
+                                        <ArrowUpDown className="h-5 w-5" />
+                                        <span className="hidden sm:inline">{sortOptions.find(o => o.id === sortBy)?.label || "Sort"}</span>
+                                        <ChevronDown className={cn("h-4 w-4 transition-transform", isSortOpen && "rotate-180")} />
+                                    </motion.button>
+
+                                    <AnimatePresence>
+                                        {isSortOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                className="absolute right-0 top-full mt-2 w-56 p-2 rounded-2xl bg-white shadow-2xl border-4 border-purple-50 z-50 overflow-hidden"
+                                            >
+                                                {sortOptions.map((opt) => (
+                                                    <button
+                                                        key={opt.id}
+                                                        onClick={() => {
+                                                            onSortChange(opt.id);
+                                                            setIsSortOpen(false);
+                                                        }}
+                                                        className={cn(
+                                                            "w-full px-4 py-3 rounded-xl font-fredoka text-sm font-bold text-left flex items-center justify-between transition-colors",
+                                                            sortBy === opt.id 
+                                                                ? "bg-purple-50 text-purple-700" 
+                                                                : "text-slate-500 hover:bg-slate-50"
+                                                        )}
+                                                    >
+                                                        {opt.label}
+                                                        {sortBy === opt.id && <Check className="h-4 w-4" />}
+                                                    </button>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Find a story..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                aria-label="Search stories"
-                                className="w-full h-14 clay-card pl-14 pr-6 font-fredoka text-lg font-bold text-ink placeholder:text-slate-400/60 focus:outline-none focus:scale-[1.005] transition-all border-4 shadow-clay-inset"
-                            />
-                        </motion.div>
+                        </div>
+
+                        {/* Expandable Filter Panel */}
+                        <AnimatePresence>
+                            {isFilterPanelOpen && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="p-6 rounded-3xl bg-white/80 backdrop-blur-md border-4 border-white shadow-clay-inset grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        {/* Grade Level */}
+                                        <div className="space-y-3">
+                                            <label className="font-fredoka text-sm font-black text-ink-muted uppercase tracking-wider flex items-center gap-2">
+                                                <GraduationCap className="h-4 w-4" />
+                                                Skill Level
+                                            </label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {levels.map(lvl => (
+                                                    <button
+                                                        key={lvl.id}
+                                                        onClick={() => onFiltersChange({ ...filters, level: filters.level === lvl.id ? undefined : lvl.id })}
+                                                        className={cn(
+                                                            "px-3 py-1.5 rounded-xl font-fredoka text-xs font-bold border-2 transition-all",
+                                                            filters.level === lvl.id
+                                                                ? "bg-purple-100 border-purple-300 text-purple-700 shadow-sm"
+                                                                : "bg-white/50 border-slate-100 text-slate-500 hover:border-purple-200"
+                                                        )}
+                                                    >
+                                                        {lvl.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Fiction / Non-fiction */}
+                                        <div className="space-y-3">
+                                            <label className="font-fredoka text-sm font-black text-ink-muted uppercase tracking-wider flex items-center gap-2">
+                                                <Shapes className="h-4 w-4" />
+                                                Story Type
+                                            </label>
+                                            <div className="flex gap-2">
+                                                {types.map(t => (
+                                                    <button
+                                                        key={t.id}
+                                                        onClick={() => onFiltersChange({ ...filters, type: filters.type === t.id ? undefined : t.id })}
+                                                        className={cn(
+                                                            "flex-1 px-3 py-2 rounded-xl font-fredoka text-xs font-bold border-2 transition-all flex items-center justify-center gap-2",
+                                                            filters.type === t.id
+                                                                ? "bg-pink-100 border-pink-300 text-pink-700 shadow-sm"
+                                                                : "bg-white/50 border-slate-100 text-slate-500 hover:border-pink-200"
+                                                        )}
+                                                    >
+                                                        <t.icon className="h-3.5 w-3.5" />
+                                                        {t.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Origin */}
+                                        <div className="space-y-3">
+                                            <label className="font-fredoka text-sm font-black text-ink-muted uppercase tracking-wider flex items-center gap-2">
+                                                <Library className="h-4 w-4" />
+                                                Source
+                                            </label>
+                                            <div className="flex gap-2">
+                                                {origins.map(o => (
+                                                    <button
+                                                        key={o.id}
+                                                        onClick={() => onFiltersChange({ ...filters, origin: filters.origin === o.id ? undefined : o.id })}
+                                                        className={cn(
+                                                            "flex-1 px-3 py-2 rounded-xl font-fredoka text-xs font-bold border-2 transition-all flex items-center justify-center gap-2",
+                                                            filters.origin === o.id
+                                                                ? "bg-cyan-100 border-cyan-300 text-cyan-700 shadow-sm"
+                                                                : "bg-white/50 border-slate-100 text-slate-500 hover:border-cyan-200"
+                                                        )}
+                                                    >
+                                                        <o.icon className="h-3.5 w-3.5" />
+                                                        {o.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Reset Button (Only if filters active) */}
+                                        {Object.values(filters).some(v => v !== undefined) && (
+                                            <div className="md:col-span-3 flex justify-end">
+                                                <button
+                                                    onClick={() => onFiltersChange({})}
+                                                    className="text-xs font-black text-accent uppercase tracking-widest hover:underline"
+                                                >
+                                                    Clear All magic Filters
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         <div className="flex overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap items-center gap-2">
                             {CATEGORIES.filter(c => currentUserId || c.id !== "my-stories").map((cat, idx) => {
@@ -144,7 +345,12 @@ export default function LibraryView({ books, onDeleteBook, currentUserId, active
                                         transition={{ delay: 0.3 + (idx * 0.05) }}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => setActiveCategory(cat.id)}
+                                        onClick={() => {
+                                            setActiveCategory(cat.id);
+                                            // Deep category integration
+                                            if (cat.id === "all") onFiltersChange({ ...filters, category: undefined });
+                                            else onFiltersChange({ ...filters, category: cat.id });
+                                        }}
                                         className={cn(
                                             "flex items-center gap-2 px-5 py-2.5 rounded-[1.2rem] font-fredoka text-xs font-black transition-all border-[3px] whitespace-nowrap",
                                             isActive

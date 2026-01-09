@@ -24,11 +24,27 @@ export async function GET(request: NextRequest) {
             if (limit > 50) limit = 50; // Max allowed per page
             if (isNaN(offset) || offset < 0) offset = 0;
             
+            const level = searchParams.get('level') || undefined;
+            const origin = searchParams.get('origin') || undefined;
+            const isNonFiction = searchParams.get('type') === 'nonfiction' ? true : (searchParams.get('type') === 'fiction' ? false : undefined);
+            const sortBy = searchParams.get('sortBy') || 'newest';
+            const category = searchParams.get('category') || undefined;
+
             // Return books with cover images and token counts for library view
             const booksWithCovers = await repo.getAvailableBooksWithCovers(
                 user?.id, 
                 childId || undefined,
-                { limit, offset }
+                { 
+                    limit, 
+                    offset,
+                    sortBy,
+                    filters: {
+                        level,
+                        origin,
+                        is_nonfiction: isNonFiction,
+                        category
+                    }
+                }
             );
             return NextResponse.json(booksWithCovers);
         }

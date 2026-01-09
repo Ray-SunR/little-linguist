@@ -41,7 +41,17 @@ export class BookRepository {
      * This is optimized for the library page - it only returns metadata needed
      * for rendering book cards, including signed cover image URLs.
      */
-    async getAvailableBooksWithCovers(userId?: string, childId?: string, pagination?: { limit?: number; offset?: number }): Promise<{
+    async getAvailableBooksWithCovers(userId?: string, childId?: string, pagination?: { 
+        limit?: number; 
+        offset?: number;
+        sortBy?: string;
+        filters?: {
+            level?: string;
+            origin?: string;
+            is_nonfiction?: boolean;
+            category?: string;
+        }
+    }): Promise<{
         id: string;
         title: string;
         coverImageUrl?: string;
@@ -52,11 +62,14 @@ export class BookRepository {
         estimatedReadingTime?: number;
         isRead?: boolean;
         lastOpenedAt?: string;
+        level?: string;
+        isNonFiction?: boolean;
+        origin?: string;
     }[]> {
         // Fetch metadata only from 'books' table (NO TOKENS)
         let query = this.supabase
             .from('books')
-            .select('id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path', { count: 'exact' });
+            .select('id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin', { count: 'exact' });
 
         // Visibility logic in query:
         // 1. System books: owner_user_id is null
@@ -72,7 +85,29 @@ export class BookRepository {
         }
         
         query = query.or(filter);
-        query = query.order('updated_at', { ascending: false }).order('title');
+
+        // Apply filters
+        if (pagination?.filters) {
+            const f = pagination.filters;
+            if (f.level) query = query.eq('level', f.level);
+            if (f.origin) query = query.eq('origin', f.origin);
+            if (f.is_nonfiction !== undefined) query = query.eq('is_nonfiction', f.is_nonfiction);
+            if (f.category && f.category !== 'all') {
+                query = query.contains('categories', [f.category]);
+            }
+        }
+
+        // Apply sorting
+        const sortBy = pagination?.sortBy || 'newest';
+        if (sortBy === 'newest') {
+            query = query.order('updated_at', { ascending: false });
+        } else if (sortBy === 'alphabetical') {
+            query = query.order('title', { ascending: true });
+        } else if (sortBy === 'reading_time') {
+            query = query.order('estimated_reading_time', { ascending: true });
+        }
+
+        query = query.order('title');
 
         if (pagination?.limit) {
             const offset = pagination.offset || 0;
@@ -155,7 +190,10 @@ export class BookRepository {
                 estimatedReadingTime: book.estimated_reading_time,
                 isRead: progress?.is_completed || false,
                 lastOpenedAt: progress?.last_read_at,
-                isFavorite: progress?.is_favorite || false
+                isFavorite: progress?.is_favorite || false,
+                level: book.level,
+                isNonFiction: book.is_nonfiction,
+                origin: book.origin
             };
         }));
 

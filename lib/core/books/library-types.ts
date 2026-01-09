@@ -20,4 +20,7 @@ export interface LibraryBookCard {
     isRead?: boolean;
     lastOpenedAt?: string;
     isFavorite?: boolean;
+    level?: string;
+    isNonFiction?: boolean;
+    origin?: string;
 }

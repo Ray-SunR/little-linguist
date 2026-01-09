@@ -44,7 +44,12 @@ export async function updateSession(request: NextRequest) {
 
     const {
         data: { user },
+        error
     } = await supabase.auth.getUser()
+
+    if (error) {
+        console.error('Supabase middleware auth error:', error.message)
+    }
 
     // Helper to create redirect while preserving cookies
     const createRedirectWithCookies = (url: URL) => {
@@ -58,16 +63,19 @@ export async function updateSession(request: NextRequest) {
 
     // Expert UX: If user is logged in and tries to access /login, redirect to dashboard
     if (user && request.nextUrl.pathname === '/login') {
-        return createRedirectWithCookies(new URL('/dashboard', request.url))
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return createRedirectWithCookies(url)
     }
 
     // Expert UX: If user is logged in and tries to access /, redirect to dashboard
     if (user && request.nextUrl.pathname === '/') {
-        return createRedirectWithCookies(new URL('/dashboard', request.url))
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return createRedirectWithCookies(url)
     }
 
-    const isPublicRoute = [
-        "/",
+    const publicRoutes = [
         "/login",
         "/library",
         "/reader/",
@@ -76,10 +84,18 @@ export async function updateSession(request: NextRequest) {
         "/story-maker",
         "/auth/",
         "/api/word-insight"
-    ].some(route => request.nextUrl.pathname.startsWith(route));
+    ];
 
-    if (!user && !isPublicRoute) {
-        return createRedirectWithCookies(new URL('/login', request.url))
+    const isPublicRoute = 
+        request.nextUrl.pathname === '/' || 
+        publicRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+
+    const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
+
+    if (!user && !isPublicRoute && !isApiRoute) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/login'
+        return createRedirectWithCookies(url)
     }
 
     return supabaseResponse

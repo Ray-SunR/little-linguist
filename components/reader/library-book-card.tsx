@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
-import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass, Heart, Hash } from "lucide-react";
+import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass, Heart, Hash, Sparkles } from "lucide-react";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import React, { MouseEvent, useRef, useState, memo, useCallback } from "react";
 import { CachedImage } from "@/components/ui/cached-image";
@@ -183,11 +183,11 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                             </h3>
                                         </div>
                                     )}
-
-                                    {/* Tags Overlay - Show "My Story" badge for owned books */}
+ 
+                                    {/* Tags Overlay - Show metadata badges */}
                                     <div className="absolute top-3 left-3 flex flex-col gap-2 z-20">
                                         {isOwned ? (
-                                            <div className="px-3 py-1.5 rounded-full bg-cyan-500 shadow-lg border border-cyan-400 flex items-center gap-1.5">
+                                            <div className="px-3 py-1.5 rounded-full bg-cyan-500/90 backdrop-blur-md shadow-lg border border-cyan-400/50 flex items-center gap-1.5">
                                                 <Compass className="h-4 w-4 text-white" />
                                                 <span className="text-[10px] font-black text-white uppercase tracking-tighter">My Story</span>
                                             </div>
@@ -197,6 +197,37 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                                 <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">Gold Edition</span>
                                             </div>
                                         )}
+                                    </div>
+
+                                    {/* Level Badge (Top Right) */}
+                                    {book.level && (
+                                        <div className="absolute top-3 right-3 z-20">
+                                            <div className={cn(
+                                                "px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border shadow-clay-inset font-fredoka text-[10px] font-black uppercase tracking-tighter transition-all group-hover:scale-110",
+                                                book.level === "Pre-K" ? "bg-purple-100/90 text-purple-600 border-purple-200" :
+                                                (book.level === "K" || book.level === "Kindergarten") ? "bg-blue-100/90 text-blue-600 border-blue-200" :
+                                                (book.level === "G1-2" || book.level === "Grades 1-2") ? "bg-emerald-100/90 text-emerald-600 border-emerald-200" :
+                                                "bg-orange-100/90 text-orange-600 border-orange-200"
+                                            )}>
+                                                {book.level === "G1-2" ? "Grades 1-2" : 
+                                                 book.level === "G3-5" ? "Grades 3-5" : 
+                                                 book.level === "K" ? "Kindergarten" : 
+                                                 book.level}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Type Badge (Bottom Left) */}
+                                    <div className="absolute bottom-3 left-3 z-20">
+                                        <div className={cn(
+                                            "px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 font-fredoka text-[9px] font-black uppercase tracking-widest text-slate-600 flex items-center gap-1 shadow-clay-inset transition-all group-hover:-translate-y-1",
+                                        )}>
+                                            {book.isNonFiction ? (
+                                                <><Clock className="w-3 h-3 text-emerald-400" /> Fact</>
+                                            ) : (
+                                                <><Sparkles className="w-3 h-3 text-pink-400" /> Story</>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 

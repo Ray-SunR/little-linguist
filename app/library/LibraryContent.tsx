@@ -40,6 +40,15 @@ export default function LibraryContent() {
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
+    
+    // Filtering & Sorting State
+    const [sortBy, setSortBy] = useState("newest");
+    const [filters, setFilters] = useState<{
+        level?: string;
+        origin?: string;
+        type?: "fiction" | "nonfiction";
+        category?: string;
+    }>({});
 
     const LIMIT = 20;
 
@@ -47,7 +56,8 @@ export default function LibraryContent() {
         if (authLoading) return;
 
         const currentOffset = isInitial ? 0 : offset;
-        const fetchKey = `${cacheKey}:${currentOffset}`;
+        const filterKey = JSON.stringify(filters);
+        const fetchKey = `${cacheKey}:${currentOffset}:${sortBy}:${filterKey}`;
 
         if (inFlightLibraryFetch[fetchKey]) return inFlightLibraryFetch[fetchKey];
 
@@ -65,9 +75,20 @@ export default function LibraryContent() {
 
             try {
                 // 2. Background fresh fetch
+                const filterParams = new URLSearchParams();
+                if (activeChild?.id) filterParams.set('childId', activeChild.id);
+                filterParams.set('mode', 'library');
+                filterParams.set('limit', LIMIT.toString());
+                filterParams.set('offset', currentOffset.toString());
+                filterParams.set('sortBy', sortBy);
+                if (filters.level) filterParams.set('level', filters.level);
+                if (filters.origin) filterParams.set('origin', filters.origin);
+                if (filters.type) filterParams.set('type', filters.type);
+                if (filters.category) filterParams.set('category', filters.category);
+
                 const childIdQuery = activeChild?.id ? `&childId=${activeChild.id}` : '';
                 const progressUrl = `/api/progress?${childIdQuery}`;
-                const booksUrl = `/api/books?mode=library${childIdQuery}&limit=${LIMIT}&offset=${currentOffset}`;
+                const booksUrl = `/api/books?${filterParams.toString()}`;
                 
                 const [booksRes, progressRes] = await Promise.all([
                     fetch(booksUrl),
@@ -101,7 +122,10 @@ export default function LibraryContent() {
                         isRead: book.isRead,
                         lastOpenedAt: book.lastOpenedAt,
                         isFavorite: book.isFavorite,
-                        totalTokens: book.totalTokens
+                        totalTokens: book.totalTokens,
+                        level: book.level,
+                        isNonFiction: book.isNonFiction,
+                        origin: book.origin
                     }));
 
                 // 3. Update state and persistence
@@ -150,7 +174,16 @@ export default function LibraryContent() {
         } finally {
             inFlightLibraryFetch[fetchKey] = null;
         }
-    }, [cacheKey, authLoading, activeChild?.id, user, offset]);
+    }, [cacheKey, authLoading, activeChild?.id, user, offset, sortBy, filters]);
+
+    // Reset offset and reload when filters or sortBy change
+    useEffect(() => {
+        if (authLoading) return;
+        setBooks([]);
+        setOffset(0);
+        setHasMore(true);
+        loadBooks(true);
+    }, [sortBy, filters, cacheKey, authLoading]);
 
     // Instant hydration from cache on client
     useEffect(() => {
@@ -168,8 +201,8 @@ export default function LibraryContent() {
         if (authLoading) return;
 
         syncHydrate();
-        loadBooks();
-    }, [cacheKey, authLoading, loadBooks]);
+        // loadBooks is already called in the useEffect below that watches filters/sortBy
+    }, [cacheKey, authLoading]);
 
     const handleDeleteBook = useCallback(async (id: string) => {
         if (!currentUserId) return; // Guests can't delete anything
@@ -209,6 +242,10 @@ export default function LibraryContent() {
             onLoadMore={() => loadBooks(false)}
             hasMore={hasMore}
             isNextPageLoading={isNextPageLoading}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            filters={filters}
+            onFiltersChange={setFilters}
         />
     );
 }
