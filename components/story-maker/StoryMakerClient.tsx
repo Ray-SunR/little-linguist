@@ -16,6 +16,7 @@ import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { CachedImage } from "@/components/ui/cached-image";
 import { useAuth } from "@/components/auth/auth-provider";
 import { createChildProfile, switchActiveChild } from "@/app/actions/profiles";
+import { createClient } from "@/lib/supabase/client";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -45,7 +46,7 @@ export function clearStoryMakerGlobals(): void {
 
 export default function StoryMakerClient({ initialProfile }: StoryMakerClientProps) {
     const { words } = useWordList();
-    const { activeChild, isLoading, user, profiles, refreshProfiles, setActiveChild } = useAuth();
+    const { activeChild, isLoading, user, profiles, refreshProfiles, setActiveChild, isStoryGenerating, setIsStoryGenerating } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const service = getStoryService();
@@ -65,6 +66,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const saveVersionRef = useRef(0);
     const isMountedRef = useRef(true);
     const processingRef = useRef(false);
+    const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
         return () => { 
@@ -80,17 +82,24 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 const draftKey = user ? `draft:${user.id}` : "draft:guest";
                 let savedDraft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
                 
-                // 2. Migration fallback: check localStorage if IDB is empty
+                // 2. Migration: If user is logged in but has no draft, check for guest draft
+                // IMPORTANT: We only do this if we haven't already migrated in this mount
+                if (!savedDraft && user && !processingRef.current) {
+                    const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
+                    if (guestDraft) {
+                        console.debug("[StoryMakerClient] Found guest draft to migrate.");
+                        savedDraft = guestDraft;
+                        // Don't delete yet - wait for resumeDraftIfNeeded to consume it
+                        // Or at least don't delete if we are just loading
+                    }
+                }
+
+                // 3. Migration fallback: check localStorage if IDB is empty
                 if (!savedDraft) {
                     const legacyDraft = localStorage.getItem("raiden:story_maker_draft");
                     if (legacyDraft) {
                         try {
                             savedDraft = JSON.parse(legacyDraft);
-                            // Force save to IDB immediately for migration
-                            if (savedDraft) {
-                                const draftKey = user ? `draft:${user.id}` : "draft:guest";
-                                await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, ...savedDraft });
-                            }
                         } catch (e) {
                             console.error("Failed to parse legacy draft:", e);
                         }
@@ -101,14 +110,17 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
                 if (savedDraft) {
                     const { profile: savedProfile, selectedWords: savedWords } = savedDraft;
-                    if (savedProfile) setProfile((prev: UserProfile) => ({ ...prev, ...savedProfile }));
-                    if (savedWords) setSelectedWords(savedWords);
-                    
-                    // 3. Complete migration: cleanup legacy localStorage draft
-                    if (localStorage.getItem("raiden:story_maker_draft")) {
-                        localStorage.removeItem("raiden:story_maker_draft");
+                    // Only apply if we are still at the profile step or if name is empty
+                    if (step === "profile" && (savedProfile || savedWords)) {
+                        setProfile((prev: UserProfile) => {
+                            // Don't overwrite with empty name if we already have one
+                            if (prev.name && !savedProfile?.name) return prev;
+                            return { ...prev, ...savedProfile };
+                        });
+                        if (savedWords) setSelectedWords(savedWords);
                     }
-                } else if (initialProfile) {
+                } else if (initialProfile && !profile.name) {
+                    // Only fallback to initialProfile if we don't have a name yet
                     setProfile((prev: UserProfile) => ({
                         ...prev,
                         ...initialProfile
@@ -119,25 +131,43 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             }
         };
         loadDraft();
-    }, [initialProfile]);
+    }, [initialProfile, user]);
 
     // Unified Effect for Resuming, Result Polling, and Cleanup
     useEffect(() => {
         async function resumeDraftIfNeeded() {
-            if (!user || step !== "profile" || processingRef.current) return;
+            // Wait for user and hydration, but allow step === "profile"
+            if (!user || isLoading || step !== "profile" || processingRef.current) return;
 
             const action = searchParams.get("action");
             const isResuming = action === "resume_story_maker" || action === "generate";
             if (!isResuming) return;
 
-            const draftKey = user ? `draft:${user.id}` : "draft:guest";
-            const draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
-            if (!draft) return;
+            const draftKey = `draft:${user.id}`;
+            let draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
+            
+            // Migration fallback
+            if (!draft) {
+                const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
+                if (guestDraft) {
+                    console.debug("[StoryMakerClient] Consuming guest draft for resume.");
+                    draft = guestDraft;
+                    // Persist to user record and delete guest
+                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, ...guestDraft });
+                    await raidenCache.delete(CacheStore.DRAFTS, "draft:guest");
+                }
+            }
+
+            if (!draft) {
+                console.debug("[StoryMakerClient] No draft found to resume.");
+                return;
+            }
 
             // Session check: Ensure draft belongs to current user
             const state = getGenerationState(user.id);
 
             // Update local state immediately to match draft
+            console.debug("[StoryMakerClient] Resuming with draft:", draft.profile.name);
             setProfile(draft.profile);
             setSelectedWords(draft.selectedWords);
 
@@ -157,12 +187,13 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 return;
             }
 
+            // Trigger generation
             processingRef.current = true;
             generateStory(draft.selectedWords, draft.profile);
         }
 
         resumeDraftIfNeeded();
-    }, [user, searchParams, step]);
+    }, [user, isLoading, searchParams, step]);
 
     // Polling effect for results (if unmounted/remounted into generating state)
     useEffect(() => {
@@ -197,7 +228,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         }, 1000); // 1s debounce
 
         return () => clearTimeout(timer);
-    }, [profile, selectedWords]);
+    }, [profile, selectedWords, user]);
 
     // Subscribe to realtime updates
     useBookMediaSubscription(supabaseBook?.id, useCallback((newImage: any) => {
@@ -268,6 +299,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
         const currentUid = user.id;
         const state = getGenerationState(currentUid);
+        setIsStoryGenerating(true);
         state.isGenerating = true;
 
         if (overrideProfile) setProfile(finalProfile);
@@ -280,10 +312,13 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             let currentProfile = finalProfile;
 
             // Profile auto-creation logic
-            const shouldCreateProfile = !currentProfile.id && (
-                currentProfile.shouldSaveProfile === true || 
-                profiles.length === 0
-            );
+            const shouldCreateProfile = !currentProfile.id;
+
+            console.debug("[StoryMakerClient] Story generation started for:", currentProfile.name, {
+                shouldCreateProfile,
+                hasProfileId: !!currentProfile.id,
+                profileCount: profiles.length
+            });
 
             if (shouldCreateProfile) {
                 const profileData = {
@@ -294,18 +329,20 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     avatar_asset_path: currentProfile.avatarUrl
                 };
 
+                console.debug("[StoryMakerClient] Creating profile for guest-to-user flow...");
                 const result = await createChildProfile(profileData);
                 
                 // Post-await session validation
-                const { createClient } = await import("@/lib/supabase/client");
-                const supabase = createClient();
                 const postFetchSession = await supabase.auth.getSession();
                 if (postFetchSession.data.session?.user.id !== currentUid) {
                     console.warn("[StoryMakerClient] Aborting: Session changed during profile creation.");
+                    setStep("profile");
+                    setError("Session changed. Please try again.");
                     return;
                 }
 
                 if (result.success && result.data) {
+                    console.debug("[StoryMakerClient] Profile created:", result.data.id);
                     currentProfile = { ...currentProfile, id: result.data.id };
                     setProfile(currentProfile);
                     await raidenCache.put(CacheStore.DRAFTS, { id: `draft:${currentUid}`, profile: currentProfile, selectedWords: finalWords });
@@ -313,18 +350,20 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     setActiveChild(result.data);
                     await refreshProfiles(true);
                 } else {
-                    throw new Error("We couldn't save your profile. Please try again.");
+                    console.error("[StoryMakerClient] Profile creation failed:", result.error);
+                    throw new Error(result.error);
                 }
             }
 
+            console.debug("[StoryMakerClient] Generating story content...");
             const content = await service.generateStoryContent(finalWords, currentProfile);
 
             // Post-await session validation
-            const { createClient } = await import("@/lib/supabase/client");
-            const supabase = createClient();
             const finalSession = await supabase.auth.getSession();
             if (finalSession.data.session?.user.id !== currentUid) {
                 console.warn("[StoryMakerClient] Aborting: Session changed during story generation.");
+                setStep("profile");
+                setError("Session changed. Please try again.");
                 return;
             }
 
@@ -372,6 +411,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             console.error(err);
             setError("Oops! Something went wrong while making your story. Please try again.");
         } finally {
+            setIsStoryGenerating(false);
             state.isGenerating = false;
             processingRef.current = false;
         }

@@ -11,7 +11,7 @@ import { CachedImage } from '@/components/ui/cached-image';
 import { useAuth } from '@/components/auth/auth-provider';
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 
-type Step = 'name' | 'age' | 'gender' | 'avatar' | 'interests' | 'topic' | 'setting' | 'words' | 'save_choice' | 'saving';
+type Step = 'name' | 'age' | 'gender' | 'avatar' | 'interests' | 'topic' | 'setting' | 'words' | 'saving';
 
 interface ChildProfileWizardProps {
     mode?: 'onboarding' | 'story';
@@ -40,8 +40,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
         avatar_asset_path: '',
         topic: '',
         setting: '',
-        selectedWords: [] as string[],
-        shouldSaveProfile: true
+        selectedWords: [] as string[]
     });
 
     const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
@@ -125,8 +124,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                     avatarUrl: avatarPreview,
                     interests: formData.interests,
                     topic: formData.topic,
-                    setting: formData.setting,
-                    shouldSaveProfile: formData.shouldSaveProfile
+                    setting: formData.setting
                 },
                 selectedWords: formData.selectedWords,
                 isGuestFlow: true
@@ -165,7 +163,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
     const progressPercentage = () => {
         const stepOrder: Step[] = mode === 'onboarding'
             ? ['name', 'age', 'gender', 'avatar', 'interests', 'saving']
-            : ['name', 'age', 'gender', 'avatar', 'interests', 'topic', 'setting', 'words', 'save_choice', 'saving'];
+            : ['name', 'age', 'gender', 'avatar', 'interests', 'topic', 'setting', 'words', 'saving'];
         const currentIndex = stepOrder.indexOf(step);
         if (currentIndex === -1) return '0%';
         const denominator = stepOrder.length - 1;
@@ -204,7 +202,11 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         <Sparkles className="w-10 h-10 text-purple-600" />
                                     </div>
                                     <h2 className="text-2xl md:text-4xl font-black text-ink font-fredoka">Who is our Hero?</h2>
-                                    <p className="text-ink-muted font-bold font-nunito">Let's start by naming your child's profile.</p>
+                                    <p className="text-ink-muted font-bold font-nunito">
+                                        {mode === 'story' 
+                                            ? "Let's name your hero! We'll create a profile to save their adventures." 
+                                            : "Let's start by naming your child's profile."}
+                                    </p>
                                 </div>
 
                                 <div className="relative max-w-sm mx-auto">
@@ -607,7 +609,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         <ChevronLeft /> Back
                                     </button>
                                     <motion.button
-                                        onClick={() => nextStep('save_choice')}
+                                        onClick={handleCompleteStoryDraft}
                                         whileHover={{ scale: 1.05, y: -4 }}
                                         whileTap={{ scale: 0.95 }}
                                         className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto"
@@ -618,86 +620,6 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                             </div>
                         )}
 
-                        {/* --- STEP: SAVE CHOICE --- */}
-                        {step === 'save_choice' && (
-                            <div className="w-full space-y-10 text-center">
-                                <div className="space-y-4">
-                                    <div className="w-20 h-20 bg-pink-100 rounded-3xl flex items-center justify-center mx-auto shadow-clay-pink-sm">
-                                        <Heart className="w-10 h-10 text-pink-600" />
-                                    </div>
-                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka uppercase">Save to Family?</h2>
-                                    <p className="text-ink-muted font-bold font-nunito">Would you like to keep <span className="text-purple-600">{formData.first_name}</span> in your collection?</p>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
-                                    <motion.button
-                                        whileHover={{ scale: 1.05, y: -4 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => setFormData({ ...formData, shouldSaveProfile: true })}
-                                        className={cn(
-                                            "p-8 rounded-[2.5rem] border-4 flex flex-col items-center gap-4 transition-all shadow-lg ring-offset-4",
-                                            formData.shouldSaveProfile === true
-                                                ? "bg-purple-100 border-purple-400 shadow-clay-purple-sm ring-4 ring-purple-200"
-                                                : "bg-white border-white hover:border-purple-200 opacity-60 hover:opacity-100"
-                                        )}
-                                    >
-                                        <div className="w-12 h-12 bg-purple-500 rounded-2xl flex items-center justify-center">
-                                            <UserPlus className="text-white w-6 h-6 border-white" />
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="text-xl font-black font-fredoka text-ink uppercase">Yes, Store Profile</div>
-                                            <div className="text-sm font-bold text-ink-muted font-nunito">Keep their interests and progress for future stories.</div>
-                                        </div>
-                                        {formData.shouldSaveProfile === true && (
-                                            <div className="absolute top-4 right-4 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white">
-                                                <Check className="w-5 h-5" />
-                                            </div>
-                                        )}
-                                    </motion.button>
-
-                                    <motion.button
-                                        whileHover={{ scale: 1.05, y: -4 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => setFormData({ ...formData, shouldSaveProfile: false })}
-                                        className={cn(
-                                            "p-8 rounded-[2.5rem] border-4 flex flex-col items-center gap-4 transition-all shadow-lg ring-offset-4",
-                                            formData.shouldSaveProfile === false
-                                                ? "bg-purple-100 border-purple-400 shadow-clay-purple-sm ring-4 ring-purple-200"
-                                                : "bg-white border-white hover:border-purple-200 opacity-60 hover:opacity-100"
-                                        )}
-                                    >
-                                        <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
-                                            <Sparkles className="text-slate-400 w-6 h-6" />
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="text-xl font-black font-fredoka text-ink uppercase tracking-tight">Just for now</div>
-                                            <div className="text-sm font-bold text-ink-muted font-nunito">A one-off adventure without saving a profile.</div>
-                                        </div>
-                                        {formData.shouldSaveProfile === false && (
-                                            <div className="absolute top-4 right-4 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white">
-                                                <Check className="w-5 h-5" />
-                                            </div>
-                                        )}
-                                    </motion.button>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                                    <button onClick={() => prevStep('words')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
-                                        <ChevronLeft /> Back
-                                    </button>
-                                    <motion.button
-                                        onClick={handleCompleteStoryDraft}
-                                        whileHover={{ scale: 1.05, y: -4 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        disabled={formData.shouldSaveProfile === undefined}
-                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest w-full sm:w-auto flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <span>Create My Story</span>
-                                        <Sparkles className="w-6 h-6" />
-                                    </motion.button>
-                                </div>
-                            </div>
-                        )}
 
                         {/* --- STEP: SAVING --- */}
                         {step === 'saving' && (

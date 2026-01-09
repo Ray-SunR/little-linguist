@@ -36,13 +36,21 @@ export function ProfileSwitcher() {
   }, [children, isLoading, activeChild, setActiveChild]);
 
   async function handleSwitch(childId: string) {
-    const result = await switchActiveChild(childId);
-    if (result.success) {
-      const selected = children.find(c => c.id === childId);
-      if (selected) setActiveChild(selected);
-      setIsOpen(false);
-      await refreshProfiles();
-      router.refresh();
+    try {
+      const result = await switchActiveChild(childId);
+      if (result.success) {
+        const selected = children.find(c => c.id === childId);
+        if (selected) setActiveChild(selected);
+        setIsOpen(false);
+        await refreshProfiles();
+        router.refresh();
+      } else {
+        throw new Error(result.error || "Failed to switch profiles");
+      }
+    } catch (err) {
+      console.error("[ProfileSwitcher] Switch failed:", err);
+      // Basic error feedback - in a real app would use a toast
+      alert("Oops! We couldn't switch profiles right now. Please try again.");
     }
   }
 
@@ -87,28 +95,32 @@ export function ProfileSwitcher() {
 
       <Popover.Portal>
         <Popover.Content
-          className="z-50 w-60 p-2 mt-2 bg-card rounded-2xl shadow-xl border border-shell-2 animate-slide-down origin-top"
-          sideOffset={5}
+          side="top"
+          align="start"
+          sideOffset={12}
+          className="z-50 w-60 p-2 bg-card rounded-2xl shadow-xl border border-shell-2 animate-slide-up origin-bottom"
         >
           <div className="flex flex-col gap-1">
             <div className="px-3 py-2 text-xs font-bold text-ink-muted uppercase tracking-wider">
               Switch Profile
             </div>
 
-            {children.map(child => (
-              <button
-                key={child.id}
-                onClick={() => handleSwitch(child.id)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors text-left",
-                  activeChild?.id === child.id ? "bg-accent/10 text-accent font-bold" : "hover:bg-shell-2 text-ink font-medium"
-                )}
-              >
-                <ProfileAvatar child={child} className="w-8 h-8 rounded-full border border-shell-2" />
-                <span className="truncate">{child.first_name}</span>
-                {activeChild?.id === child.id && <span className="ml-auto text-accent">✓</span>}
-              </button>
-            ))}
+            <div className="flex flex-col gap-1 max-h-[280px] overflow-y-auto pr-1 custom-scrollbar">
+              {children.map(child => (
+                <button
+                  key={child.id}
+                  onClick={() => handleSwitch(child.id)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors text-left shrink-0",
+                    activeChild?.id === child.id ? "bg-accent/10 text-accent font-bold" : "hover:bg-shell-2 text-ink font-medium"
+                  )}
+                >
+                  <ProfileAvatar child={child} className="w-8 h-8 rounded-full border border-shell-2" />
+                  <span className="truncate">{child.first_name}</span>
+                  {activeChild?.id === child.id && <span className="ml-auto text-accent">✓</span>}
+                </button>
+              ))}
+            </div>
 
             <div className="h-px bg-shell-2 my-1" />
 

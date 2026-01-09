@@ -15,6 +15,8 @@ interface AuthContextType {
   profiles: ChildProfile[];
   activeChild: ChildProfile | null;
   isLoading: boolean;
+  isStoryGenerating: boolean;
+  setIsStoryGenerating: (val: boolean) => void;
   refreshProfiles: (silent?: boolean) => Promise<void>;
   setActiveChild: (child: ChildProfile | null) => void;
 }
@@ -26,6 +28,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isStoryGenerating, setIsStoryGenerating] = useState(false);
   
   const supabase = useMemo(() => createClient(), []);
 
@@ -139,6 +142,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const newUser = session?.user ?? null;
       
       if (newUser && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+        if (event === 'SIGNED_IN') setIsLoading(true);
         setUser(prev => prev?.id === newUser.id ? prev : newUser);
         await hydrateFromCache(newUser.id);
         await fetchProfiles(newUser.id, true);
@@ -203,7 +207,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profiles, activeChild, isLoading, refreshProfiles, setActiveChild: handleSetActiveChild }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profiles, 
+      activeChild, 
+      isLoading, 
+      isStoryGenerating,
+      setIsStoryGenerating,
+      refreshProfiles, 
+      setActiveChild: handleSetActiveChild 
+    }}>
       {children}
     </AuthContext.Provider>
   );

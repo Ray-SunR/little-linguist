@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard, Rocket } from "lucide-react";
+import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard, Rocket, Sparkles } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState } from "react";
@@ -89,7 +89,7 @@ export function ClayNav() {
     const pathname = usePathname();
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
-    const { user } = useAuth();
+    const { user, isStoryGenerating } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
     const isReaderView = pathname.startsWith("/reader");
@@ -219,7 +219,33 @@ export function ClayNav() {
                         <div className={cn("flex items-center justify-between w-full relative")}>
                             {user && (
                                 <div className="mr-2">
-                                    <ProfileSwitcher />
+                                    {isStoryGenerating ? (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-clay-purple border-2 border-white overflow-hidden relative"
+                                        >
+                                            <motion.div
+                                                animate={{ 
+                                                    rotate: 360,
+                                                    scale: [1, 1.1, 1]
+                                                }}
+                                                transition={{ 
+                                                    rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+                                                    scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                                                }}
+                                            >
+                                                <Sparkles className="w-6 h-6 text-white" />
+                                            </motion.div>
+                                            <motion.div 
+                                                className="absolute inset-0 bg-white/20"
+                                                animate={{ opacity: [0, 0.4, 0] }}
+                                                transition={{ duration: 1.5, repeat: Infinity }}
+                                            />
+                                        </motion.div>
+                                    ) : (
+                                        <ProfileSwitcher />
+                                    )}
                                 </div>
                             )}
 

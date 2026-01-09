@@ -41,7 +41,6 @@ export type UserProfile = {
     topic?: string;
     setting?: string;
     interests?: string[];
-    shouldSaveProfile?: boolean;
 };
 
 /**
