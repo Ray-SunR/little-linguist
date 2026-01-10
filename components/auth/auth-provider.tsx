@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { getChildren, getUserProfile, updateLibrarySettings as apiUpdateLibrarySettings, type ChildProfile } from "@/app/actions/profiles";
@@ -32,19 +32,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isStoryGenerating, setIsStoryGenerating] = useState(false);
   const [librarySettings, setLibrarySettings] = useState<any>({});
-  
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const userRef = useRef<User | null>(user);
+  const eventRef = useRef<string>("INITIAL");
+
+  // Keep userRef in sync for auth state comparisons
+  useEffect(() => { userRef.current = user; }, [user]);
+
   const supabase = useMemo(() => createClient(), []);
 
   async function hydrateFromCache(uid?: string): Promise<ChildProfile[]> {
     if (typeof window === "undefined") return [];
     try {
       const { raidenCache, CacheStore } = await import("@/lib/core/cache");
-      
+
       // Post-await check: Ensure session hasn't changed or expired while importing
       const currentSession = await supabase.auth.getSession();
       const currentUid = currentSession.data.session?.user.id;
       if (uid && currentUid !== uid) {
-        console.debug("[AuthProvider] Skipping hydrate: UID changed during async load.");
+        console.info("[RAIDEN_DIAG][Auth] Skipping hydrate: UID changed during async load.");
         return [];
       }
 
@@ -56,8 +62,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Re-check after IDB read
       if (uid) {
-          const finalSession = await supabase.auth.getSession();
-          if (finalSession.data.session?.user.id !== uid) return [];
+        const finalSession = await supabase.auth.getSession();
+        if (finalSession.data.session?.user.id !== uid) return [];
       }
 
       if (cached?.profiles && Array.isArray(cached.profiles) && cached.profiles.length > 0) {
@@ -69,7 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return cached.profiles;
       }
     } catch (err) {
-      console.warn("[AuthProvider] Failed to hydrate profile cache:", err);
+      console.warn("[RAIDEN_DIAG][Auth] Failed to hydrate profile cache:", err);
     }
     return [];
   }
@@ -85,7 +91,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
       window.localStorage.setItem(`raiden:has_profiles_cache:${uid}`, "true");
     } catch (err) {
-      console.warn("[AuthProvider] Failed to persist profile cache:", err);
+      console.warn("[RAIDEN_DIAG][Auth] Failed to persist profile cache:", err);
     }
   }
 
@@ -94,12 +100,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { getChildren } = await import("@/app/actions/profiles");
       const { data } = await getChildren();
-      
+
       // session-security guard: verify the UID hasn't changed or isn't null 
       // (in case auth event happened while fetching)
       const currentSession = await supabase.auth.getSession();
       if (currentSession.data.session?.user.id !== uid) {
-        console.debug("[AuthProvider] Skipping stale profile fetch result.");
+        console.info("[RAIDEN_DIAG][Auth] Skipping stale profile fetch result.");
         return;
       }
 
@@ -111,7 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const finalActive = found ?? (data[0] ?? null);
         setActiveChild(finalActive);
         if (finalActive?.library_settings) {
-            setLibrarySettings(finalActive.library_settings);
+          setLibrarySettings(finalActive.library_settings);
         }
       }
     } finally {
@@ -124,8 +130,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Only set if different to avoid redundant renders
     const nextSettings = activeChild?.library_settings || {};
     setLibrarySettings((prev: any) => {
-        if (JSON.stringify(prev) === JSON.stringify(nextSettings)) return prev;
-        return nextSettings;
+      if (JSON.stringify(prev) === JSON.stringify(nextSettings)) return prev;
+      return nextSettings;
     });
   }, [activeChild?.id, activeChild?.library_settings]);
 
@@ -133,58 +139,77 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let mounted = true;
 
     async function init() {
+      console.info("[RAIDEN_DIAG][Auth] User initialization starting...");
+
+      // Cleanup any previous controller
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      const timeoutId = setTimeout(() => {
+        if (mounted && isLoading) {
+          console.warn("[RAIDEN_DIAG][Auth] Safety timeout triggered: forcing isLoading = false");
+          controller.abort('Timeout');
+          setIsLoading(false);
+        }
+      }, 8000);
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!mounted) return;
-        
+        if (!mounted || controller.signal.aborted) return;
+
         const uid = session?.user?.id;
+        console.info("[RAIDEN_DIAG][Auth] Session resolved:", { uid });
         setUser(session?.user ?? null);
 
         if (uid) {
-            await hydrateFromCache(uid);
-            await fetchProfiles(uid, true);
+          console.info("[RAIDEN_DIAG][Auth] Hydrating profiles for:", uid);
+          await hydrateFromCache(uid); // Internal check for session consistency exists inside
+          if (controller.signal.aborted) return;
+          await fetchProfiles(uid, true);
         } else {
-            setIsLoading(false);
+          console.info("[RAIDEN_DIAG][Auth] No session found, skipping profile hydration.");
+          setIsLoading(false);
         }
       } catch (err) {
-        console.error("[AuthProvider] Init failed:", err);
+        if (err === 'Timeout' || (err instanceof Error && err.name === 'AbortError')) {
+          console.warn("[RAIDEN_DIAG][Auth] Initialization aborted or timed out.");
+        } else {
+          console.error("[RAIDEN_DIAG][Auth] Init failed:", err);
+        }
         if (mounted) setIsLoading(false);
       } finally {
-        // Safety timeout in case init hangs
-        if (mounted && isLoading) {
-            setTimeout(() => {
-                if (mounted && isLoading) setIsLoading(false);
-            }, 8000);
+        clearTimeout(timeoutId);
+        if (mounted && isLoading && !controller.signal.aborted) {
+          console.info("[RAIDEN_DIAG][Auth] Initialization finished (silent success or catch-all)");
+          setIsLoading(false);
         }
       }
     }
 
     init();
-    
-    // Use a ref to track current user without triggering re-effects
-    const userRef = { current: user };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (!mounted) return;
       const newUser = session?.user ?? null;
-      
-      // Update ref immediately for future events
       const prevUser = userRef.current;
-      userRef.current = newUser;
+      eventRef.current = event;
+
+      console.info("[RAIDEN_DIAG][Auth] Auth state change:", { event, uid: newUser?.id });
 
       if (newUser && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         // Optimisation: If user ID hasn't changed, don't trigger full loading state
         // This often happens on tab focus / wake on mobile
         const isSameUser = prevUser?.id === newUser.id;
-        
+
         if (!isSameUser || event === 'INITIAL_SESSION') {
-            if (event === 'SIGNED_IN') setIsLoading(true);
-            setUser(newUser);
-            await hydrateFromCache(newUser.id);
-            await fetchProfiles(newUser.id, true);
+          if (event === 'SIGNED_IN') setIsLoading(true);
+          setUser(newUser);
+          await hydrateFromCache(newUser.id);
+          await fetchProfiles(newUser.id, true);
         } else {
-            // Even if same user, we might want to silently refresh profiles
-            refreshProfiles(true);
+          // Even if same user, we might want to silently refresh profiles
+          refreshProfiles(true);
         }
       } else if (!newUser) {
         setUser(null);
@@ -192,30 +217,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setActiveChild(null);
         setLibrarySettings({});
         deleteCookie("activeChildId");
-        
+
         // Clear Story Maker Globals and Drafts here
         const { clearStoryMakerGlobals } = await import("@/components/story-maker/StoryMakerClient");
         clearStoryMakerGlobals();
 
         try {
-            const { raidenCache, CacheStore } = await import("@/lib/core/cache");
-            // Clear all user-specific drafts and guest drafts
-            const keys = await raidenCache.getAllKeys(CacheStore.DRAFTS);
-            for (const key of keys) {
-                if (typeof key === 'string' && (key.startsWith('draft:') || key === 'current')) {
-                    await raidenCache.delete(CacheStore.DRAFTS, key);
-                }
+          const { raidenCache, CacheStore } = await import("@/lib/core/cache");
+          // Clear all user-specific drafts and guest drafts
+          const keys = await raidenCache.getAllKeys(CacheStore.DRAFTS);
+          for (const key of keys) {
+            if (typeof key === 'string' && (key.startsWith('draft:') || key === 'current')) {
+              await raidenCache.delete(CacheStore.DRAFTS, key);
             }
+          }
         } catch (err) {
-            console.warn("[AuthProvider] Failed to clear drafts on logout:", err);
+          console.warn("[RAIDEN_DIAG][Auth] Failed to clear drafts on logout:", err);
         }
 
         if (typeof window !== "undefined") {
-            Object.keys(window.localStorage).forEach(key => {
-                if (key.startsWith('raiden:has_profiles_cache:')) {
-                    window.localStorage.removeItem(key);
-                }
-            });
+          Object.keys(window.localStorage).forEach(key => {
+            if (key.startsWith('raiden:has_profiles_cache:')) {
+              window.localStorage.removeItem(key);
+            }
+          });
         }
         setIsLoading(false);
       }
@@ -223,6 +248,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return () => {
       mounted = false;
+      if (abortControllerRef.current) abortControllerRef.current.abort();
       subscription.unsubscribe();
     };
   }, [supabase]);
@@ -236,57 +262,57 @@ export function AuthProvider({ children }: AuthProviderProps) {
   function handleSetActiveChild(child: ChildProfile | null): void {
     setActiveChild(child);
     if (child) {
-        const expires = new Date();
-        expires.setFullYear(expires.getFullYear() + 1);
-        setCookie('activeChildId', child.id, { 
-            expires,
-            path: '/',
-            sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production'
-        });
+      const expires = new Date();
+      expires.setFullYear(expires.getFullYear() + 1);
+      setCookie('activeChildId', child.id, {
+        expires,
+        path: '/',
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production'
+      });
     }
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      profiles, 
-      activeChild, 
-      isLoading, 
+    <AuthContext.Provider value={{
+      user,
+      profiles,
+      activeChild,
+      isLoading,
       isStoryGenerating,
       setIsStoryGenerating,
       librarySettings,
       updateLibrarySettings: async (settings: any) => {
-          if (!activeChild?.id) return { error: "No active child" };
-          
-          const prevSettings = librarySettings;
-          const prevProfiles = profiles;
-          const prevActiveChild = activeChild;
+        if (!activeChild?.id) return { error: "No active child" };
 
-          // Optimistic update
-          setLibrarySettings(settings);
-          setProfiles(prev => prev.map(p => 
-            p.id === activeChild.id ? { ...p, library_settings: settings } : p
-          ));
-          if (activeChild) {
-              setActiveChild({ ...activeChild, library_settings: settings });
-          }
+        const prevSettings = librarySettings;
+        const prevProfiles = profiles;
+        const prevActiveChild = activeChild;
 
-          if (user?.id) {
-              const result = await apiUpdateLibrarySettings(activeChild.id, settings);
-              if (result.error) {
-                  // Rollback on error
-                  setLibrarySettings(prevSettings);
-                  setProfiles(prevProfiles);
-                  setActiveChild(prevActiveChild);
-                  return { error: result.error };
-              }
-              return { success: true };
+        // Optimistic update
+        setLibrarySettings(settings);
+        setProfiles(prev => prev.map(p =>
+          p.id === activeChild.id ? { ...p, library_settings: settings } : p
+        ));
+        if (activeChild) {
+          setActiveChild({ ...activeChild, library_settings: settings });
+        }
+
+        if (user?.id) {
+          const result = await apiUpdateLibrarySettings(activeChild.id, settings);
+          if (result.error) {
+            // Rollback on error
+            setLibrarySettings(prevSettings);
+            setProfiles(prevProfiles);
+            setActiveChild(prevActiveChild);
+            return { error: result.error };
           }
           return { success: true };
+        }
+        return { success: true };
       },
-      refreshProfiles, 
-      setActiveChild: handleSetActiveChild 
+      refreshProfiles,
+      setActiveChild: handleSetActiveChild
     }}>
       {children}
     </AuthContext.Provider>

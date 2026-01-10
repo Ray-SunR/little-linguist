@@ -13,11 +13,20 @@ const inFlightLibraryFetch: Record<string, Promise<void> | null> = {};
 // Optional: Pre-sign cache for images to avoid late-signing flashes
 const signedUrlCache: Record<string, string> = {};
 
+type LoadState = 'idle' | 'loading' | 'success' | 'error' | 'empty';
+
+const isDefaultFilters = (f: any, sortBy: string = "newest") => {
+    const keys = Object.keys(f).filter(k => f[k] !== undefined);
+    const isBaseCollection = !f.collection || f.collection === 'discovery';
+    const noOtherFilters = keys.length === 0 || (keys.length === 1 && isBaseCollection);
+    return noOtherFilters && sortBy === "newest";
+};
+
 export default function LibraryContent() {
     const { user, activeChild, isLoading: authLoading, librarySettings, updateLibrarySettings } = useAuth();
     const currentUserId = user?.id;
     // Cache key should be scoped by user AND active child to prevent visibility leakage
-    const cacheKey = currentUserId 
+    const cacheKey = currentUserId
         ? (activeChild?.id ? `${currentUserId}:${activeChild.id}` : currentUserId)
         : "anonymous";
 
@@ -31,19 +40,16 @@ export default function LibraryContent() {
         return [];
     });
 
-    const [isLoading, setIsLoading] = useState(() => {
-        // If we have memory cache for THIS key, never show loader
-        if (cachedLibraryBooks[cacheKey]) return false;
-        // If we have a hint from last session, assume we'll hydrate fast enough via sync effect
-        if (hasCacheHint) return false;
-        return true;
-    });
-
     const [error, setError] = useState<string | null>(null);
+    const [loadState, setLoadState] = useState<LoadState>(() => {
+        if (cachedLibraryBooks[cacheKey]) return 'success';
+        if (hasCacheHint) return 'idle'; // Assume it will hydrate soon
+        return 'loading';
+    });
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
-    
+
     // Filtering & Sorting State
     const [sortBy, setSortBy] = useState("newest");
     const [filters, setFilters] = useState<{
@@ -65,6 +71,37 @@ export default function LibraryContent() {
     const offsetRef = useRef(0);
     const filtersRef = useRef(filters);
     const sortByRef = useRef(sortBy);
+    const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Global safety timeout to ensure we never get stuck in "loading" forever
+    useEffect(() => {
+        if (loadState === 'loading' || isNextPageLoading) {
+            console.info("[RAIDEN_DIAG][Library] Loading began, setting 10s safety timeout.");
+            if (globalLoadingTimeoutRef.current) clearTimeout(globalLoadingTimeoutRef.current);
+            globalLoadingTimeoutRef.current = setTimeout(() => {
+                const isStillLoading = loadState === 'loading' || isNextPageLoading;
+                if (isStillLoading) {
+                    console.warn("[RAIDEN_DIAG][Library] Global loading timeout reached. Forcing states off.");
+                    setIsNextPageLoading(false);
+                    setLoadState('error');
+                    setError("Loading is taking longer than expected. Please try again.");
+
+                    // Abort any in-flight requests that are hanging
+                    if (abortControllerRef.current) {
+                        abortControllerRef.current.abort('Timeout');
+                    }
+                }
+            }, 10000);
+        } else {
+            if (globalLoadingTimeoutRef.current) {
+                clearTimeout(globalLoadingTimeoutRef.current);
+                globalLoadingTimeoutRef.current = null;
+            }
+        }
+        return () => {
+            if (globalLoadingTimeoutRef.current) clearTimeout(globalLoadingTimeoutRef.current);
+        };
+    }, [loadState, isNextPageLoading]);
 
     // Update refs on change to keep callbacks stable
     useEffect(() => { offsetRef.current = offset; }, [offset]);
@@ -88,33 +125,28 @@ export default function LibraryContent() {
         const currentOffset = isInitial ? 0 : offsetRef.current;
         const currentFilters = filtersRef.current;
         const currentSort = sortByRef.current;
-        
+
         const filterKey = JSON.stringify(currentFilters);
         const fetchKey = `${cacheKey}:${currentOffset}:${currentSort}:${filterKey}`;
 
-        // Helper to check if we're in the default "unfiltered" state
-        // collection: 'discovery' is the default tab, so we treat it as unfiltered for caching
-        const isDefaultFilters = (f: typeof currentFilters) => {
-            const keys = Object.keys(f);
-            return (keys.length === 0) || (keys.length === 1 && f.collection === 'discovery');
-        };
-
         // Memory cache check for instant load (on top of sync hydrate)
-        if (isInitial && cachedLibraryBooks[cacheKey] && isDefaultFilters(currentFilters) && currentSort === "newest") {
+        if (isInitial && cachedLibraryBooks[cacheKey] && isDefaultFilters(currentFilters, currentSort)) {
             setBooks(cachedLibraryBooks[cacheKey]);
-            setIsLoading(false);
+            setLoadState('success');
             // We still proceed to background refresh if needed, but we don't return early here
             // to ensure we always have fresh data.
         }
 
         // Track this request with a unique ID
         const requestId = ++activeRequestIdRef.current;
+        console.info(`[RAIDEN_DIAG][Library] loadBooks initiated: req=${requestId} isInitial=${isInitial} cacheKey=${cacheKey} authLoading=${authLoading}`);
 
         const work = async () => {
             try {
                 if (controller.signal.aborted) return;
-                
+
                 setError(null);
+                setLoadState('loading');
                 if (!isInitial) setIsNextPageLoading(true);
 
                 // 2. Background fresh fetch
@@ -124,7 +156,7 @@ export default function LibraryContent() {
                 filterParams.set('limit', LIMIT.toString());
                 filterParams.set('offset', currentOffset.toString());
                 filterParams.set('sortBy', currentSort);
-                
+
                 if (currentFilters.level) filterParams.set('level', currentFilters.level);
                 if (currentFilters.origin) filterParams.set('origin', currentFilters.origin);
                 if (currentFilters.type) filterParams.set('type', currentFilters.type);
@@ -134,8 +166,8 @@ export default function LibraryContent() {
                 if (currentFilters.collection === 'my-tales') filterParams.set('onlyPersonal', 'true');
 
                 const booksUrl = `/api/books?${filterParams.toString()}`;
-                
-                console.debug(`[LibraryContent] Fetching books: req=${requestId} url=${booksUrl}`);
+
+                console.info(`[RAIDEN_DIAG][Library] Fetching books: req=${requestId} url=${booksUrl}`);
 
                 // PERFORMANCE: Fetches books + progress + batch-signed covers in one go
                 // Added signal for timeout/abort
@@ -150,13 +182,13 @@ export default function LibraryContent() {
 
                 if (requestId !== activeRequestIdRef.current) return;
                 if (controller.signal.aborted) return;
-                
+
                 if (!Array.isArray(booksData)) {
-                    console.error('[LibraryContent] Invalid response format:', booksData);
+                    console.error('[RAIDEN_DIAG][Library] Invalid response format:', booksData);
                     throw new Error('Invalid response from server');
                 }
 
-                console.debug(`[LibraryContent] Loaded ${booksData.length} books for req ${requestId}`);
+                console.info(`[RAIDEN_DIAG][Library] Loaded ${booksData.length} books for req ${requestId}`);
 
                 const libraryBooks: LibraryBookCard[] = booksData
                     .filter((book: any) => book.id && book.title)
@@ -195,7 +227,7 @@ export default function LibraryContent() {
                             id: cacheKey,
                             books: libraryBooks,
                             updatedAt: Date.now()
-                        }).catch(() => {});
+                        }).catch(() => { });
                     }
                 } else {
                     setBooks(prev => {
@@ -207,48 +239,56 @@ export default function LibraryContent() {
                             return (keys.length === 0) || (keys.length === 1 && f.collection === 'discovery');
                         };
                         if (isDefaultFilters(currentFilters) && currentSort === "newest") {
-                             cachedLibraryBooks[cacheKey] = combined;
+                            cachedLibraryBooks[cacheKey] = combined;
                         }
                         return combined;
                     });
                     setOffset(prev => prev + LIMIT);
                 }
-                
+
                 setHasMore(libraryBooks.length === LIMIT);
-                
+
                 if (isInitial) {
                     window.localStorage.setItem(`raiden:has_library_cache:${cacheKey}`, "true");
                 }
+
+                setLoadState(libraryBooks.length === 0 && isInitial ? 'empty' : 'success');
 
             } catch (err: any) {
                 if (err instanceof Error && err.name === 'AbortError') {
                     // Check if it was our timeout
                     if (controller.signal.reason === 'Timeout' && requestId === activeRequestIdRef.current) {
-                        console.error('[LibraryContent] Request timed out');
+                        console.error('[RAIDEN_DIAG][Library] Request timed out');
                         setError('Library is taking too long to load. Please try again.');
-                        setIsLoading(false);
+                        setLoadState('error');
                         setIsNextPageLoading(false);
                     }
                     // If manually aborted (navigation), do nothing (loading state handled by next req or unmount)
                     return;
                 }
-                
-                console.error('[LibraryContent] loadBooks error:', err);
-                
+
+                console.error('[RAIDEN_DIAG][Library] loadBooks error:', err);
+
                 if (requestId === activeRequestIdRef.current) {
-                    // Only show error UI if we don't have cache to fall back on
                     if (isInitial && !cachedLibraryBooks[cacheKey]?.length) {
                         setError(err instanceof Error ? err.message : 'Failed to load library');
+                        setLoadState('error');
+                    } else if (!isInitial) {
+                        // For pagination errors, maybe just toast? For now just log
+                        console.error("[RAIDEN_DIAG][Library] Pagination failed:", err);
                     }
-                    setIsLoading(false);
                     setIsNextPageLoading(false);
                 }
             } finally {
                 clearTimeout(timeoutId);
                 // Only clear loading if this is still the active request and we haven't handled it in catch
-                if (requestId === activeRequestIdRef.current && !controller.signal.aborted) {
-                    setIsLoading(false);
+                if (requestId === activeRequestIdRef.current) {
+                    console.info(`[RAIDEN_DIAG][Library] loadBooks finished: req=${requestId} aborted=${controller.signal.aborted}`);
+                    // Only clear loading state if we are still in it (prevent overshodowing success/error set in work)
+                    setLoadState(prev => prev === 'loading' ? 'success' : prev);
                     setIsNextPageLoading(false);
+                } else {
+                    console.info(`[RAIDEN_DIAG][Library] loadBooks ignored finally (req ${requestId} != active ${activeRequestIdRef.current})`);
                 }
             }
         };
@@ -264,7 +304,7 @@ export default function LibraryContent() {
 
         // Skip if we've already initialized for this child
         if (lastHydratedKey.current === cacheKey) return;
-        
+
         let targetFilters = activeChild?.library_settings?.filters || {};
         const targetSort = activeChild?.library_settings?.sortBy || "newest";
 
@@ -272,7 +312,7 @@ export default function LibraryContent() {
         // If we are initializing for a child and have NO saved filters, apply defaults based on age and interests
         if (currentChildId && Object.keys(targetFilters).length === 0) {
             const defaults: any = {};
-            
+
             // 1. Age-based level mapping
             const age = activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : null;
             if (age !== null) {
@@ -302,42 +342,40 @@ export default function LibraryContent() {
                     defaults.category = interestMap[firstInterest];
                 }
             }
-            
+
             targetFilters = defaults;
         }
         // -----------------------
 
         setFilters(targetFilters);
         setSortBy(targetSort);
-        
+
         lastHydratedKey.current = cacheKey;
         // lastSyncedSettings is used by the persistence effect to know what to "skip" saving
         // if it matches what we just loaded.
         lastSyncedSettings.current = JSON.stringify({ filters: targetFilters, sortBy: targetSort });
-        
+
     }, [cacheKey, activeChild]); // DEPENDENCY CHANGE: Removed librarySettings!
 
     // 2. Load books when view state changes
     useEffect(() => {
         if (authLoading) return;
-        
-        const isUnfiltered = Object.keys(filters).length === 0 && sortBy === "newest";
+
         const hasCache = !!cachedLibraryBooks[cacheKey];
 
         // 1. Reset state with "Magic Buffer":
         // Only clear books immediately if we are switching to a view that has NO cache,
         // to avoid an ugly flash of unrelated books.
-        // CODEX FIX: Ignore 'collection: discovery' as a filter since it's the default
-        const isDefaultView = isUnfiltered || (Object.keys(filters).length === 1 && filters.collection === 'discovery' && sortBy === 'newest');
-        
+        const isDefaultView = isDefaultFilters(filters, sortBy);
+
         if (!isDefaultView || !hasCache) {
             // Double Buffering: Don't clear books, just set loading
-            setIsLoading(true);
+            setLoadState('loading');
         }
 
         setOffset(0);
         setHasMore(true);
-        
+
         loadBooks(true);
 
         return () => {
@@ -351,18 +389,18 @@ export default function LibraryContent() {
     // 3. Debounced Persistence to DB
     useEffect(() => {
         if (authLoading || !user || !activeChild?.id) return;
-        
+
         const timeout = setTimeout(() => {
             const currentSettingsStr = JSON.stringify({ filters, sortBy });
             const remoteSettingsStr = JSON.stringify(librarySettings);
-            
+
             if (currentSettingsStr !== remoteSettingsStr) {
                 updateLibrarySettings({ filters, sortBy }).then(res => {
                     if (res?.success) {
                         lastSyncedSettings.current = currentSettingsStr;
                     }
                 }).catch(err => {
-                    console.error("[LibraryContent] Failed to persist settings:", err);
+                    console.error("[RAIDEN_DIAG][Library] Failed to persist settings:", err);
                 });
             }
         }, 1500);
@@ -380,7 +418,7 @@ export default function LibraryContent() {
             if (cached?.books) {
                 setBooks(cached.books);
                 cachedLibraryBooks[cacheKey] = cached.books;
-                setIsLoading(false);
+                setLoadState('success');
             }
         };
 
@@ -392,7 +430,7 @@ export default function LibraryContent() {
 
     const handleDeleteBook = useCallback(async (id: string) => {
         if (!currentUserId) return; // Guests can't delete anything
-        
+
         try {
             const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
             if (!res.ok) {
@@ -424,7 +462,7 @@ export default function LibraryContent() {
             onDeleteBook={handleDeleteBook}
             currentUserId={currentUserId}
             activeChildId={activeChild?.id}
-            isLoading={isLoading}
+            isLoading={loadState === 'loading'}
             onLoadMore={() => loadBooks(false)}
             hasMore={hasMore}
             isNextPageLoading={isNextPageLoading}
@@ -432,6 +470,8 @@ export default function LibraryContent() {
             onSortChange={setSortBy}
             filters={filters}
             onFiltersChange={setFilters}
+            error={error}
+            onRetry={() => loadBooks(true)}
         />
     );
 }
