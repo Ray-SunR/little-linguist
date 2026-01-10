@@ -228,6 +228,7 @@ The story should be fun, educational, and age-appropriate.`;
                 owner_user_id: ownerUserId,
                 title: data.title,
                 origin: 'user_generated',
+                min_grade: age <= 2 ? -1 : (age <= 5 ? 0 : (age <= 8 ? 1 : 3)), // Approximate grade based on age
                 voice_id: voiceId,
                 total_tokens: tokens.length,
                 child_id: childId,

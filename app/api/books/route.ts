@@ -22,9 +22,9 @@ export async function GET(request: NextRequest) {
                 .from('children')
                 .select('id')
                 .eq('id', childId)
-                .eq('guardian_id', user.id)
+                .eq('owner_user_id', user.id)
                 .single();
-            
+
             if (!childData) {
                 // childId doesn't belong to this user, ignore it
                 childId = null;
@@ -37,12 +37,12 @@ export async function GET(request: NextRequest) {
         if (mode === 'library') {
             let limit = parseInt(searchParams.get('limit') || '20', 10);
             let offset = parseInt(searchParams.get('offset') || '0', 10);
-            
+
             // Robust validation and clamping
             if (isNaN(limit) || limit < 1) limit = 20;
             if (limit > 50) limit = 50; // Max allowed per page
             if (isNaN(offset) || offset < 0) offset = 0;
-            
+
             const level = searchParams.get('level') || undefined;
             const origin = searchParams.get('origin') || undefined;
             const isNonFiction = searchParams.get('type') === 'nonfiction' ? true : (searchParams.get('type') === 'fiction' ? false : undefined);
@@ -59,10 +59,10 @@ export async function GET(request: NextRequest) {
 
             // Return books with cover images and token counts for library view
             const booksWithCovers = await repo.getAvailableBooksWithCovers(
-                user?.id, 
+                user?.id,
                 childId || undefined,
-                { 
-                    limit, 
+                {
+                    limit,
                     offset,
                     sortBy,
                     level,

@@ -98,7 +98,7 @@ export class BookRepository {
             selectFields += `, child_books!${joinType}(child_id, is_favorite, is_completed, last_token_index)`;
         }
 
-        let query: any = this.supabase
+        let query = this.supabase
             .from('books')
             .select(selectFields, { count: 'exact' });
 
@@ -111,7 +111,6 @@ export class BookRepository {
                 if (childId) {
                     // Logic: Must be owned by user.
                     // AND: (child_id IS NULL [Household/Shared]) OR (child_id EQ childId [Private])
-                    // We use an OR condition for the child scope
                     query = query.eq('owner_user_id', userId)
                         .or(`child_id.is.null,child_id.eq.${childId}`);
                 } else {
@@ -126,11 +125,7 @@ export class BookRepository {
             if (userId) {
                 if (childId) {
                     // Public (null owner) OR (Personal Owned AND (Shared OR Private))
-                    // Note: .or() applies to top-level ANDs unless grouped. 
-                    // Syntax: .or('owner_user_id.is.null,and(owner_user_id.eq.UID,or(child_id.is.null,child_id.eq.CID))') - complicated string syntax
-
-                    // Simpler approach:
-                    // Public OR (Owned AND (Shared OR Private))
+                    // Note: child_id here refers to books.child_id (private book ownership)
                     query = query.or(`owner_user_id.is.null,and(owner_user_id.eq.${userId},or(child_id.is.null,child_id.eq.${childId}))`);
                 } else {
                     query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
@@ -142,27 +137,26 @@ export class BookRepository {
 
         // Apply filters on the joined table if necessary
         if (childId) {
-            // Join condition is effectively: book.id = child_books.book_id AND child_books.child_id = childId
-            // Supabase PostgREST join syntax usually handles foreign key automatically.
-            // But we need to filter the *joined* rows to only be for THIS child.
-            // 'child_books!inner(child_id)' automatically filters where child_id is not null?
-            // Actually, for a left join, we don't filter the *top* rows by child_books.child_id unless we want only books with progress.
-            // But we WANT all books, but only the progress for THIS child.
-            // The `child_books!left` will return null if no match.
-            // However, we must ensure that if a match IS returned, it's for this childId.
-            // PostgREST: `select=*,child_books(*)` with `child_books.child_id=eq.X` filtering on the resource embedding?
+            // NOTE: We do NOT apply .eq('child_books.child_id', childId) here because in PostgREST,
+            // filtering on a joined table's column restricts the PARENT rows (effectively an INNER JOIN),
+            // which hides books that haven't been started yet.
+            //
+            // Instead, we rely on RLS to limit `child_books` to the user's family, 
+            // and we filter the array in memory below to pick the specific child's progress.
 
-            // To filter the *related* resource:
-            query = query.eq('child_books.child_id', childId);
-
-            // If is_favorite is true, we already used inner join, so this effectively filters the top rows too.
+            // EXCEPT: If we are specifically filtering by favorite, we DO want an inner join behavior
+            // because we only want books that ARE favorites.
             if (filters.is_favorite) {
+                // For favorites, we want to ensure the specific child marked it.
+                // This will filter parent rows to only those with a matching child_books entry where is_favorite=true
+                query = query.eq('child_books.child_id', childId);
                 query = query.eq('child_books.is_favorite', true);
             }
         }
 
         // Apply other book filters
-        if (filters) {
+        // NOTE: Skip these filters for personal books, as user-generated content doesn't have level/category/etc. metadata
+        if (filters && !filters.only_personal) {
             const f = filters;
             if (f.level) {
                 switch (f.level) {
@@ -205,8 +199,7 @@ export class BookRepository {
             query = query.range(offset, offset + filters.limit - 1);
         }
 
-        const { data: booksData, error: booksError } = await query;
-        if (booksError) throw booksError;
+        const { data: booksData, error: booksError } = await query.throwOnError();
         if (!booksData || booksData.length === 0) return [];
 
         // Batch fetch signed URLs
@@ -286,12 +279,18 @@ export class BookRepository {
                 }
             }
 
-            // JOIN RESULT: `child_books` will be an array (or single object if !inner used in specific ways, but typically array in PostgREST JS)
-            // Since we filtered by `child_books.child_id` = childId, the array will contain at most 1 item.
+            // JOIN RESULT: `child_books` will be an array because of the one-to-many relationship (Book -> ChildBooks)
+            // Even if we use `child_books!inner`, PostgREST returns it as an array.
             let progress = null;
             if (book.child_books) {
-                const p = Array.isArray(book.child_books) ? book.child_books[0] : book.child_books;
-                if (p) progress = p;
+                const pArray = Array.isArray(book.child_books) ? book.child_books : [book.child_books];
+                if (childId) {
+                    // Find the progress entry SPECIFICALLY for this child (since RLS might return siblings' data too)
+                    progress = pArray.find((p: any) => p.child_id === childId);
+                } else {
+                    // Fallback (shouldn't really happen in this filtered context, but safe default)
+                    progress = pArray[0];
+                }
             }
 
             return {

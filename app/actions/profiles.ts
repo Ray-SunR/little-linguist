@@ -168,7 +168,7 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
     if (data.avatar_asset_path) {
       const uploadedPath = await uploadAvatarToBucket(supabase, user.id, id, data.avatar_asset_path);
       if (uploadedPath) {
-        // Get existing avatar_paths and append (with guardian_id filter for safety)
+        // Get existing avatar_paths and append (with owner_user_id filter for safety)
         const { data: existing } = await supabase
           .from('children')
           .select('avatar_paths')

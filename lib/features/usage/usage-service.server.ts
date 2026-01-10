@@ -8,7 +8,7 @@ const getAdminClient = () => {
 };
 
 export interface UsageIdentity {
-    user_id?: string;
+    owner_user_id?: string;
     guest_id?: string;
     identity_key: string;
 }
@@ -22,7 +22,7 @@ export interface UsageStatus {
 export async function getOrCreateIdentity(user?: { id: string } | null): Promise<UsageIdentity> {
     if (user) {
         return {
-            user_id: user.id,
+            owner_user_id: user.id,
             identity_key: user.id
         };
     }
@@ -54,7 +54,7 @@ export async function checkUsageLimit(
 ): Promise<UsageStatus> {
     try {
         const supabase = getAdminClient();
-        
+
         const { data: usage, error } = await supabase
             .from("feature_usage")
             .select("current_usage, max_limit")
@@ -94,17 +94,17 @@ export async function tryIncrementUsage(
 ): Promise<boolean> {
     try {
         const supabase = getAdminClient();
-        
+
         const { data, error } = await supabase.rpc("increment_feature_usage", {
             p_identity_key: identity.identity_key,
             p_feature_name: featureName,
             p_max_limit: limit,
-            p_user_id: identity.user_id,
+            p_owner_user_id: identity.owner_user_id,
             p_guest_id: identity.guest_id
         });
 
         if (error) throw error;
-        
+
         // rpc returns a list of rows [ { success, current_count, enforced_limit } ]
         const result = data?.[0];
         return !!result?.success;

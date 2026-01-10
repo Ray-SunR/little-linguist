@@ -16,7 +16,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 -- Children Profiles
 CREATE TABLE IF NOT EXISTS public.children (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  guardian_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  owner_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at TIMESTAMPTZ,
   first_name TEXT NOT NULL,
@@ -30,13 +30,13 @@ CREATE TABLE IF NOT EXISTS public.children (
   primary_avatar_index INT DEFAULT 0  -- Index of the primary avatar in avatar_paths array
 );
 
-CREATE INDEX IF NOT EXISTS children_guardian_id_idx ON public.children (guardian_id);
+CREATE INDEX IF NOT EXISTS children_owner_user_id_idx ON public.children (owner_user_id);
 ALTER TABLE public.children ENABLE ROW LEVEL SECURITY;
 
 -- Media Assets (Private storage tracking)
 CREATE TABLE IF NOT EXISTS public.media_assets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  guardian_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  owner_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   child_id UUID REFERENCES public.children(id) ON DELETE CASCADE,
   bucket TEXT NOT NULL,
   path TEXT NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS public.media_assets (
   UNIQUE(bucket, path)
 );
 
-CREATE INDEX IF NOT EXISTS media_assets_guardian_id_idx ON public.media_assets (guardian_id);
+CREATE INDEX IF NOT EXISTS media_assets_owner_user_id_idx ON public.media_assets (owner_user_id);
 ALTER TABLE public.media_assets ENABLE ROW LEVEL SECURITY;
 
 -- ==========================================
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS public.books (
   voice_id TEXT DEFAULT 'Kevin',
   total_tokens INT, -- used for progress calculating without loading tokens
   estimated_reading_time INT,
-  guardian_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE, -- NULL for system books
+  owner_user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE, -- NULL for system books
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   images JSONB DEFAULT '[]'::jsonb, -- metadata about images (src, caption)
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS public.point_transactions (
 -- AI Stories (Content Cache)
 CREATE TABLE IF NOT EXISTS public.stories (
   id UUID PRIMARY KEY REFERENCES public.books(id) ON DELETE CASCADE,
-  guardian_id UUID DEFAULT auth.uid() REFERENCES public.profiles(id),
+  owner_user_id UUID DEFAULT auth.uid() REFERENCES public.profiles(id),
   child_id UUID REFERENCES public.children(id),
   main_character_description TEXT,
   scenes JSONB NOT NULL, -- Array of {text, image_prompt, after_word_index}
@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS public.stories (
 -- Story Generation Jobs
 CREATE TABLE IF NOT EXISTS public.story_generation_jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  guardian_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  owner_user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   child_id UUID REFERENCES public.children(id) ON DELETE SET NULL,
   status TEXT DEFAULT 'pending',
   error TEXT,
@@ -239,7 +239,7 @@ CREATE TABLE IF NOT EXISTS public.subscription_plans (
 
 CREATE TABLE IF NOT EXISTS public.usage_meter (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  guardian_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  owner_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   category TEXT NOT NULL, -- story_gen, tts_chars, ai_images
   quantity BIGINT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -250,55 +250,56 @@ CREATE TABLE IF NOT EXISTS public.usage_meter (
 -- 6. Policies (RLS)
 -- ==========================================
 
+-- Profiles (Guardian/Household)
 -- Profile: Own row only
 CREATE POLICY "Users can only view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can only update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- Children: Guardian only
+-- Children: owner_user_id only
 CREATE POLICY "Guardians can manage their own children" ON public.children 
-  FOR ALL USING (auth.uid() = guardian_id);
+  FOR ALL USING (auth.uid() = owner_user_id);
 
 -- Books: System (all) + own generated
 CREATE POLICY "Users can view all system or owned books" ON public.books
-  FOR SELECT USING (origin = 'system' OR guardian_id = auth.uid());
+  FOR SELECT USING (origin = 'system' OR owner_user_id = auth.uid());
 
 -- Book Contents: Same as books
 CREATE POLICY "Users can view book contents" ON public.book_contents
   FOR SELECT USING (EXISTS (
-    SELECT 1 FROM public.books b WHERE b.id = book_id AND (b.origin = 'system' OR b.guardian_id = auth.uid())
+    SELECT 1 FROM public.books b WHERE b.id = book_id AND (b.origin = 'system' OR b.owner_user_id = auth.uid())
   ));
 
 CREATE POLICY "Users can view book audios" ON public.book_audios
   FOR SELECT USING (EXISTS (
-    SELECT 1 FROM public.books b WHERE b.id = book_id AND (b.origin = 'system' OR b.guardian_id = auth.uid())
+    SELECT 1 FROM public.books b WHERE b.id = book_id AND (b.origin = 'system' OR b.owner_user_id = auth.uid())
   ));
 
 CREATE POLICY "Users can view book media" ON public.book_media
   FOR SELECT USING (EXISTS (
-    SELECT 1 FROM public.books b WHERE b.id = book_id AND (b.origin = 'system' OR b.guardian_id = auth.uid())
+    SELECT 1 FROM public.books b WHERE b.id = book_id AND (b.origin = 'system' OR b.owner_user_id = auth.uid())
   ));
 
 -- Child Specific Data: Via Join
 CREATE POLICY "Guardians can manage child progress" ON public.child_book_progress
   FOR ALL USING (EXISTS (
-    SELECT 1 FROM public.children c WHERE c.id = child_id AND c.guardian_id = auth.uid()
+    SELECT 1 FROM public.children c WHERE c.id = child_id AND c.owner_user_id = auth.uid()
   ));
 
 CREATE POLICY "Guardians can manage child vocab" ON public.child_vocab
   FOR ALL USING (EXISTS (
-    SELECT 1 FROM public.children c WHERE c.id = child_id AND c.guardian_id = auth.uid()
+    SELECT 1 FROM public.children c WHERE c.id = child_id AND c.owner_user_id = auth.uid()
   ));
 
 CREATE POLICY "Guardians can manage child sessions" ON public.learning_sessions
   FOR ALL USING (EXISTS (
-    SELECT 1 FROM public.children c WHERE c.id = child_id AND c.guardian_id = auth.uid()
+    SELECT 1 FROM public.children c WHERE c.id = child_id AND c.owner_user_id = auth.uid()
   ));
 
 CREATE POLICY "Guardians can manage their stories" ON public.stories
-  FOR ALL USING (guardian_id = auth.uid());
+  FOR ALL USING (owner_user_id = auth.uid());
 
 CREATE POLICY "Guardians can manage their story jobs" ON public.story_generation_jobs
-  FOR ALL USING (guardian_id = auth.uid());
+  FOR ALL USING (owner_user_id = auth.uid());
 
 -- ==========================================
 -- 7. Storage Initialization

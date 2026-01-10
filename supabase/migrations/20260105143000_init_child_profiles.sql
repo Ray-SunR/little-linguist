@@ -29,7 +29,7 @@ $$;
 -- Create children table
 create table if not exists children (
   id uuid primary key default gen_random_uuid(),
-  guardian_id uuid not null references profiles(id) on delete cascade,
+  owner_user_id uuid not null references profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
   deleted_at timestamptz,
 
@@ -45,7 +45,7 @@ create table if not exists children (
   avatar_asset_path text
 );
 
-create index if not exists children_guardian_id_idx on children (guardian_id);
+create index if not exists children_owner_user_id_idx on children (owner_user_id);
 
 alter table children enable row level security;
 
@@ -55,25 +55,25 @@ begin
   if not exists (select 1 from pg_policies where policyname = 'Users can view their own children') then
     create policy "Users can view their own children"
       on children for select
-      using ( auth.uid() = guardian_id );
+      using ( auth.uid() = owner_user_id );
   end if;
 
   if not exists (select 1 from pg_policies where policyname = 'Users can insert their own children') then
     create policy "Users can insert their own children"
       on children for insert
-      with check ( auth.uid() = guardian_id );
+      with check ( auth.uid() = owner_user_id );
   end if;
 
   if not exists (select 1 from pg_policies where policyname = 'Users can update their own children') then
     create policy "Users can update their own children"
       on children for update
-      using ( auth.uid() = guardian_id );
+      using ( auth.uid() = owner_user_id );
   end if;
 
   if not exists (select 1 from pg_policies where policyname = 'Users can delete their own children') then
     create policy "Users can delete their own children"
       on children for delete
-      using ( auth.uid() = guardian_id );
+      using ( auth.uid() = owner_user_id );
   end if;
 end
 $$;
@@ -81,7 +81,7 @@ $$;
 -- Create media_assets table
 create table if not exists media_assets (
   id uuid primary key default gen_random_uuid(),
-  guardian_id uuid not null references profiles(id) on delete cascade,
+  owner_user_id uuid not null references profiles(id) on delete cascade,
   child_id uuid references children(id) on delete cascade,
 
   bucket text not null,
@@ -93,7 +93,7 @@ create table if not exists media_assets (
   unique(bucket, path)
 );
 
-create index if not exists media_assets_guardian_id_idx on media_assets (guardian_id);
+create index if not exists media_assets_owner_user_id_idx on media_assets (owner_user_id);
 create index if not exists media_assets_child_id_idx on media_assets (child_id);
 
 alter table media_assets enable row level security;
@@ -104,25 +104,25 @@ begin
   if not exists (select 1 from pg_policies where policyname = 'Users can view their own media') then
     create policy "Users can view their own media"
       on media_assets for select
-      using ( auth.uid() = guardian_id );
+      using ( auth.uid() = owner_user_id );
   end if;
 
   if not exists (select 1 from pg_policies where policyname = 'Users can insert their own media') then
     create policy "Users can insert their own media"
       on media_assets for insert
-      with check ( auth.uid() = guardian_id );
+      with check ( auth.uid() = owner_user_id );
   end if;
 
   if not exists (select 1 from pg_policies where policyname = 'Users can update their own media') then
     create policy "Users can update their own media"
       on media_assets for update
-      using ( auth.uid() = guardian_id );
+      using ( auth.uid() = owner_user_id );
   end if;
 
   if not exists (select 1 from pg_policies where policyname = 'Users can delete their own media') then
     create policy "Users can delete their own media"
       on media_assets for delete
-      using ( auth.uid() = guardian_id );
+      using ( auth.uid() = owner_user_id );
   end if;
 end
 $$;
