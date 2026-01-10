@@ -132,20 +132,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch (err) {
         console.error("[AuthProvider] Init failed:", err);
         if (mounted) setIsLoading(false);
+      } finally {
+        // Safety timeout in case init hangs
+        if (mounted && isLoading) {
+            setTimeout(() => {
+                if (mounted && isLoading) setIsLoading(false);
+            }, 8000);
+        }
       }
     }
 
     init();
+    
+    // Use a ref to track current user without triggering re-effects
+    const userRef = { current: user };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (!mounted) return;
       const newUser = session?.user ?? null;
       
+      // Update ref immediately for future events
+      const prevUser = userRef.current;
+      userRef.current = newUser;
+
       if (newUser && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-        if (event === 'SIGNED_IN') setIsLoading(true);
-        setUser(prev => prev?.id === newUser.id ? prev : newUser);
-        await hydrateFromCache(newUser.id);
-        await fetchProfiles(newUser.id, true);
+        // Optimisation: If user ID hasn't changed, don't trigger full loading state
+        // This often happens on tab focus / wake on mobile
+        const isSameUser = prevUser?.id === newUser.id;
+        
+        if (!isSameUser || event === 'INITIAL_SESSION') {
+            if (event === 'SIGNED_IN') setIsLoading(true);
+            setUser(newUser);
+            await hydrateFromCache(newUser.id);
+            await fetchProfiles(newUser.id, true);
+        } else {
+            // Even if same user, we might want to silently refresh profiles
+            refreshProfiles(true);
+        }
       } else if (!newUser) {
         setUser(null);
         setProfiles([]);

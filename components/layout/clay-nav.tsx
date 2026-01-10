@@ -120,11 +120,36 @@ export function ClayNav() {
     }, [pathname, pendingHref]);
 
     const handleLogout = async () => {
-        const { createClient } = await import("@/lib/supabase/client");
-        const supabase = createClient();
-        await supabase.auth.signOut();
         setIsHubOpen(false);
-        router.push("/");
+        try {
+            const { createClient } = await import("@/lib/supabase/client");
+            const supabase = createClient();
+            await supabase.auth.signOut();
+        } catch (error) {
+            console.error("Sign out failed:", error);
+            // Fallback: manually clear local session to ensure user is "logged out" locally
+            try {
+                // Clear all Raiden/Lumo keys
+                if (typeof window !== "undefined") {
+                    Object.keys(window.localStorage).forEach(key => {
+                        if (key.includes('raiden:') || key.includes('sb-')) { 
+                            window.localStorage.removeItem(key);
+                        }
+                    });
+                    // Force clear cookies via document (simple attempt)
+                    document.cookie.split(";").forEach((c) => {
+                        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                    });
+                }
+            } catch (cleanupErr) {
+                console.warn("Manual cleanup failed:", cleanupErr);
+            }
+        } finally {
+            // Always redirect to home, even if Supabase/Cache throws
+            router.push("/");
+            // Force reload to clear any lingering memory/cache state
+            setTimeout(() => window.location.href = "/", 100);
+        }
     };
 
     // Hide nav on landing and login - these pages have their own layouts

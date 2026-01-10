@@ -22,6 +22,7 @@ export enum CacheStore {
 class RaidenCache {
     private db: IDBDatabase | null = null;
     private initPromise: Promise<IDBDatabase> | null = null;
+    private isClosing = false;
 
     private validateSchema(db: IDBDatabase): boolean {
         const stores = Object.values(CacheStore);
@@ -35,13 +36,14 @@ class RaidenCache {
 
     async init(retryOnVersionMismatch = true): Promise<IDBDatabase> {
         if (this.db) {
-            // Even if we have a db, verify it hasn't become stale (unlikely but safe)
             if (this.validateSchema(this.db)) return this.db;
-            this.db = null; // Stale, fall through to re-init
+            this.close(); // Close stale
         }
+        
+        // If we have an in-flight promise, return it
         if (this.initPromise) return this.initPromise;
 
-        this.initPromise = new Promise((resolve, reject) => {
+        const openReq = new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
 
             request.onupgradeneeded = (event) => {
@@ -104,24 +106,44 @@ class RaidenCache {
                 }
             };
 
+            request.onblocked = () => {
+                // This event fires when an open connection usually in another tab 
+                // hasn't closed in response to a versionchange event.
+                console.warn("[Cache] Database upgrade blocked. Please close other tabs.");
+                // We can't really do much here except potentially notify the user or fail fast.
+                // Rejection will allow the app to fall back to network.
+                reject(new Error("Database blocked by another tab"));
+            };
+
             request.onsuccess = () => {
                 const db = request.result;
-                // Double check if all stores exist (handles cases where version was bumped but upgrade failed quietly)
+                
+                // CRITICAL: Handle version changes from OTHER tabs to prevent locking
+                db.onversionchange = () => {
+                    console.warn("[Cache] Database version changed in another tab, closing connection.");
+                    db.close();
+                    this.db = null;
+                    this.initPromise = null;
+                };
+                
+                // Double check if all stores exist
                 if (!this.validateSchema(db)) {
                     console.warn("[Cache] Schema validation failed after open, triggering recovery...");
+                    db.close();
                     this.db = null;
                     this.initPromise = null;
                     this.handleRecovery(resolve, reject);
                     return;
                 }
+                
                 this.db = db;
+                this.isClosing = false;
                 resolve(db);
             };
 
             request.onerror = () => {
                 const error = request.error;
                 
-                // Handle version mismatch by deleting and retrying
                 if (retryOnVersionMismatch && (error?.name === "VersionError" || error?.name === "NotFoundError")) {
                     console.warn("[Cache] Version/Store mismatch, deleting stale database and retrying...");
                     this.initPromise = null;
@@ -135,31 +157,76 @@ class RaidenCache {
             };
         });
 
+        // Race against a timeout to prevent infinite hangs
+        const timeout = new Promise<IDBDatabase>((_, reject) => 
+            setTimeout(() => reject(new Error("Cache init timed out")), 4000)
+        );
+
+        this.initPromise = Promise.race([openReq, timeout]);
+        
+        // Clear promise on failure to allow retries
+        this.initPromise.catch(() => {
+            this.initPromise = null;
+        });
+
         return this.initPromise;
     }
 
+    private close() {
+        if (this.db) {
+            this.isClosing = true;
+            this.db.close();
+            this.db = null;
+        }
+        this.initPromise = null;
+    }
+
     private handleRecovery(resolve: any, reject: any) {
-        const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
-        deleteRequest.onsuccess = () => {
-            console.debug("[Cache] Stale database deleted, retrying init...");
-            this.init().then(resolve).catch(reject);
-        };
-        deleteRequest.onerror = () => {
-            console.error("[Cache] Failed to delete stale database:", deleteRequest.error);
-            reject(new Error("Failed to recover stale database"));
-        };
+        // Wrap delete in a promise to handle blocking/timeouts
+        const deletePromise = new Promise<void>((delResolve, delReject) => {
+            const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+            
+            deleteRequest.onblocked = () => {
+                console.warn("[Cache] Database deletion blocked by another tab.");
+                // We cannot force close other tabs from here. 
+                // Failing fast allows the caller to catch this and potentially bypass cache.
+                delReject(new Error("Database deletion blocked"));
+            };
+
+            deleteRequest.onsuccess = () => {
+                console.debug("[Cache] Stale database deleted, retrying init...");
+                delResolve();
+            };
+
+            deleteRequest.onerror = () => {
+                console.error("[Cache] Failed to delete stale database:", deleteRequest.error);
+                delReject(new Error("Failed to recover stale database"));
+            };
+        });
+
+        const timeout = new Promise<void>((_, toReject) => 
+            setTimeout(() => toReject(new Error("Recovery timed out")), 2000)
+        );
+
+        Promise.race([deletePromise, timeout])
+            .then(() => this.init(false).then(resolve).catch(reject))
+            .catch((err) => {
+                console.error("[Cache] Recovery failed completely:", err);
+                // If recovery fails, we reject the original init promise. 
+                // The app should catch this and proceed without cache.
+                reject(err); 
+            });
     }
 
     private async getStore(storeName: CacheStore, mode: IDBTransactionMode = "readonly"): Promise<IDBObjectStore> {
-        const db = await this.init();
         try {
+            const db = await this.init();
             const transaction = db.transaction(storeName, mode);
             return transaction.objectStore(storeName);
         } catch (err) {
-            // If transaction fails specifically because store is missing, trigger one more init attempt
             if (err instanceof DOMException && err.name === "NotFoundError") {
                 console.warn(`[Cache] Store "${storeName}" not found after init, triggering full refresh...`);
-                this.db = null; // Force re-init from scratch
+                this.close(); // Force clean slate
                 const freshDb = await this.init();
                 const transaction = freshDb.transaction(storeName, mode);
                 return transaction.objectStore(storeName);
@@ -169,6 +236,7 @@ class RaidenCache {
     }
 
     // --- Generic Methods ---
+    // All methods now implicitly benefit from the timeout in init()
 
     async get<T>(storeName: CacheStore, key: string): Promise<T | undefined> {
         if (typeof window === 'undefined') return undefined;
@@ -212,12 +280,7 @@ class RaidenCache {
                 transaction.onabort = () => reject(new Error("Transaction aborted"));
 
                 dataArray.forEach(data => {
-                    const request = store.put(data);
-                    request.onerror = (e) => {
-                        console.error(`[Cache] PutAll individual error for ${storeName}:`, e);
-                        // We don't necessarily want to kill the whole transaction for one failure,
-                        // but IndexedDB usually aborts the transaction on error anyway unless preventDefault.
-                    };
+                    store.put(data);
                 });
             });
         } catch (err) {
