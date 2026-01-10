@@ -359,6 +359,7 @@ export function LibraryFilters({
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder="Search..."
+                    aria-label="Search stories"
                     className="bg-transparent border-none outline-none w-full text-slate-700 font-bold font-fredoka text-lg placeholder:text-slate-400/80 h-full"
                 />
             </div>
@@ -399,28 +400,33 @@ export function LibraryFilters({
             <div className="w-full">
                  {/* Mobile Grid Layout */}
                 <div className="md:hidden">
-                    <div className="grid grid-cols-4 gap-3 transition-all duration-300 ease-in-out">
+                    <div className="grid grid-cols-4 gap-y-6 gap-x-2 transition-all duration-300 ease-in-out">
                          {(isCategoryExpanded ? CATEGORIES : CATEGORIES.slice(0, 8)).map((cat) => {
                              const isActive = activeCategory === cat.id;
                              const Icon = cat.icon;
-                             let variantColor: any = "white";
-                             if (isActive) variantColor = "purple";
 
                              return (
                                 <motion.button
                                     key={cat.id}
                                     onClick={() => onCategoryChange(cat.id)}
-                                    whileTap={{ scale: 0.9 }}
-                                    className="flex flex-col items-center gap-1.5"
+                                    whileTap={{ scale: 0.95 }}
+                                    className="flex flex-col items-center gap-2 relative group"
                                 >
+                                     {isActive && (
+                                         <motion.div 
+                                             layoutId="mobile-category-glow"
+                                             className="absolute -inset-2 bg-purple-100/50 rounded-full blur-xl -z-10"
+                                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                         />
+                                     )}
                                      <div className={clayVariants({ 
-                                        color: variantColor, 
+                                        color: isActive ? "purple" : "white", 
                                         shape: "circle", 
                                         intensity: isActive ? "high" : "medium" 
-                                    }) + ` w-14 h-14 border-2 ${isActive ? 'border-purple-300' : 'border-white'} flex items-center justify-center shadow-clay-sm`}>
-                                        <Icon className={`w-6 h-6 stroke-[2.5px] ${cat.iconClass} ${!isActive && 'opacity-90 saturate-[0.8]'}`} />
+                                    }) + ` w-14 h-14 border-2 transition-all duration-300 ${isActive ? 'border-purple-300 scale-110' : 'border-white'} flex items-center justify-center shadow-clay-sm`}>
+                                        <Icon className={`w-6 h-6 stroke-[2.5px] ${cat.iconClass} transition-all duration-300 ${isActive ? 'opacity-100 scale-110' : 'opacity-70 saturate-[0.8]'}`} />
                                     </div>
-                                    <span className={`text-[10px] sm:text-xs font-bold font-fredoka truncate w-full text-center ${isActive ? 'text-purple-700' : 'text-slate-500'}`}>
+                                    <span className={`text-[10px] sm:text-xs font-bold font-fredoka truncate w-full text-center transition-all ${isActive ? 'text-purple-600 scale-110' : 'text-slate-400'}`}>
                                         {cat.label}
                                     </span>
                                 </motion.button>
@@ -438,34 +444,36 @@ export function LibraryFilters({
                 </div>
 
                 {/* Desktop Flex Layout (Existing) */}
-                <div className="hidden md:flex flex-wrap gap-5 justify-start">
+                <div className="hidden md:flex flex-wrap gap-5 justify-start py-6 relative">
                     {CATEGORIES.map((cat) => {
                         const isActive = activeCategory === cat.id;
                         const Icon = cat.icon;
-                        
-                        let variantColor: any = "white";
-                        if (isActive) {
-                            variantColor = "purple"; 
-                        }
                         
                         return (
                             <motion.button
                                 key={cat.id}
                                 onClick={() => onCategoryChange(cat.id)}
-                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className={`flex flex-col items-center gap-2 min-w-[70px] group flex-shrink-0 snap-center`}
+                                className={`flex flex-col items-center gap-3 min-w-[90px] group relative py-3`}
                             >
+                                {isActive && (
+                                    <motion.div 
+                                        layoutId="category-liquid-bg"
+                                        className="absolute inset-0 bg-white rounded-3xl shadow-clay-md -z-10"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
                                 <div className={clayVariants({ 
-                                    color: variantColor, 
+                                    color: isActive ? "purple" : "white", 
                                     shape: "circle", 
                                     intensity: isActive ? "high" : "medium" 
-                                }) + ` w-16 h-16 border-4 ${isActive ? 'border-purple-200' : 'border-white'} relative flex items-center justify-center transition-all duration-300 shadow-clay-md group-hover:shadow-clay-lg`}>
-                                    <div className={`relative p-2 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'scale-110' : ''}`}>
-                                         <Icon className={`w-8 h-8 stroke-[2.5px] drop-shadow-sm ${cat.iconClass} ${!isActive && 'opacity-80 saturate-[0.8]'} transition-all`} />
+                                }) + ` w-16 h-16 border-[3px] transition-all duration-300 ${isActive ? 'border-purple-200' : 'border-white group-hover:border-purple-50'} relative flex items-center justify-center`}>
+                                    <div className={`relative p-2 transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}>
+                                         <Icon className={`w-8 h-8 stroke-[2.5px] drop-shadow-sm transition-all duration-300 ${cat.iconClass} ${isActive ? 'opacity-100 saturate-110' : 'opacity-60 saturate-[0.8]'}`} />
                                     </div>
                                 </div>
-                                <span className={`text-sm font-bold font-fredoka ${isActive ? 'text-purple-700' : 'text-slate-500'} transition-colors whitespace-nowrap`}>
+                                <span className={`text-sm font-bold font-fredoka transition-all duration-300 whitespace-nowrap ${isActive ? 'text-purple-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
                                     {cat.label}
                                 </span>
                             </motion.button>

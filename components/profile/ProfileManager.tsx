@@ -16,15 +16,22 @@ interface Props {
 }
 
 export default function ProfileManager({ initialChildren }: Props) {
-  const { profiles: children, refreshProfiles } = useAuth();
+  const { profiles: authChildren, refreshProfiles } = useAuth();
+  
+  // Use initialChildren as the primary source of truth until auth hydrates,
+  // preferring authChildren if they are populated later.
+  const children = authChildren.length > 0 ? authChildren : initialChildren;
+
   const [isAdding, setIsAdding] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildProfile | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
+    setDeleteError(null);
     try {
       const result = await deleteChildProfile(id);
       if (!result) throw new Error('No response from server. Please try again.');
@@ -36,11 +43,12 @@ export default function ProfileManager({ initialChildren }: Props) {
       await refreshProfiles();
 
       // Auto-redirect if no heroes left
-      if (children.length <= 1) { // If it was the last one
+      if (children.length <= 1) { 
         router.push('/onboarding');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Delete failed:", err);
+      setDeleteError(err.message || "Failed to delete profile. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -61,9 +69,9 @@ export default function ProfileManager({ initialChildren }: Props) {
           whileHover={{ scale: 1.05, y: -4 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsAdding(true)}
-          className="primary-btn h-16 px-8 flex items-center gap-3 text-xl font-black font-fredoka"
+          className="primary-btn h-14 md:h-16 px-6 md:px-8 flex items-center justify-center gap-3 text-lg md:text-xl font-black font-fredoka w-full md:w-auto"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5 md:w-6 md:h-6" />
           Add Explorer
         </motion.button>
       </div>
@@ -156,27 +164,29 @@ export default function ProfileManager({ initialChildren }: Props) {
       {/* ADD WIZARD MODAL */}
       <AnimatePresence>
         {isAdding && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto bg-ink/20 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsAdding(false)}
-              className="absolute inset-0 bg-ink/20 backdrop-blur-md"
+              className="absolute inset-0"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative z-10 w-full max-w-2xl"
+              className="relative z-10 w-full max-w-2xl my-auto"
             >
               <button
                 onClick={() => setIsAdding(false)}
-                className="absolute -top-4 -right-4 w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center text-ink hover:text-rose-500 z-20 border-4 border-purple-50"
+                className="absolute -top-3 -right-3 md:-top-4 md:-right-4 w-10 h-10 md:w-12 md:h-12 bg-white rounded-full shadow-xl flex items-center justify-center text-ink hover:text-rose-500 z-20 border-4 border-purple-50"
               >
-                <X />
+                <X className="w-5 h-5 md:w-6 md:h-6" />
               </button>
-              <ChildProfileWizard />
+              <div className="max-h-[85dvh] overflow-y-auto rounded-[2.5rem] md:rounded-[3.5rem] custom-scrollbar">
+                <ChildProfileWizard />
+              </div>
             </motion.div>
           </div>
         )}
@@ -185,34 +195,34 @@ export default function ProfileManager({ initialChildren }: Props) {
       {/* EDIT MODAL */}
       <AnimatePresence>
         {editingChild && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto bg-ink/20 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setEditingChild(null)}
-              className="absolute inset-0 bg-ink/20 backdrop-blur-md"
+              className="absolute inset-0"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative z-10 w-full max-w-2xl"
+              className="relative z-10 w-full max-w-2xl my-auto"
             >
               <button
                 onClick={() => setEditingChild(null)}
-                className="absolute -top-4 -right-4 w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center text-ink hover:text-rose-500 z-20 border-4 border-purple-50"
+                className="absolute -top-3 -right-3 md:-top-4 md:-right-4 w-10 h-10 md:w-12 md:h-12 bg-white rounded-full shadow-xl flex items-center justify-center text-ink hover:text-rose-500 z-20 border-4 border-purple-50"
               >
-                <X />
+                <X className="w-5 h-5 md:w-6 md:h-6" />
               </button>
-              <ChildProfileForm
-                initialData={editingChild}
-                onSuccess={() => {
-                  setEditingChild(null);
-                  // In a real app we'd refresh or update local state properly
-                  // For now we'll rely on the refresh from the form action
-                }}
-              />
+              <div className="max-h-[85dvh] overflow-y-auto rounded-[3rem] custom-scrollbar">
+                <ChildProfileForm
+                  initialData={editingChild}
+                  onSuccess={() => {
+                    setEditingChild(null);
+                  }}
+                />
+              </div>
             </motion.div>
           </div>
         )}
@@ -239,7 +249,13 @@ export default function ProfileManager({ initialChildren }: Props) {
                 <Trash2 className="w-10 h-10" />
               </div>
               <h3 className="text-2xl font-black text-ink font-fredoka mb-2">Are you sure?</h3>
-              <p className="text-ink-muted font-bold font-nunito mb-8">This will permanently remove the hero's journey.</p>
+              <p className="text-ink-muted font-bold font-nunito mb-6">This will permanently remove the hero's journey.</p>
+
+              {deleteError && (
+                <div className="mb-6 p-4 bg-rose-50 border-2 border-rose-100 rounded-2xl text-rose-500 text-sm font-bold animate-fade-in">
+                  {deleteError}
+                </div>
+              )}
 
               <div className="flex flex-col gap-3">
                 <button
