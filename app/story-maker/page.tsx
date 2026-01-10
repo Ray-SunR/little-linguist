@@ -29,6 +29,7 @@ export default function StoryMakerPage() {
         age: activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : 6,
         gender: activeChild.gender === "girl" ? "girl" : "boy",
         avatarUrl: activeChild.avatar_asset_path,
+        avatarStoragePath: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
         id: activeChild.id
     } : {
         name: "",

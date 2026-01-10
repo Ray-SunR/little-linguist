@@ -224,21 +224,33 @@ export async function deleteChildProfile(id: string) {
     // database records are deleted via cascading delete on the 'children' table.
 
     // 1. Collect Child Avatar Paths
-    const { data: childData } = await supabase
+    const { data: childData, error: childError } = await supabase
       .from('children')
       .select('avatar_paths')
       .eq('id', id)
       .eq('owner_user_id', user.id)
       .single();
 
-    const storagePathsUserAssets: string[] = (childData?.avatar_paths as string[]) || [];
+    if (childError) {
+      console.error(`[profiles:deleteChildProfile] Error fetching child data:`, childError);
+      return { error: childError.message };
+    }
+
+    // Security: Only allow deleting paths that start with the user's ID to prevent traversal
+    const storagePathsUserAssets: string[] = ((childData?.avatar_paths as string[]) || [])
+      .filter(path => path.startsWith(`${user.id}/`));
 
     // 2. Find all books associated with this child
-    const { data: books } = await supabase
+    const { data: books, error: booksError } = await supabase
       .from('books')
       .select('id, cover_image_path')
       .eq('child_id', id)
       .eq('owner_user_id', user.id);
+
+    if (booksError) {
+      console.error(`[profiles:deleteChildProfile] Error fetching books:`, booksError);
+      return { error: booksError.message };
+    }
 
     const storagePathsBookAssets: string[] = [];
     const bookIds = books?.map(b => b.id) || [];
@@ -255,7 +267,7 @@ export async function deleteChildProfile(id: string) {
         .from('book_audios')
         .select('audio_path')
         .in('book_id', bookIds);
-      
+
       if (audios) {
         audios.forEach(a => {
           if (a.audio_path) storagePathsBookAssets.push(a.audio_path);
@@ -267,7 +279,7 @@ export async function deleteChildProfile(id: string) {
         .from('book_media')
         .select('path')
         .in('book_id', bookIds);
-      
+
       if (media) {
         media.forEach(m => {
           if (m.path) storagePathsBookAssets.push(m.path);
@@ -313,8 +325,19 @@ export async function deleteChildProfile(id: string) {
       return { error: error.message };
     }
 
+    // Get remaining count
+    const { count, error: countError } = await supabase
+      .from('children')
+      .select('*', { count: 'exact', head: true })
+      .eq('owner_user_id', user.id);
+
+    if (countError) {
+      console.warn('[profiles:deleteChildProfile] Error counting remaining profiles:', countError);
+      return { success: true, remainingCount: 1 };
+    }
+
     revalidatePath('/dashboard');
-    return { success: true };
+    return { success: true, remainingCount: count ?? 0 };
   } catch (err: any) {
     console.error(`[profiles:deleteChildProfile] Unexpected error for ${id}:`, err);
     return { error: err.message || 'An unexpected error occurred' };
@@ -452,32 +475,32 @@ export async function updateLibrarySettings(childId: string, settings: any) {
     const targetChildId = childId || cookies().get('activeChildId')?.value;
 
     if (targetChildId) {
-        const { error } = await supabase
-            .from('children')
-            .update({ library_settings: settings })
-            .eq('id', targetChildId)
-            .eq('owner_user_id', user.id);
+      const { error } = await supabase
+        .from('children')
+        .update({ library_settings: settings })
+        .eq('id', targetChildId)
+        .eq('owner_user_id', user.id);
 
-        if (error) {
-            console.error('[profiles:updateLibrarySettings] Error updating child settings:', error);
-            return { error: error.message };
-        }
+      if (error) {
+        console.error('[profiles:updateLibrarySettings] Error updating child settings:', error);
+        return { error: error.message };
+      }
     } else {
-        // Fallback for parent level if no child is selected (legacy support)
-        const { error } = await supabase
-            .from('profiles')
-            .update({ library_settings: settings })
-            .eq('id', user.id);
+      // Fallback for parent level if no child is selected (legacy support)
+      const { error } = await supabase
+        .from('profiles')
+        .update({ library_settings: settings })
+        .eq('id', user.id);
 
-        if (error) {
-            // PostgreSQL code for "column does not exist" is 42703
-            if (error.code === '42703') {
-                console.warn('[profiles:updateLibrarySettings] Profiles column missing, migration to children table recommended.');
-            } else {
-                console.error('[profiles:updateLibrarySettings] Error updating profile settings:', error);
-                return { error: error.message };
-            }
+      if (error) {
+        // PostgreSQL code for "column does not exist" is 42703
+        if (error.code === '42703') {
+          console.warn('[profiles:updateLibrarySettings] Profiles column missing, migration to children table recommended.');
+        } else {
+          console.error('[profiles:updateLibrarySettings] Error updating profile settings:', error);
+          return { error: error.message };
         }
+      }
     }
 
     return { success: true };

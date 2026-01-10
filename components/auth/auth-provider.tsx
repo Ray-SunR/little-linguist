@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { getChildren, getUserProfile, updateLibrarySettings as apiUpdateLibrarySettings, type ChildProfile } from "@/app/actions/profiles";
 import { getCookie, setCookie, deleteCookie } from "cookies-next";
+import { useRouter, usePathname } from "next/navigation";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -40,6 +41,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const userRef = useRef<User | null>(user);
   const eventRef = useRef<string>("INITIAL");
   const authListenerFiredRef = useRef<boolean>(false);
+
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Keep userRef in sync for auth state comparisons
   useEffect(() => { userRef.current = user; }, [user]);
@@ -122,7 +126,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     console.info(`[RAIDEN_DIAG][Auth] fetchProfiles starting: req=${requestId} uid=${uid} silent=${silent} retry=${retryCount}`);
 
     try {
-      const { getChildren } = await import("@/app/actions/profiles");
+      // Dynamic import removed as getChildren is already imported
       const { data, error } = await getChildren();
 
       // Check if this is still the active request
@@ -152,6 +156,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setActiveChild(finalActive);
         if (finalActive?.library_settings) {
           setLibrarySettings(finalActive.library_settings);
+        }
+
+        // Redirect to onboarding if no profiles found and not already there
+        if (data.length === 0 && pathname !== '/onboarding' && pathname !== '/') {
+          // Allow root page (landing) or onboarding. Redirect other protected routes or dashboard/library.
+          // Actually, if we are authenticated and have 0 profiles, we should probably force onboarding 
+          // unless we are specifically on a "create profile" flow which IS onboarding.
+          // Let's stick to the plan: if (empty) -> onboarding.
+          router.push('/onboarding');
         }
       }
     } catch (err) {

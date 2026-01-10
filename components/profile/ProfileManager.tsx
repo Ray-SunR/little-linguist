@@ -17,7 +17,7 @@ interface Props {
 
 export default function ProfileManager({ initialChildren }: Props) {
   const { profiles: authChildren, refreshProfiles } = useAuth();
-  
+
   // Use initialChildren as the primary source of truth until auth hydrates,
   // preferring authChildren if they are populated later.
   const children = authChildren.length > 0 ? authChildren : initialChildren;
@@ -39,13 +39,14 @@ export default function ProfileManager({ initialChildren }: Props) {
 
       setDeletingId(null);
 
+      // Auto-redirect if no heroes left (server authoritative)
+      if (result.remainingCount === 0) {
+        router.push('/onboarding');
+        return;
+      }
+
       // Refresh global profile cache
       await refreshProfiles();
-
-      // Auto-redirect if no heroes left
-      if (children.length <= 1) { 
-        router.push('/onboarding');
-      }
     } catch (err: any) {
       console.error("Delete failed:", err);
       setDeleteError(err.message || "Failed to delete profile. Please try again.");

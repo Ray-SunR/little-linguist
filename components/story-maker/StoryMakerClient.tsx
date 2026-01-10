@@ -61,7 +61,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    
+
     // Track versions to prevent race conditions
     const saveVersionRef = useRef(0);
     const isMountedRef = useRef(true);
@@ -69,8 +69,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
-        return () => { 
-            isMountedRef.current = false; 
+        return () => {
+            isMountedRef.current = false;
         };
     }, []);
 
@@ -79,11 +79,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         const loadDraft = async () => {
             try {
                 // 1. Try IndexedDB first (session-keyed by user + active child)
-                const draftKey = user 
-                    ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`) 
+                const draftKey = user
+                    ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`)
                     : "draft:guest";
                 let savedDraft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
-                
+
                 // 2. Migration: If user is logged in but has no draft, check for guest draft
                 if (!savedDraft && user && !processingRef.current) {
                     const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
@@ -125,6 +125,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         age: age,
                         gender: (activeChild.gender as any) || 'neutral',
                         avatarUrl: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
+                        avatarStoragePath: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
                         interests: activeChild.interests || [],
                         // Pre-fill topic with first interest if available
                         topic: activeChild.interests?.[0] || ""
@@ -154,7 +155,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             const draftKey = `draft:${user.id}`;
             let draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
-            
+
             // Migration fallback
             if (!draft) {
                 const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
@@ -226,8 +227,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             try {
                 // Only save if this is still the latest version
                 if (version === saveVersionRef.current) {
-                    const draftKey = user 
-                        ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`) 
+                    const draftKey = user
+                        ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`)
                         : "draft:guest";
                     await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords });
                     if (isMountedRef.current) setIsSaving(false);
@@ -291,7 +292,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     }
 
     function toggleWord(word: string): void {
-        setSelectedWords(prev => 
+        setSelectedWords(prev =>
             prev.includes(word)
                 ? prev.filter(w => w !== word)
                 : (prev.length < 5 ? [...prev, word] : prev)
@@ -318,7 +319,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
         setStep("generating");
         setError(null);
-        
+
         try {
             let currentProfile = finalProfile;
 
@@ -337,12 +338,13 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     birth_year: new Date().getFullYear() - currentProfile.age,
                     gender: currentProfile.gender,
                     interests: currentProfile.interests || [],
-                    avatar_asset_path: currentProfile.avatarUrl
+                    avatar_asset_path: currentProfile.avatarUrl,
+                    avatar_paths: currentProfile.avatarStoragePath ? [currentProfile.avatarStoragePath] : []
                 };
 
                 console.debug("[StoryMakerClient] Creating profile for guest-to-user flow...");
                 const result = await createChildProfile(profileData);
-                
+
                 // Post-await session validation
                 const postFetchSession = await supabase.auth.getSession();
                 if (postFetchSession.data.session?.user.id !== currentUid) {
@@ -357,7 +359,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     currentProfile = { ...currentProfile, id: result.data.id };
                     setProfile(currentProfile);
                     await raidenCache.put(CacheStore.DRAFTS, { id: `draft:${currentUid}`, profile: currentProfile, selectedWords: finalWords });
-                    
+
                     setActiveChild(result.data);
                     await refreshProfiles(true);
                 } else {
@@ -408,7 +410,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             setStory(initialStory);
             setSupabaseBook(initialSupabaseBook);
-            
+
             // Capture result in session-keyed global
             state.result = initialStory;
 
@@ -489,6 +491,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                     age: new Date().getFullYear() - birthYear,
                                                     gender: (p.gender as any) || 'neutral',
                                                     avatarUrl: (p.avatar_paths && p.avatar_paths.length > 0) ? p.avatar_paths[0] : '',
+                                                    avatarStoragePath: (p.avatar_paths && p.avatar_paths.length > 0) ? p.avatar_paths[0] : undefined,
                                                     interests: p.interests || []
                                                 };
                                                 setProfile(selectedProfile);
@@ -636,7 +639,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 <div className="relative w-full h-full p-4">
                                                     <CachedImage
                                                         src={profile.avatarUrl}
-                                                        storagePath={profile.avatarUrl.startsWith('data:') ? undefined : profile.avatarUrl}
+                                                        storagePath={profile.avatarStoragePath}
                                                         alt="Preview"
                                                         fill
                                                         className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
@@ -734,7 +737,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 </motion.button>
                             </form>
                         )}
-</motion.div>
+                    </motion.div>
                 )}
 
                 {step === "words" && (
@@ -874,13 +877,13 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <p className="text-lg font-bold text-ink-muted font-nunito max-w-sm mx-auto">{error}</p>
                                 </div>
                                 <div className="flex gap-4 mt-4">
-                                    <button 
+                                    <button
                                         onClick={() => setStep("words")}
                                         className="ghost-btn h-12 px-6 rounded-xl font-bold text-ink-muted uppercase tracking-wider"
                                     >
                                         Go Back
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             setError(null);
                                             // Retry based on context (profile creation or generation)
@@ -948,7 +951,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 <h2 className="text-4xl font-black font-fredoka text-ink uppercase tracking-tight mb-4 relative">
                                     Making Magic...
                                 </h2>
-                                <motion.p 
+                                <motion.p
                                     key={profile.name}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -956,18 +959,18 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 >
                                     Writing a special adventure for <span className="text-purple-600">{profile.name}</span>
                                 </motion.p>
-                                
+
                                 <div className="flex flex-col items-center gap-4 mt-8">
-                                   <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-full border border-purple-100">
-                                       <RefreshCw className="h-4 w-4 text-purple-400 animate-spin" />
-                                       <span className="text-xs font-black text-purple-400 uppercase tracking-widest font-fredoka">Creating original art & story</span>
-                                   </div>
-                                   
-                                   {profile.topic && (
-                                       <div className="text-sm font-bold text-ink-muted/60 font-nunito italic">
-                                           "A story about {profile.topic}..."
-                                       </div>
-                                   )}
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-full border border-purple-100">
+                                        <RefreshCw className="h-4 w-4 text-purple-400 animate-spin" />
+                                        <span className="text-xs font-black text-purple-400 uppercase tracking-widest font-fredoka">Creating original art & story</span>
+                                    </div>
+
+                                    {profile.topic && (
+                                        <div className="text-sm font-bold text-ink-muted/60 font-nunito italic">
+                                            "A story about {profile.topic}..."
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mt-12 w-full max-w-xs h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner p-0.5">
