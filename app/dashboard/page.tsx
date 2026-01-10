@@ -1,7 +1,9 @@
-"use client";
-
-import dynamic from "next/dynamic";
+import { createClient } from "@/lib/supabase/server";
+import { getChildren, ChildProfile } from "@/app/actions/profiles";
+import { ProfileHydrator } from "@/components/auth/profile-hydrator";
+import { Suspense } from "react";
 import LumoLoader from "@/components/ui/lumo-loader";
+import dynamic from "next/dynamic";
 
 const DashboardContent = dynamic(() => import("./DashboardContent"), {
   ssr: false,
@@ -12,6 +14,29 @@ const DashboardContent = dynamic(() => import("./DashboardContent"), {
   )
 });
 
-export default function DashboardPage() {
-  return <DashboardContent />;
+export default async function DashboardPage() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let initialProfiles: ChildProfile[] = [];
+  if (user) {
+    const { data, error } = await getChildren();
+    if (!error && data) {
+      initialProfiles = data;
+    }
+  }
+
+  return (
+    <>
+      {user && (
+        <ProfileHydrator
+          initialProfiles={initialProfiles}
+          userId={user.id}
+        />
+      )}
+      <Suspense fallback={<LumoLoader />}>
+        <DashboardContent serverProfiles={initialProfiles} />
+      </Suspense>
+    </>
+  );
 }
