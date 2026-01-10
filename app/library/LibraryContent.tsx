@@ -83,6 +83,7 @@ export default function LibraryContent() {
         }
         const controller = new AbortController();
         abortControllerRef.current = controller;
+        const timeoutId = setTimeout(() => controller.abort('Timeout'), 15000); // 15s Timeout
 
         const currentOffset = isInitial ? 0 : offsetRef.current;
         const currentFilters = filtersRef.current;
@@ -134,7 +135,10 @@ export default function LibraryContent() {
 
                 const booksUrl = `/api/books?${filterParams.toString()}`;
                 
+                console.debug(`[LibraryContent] Fetching books: req=${requestId} url=${booksUrl}`);
+
                 // PERFORMANCE: Fetches books + progress + batch-signed covers in one go
+                // Added signal for timeout/abort
                 const booksRes = await fetch(booksUrl, { signal: controller.signal });
 
                 // Check if this request is still the active one before updating state
@@ -146,6 +150,13 @@ export default function LibraryContent() {
 
                 if (requestId !== activeRequestIdRef.current) return;
                 if (controller.signal.aborted) return;
+                
+                if (!Array.isArray(booksData)) {
+                    console.error('[LibraryContent] Invalid response format:', booksData);
+                    throw new Error('Invalid response from server');
+                }
+
+                console.debug(`[LibraryContent] Loaded ${booksData.length} books for req ${requestId}`);
 
                 const libraryBooks: LibraryBookCard[] = booksData
                     .filter((book: any) => book.id && book.title)
@@ -209,22 +220,33 @@ export default function LibraryContent() {
                     window.localStorage.setItem(`raiden:has_library_cache:${cacheKey}`, "true");
                 }
 
-            } catch (err) {
+            } catch (err: any) {
                 if (err instanceof Error && err.name === 'AbortError') {
-                    // On abort, only clear loading if this is still the active request
-                    if (requestId === activeRequestIdRef.current) {
+                    // Check if it was our timeout
+                    if (controller.signal.reason === 'Timeout' && requestId === activeRequestIdRef.current) {
+                        console.error('[LibraryContent] Request timed out');
+                        setError('Library is taking too long to load. Please try again.');
                         setIsLoading(false);
                         setIsNextPageLoading(false);
                     }
+                    // If manually aborted (navigation), do nothing (loading state handled by next req or unmount)
                     return;
                 }
+                
                 console.error('[LibraryContent] loadBooks error:', err);
-                if (isInitial && !cachedLibraryBooks[cacheKey]?.length) {
-                    setError(err instanceof Error ? err.message : 'Failed to load books');
+                
+                if (requestId === activeRequestIdRef.current) {
+                    // Only show error UI if we don't have cache to fall back on
+                    if (isInitial && !cachedLibraryBooks[cacheKey]?.length) {
+                        setError(err instanceof Error ? err.message : 'Failed to load library');
+                    }
+                    setIsLoading(false);
+                    setIsNextPageLoading(false);
                 }
             } finally {
-                // Only clear loading if this is still the active request
-                if (requestId === activeRequestIdRef.current) {
+                clearTimeout(timeoutId);
+                // Only clear loading if this is still the active request and we haven't handled it in catch
+                if (requestId === activeRequestIdRef.current && !controller.signal.aborted) {
                     setIsLoading(false);
                     setIsNextPageLoading(false);
                 }

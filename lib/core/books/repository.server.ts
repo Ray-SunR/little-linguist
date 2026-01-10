@@ -85,17 +85,18 @@ export class BookRepository {
         childId: string | undefined,
         filters: BookFilters = {}
     ): Promise<BookWithCover[]> {
-        // Determine select fields - only join progress if we have a childId
-        // Only fetch the fields we actually need for the library UI
-        // Include child_id in progress so we can filter in JS (needed for left join to work)
-        let selectFields: string;
-        if (childId) {
-            selectFields = (filters?.is_favorite)
-                ? 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin, child_book_progress!inner(child_id, is_favorite, is_completed, last_token_index)'
-                : 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin, child_book_progress(child_id, is_favorite, is_completed, last_token_index)';
-        } else {
-            // No childId = no progress join needed
-            selectFields = 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin';
+        // PERFORMANCE: Split strategy
+        // 1. If filtering by favorite (INNER JOIN needed): Use single efficient query
+        // 2. If just browsing (Discovery): Fetch books first, then fetch progress for ONLY those books (avoid massive LEFT JOIN)
+
+        const shouldUseInnerJoin = !!(childId && filters?.is_favorite);
+        
+        // Base book query fields (NO progress fields initially unless using inner join)
+        let selectFields = 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin';
+        
+        if (shouldUseInnerJoin) {
+            // Add inner join relation
+            selectFields += ', child_book_progress!inner(child_id, is_favorite, is_completed, last_token_index)';
         }
 
         let query: any = this.supabase
@@ -129,16 +130,10 @@ export class BookRepository {
             query = query.or(filter);
         }
 
-        // NOTE: We do NOT filter child_book_progress.child_id at the query level
-        // because that turns the left join into an inner join, filtering out books
-        // without progress. Instead, we filter the progress in JS mapping below.
-
         // Apply favorite filter conditions if performing join
-        if (filters?.is_favorite) {
-            if (!childId) return [];
-            // For favorites, we DO need an inner join to only get favorited books
-            query = query.eq('child_book_progress.is_favorite', true)
-                         .eq('child_book_progress.child_id', childId);
+        if (shouldUseInnerJoin && childId) {
+             query = query.eq('child_book_progress.is_favorite', true)
+                          .eq('child_book_progress.child_id', childId);
         }
 
         // Apply filters
@@ -189,7 +184,30 @@ export class BookRepository {
         if (booksError) throw booksError;
         if (!booksData || booksData.length === 0) return [];
 
-        // 1. Batch fetch signed URLs
+        // 2. Fetch Progress (Parallelized if separate query needed)
+        let progressMap: Record<string, any> = {};
+
+        // If we didn't join, we need to fetch progress separately
+        if (!shouldUseInnerJoin && childId) {
+             const bookIds = booksData.map((b: any) => b.id);
+             const { data: progressData, error: progressError } = await this.supabase
+                .from('child_book_progress')
+                .select('book_id, is_completed, is_favorite, last_token_index')
+                .eq('child_id', childId)
+                .in('book_id', bookIds);
+            
+            if (progressError) {
+                console.error('Error fetching progress:', progressError);
+            }
+            
+            if (progressData) {
+                progressData.forEach((p: any) => {
+                    progressMap[p.book_id] = p;
+                });
+            }
+        }
+
+        // 3. Batch fetch signed URLs
         // Collect all paths that need signing
         const pathsToSign: string[] = [];
         const bookMap = new Map<string, any>();
@@ -209,13 +227,17 @@ export class BookRepository {
         
         if (booksMissingCover.length > 0) {
             const bookIds = booksMissingCover.map((b: any) => b.id);
-            const { data: mediaData } = await this.supabase
+            const { data: mediaData, error: mediaError } = await this.supabase
                 .from('book_media')
                 .select('book_id, path')
                 .eq('media_type', 'image')
                 .in('book_id', bookIds)
                 .order('after_word_index')
                 .order('path');
+            
+            if (mediaError) {
+                console.error('Error fetching media covers:', mediaError);
+            }
             
             if (mediaData) {
                 mediaData.forEach((media: any) => {
@@ -232,10 +254,14 @@ export class BookRepository {
         // Execute Batch Sign
         const signedUrlMap: Record<string, string> = {};
         if (pathsToSign.length > 0) {
-            const { data: signedData } = await this.supabase
+            const { data: signedData, error: signedError } = await this.supabase
                 .storage
                 .from('book-assets')
                 .createSignedUrls(pathsToSign, 60 * 60);
+
+            if (signedError) {
+                 console.error('Error batch signing URLs:', signedError);
+            }
 
             if (signedData) {
                 signedData.forEach(item => {
@@ -246,7 +272,7 @@ export class BookRepository {
             }
         }
 
-        // 2. Map final results
+        // 4. Map final results
         return booksData.map((book: any) => {
             const coverPath = book.cover_image_path || mediaCoverMap.get(book.id);
             let coverImageUrl = undefined;
@@ -259,13 +285,21 @@ export class BookRepository {
                 }
             }
 
-            // Find relevant progress for THIS child only
-            // Since we removed query-level child_id filter to preserve left join,
-            // we need to filter by child_id in JS (progress list may contain entries for other children)
-            const progressList = book.child_book_progress as any[] || [];
-            const progress = childId 
-                ? progressList.find((p: any) => p.child_id === childId)
-                : null;
+            // Resolve Progress: Either from Join (array) or Map (object)
+            let progress = null;
+            if (shouldUseInnerJoin && book.child_book_progress) {
+                 // Logic for Joined Result
+                 // book.child_book_progress is an object (due to !inner single match usually) 
+                 // OR array if multiple (but we filtered by child_id). 
+                 // Supabase returns array usually unless single() called, but join returns array usually?
+                 // Actually map above in original code assumed array or object.
+                 // safe check:
+                 const p = Array.isArray(book.child_book_progress) ? book.child_book_progress[0] : book.child_book_progress;
+                 if (p) progress = p;
+            } else if (childId) {
+                // Logic for Separate Query Result
+                progress = progressMap[book.id];
+            }
 
             return {
                 id: book.id,
