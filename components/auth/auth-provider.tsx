@@ -33,8 +33,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isStoryGenerating, setIsStoryGenerating] = useState(false);
   const [librarySettings, setLibrarySettings] = useState<any>({});
   const abortControllerRef = useRef<AbortController | null>(null);
+  const activeFetchIdRef = useRef<number>(0);
   const userRef = useRef<User | null>(user);
   const eventRef = useRef<string>("INITIAL");
+  const authListenerFiredRef = useRef<boolean>(false);
 
   // Keep userRef in sync for auth state comparisons
   useEffect(() => { userRef.current = user; }, [user]);
@@ -43,41 +45,56 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function hydrateFromCache(uid?: string): Promise<ChildProfile[]> {
     if (typeof window === "undefined") return [];
+
+    // Create a 2s ceiling for cache hydration to prevent stalling the whole auth flow
+    const hydrationTimeout = new Promise<ChildProfile[]>((_, reject) =>
+      setTimeout(() => reject(new Error("Hydration timeout")), 2000)
+    );
+
+    const hydrationTask = (async () => {
+      try {
+        const { raidenCache, CacheStore } = await import("@/lib/core/cache");
+
+        // Post-await check: Ensure session hasn't changed or expired while importing
+        const currentSession = await supabase.auth.getSession();
+        const currentUid = currentSession.data.session?.user.id;
+        if (uid && currentUid !== uid) {
+          console.info("[RAIDEN_DIAG][Auth] Skipping hydrate: UID changed during async load.");
+          return [];
+        }
+
+        const key = uid || "global";
+        const cached = await raidenCache.get<{ id: string; profiles: ChildProfile[]; cachedAt: number }>(
+          CacheStore.PROFILES,
+          key
+        );
+
+        // Re-check after IDB read
+        if (uid) {
+          const finalSession = await supabase.auth.getSession();
+          if (finalSession.data.session?.user.id !== uid) return [];
+        }
+
+        if (cached?.profiles && Array.isArray(cached.profiles) && cached.profiles.length > 0) {
+          setProfiles(cached.profiles);
+          const activeId = getCookie("activeChildId");
+          const found = activeId ? cached.profiles.find((c) => c.id === activeId) : null;
+          setActiveChild(found ?? cached.profiles[0]);
+          if (uid) setIsLoading(false);
+          return cached.profiles;
+        }
+      } catch (err) {
+        console.warn("[RAIDEN_DIAG][Auth] Failed to hydrate profile cache:", err);
+      }
+      return [];
+    })();
+
     try {
-      const { raidenCache, CacheStore } = await import("@/lib/core/cache");
-
-      // Post-await check: Ensure session hasn't changed or expired while importing
-      const currentSession = await supabase.auth.getSession();
-      const currentUid = currentSession.data.session?.user.id;
-      if (uid && currentUid !== uid) {
-        console.info("[RAIDEN_DIAG][Auth] Skipping hydrate: UID changed during async load.");
-        return [];
-      }
-
-      const key = uid || "global";
-      const cached = await raidenCache.get<{ id: string; profiles: ChildProfile[]; cachedAt: number }>(
-        CacheStore.PROFILES,
-        key
-      );
-
-      // Re-check after IDB read
-      if (uid) {
-        const finalSession = await supabase.auth.getSession();
-        if (finalSession.data.session?.user.id !== uid) return [];
-      }
-
-      if (cached?.profiles && Array.isArray(cached.profiles) && cached.profiles.length > 0) {
-        setProfiles(cached.profiles);
-        const activeId = getCookie("activeChildId");
-        const found = activeId ? cached.profiles.find((c) => c.id === activeId) : null;
-        setActiveChild(found ?? cached.profiles[0]);
-        if (uid) setIsLoading(false);
-        return cached.profiles;
-      }
-    } catch (err) {
-      console.warn("[RAIDEN_DIAG][Auth] Failed to hydrate profile cache:", err);
+      return await Promise.race([hydrationTask, hydrationTimeout]);
+    } catch (e) {
+      console.warn("[RAIDEN_DIAG][Auth] Cache hydration ceiling reached (2s), skipping to network.");
+      return [];
     }
-    return [];
   }
 
   async function persistProfiles(data: ChildProfile[], uid: string): Promise<void> {
@@ -95,21 +112,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  async function fetchProfiles(uid: string, silent = false): Promise<void> {
-    if (!silent) setIsLoading(true);
+  async function fetchProfiles(uid: string, silent = false, retryCount = 0): Promise<void> {
+    const requestId = ++activeFetchIdRef.current;
+    if (!silent && retryCount === 0) setIsLoading(true);
+
+    console.info(`[RAIDEN_DIAG][Auth] fetchProfiles starting: req=${requestId} uid=${uid} silent=${silent} retry=${retryCount}`);
+
     try {
       const { getChildren } = await import("@/app/actions/profiles");
-      const { data } = await getChildren();
+      const { data, error } = await getChildren();
 
-      // session-security guard: verify the UID hasn't changed or isn't null 
-      // (in case auth event happened while fetching)
-      const currentSession = await supabase.auth.getSession();
-      if (currentSession.data.session?.user.id !== uid) {
-        console.info("[RAIDEN_DIAG][Auth] Skipping stale profile fetch result.");
+      // Check if this is still the active request
+      if (requestId !== activeFetchIdRef.current) {
+        console.info(`[RAIDEN_DIAG][Auth] Skipping stale fetch result (req ${requestId} != active ${activeFetchIdRef.current})`);
         return;
       }
 
-      if (data) {
+      // Handle transient auth errors from server actions immediately after login
+      if (error === 'Not authenticated' && retryCount < 2) {
+        console.warn(`[RAIDEN_DIAG][Auth] fetchProfiles (req ${requestId}): Not authenticated on server. Retrying in 500ms... (attempt ${retryCount + 1})`);
+        await new Promise(r => setTimeout(r, 500));
+        // Recurse: new call will increment activeFetchIdRef, so this call's 'finally' won't clear loading
+        return fetchProfiles(uid, silent, retryCount + 1);
+      }
+
+      if (error) {
+        console.error(`[RAIDEN_DIAG][Auth] getChildren error (req ${requestId}):`, error);
+        // If we hit an error (and not retrying), we SHOULD eventually clear loading 
+        // to avoid infinite spinner, but we won't update profiles.
+      } else if (data) {
         setProfiles(data);
         await persistProfiles(data, uid);
         const activeId = getCookie("activeChildId");
@@ -120,8 +151,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setLibrarySettings(finalActive.library_settings);
         }
       }
+    } catch (err) {
+      console.error(`[RAIDEN_DIAG][Auth] Unexpected fetchProfiles error (req ${requestId}):`, err);
     } finally {
-      setIsLoading(false);
+      // Only clear loading if this is still the active request
+      // If we recursed for a retry, the inner call became the active request.
+      if (requestId === activeFetchIdRef.current) {
+        setIsLoading(false);
+        console.info(`[RAIDEN_DIAG][Auth] fetchProfiles finished, cleared loading for req ${requestId}`);
+      }
     }
   }
 
@@ -148,21 +186,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const timeoutId = setTimeout(() => {
         if (mounted && isLoading) {
-          console.warn("[RAIDEN_DIAG][Auth] Safety timeout triggered: forcing isLoading = false");
+          console.warn("[RAIDEN_DIAG][Auth] Safety timeout triggered: forcing isLoading = false after 20s");
           controller.abort('Timeout');
           setIsLoading(false);
         }
-      }, 8000);
+      }, 20000);
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) console.warn("[RAIDEN_DIAG][Auth] getSession error:", sessionError);
+
         if (!mounted || controller.signal.aborted) return;
 
+        // If the onAuthStateChange listener has already handled a session/user,
+        // we skip the init fetch to avoid race condition double-calls.
+        if (authListenerFiredRef.current && userRef.current) {
+          console.info("[RAIDEN_DIAG][Auth] Init: auth listener already handled user, skipping init fetch.");
+          return;
+        }
+
         const uid = session?.user?.id;
-        console.info("[RAIDEN_DIAG][Auth] Session resolved:", { uid });
-        setUser(session?.user ?? null);
+        console.info("[RAIDEN_DIAG][Auth] Session resolved from getSession:", { uid });
 
         if (uid) {
+          if (!userRef.current) {
+            setUser(session?.user ?? null);
+          }
           console.info("[RAIDEN_DIAG][Auth] Hydrating profiles for:", uid);
           await hydrateFromCache(uid); // Internal check for session consistency exists inside
           if (controller.signal.aborted) return;
@@ -191,6 +240,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (!mounted) return;
+      authListenerFiredRef.current = true;
       const newUser = session?.user ?? null;
       const prevUser = userRef.current;
       eventRef.current = event;
@@ -205,6 +255,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!isSameUser || event === 'INITIAL_SESSION') {
           if (event === 'SIGNED_IN') setIsLoading(true);
           setUser(newUser);
+
+          // Invalidate cache on explicit sign-in to ensure fresh data
+          if (event === 'SIGNED_IN') {
+            import("@/lib/core/cache").then(({ raidenCache, CacheStore }) => {
+              raidenCache.delete(CacheStore.PROFILES, newUser.id).catch(() => { });
+            }).catch(() => { });
+          }
+
           await hydrateFromCache(newUser.id);
           await fetchProfiles(newUser.id, true);
         } else {
@@ -222,18 +280,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const { clearStoryMakerGlobals } = await import("@/components/story-maker/StoryMakerClient");
         clearStoryMakerGlobals();
 
-        try {
-          const { raidenCache, CacheStore } = await import("@/lib/core/cache");
-          // Clear all user-specific drafts and guest drafts
-          const keys = await raidenCache.getAllKeys(CacheStore.DRAFTS);
-          for (const key of keys) {
-            if (typeof key === 'string' && (key.startsWith('draft:') || key === 'current')) {
-              await raidenCache.delete(CacheStore.DRAFTS, key);
+        // Clear cache in background
+        import("@/lib/core/cache").then(async ({ raidenCache, CacheStore }) => {
+          try {
+            // Clear all user-specific drafts and guest drafts
+            const keys = await raidenCache.getAllKeys(CacheStore.DRAFTS);
+            for (const key of keys) {
+              if (typeof key === 'string' && (key.startsWith('draft:') || key === 'current')) {
+                await raidenCache.delete(CacheStore.DRAFTS, key);
+              }
             }
-          }
-        } catch (err) {
-          console.warn("[RAIDEN_DIAG][Auth] Failed to clear drafts on logout:", err);
-        }
+            // Explicitly clear profile cache on logout
+            const profileKeys = await raidenCache.getAllKeys(CacheStore.PROFILES);
+            for (const pk of profileKeys) {
+              if (typeof pk === 'string' || typeof pk === 'number') {
+                await raidenCache.delete(CacheStore.PROFILES, pk);
+              }
+            }
+          } catch (err) { }
+        }).catch(() => { });
 
         if (typeof window !== "undefined") {
           Object.keys(window.localStorage).forEach(key => {

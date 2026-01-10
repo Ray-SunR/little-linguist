@@ -296,7 +296,7 @@ class RaidenCache {
         }
     }
 
-    async delete(storeName: CacheStore, key: string): Promise<void> {
+    async delete(storeName: CacheStore, key: string | number): Promise<void> {
         if (typeof window === 'undefined') return;
         try {
             const store = await this.getStore(storeName, "readwrite");
