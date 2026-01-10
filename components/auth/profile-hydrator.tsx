@@ -18,30 +18,34 @@ export function ProfileHydrator({ initialProfiles, userId }: ProfileHydratorProp
     const { setProfiles, user, activeChild, setActiveChild, isLoading, setIsLoading } = useAuth();
     const hydratedRef = useRef(false);
 
+    // Reset hydration state if userId changes
     useEffect(() => {
-        // Only hydrate if we have explicit profiles and haven't done so yet for this user
-        if (hydratedRef.current || !initialProfiles || initialProfiles.length === 0) return;
+        hydratedRef.current = false;
+    }, [userId]);
 
+    useEffect(() => {
         // Safety check matching logic
         if (user?.id !== userId) return;
 
-        console.info("[RAIDEN_DIAG][Auth] Hydrating profiles from Server Component", {
-            count: initialProfiles.length,
-            userId
-        });
+        // Only hydrate if we haven't done so yet for this user
+        if (hydratedRef.current) return;
 
-        setProfiles(initialProfiles);
+        const hasProfiles = initialProfiles && initialProfiles.length > 0;
 
-        // Auto-select first child if none is active (matching local storage logic implicitly)
-        if (!activeChild) {
-            // We don't want to override cookie-based selection if it exists, 
-            // but we can at least provide a valid profile set so ChildGate doesn't block.
-            // The AuthProvider's own logic might double-check cookies, but setting state here is safe.
-            // Helper: we leave activeChild alone unless we want to force default.
+        if (hasProfiles) {
+            console.info("[RAIDEN_DIAG][Auth] Hydrating profiles from Server Component", {
+                count: initialProfiles.length,
+                userId
+            });
+
+            setProfiles(initialProfiles);
         }
 
-        // Crucial: Release the loading lock since we have Data
+        // Crucial: Release the loading lock regardless of profile count
+        // If 0 profiles, ChildGate handles the redirect logic.
+        // We just need to stop the global loading spinner.
         if (isLoading) {
+            console.info("[RAIDEN_DIAG][Auth] Clearing loading state from Server Component");
             setIsLoading(false);
         }
 
