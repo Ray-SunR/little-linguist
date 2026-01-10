@@ -18,7 +18,7 @@ interface AuthContextType {
   isStoryGenerating: boolean;
   setIsStoryGenerating: (val: boolean) => void;
   librarySettings: any;
-  updateLibrarySettings: (settings: any) => Promise<void>;
+  updateLibrarySettings: (settings: any) => Promise<{ success?: boolean; error?: string }>;
   refreshProfiles: (silent?: boolean) => Promise<void>;
   setActiveChild: (child: ChildProfile | null) => void;
 }
@@ -257,12 +257,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsStoryGenerating,
       librarySettings,
       updateLibrarySettings: async (settings: any) => {
-          if (!activeChild?.id) return;
+          if (!activeChild?.id) return { error: "No active child" };
           
+          const prevSettings = librarySettings;
+          const prevProfiles = profiles;
+          const prevActiveChild = activeChild;
+
           // Optimistic update
           setLibrarySettings(settings);
-          
-          // Update the local profile object as well to keep it in sync
           setProfiles(prev => prev.map(p => 
             p.id === activeChild.id ? { ...p, library_settings: settings } : p
           ));
@@ -271,8 +273,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
 
           if (user?.id) {
-              await apiUpdateLibrarySettings(settings, activeChild.id);
+              const result = await apiUpdateLibrarySettings(activeChild.id, settings);
+              if (result.error) {
+                  // Rollback on error
+                  setLibrarySettings(prevSettings);
+                  setProfiles(prevProfiles);
+                  setActiveChild(prevActiveChild);
+                  return { error: result.error };
+              }
+              return { success: true };
           }
+          return { success: true };
       },
       refreshProfiles, 
       setActiveChild: handleSetActiveChild 

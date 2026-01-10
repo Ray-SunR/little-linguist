@@ -308,9 +308,13 @@ export default function LibraryContent() {
             const remoteSettingsStr = JSON.stringify(librarySettings);
             
             if (currentSettingsStr !== remoteSettingsStr) {
-                // Update our record of what we sent to avoid re-hydrating it back
-                lastSyncedSettings.current = currentSettingsStr;
-                updateLibrarySettings({ filters, sortBy });
+                updateLibrarySettings({ filters, sortBy }).then(res => {
+                    if (res?.success) {
+                        lastSyncedSettings.current = currentSettingsStr;
+                    }
+                }).catch(err => {
+                    console.error("[LibraryContent] Failed to persist settings:", err);
+                });
             }
         }, 1500);
 

@@ -78,8 +78,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     useEffect(() => {
         const loadDraft = async () => {
             try {
-                // 1. Try IndexedDB first (session-keyed if user is known)
-                const draftKey = user ? `draft:${user.id}` : "draft:guest";
+                // 1. Try IndexedDB first (session-keyed by user + active child)
+                const draftKey = user 
+                    ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`) 
+                    : "draft:guest";
                 let savedDraft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
                 
                 // 2. Migration: If user is logged in but has no draft, check for guest draft
@@ -159,7 +161,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 if (guestDraft) {
                     console.debug("[StoryMakerClient] Consuming guest draft for resume.");
                     draft = guestDraft;
-                    // Persist to user record and delete guest
+                    // Persist to user+child record and delete guest
                     await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, ...guestDraft });
                     await raidenCache.delete(CacheStore.DRAFTS, "draft:guest");
                 }
@@ -224,7 +226,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             try {
                 // Only save if this is still the latest version
                 if (version === saveVersionRef.current) {
-                    const draftKey = user ? `draft:${user.id}` : "draft:guest";
+                    const draftKey = user 
+                        ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`) 
+                        : "draft:guest";
                     await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords });
                     if (isMountedRef.current) setIsSaving(false);
                 }

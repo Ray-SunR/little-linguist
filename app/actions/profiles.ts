@@ -470,9 +470,13 @@ export async function updateLibrarySettings(childId: string, settings: any) {
             .eq('id', user.id);
 
         if (error) {
-            // If column doesn't exist on profiles, we just ignore it for now
-            // as we are migrating to children table.
-            console.warn('[profiles:updateLibrarySettings] Profiles column missing, but no active child found.');
+            // PostgreSQL code for "column does not exist" is 42703
+            if (error.code === '42703') {
+                console.warn('[profiles:updateLibrarySettings] Profiles column missing, migration to children table recommended.');
+            } else {
+                console.error('[profiles:updateLibrarySettings] Error updating profile settings:', error);
+                return { error: error.message };
+            }
         }
     }
 
