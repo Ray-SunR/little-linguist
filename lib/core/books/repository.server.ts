@@ -89,7 +89,31 @@ export class BookRepository {
         // Apply filters
         if (pagination?.filters) {
             const f = pagination.filters;
-            if (f.level) query = query.eq('level', f.level);
+            if (f.level) {
+                // Map UI levels to min_grade ranges based on seed-all-books.ts
+                // PreK = -1, K = 0, G1-2 = 1, G3-5 = 3
+                switch (f.level) {
+                    case 'toddler':
+                        // Pre-K and below
+                        query = query.lte('min_grade', -1);
+                        break;
+                    case 'preschool':
+                        // Kindergarten / Preschool (approx 3-5yo)
+                        query = query.eq('min_grade', 0);
+                        break;
+                    case 'elementary':
+                        // Grades 1-2 (approx 5-8yo)
+                        query = query.gte('min_grade', 1).lt('min_grade', 3);
+                        break;
+                    case 'intermediate':
+                        // Grades 3+ (approx 8-12yo)
+                        query = query.gte('min_grade', 3);
+                        break;
+                    default:
+                        // Fallback to strict equality if unknown level
+                        query = query.eq('level', f.level);
+                }
+            }
             if (f.origin) query = query.eq('origin', f.origin);
             if (f.is_nonfiction !== undefined) query = query.eq('is_nonfiction', f.is_nonfiction);
             if (f.category && f.category !== 'all') {

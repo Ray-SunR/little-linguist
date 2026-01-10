@@ -48,6 +48,7 @@ export default function LibraryContent() {
         origin?: string;
         type?: "fiction" | "nonfiction";
         category?: string;
+        duration?: string;
     }>({});
 
     const LIMIT = 20;
@@ -85,6 +86,7 @@ export default function LibraryContent() {
                 if (filters.origin) filterParams.set('origin', filters.origin);
                 if (filters.type) filterParams.set('type', filters.type);
                 if (filters.category) filterParams.set('category', filters.category);
+                if (filters.duration) filterParams.set('duration', filters.duration);
 
                 const childIdQuery = activeChild?.id ? `&childId=${activeChild.id}` : '';
                 const progressUrl = `/api/progress?${childIdQuery}`;

@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .shadow-clay-sm {
+    box-shadow: 
+      inset 1px 1px 2px rgba(255, 255, 255, 0.6), 
+      inset -1px -1px 2px rgba(174, 174, 192, 0.3), 
+      3px 3px 6px rgba(174, 174, 192, 0.2);
+  }
+  .shadow-clay-md {
+    box-shadow: 
+      inset 2px 2px 4px rgba(255, 255, 255, 0.6), 
+      inset -2px -2px 4px rgba(174, 174, 192, 0.3), 
+      6px 6px 12px rgba(174, 174, 192, 0.2);
+  }
+  .shadow-clay-lg {
+    box-shadow: 
+      inset 3px 3px 6px rgba(255, 255, 255, 0.7), 
+      inset -3px -3px 6px rgba(174, 174, 192, 0.4), 
+      10px 10px 20px rgba(174, 174, 192, 0.25);
+  }
+  .shadow-clay-inset {
+    box-shadow: 
+      inset 4px 4px 8px rgba(174, 174, 192, 0.25), 
+      inset -4px -4px 8px rgba(255, 255, 255, 0.6);
+  }
+}
+
 :root {
   --shell: #e8f5ff;
   --shell-2: #f3ecff;
