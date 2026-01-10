@@ -30,11 +30,25 @@ export function CachedImage({
     const [displayUrl, setDisplayUrl] = useState<string>(storagePath ? TRANSPARENT_PIXEL : src);
     const [isLoaded, setIsLoaded] = useState(false);
 
+    // Use a ref to track the previous storage token to avoid unnecessary resets
+    // This allows us to keep showing the old image while the new signed URL is validated/cached
+    const prevStorageKeyRef = React.useRef<string | undefined>();
+
     useEffect(() => {
         let isMounted = true;
         const controller = new AbortController();
 
-        if (isMounted) setIsLoaded(false);
+        // Stable check: If storagePath and updatedAt match, we assume it's the same image.
+        // Even if 'src' (signed URL) changes, we don't want to flash to transparent.
+        const storageKey = storagePath ? `${storagePath}:${updatedAt}` : undefined;
+        const isSameAsset = storageKey && storageKey === prevStorageKeyRef.current;
+
+        prevStorageKeyRef.current = storageKey;
+
+        if (!isSameAsset && isMounted) {
+            setIsLoaded(false);
+            if (storagePath) setDisplayUrl(TRANSPARENT_PIXEL);
+        }
 
         async function resolveUrl() {
             if (!storagePath) {
@@ -42,14 +56,16 @@ export function CachedImage({
                 return;
             }
 
-            if (isMounted) {
-                setDisplayUrl(TRANSPARENT_PIXEL);
-                setIsLoaded(false);
-            }
+            // If it's the same asset, we keep the current displayUrl while we re-verify in background.
+            // If it's different, we already set it to transparent above.
 
             try {
                 const cachedUrl = await assetCache.getAsset(storagePath, src, updatedAt, controller.signal);
-                if (isMounted) setDisplayUrl(cachedUrl);
+                if (isMounted) {
+                    setDisplayUrl(cachedUrl);
+                    // If we were keeping the old image, this update might overlap, but it's safe (blob to blob).
+                    // If we were showing transparent, this will set the new image.
+                }
             } catch (err) {
                 const isAbort = err instanceof Error && (err.name === 'AbortError' || err.message === 'Aborted');
                 if (isAbort) return;
