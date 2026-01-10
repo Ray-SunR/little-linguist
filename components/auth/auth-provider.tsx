@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { getChildren, type ChildProfile } from "@/app/actions/profiles";
+import { getChildren, getUserProfile, updateLibrarySettings as apiUpdateLibrarySettings, type ChildProfile } from "@/app/actions/profiles";
 import { getCookie, setCookie, deleteCookie } from "cookies-next";
 
 interface AuthProviderProps {
@@ -17,6 +17,8 @@ interface AuthContextType {
   isLoading: boolean;
   isStoryGenerating: boolean;
   setIsStoryGenerating: (val: boolean) => void;
+  librarySettings: any;
+  updateLibrarySettings: (settings: any) => Promise<void>;
   refreshProfiles: (silent?: boolean) => Promise<void>;
   setActiveChild: (child: ChildProfile | null) => void;
 }
@@ -29,6 +31,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStoryGenerating, setIsStoryGenerating] = useState(false);
+  const [librarySettings, setLibrarySettings] = useState<any>({});
   
   const supabase = useMemo(() => createClient(), []);
 
@@ -105,12 +108,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await persistProfiles(data, uid);
         const activeId = getCookie("activeChildId");
         const found = activeId ? data.find((c) => c.id === activeId) : null;
-        setActiveChild(found ?? (data[0] ?? null));
+        const finalActive = found ?? (data[0] ?? null);
+        setActiveChild(finalActive);
+        if (finalActive?.library_settings) {
+            setLibrarySettings(finalActive.library_settings);
+        }
       }
     } finally {
       setIsLoading(false);
     }
   }
+
+  // Sync library settings when active child changes
+  useEffect(() => {
+    // Only set if different to avoid redundant renders
+    const nextSettings = activeChild?.library_settings || {};
+    setLibrarySettings((prev: any) => {
+        if (JSON.stringify(prev) === JSON.stringify(nextSettings)) return prev;
+        return nextSettings;
+    });
+  }, [activeChild?.id, activeChild?.library_settings]);
 
   useEffect(() => {
     let mounted = true;
@@ -173,6 +190,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(null);
         setProfiles([]);
         setActiveChild(null);
+        setLibrarySettings({});
         deleteCookie("activeChildId");
         
         // Clear Story Maker Globals and Drafts here
@@ -237,6 +255,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isLoading, 
       isStoryGenerating,
       setIsStoryGenerating,
+      librarySettings,
+      updateLibrarySettings: async (settings: any) => {
+          if (!activeChild?.id) return;
+          
+          // Optimistic update
+          setLibrarySettings(settings);
+          
+          // Update the local profile object as well to keep it in sync
+          setProfiles(prev => prev.map(p => 
+            p.id === activeChild.id ? { ...p, library_settings: settings } : p
+          ));
+          if (activeChild) {
+              setActiveChild({ ...activeChild, library_settings: settings });
+          }
+
+          if (user?.id) {
+              await apiUpdateLibrarySettings(settings, activeChild.id);
+          }
+      },
       refreshProfiles, 
       setActiveChild: handleSetActiveChild 
     }}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import LibraryView from "@/components/reader/library-view";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
@@ -10,8 +10,11 @@ import { useAuth } from "@/components/auth/auth-provider";
 const cachedLibraryBooks: Record<string, LibraryBookCard[]> = {};
 const inFlightLibraryFetch: Record<string, Promise<void> | null> = {};
 
+// Optional: Pre-sign cache for images to avoid late-signing flashes
+const signedUrlCache: Record<string, string> = {};
+
 export default function LibraryContent() {
-    const { user, activeChild, isLoading: authLoading } = useAuth();
+    const { user, activeChild, isLoading: authLoading, librarySettings, updateLibrarySettings } = useAuth();
     const currentUserId = user?.id;
     // Cache key should be scoped by user AND active child to prevent visibility leakage
     const cacheKey = currentUserId 
@@ -36,7 +39,7 @@ export default function LibraryContent() {
         return true;
     });
 
-    const [_error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
@@ -51,57 +54,84 @@ export default function LibraryContent() {
         duration?: string;
     }>({});
 
+    // Optimization Refs
+    const lastHydratedKey = useRef<string | null>(null);
+    const lastSyncedSettings = useRef<string>("");
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const offsetRef = useRef(0);
+    const filtersRef = useRef(filters);
+    const sortByRef = useRef(sortBy);
+
+    // Update refs on change to keep callbacks stable
+    useEffect(() => { offsetRef.current = offset; }, [offset]);
+    useEffect(() => { filtersRef.current = filters; }, [filters]);
+    useEffect(() => { sortByRef.current = sortBy; }, [sortBy]);
+
     const LIMIT = 20;
+
 
     const loadBooks = useCallback(async (isInitial = true) => {
         if (authLoading) return;
 
-        const currentOffset = isInitial ? 0 : offset;
-        const filterKey = JSON.stringify(filters);
-        const fetchKey = `${cacheKey}:${currentOffset}:${sortBy}:${filterKey}`;
+        // Cancel previous pending fetch for this same stream
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
-        if (inFlightLibraryFetch[fetchKey]) return inFlightLibraryFetch[fetchKey];
+        const currentOffset = isInitial ? 0 : offsetRef.current;
+        const currentFilters = filtersRef.current;
+        const currentSort = sortByRef.current;
+        
+        const filterKey = JSON.stringify(currentFilters);
+        const fetchKey = `${cacheKey}:${currentOffset}:${currentSort}:${filterKey}`;
+
+        // Memory cache check for instant load (on top of sync hydrate)
+        if (isInitial && cachedLibraryBooks[cacheKey] && Object.keys(currentFilters).length === 0 && currentSort === "newest") {
+            setBooks(cachedLibraryBooks[cacheKey]);
+            setIsLoading(false);
+            // We still proceed to background refresh if needed, but we don't return early here
+            // to ensure we always have fresh data.
+        }
 
         const work = async () => {
-            setError(null);
-            if (!isInitial) setIsNextPageLoading(true);
-
-            // 1. Try reading from raidenCache first
-            const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, cacheKey);
-            if (cached?.books) {
-                setBooks(cached.books);
-                cachedLibraryBooks[cacheKey] = cached.books;
-                setIsLoading(false);
-            }
-
             try {
+                if (controller.signal.aborted) return;
+                
+                setError(null);
+                if (!isInitial) setIsNextPageLoading(true);
+
                 // 2. Background fresh fetch
                 const filterParams = new URLSearchParams();
                 if (activeChild?.id) filterParams.set('childId', activeChild.id);
                 filterParams.set('mode', 'library');
                 filterParams.set('limit', LIMIT.toString());
                 filterParams.set('offset', currentOffset.toString());
-                filterParams.set('sortBy', sortBy);
-                if (filters.level) filterParams.set('level', filters.level);
-                if (filters.origin) filterParams.set('origin', filters.origin);
-                if (filters.type) filterParams.set('type', filters.type);
-                if (filters.category) filterParams.set('category', filters.category);
-                if (filters.duration) filterParams.set('duration', filters.duration);
+                filterParams.set('sortBy', currentSort);
+                
+                if (currentFilters.level) filterParams.set('level', currentFilters.level);
+                if (currentFilters.origin) filterParams.set('origin', currentFilters.origin);
+                if (currentFilters.type) filterParams.set('type', currentFilters.type);
+                if (currentFilters.category) filterParams.set('category', currentFilters.category);
+                if (currentFilters.duration) filterParams.set('duration', currentFilters.duration);
 
                 const childIdQuery = activeChild?.id ? `&childId=${activeChild.id}` : '';
                 const progressUrl = `/api/progress?${childIdQuery}`;
                 const booksUrl = `/api/books?${filterParams.toString()}`;
                 
                 const [booksRes, progressRes] = await Promise.all([
-                    fetch(booksUrl),
-                    // Only fetch progress if logged in
-                    user ? fetch(progressUrl).catch(() => ({ ok: false })) : Promise.resolve({ ok: false })
+                    fetch(booksUrl, { signal: controller.signal }),
+                    user ? fetch(progressUrl, { signal: controller.signal }).catch(() => ({ ok: false })) : Promise.resolve({ ok: false })
                 ]);
 
+                if (controller.signal.aborted) return;
                 if (!booksRes.ok) throw new Error('Failed to fetch books');
 
                 const booksData = await booksRes.json();
                 const progressList = (progressRes as any).ok ? await (progressRes as any).json() : [];
+
+                if (controller.signal.aborted) return;
 
                 const progressMap: Record<string, any> = {};
                 progressList.forEach((p: any) => { if (p.book_id) progressMap[p.book_id] = p; });
@@ -133,14 +163,17 @@ export default function LibraryContent() {
                 // 3. Update state and persistence
                 if (isInitial) {
                     setBooks(libraryBooks);
-                    setOffset(LIMIT); // Next page starts at LIMIT
+                    setOffset(LIMIT);
                     cachedLibraryBooks[cacheKey] = libraryBooks;
 
-                    await raidenCache.put(CacheStore.LIBRARY_METADATA, {
-                        id: cacheKey,
-                        books: libraryBooks,
-                        updatedAt: Date.now()
-                    });
+                    const isUnfiltered = Object.keys(currentFilters).length === 0 && currentSort === "newest";
+                    if (isUnfiltered) {
+                        raidenCache.put(CacheStore.LIBRARY_METADATA, {
+                            id: cacheKey,
+                            books: libraryBooks,
+                            updatedAt: Date.now()
+                        }).catch(() => {});
+                    }
                 } else {
                     setBooks(prev => {
                         const existingIds = new Set(prev.map(b => b.id));
@@ -154,38 +187,136 @@ export default function LibraryContent() {
                 
                 setHasMore(libraryBooks.length === LIMIT);
                 
-                // Hint for next load
                 if (isInitial) {
                     window.localStorage.setItem(`raiden:has_library_cache:${cacheKey}`, "true");
                 }
 
             } catch (err) {
-                console.error('Failed to load books:', err);
+                if (err instanceof Error && err.name === 'AbortError') return;
+                console.error('[LibraryContent] loadBooks error:', err);
                 if (isInitial && !cachedLibraryBooks[cacheKey]?.length) {
                     setError(err instanceof Error ? err.message : 'Failed to load books');
                 }
             } finally {
-                setIsLoading(false);
-                setIsNextPageLoading(false);
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                    setIsNextPageLoading(false);
+                }
             }
         };
 
-        inFlightLibraryFetch[fetchKey] = work();
-        try {
-            await inFlightLibraryFetch[fetchKey];
-        } finally {
-            inFlightLibraryFetch[fetchKey] = null;
-        }
-    }, [cacheKey, authLoading, activeChild?.id, user, offset, sortBy, filters]);
+        return work();
+    }, [cacheKey, authLoading, activeChild?.id, user]);
 
-    // Reset offset and reload when filters or sortBy change
+    // 1. Hydrate filters/sort from DB when child changes OR remote settings change
+    useEffect(() => {
+        if (authLoading || !librarySettings) return;
+        
+        const settingsStr = JSON.stringify(librarySettings);
+        
+        // Scenario A: Child switched (Physical key change)
+        const isChildSwitch = lastHydratedKey.current !== cacheKey;
+        
+        // Scenario B: Remote settings changed (but NOT byproduct of our own local save)
+        const isRemoteChange = lastSyncedSettings.current !== settingsStr;
+
+        if (isChildSwitch || isRemoteChange) {
+            let targetFilters = librarySettings.filters || {};
+            const targetSort = librarySettings.sortBy || "newest";
+
+            // --- SMART DEFAULTS ---
+            // If we are initializing for a child and have NO saved filters, apply defaults based on age and interests
+            if (activeChild && Object.keys(targetFilters).length === 0) {
+                const defaults: any = {};
+                
+                // 1. Age-based level mapping
+                const age = activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : null;
+                if (age !== null) {
+                    if (age < 3) defaults.level = 'toddler';
+                    else if (age <= 5) defaults.level = 'preschool';
+                    else if (age <= 8) defaults.level = 'elementary';
+                    else defaults.level = 'intermediate';
+                }
+
+                // 2. Interest-based category mapping
+                // Map known interest options to book categories
+                if (activeChild.interests && activeChild.interests.length > 0) {
+                    const firstInterest = activeChild.interests[0].toLowerCase();
+                    const interestMap: Record<string, string> = {
+                        'animal': 'animals',
+                        'nature': 'nature',
+                        'science': 'science',
+                        'space': 'space',
+                        'dinosaurs': 'dinosaurs',
+                        'fantasy': 'fantasy',
+                        'history': 'history',
+                        'sports': 'sports',
+                        'vehicles': 'vehicles',
+                        'princess': 'fantasy'
+                    };
+                    if (interestMap[firstInterest]) {
+                        defaults.category = interestMap[firstInterest];
+                    }
+                }
+                
+                targetFilters = defaults;
+            }
+            // -----------------------
+
+            setFilters(targetFilters);
+            setSortBy(targetSort);
+            
+            lastHydratedKey.current = cacheKey;
+            lastSyncedSettings.current = settingsStr;
+        }
+    }, [cacheKey, authLoading, librarySettings, activeChild]);
+
+    // 2. Load books when view state changes
     useEffect(() => {
         if (authLoading) return;
-        setBooks([]);
+        
+        const isUnfiltered = Object.keys(filters).length === 0 && sortBy === "newest";
+        const hasCache = !!cachedLibraryBooks[cacheKey];
+
+        // 1. Reset state with "Magic Buffer":
+        // Only clear books immediately if we are switching to a view that has NO cache,
+        // to avoid an ugly flash of unrelated books.
+        if (!isUnfiltered || !hasCache) {
+            setBooks([]);
+            setIsLoading(true);
+        }
+
         setOffset(0);
         setHasMore(true);
+        
         loadBooks(true);
-    }, [sortBy, filters, cacheKey, authLoading]);
+
+        return () => {
+            // Cleanup: abort any in-flight requests on unmount or filter switch
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, [cacheKey, authLoading, filters, sortBy]);
+
+    // 3. Debounced Persistence to DB
+    useEffect(() => {
+        if (authLoading || !user || !activeChild?.id) return;
+        
+        const timeout = setTimeout(() => {
+            const currentSettingsStr = JSON.stringify({ filters, sortBy });
+            const remoteSettingsStr = JSON.stringify(librarySettings);
+            
+            if (currentSettingsStr !== remoteSettingsStr) {
+                // Update our record of what we sent to avoid re-hydrating it back
+                lastSyncedSettings.current = currentSettingsStr;
+                updateLibrarySettings({ filters, sortBy });
+            }
+        }, 1500);
+
+        return () => clearTimeout(timeout);
+    }, [filters, sortBy, activeChild?.id]);
+
 
     // Instant hydration from cache on client
     useEffect(() => {

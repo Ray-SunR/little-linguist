@@ -21,6 +21,7 @@ export interface ChildProfile extends ChildProfilePayload {
   deleted_at?: string;
   avatar_paths?: string[];
   primary_avatar_index?: number;
+  library_settings?: any;
 }
 
 const AVATAR_BUCKET = 'user-assets';
@@ -410,4 +411,74 @@ export async function switchActiveChild(childId: string) {
 
   cookies().set('activeChildId', childId, { secure: true, httpOnly: false });
   return { success: true };
+}
+
+export async function getUserProfile() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Not authenticated' };
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (error) {
+    console.error('[profiles:getUserProfile] Error:', error);
+    return { error: error.message };
+  }
+
+  return { data };
+}
+
+export async function updateLibrarySettings(childId: string, settings: any) {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { error: 'Not authenticated' };
+    }
+
+    // Use explicit childId if provided, otherwise fallback to cookie
+    const targetChildId = childId || cookies().get('activeChildId')?.value;
+
+    if (targetChildId) {
+        const { error } = await supabase
+            .from('children')
+            .update({ library_settings: settings })
+            .eq('id', targetChildId)
+            .eq('owner_user_id', user.id);
+
+        if (error) {
+            console.error('[profiles:updateLibrarySettings] Error updating child settings:', error);
+            return { error: error.message };
+        }
+    } else {
+        // Fallback for parent level if no child is selected (legacy support)
+        const { error } = await supabase
+            .from('profiles')
+            .update({ library_settings: settings })
+            .eq('id', user.id);
+
+        if (error) {
+            // If column doesn't exist on profiles, we just ignore it for now
+            // as we are migrating to children table.
+            console.warn('[profiles:updateLibrarySettings] Profiles column missing, but no active child found.');
+        }
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('[profiles:updateLibrarySettings] Unexpected error:', err);
+    return { error: err.message || 'An unexpected error occurred' };
+  }
 }

@@ -124,7 +124,79 @@ export default function LibraryView({
                         {isLoading ? (
                             <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {[...Array(8)].map((_, i) => (
-                                    <div key={i} className="h-[420px] md:h-[460px] w-full rounded-[2.5rem] bg-slate-200 animate-pulse border-4 border-white shadow-clay-inset" />
+                                    <motion.div 
+                                        key={i} 
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="h-[420px] md:h-[460px] w-full rounded-[2.5rem] bg-white/40 backdrop-blur-xl border-[5px] border-white shadow-clay p-4 flex flex-col gap-4 overflow-hidden relative group"
+                                    >
+                                        {/* 1. Iridescent Background Flow */}
+                                        <div className="absolute inset-0 z-0 bg-gradient-to-br from-purple-100/30 via-blue-100/30 to-pink-100/30 animate-[iridescent_8s_infinite_linear] bg-[length:200%_200%]" />
+                                        
+                                        {/* 2. Floating "Magic Stars" (Decorative Skeletons) */}
+                                        <div className="absolute inset-0 pointer-events-none">
+                                            {[...Array(3)].map((_, si) => (
+                                                <motion.div
+                                                    key={si}
+                                                    animate={{ 
+                                                        y: [0, -20, 0],
+                                                        x: [0, (si % 2 === 0 ? 10 : -10), 0],
+                                                        scale: [1, 1.2, 1],
+                                                        opacity: [0.1, 0.3, 0.1]
+                                                    }}
+                                                    transition={{ 
+                                                        duration: 3 + si, 
+                                                        repeat: Infinity, 
+                                                        ease: "easeInOut",
+                                                        delay: si * 0.5
+                                                    }}
+                                                    className="absolute w-4 h-4 text-purple-200"
+                                                    style={{ 
+                                                        top: `${20 + si * 25}%`, 
+                                                        left: `${15 + si * 30}%` 
+                                                    }}
+                                                >
+                                                    <Sparkles className="w-full h-full fill-current" />
+                                                </motion.div>
+                                            ))}
+                                        </div>
+
+                                        {/* 3. Image Area Skeleton with Silhouette */}
+                                        <div className="relative aspect-[3/4] w-full rounded-[1.8rem] bg-white/80 border-4 border-white shadow-clay-inset overflow-hidden flex items-center justify-center">
+                                            {/* Holographic Shimmer Beam */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent -rotate-45 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out" />
+                                            
+                                            {/* Lumo Silhouette Placeholder */}
+                                            <div className="relative opacity-10 grayscale scale-150 blur-[2px] animate-pulse">
+                                                <div className="w-24 h-24 rounded-full bg-slate-200" />
+                                                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-slate-200" />
+                                            </div>
+                                            
+                                            {/* Bottom Badge Skeletons */}
+                                            <div className="absolute bottom-3 left-3 w-16 h-6 rounded-full bg-slate-100 opacity-50 border-2 border-white shadow-sm" />
+                                            <div className="absolute top-3 right-3 w-20 h-6 rounded-full bg-slate-100 opacity-50 border-2 border-white shadow-sm" />
+                                        </div>
+                                        
+                                        {/* 4. Text Content Skeletons */}
+                                        <div className="px-2 space-y-3 relative z-10">
+                                            <div className="h-7 w-[85%] bg-gradient-to-r from-slate-100 via-white to-slate-100 animate-[shimmer_3s_infinite_linear] bg-[length:200%_100%] rounded-xl shadow-clay-sm" />
+                                            <div className="flex gap-2">
+                                                <div className="h-4 w-16 bg-slate-100 rounded-lg opacity-60" />
+                                                <div className="h-4 w-12 bg-slate-50 rounded-lg opacity-40" />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* 5. Bottom Interactive Area Skeleton */}
+                                        <div className="mt-auto px-2 pb-2">
+                                            <div className="h-[52px] w-full rounded-2xl bg-white/90 border-2 border-dashed border-purple-100/50 relative overflow-hidden flex items-center justify-center shadow-clay-inset">
+                                                <div className="w-1/3 h-3 bg-purple-50 rounded-full animate-pulse" />
+                                            </div>
+                                        </div>
+
+                                        {/* Magic Blur Filter for "Liquid" effect */}
+                                        <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-purple-200/20 blur-[60px] rounded-full animate-[glass-flow_10s_infinite_ease-in-out]" />
+                                    </motion.div>
                                 ))}
                             </div>
                         ) : (!currentUserId || filteredBooks.length > 0) ? (

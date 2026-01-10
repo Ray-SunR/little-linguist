@@ -83,18 +83,15 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 let savedDraft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
                 
                 // 2. Migration: If user is logged in but has no draft, check for guest draft
-                // IMPORTANT: We only do this if we haven't already migrated in this mount
                 if (!savedDraft && user && !processingRef.current) {
                     const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
                     if (guestDraft) {
                         console.debug("[StoryMakerClient] Found guest draft to migrate.");
                         savedDraft = guestDraft;
-                        // Don't delete yet - wait for resumeDraftIfNeeded to consume it
-                        // Or at least don't delete if we are just loading
                     }
                 }
 
-                // 3. Migration fallback: check localStorage if IDB is empty
+                // 3. Migration fallback: check localStorage
                 if (!savedDraft) {
                     const legacyDraft = localStorage.getItem("raiden:story_maker_draft");
                     if (legacyDraft) {
@@ -110,17 +107,27 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
                 if (savedDraft) {
                     const { profile: savedProfile, selectedWords: savedWords } = savedDraft;
-                    // Only apply if we are still at the profile step or if name is empty
                     if (step === "profile" && (savedProfile || savedWords)) {
                         setProfile((prev: UserProfile) => {
-                            // Don't overwrite with empty name if we already have one
                             if (prev.name && !savedProfile?.name) return prev;
                             return { ...prev, ...savedProfile };
                         });
                         if (savedWords) setSelectedWords(savedWords);
                     }
+                } else if (activeChild && !profile.name) {
+                    // Pre-fill from active child if no draft exists
+                    const age = activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : 5;
+                    setProfile({
+                        id: activeChild.id,
+                        name: activeChild.first_name,
+                        age: age,
+                        gender: (activeChild.gender as any) || 'neutral',
+                        avatarUrl: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
+                        interests: activeChild.interests || [],
+                        // Pre-fill topic with first interest if available
+                        topic: activeChild.interests?.[0] || ""
+                    });
                 } else if (initialProfile && !profile.name) {
-                    // Only fallback to initialProfile if we don't have a name yet
                     setProfile((prev: UserProfile) => ({
                         ...prev,
                         ...initialProfile
@@ -131,7 +138,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             }
         };
         loadDraft();
-    }, [initialProfile, user]);
+    }, [initialProfile, user, activeChild]);
 
     // Unified Effect for Resuming, Result Polling, and Cleanup
     useEffect(() => {

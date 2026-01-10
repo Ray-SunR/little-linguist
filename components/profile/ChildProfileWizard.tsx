@@ -104,7 +104,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
             if (result.error) throw new Error(result.error);
 
             await refreshProfiles();
-            router.push('/dashboard');
+            router.push('/library');
         } catch (err: any) {
             setError(err.message || 'Something went wrong');
             setStep('interests');
