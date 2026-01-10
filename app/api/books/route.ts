@@ -13,7 +13,26 @@ export async function GET(request: NextRequest) {
         // Check for library mode (optimized for library page)
         const { searchParams } = new URL(request.url);
         const mode = searchParams.get('mode');
-        const childId = searchParams.get('childId');
+        let childId = searchParams.get('childId');
+
+        // SECURITY: Validate childId belongs to authenticated user before using for progress
+        // If user is not authenticated or childId doesn't belong to them, ignore childId
+        if (childId && user?.id) {
+            const { data: childData } = await supabase
+                .from('children')
+                .select('id')
+                .eq('id', childId)
+                .eq('guardian_id', user.id)
+                .single();
+            
+            if (!childData) {
+                // childId doesn't belong to this user, ignore it
+                childId = null;
+            }
+        } else if (childId && !user?.id) {
+            // Unauthenticated users cannot request child-specific data
+            childId = null;
+        }
 
         if (mode === 'library') {
             let limit = parseInt(searchParams.get('limit') || '20', 10);
@@ -29,6 +48,14 @@ export async function GET(request: NextRequest) {
             const isNonFiction = searchParams.get('type') === 'nonfiction' ? true : (searchParams.get('type') === 'fiction' ? false : undefined);
             const sortBy = searchParams.get('sortBy') || 'newest';
             const category = searchParams.get('category') || undefined;
+            const duration = searchParams.get('duration') || undefined;
+            const isFavorite = searchParams.get('isFavorite') === 'true' || undefined;
+            const onlyPersonal = searchParams.get('onlyPersonal') === 'true' || undefined;
+
+            // SECURITY: only_personal requires an authenticated user
+            if (onlyPersonal && !user?.id) {
+                return NextResponse.json([]);
+            }
 
             // Return books with cover images and token counts for library view
             const booksWithCovers = await repo.getAvailableBooksWithCovers(
@@ -38,12 +65,13 @@ export async function GET(request: NextRequest) {
                     limit, 
                     offset,
                     sortBy,
-                    filters: {
-                        level,
-                        origin,
-                        is_nonfiction: isNonFiction,
-                        category
-                    }
+                    level,
+                    origin,
+                    is_nonfiction: isNonFiction,
+                    category,
+                    is_favorite: isFavorite,
+                    only_personal: onlyPersonal,
+                    duration
                 }
             );
             return NextResponse.json(booksWithCovers);

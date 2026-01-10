@@ -1,6 +1,45 @@
 import { createClient } from '@supabase/supabase-js';
 import { Book } from '../types';
 
+// Types for optimized library fetching
+interface BookFilters {
+    limit?: number;
+    offset?: number;
+    sortBy?: string;
+    level?: string;
+    origin?: string;
+    is_nonfiction?: boolean;
+    category?: string;
+    is_favorite?: boolean;
+    only_personal?: boolean;
+    duration?: string;
+}
+
+interface BookWithCover {
+    id: string;
+    title: string;
+    coverImageUrl?: string;
+    coverPath?: string;
+    updated_at?: string;
+    voice_id?: string;
+    owner_user_id?: string | null;
+    child_id?: string | null;
+    totalTokens?: number;
+    estimatedReadingTime?: number;
+    isRead?: boolean;
+    lastOpenedAt?: string;
+    isFavorite?: boolean;
+    level?: string;
+    isNonFiction?: boolean;
+    origin?: string;
+    progress?: {
+        last_token_index?: number;
+        is_completed?: boolean;
+        total_read_seconds?: number;
+        last_read_at?: string;
+    };
+}
+
 /**
  * Server-only repository for Book data.
  * This should ONLY be used in API routes or Server Components.
@@ -41,79 +80,88 @@ export class BookRepository {
      * This is optimized for the library page - it only returns metadata needed
      * for rendering book cards, including signed cover image URLs.
      */
-    async getAvailableBooksWithCovers(userId?: string, childId?: string, pagination?: { 
-        limit?: number; 
-        offset?: number;
-        sortBy?: string;
-        filters?: {
-            level?: string;
-            origin?: string;
-            is_nonfiction?: boolean;
-            category?: string;
+    async getAvailableBooksWithCovers(
+        userId: string | undefined,
+        childId: string | undefined,
+        filters: BookFilters = {}
+    ): Promise<BookWithCover[]> {
+        // Determine select fields - only join progress if we have a childId
+        // Only fetch the fields we actually need for the library UI
+        // Include child_id in progress so we can filter in JS (needed for left join to work)
+        let selectFields: string;
+        if (childId) {
+            selectFields = (filters?.is_favorite)
+                ? 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin, child_book_progress!inner(child_id, is_favorite, is_completed, last_token_index)'
+                : 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin, child_book_progress(child_id, is_favorite, is_completed, last_token_index)';
+        } else {
+            // No childId = no progress join needed
+            selectFields = 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin';
         }
-    }): Promise<{
-        id: string;
-        title: string;
-        coverImageUrl?: string;
-        updated_at?: string;
-        voice_id?: string;
-        owner_user_id?: string | null;
-        totalTokens?: number;
-        estimatedReadingTime?: number;
-        isRead?: boolean;
-        lastOpenedAt?: string;
-        level?: string;
-        isNonFiction?: boolean;
-        origin?: string;
-    }[]> {
-        // Fetch metadata only from 'books' table (NO TOKENS)
-        let query = this.supabase
+
+        let query: any = this.supabase
             .from('books')
-            .select('id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin', { count: 'exact' });
+            .select(selectFields, { count: 'exact' });
 
         // Visibility logic in query:
         // 1. System books: owner_user_id is null
         // 2. Personal books: owner_user_id = userId AND (child_id is null OR child_id = childId)
-        let filter = 'owner_user_id.is.null';
-        if (userId) {
-            if (childId) {
-                // PostgREST complex OR with ANDs
-                filter = `owner_user_id.is.null,and(owner_user_id.eq.${userId},child_id.is.null),and(owner_user_id.eq.${userId},child_id.eq.${childId})`;
+        if (filters?.only_personal) {
+            // SECURITY: only_personal requires authenticated user
+            if (userId) {
+                // Show only user-owned books (with or without child scope)
+                if (childId) {
+                    query = query.eq('child_id', childId).eq('owner_user_id', userId);
+                } else {
+                    query = query.eq('owner_user_id', userId);
+                }
             } else {
-                filter = `owner_user_id.is.null,owner_user_id.eq.${userId}`;
+                return [];
             }
-        }
-        
-        query = query.or(filter);
-
-        // Apply filters
-        if (pagination?.filters) {
-            const f = pagination.filters;
-            if (f.level) {
-                // Map UI levels to min_grade ranges based on seed-all-books.ts
-                // PreK = -1, K = 0, G1-2 = 1, G3-5 = 3
-                switch (f.level) {
-                    case 'toddler':
-                        // Pre-K and below
-                        query = query.lte('min_grade', -1);
-                        break;
-                    case 'preschool':
-                        // Kindergarten / Preschool (approx 3-5yo)
-                        query = query.eq('min_grade', 0);
-                        break;
-                    case 'elementary':
-                        // Grades 1-2 (approx 5-8yo)
-                        query = query.gte('min_grade', 1).lt('min_grade', 3);
-                        break;
-                    case 'intermediate':
-                        // Grades 3+ (approx 8-12yo)
-                        query = query.gte('min_grade', 3);
-                        break;
-                    default:
-                        // Fallback to strict equality if unknown level
-                        query = query.eq('level', f.level);
+        } else {
+            let filter = 'owner_user_id.is.null';
+            if (userId) {
+                if (childId) {
+                    filter = `owner_user_id.is.null,and(owner_user_id.eq.${userId},child_id.is.null),and(owner_user_id.eq.${userId},child_id.eq.${childId})`;
+                } else {
+                    filter = `owner_user_id.is.null,owner_user_id.eq.${userId}`;
                 }
             }
+            query = query.or(filter);
+        }
+
+        // NOTE: We do NOT filter child_book_progress.child_id at the query level
+        // because that turns the left join into an inner join, filtering out books
+        // without progress. Instead, we filter the progress in JS mapping below.
+
+        // Apply favorite filter conditions if performing join
+        if (filters?.is_favorite) {
+            if (!childId) return [];
+            // For favorites, we DO need an inner join to only get favorited books
+            query = query.eq('child_book_progress.is_favorite', true)
+                         .eq('child_book_progress.child_id', childId);
+        }
+
+        // Apply filters
+        if (filters) {
+            const f = filters;
+            if (f.level) {
+                switch (f.level) {
+                    case 'toddler': query = query.lte('min_grade', -1); break;
+                    case 'preschool': query = query.eq('min_grade', 0); break;
+                    case 'elementary': query = query.gte('min_grade', 1).lt('min_grade', 3); break;
+                    case 'intermediate': query = query.gte('min_grade', 3); break;
+                    default: query = query.eq('level', f.level);
+                }
+            }
+            
+            if (f.duration) {
+                switch (f.duration) {
+                    case 'short': query = query.lt('estimated_reading_time', 5); break;
+                    case 'medium': query = query.gte('estimated_reading_time', 5).lte('estimated_reading_time', 10); break;
+                    case 'long': query = query.gt('estimated_reading_time', 10); break;
+                }
+            }
+
             if (f.origin) query = query.eq('origin', f.origin);
             if (f.is_nonfiction !== undefined) query = query.eq('is_nonfiction', f.is_nonfiction);
             if (f.category && f.category !== 'all') {
@@ -122,7 +170,7 @@ export class BookRepository {
         }
 
         // Apply sorting
-        const sortBy = pagination?.sortBy || 'newest';
+        const sortBy = filters.sortBy || 'newest';
         if (sortBy === 'newest') {
             query = query.order('updated_at', { ascending: false });
         } else if (sortBy === 'alphabetical') {
@@ -130,76 +178,94 @@ export class BookRepository {
         } else if (sortBy === 'reading_time') {
             query = query.order('estimated_reading_time', { ascending: true });
         }
-
         query = query.order('title');
 
-        if (pagination?.limit) {
-            const offset = pagination.offset || 0;
-            query = query.range(offset, offset + pagination.limit - 1);
+        if (filters.limit) {
+            const offset = filters.offset || 0;
+            query = query.range(offset, offset + filters.limit - 1);
         }
 
         const { data: booksData, error: booksError } = await query;
-
         if (booksError) throw booksError;
         if (!booksData || booksData.length === 0) return [];
 
-        // Fetch child-centric progress if childId is available
-        let progressMap = new Map<string, any>();
-        if (childId) {
-            const { data: progressData } = await this.supabase
-                .from('child_book_progress')
-                .select('*')
-                .eq('child_id', childId)
-                .in('book_id', booksData.map(b => b.id));
+        // 1. Batch fetch signed URLs
+        // Collect all paths that need signing
+        const pathsToSign: string[] = [];
+        const bookMap = new Map<string, any>();
+        
+        booksData.forEach((book: any) => {
+            if (book.cover_image_path) {
+                if (!book.cover_image_path.startsWith('http')) {
+                    pathsToSign.push(book.cover_image_path);
+                }
+            }
+            bookMap.set(book.id, book);
+        });
 
-            if (progressData) {
-                progressData.forEach(p => {
-                    progressMap.set(p.book_id, p);
+        // Also fetch any media covers if cover_image_path is missing
+        const booksMissingCover = booksData.filter((b: any) => !b.cover_image_path);
+        const mediaCoverMap = new Map<string, string>();
+        
+        if (booksMissingCover.length > 0) {
+            const bookIds = booksMissingCover.map((b: any) => b.id);
+            const { data: mediaData } = await this.supabase
+                .from('book_media')
+                .select('book_id, path')
+                .eq('media_type', 'image')
+                .in('book_id', bookIds)
+                .order('after_word_index')
+                .order('path');
+            
+            if (mediaData) {
+                mediaData.forEach((media: any) => {
+                    if (!mediaCoverMap.has(media.book_id) && media.path) {
+                        mediaCoverMap.set(media.book_id, media.path);
+                        if (!media.path.startsWith('http')) {
+                            pathsToSign.push(media.path);
+                        }
+                    }
                 });
             }
         }
 
-        // Batch fetch cover images from book_media
-        const bookIds = booksData.map(b => b.id);
-        const { data: mediaData, error: mediaError } = await this.supabase
-            .from('book_media')
-            .select('book_id, path')
-            .eq('media_type', 'image')
-            .in('book_id', bookIds)
-            .order('after_word_index')
-            .order('path');
+        // Execute Batch Sign
+        const signedUrlMap: Record<string, string> = {};
+        if (pathsToSign.length > 0) {
+            const { data: signedData } = await this.supabase
+                .storage
+                .from('book-assets')
+                .createSignedUrls(pathsToSign, 60 * 60);
 
-        const mediaCoverMap = new Map<string, string>();
-        if (mediaData) {
-            for (const media of mediaData) {
-                if (!mediaCoverMap.has(media.book_id) && media.path) {
-                    mediaCoverMap.set(media.book_id, media.path);
-                }
+            if (signedData) {
+                signedData.forEach(item => {
+                    if (item.path && item.signedUrl) {
+                        signedUrlMap[item.path] = item.signedUrl;
+                    }
+                });
             }
         }
 
-        // Process books and sign cover URLs
-        const booksWithCovers = await Promise.all(booksData.map(async (book: any) => {
-            let coverImageUrl: string | undefined;
-            // Prioritize explicit cover_image_path, fallback to first media image
+        // 2. Map final results
+        return booksData.map((book: any) => {
             const coverPath = book.cover_image_path || mediaCoverMap.get(book.id);
-
+            let coverImageUrl = undefined;
+            
             if (coverPath) {
                 if (coverPath.startsWith('http')) {
                     coverImageUrl = coverPath;
                 } else {
-                    try {
-                        const { data: signedData } = await this.supabase.storage
-                            .from('book-assets')
-                            .createSignedUrl(coverPath, 3600);
-                        coverImageUrl = signedData?.signedUrl;
-                    } catch (err) {
-                        console.error(`Error signing cover URL for book ${book.id}:`, err);
-                    }
+                    coverImageUrl = signedUrlMap[coverPath];
                 }
             }
 
-            const progress = progressMap.get(book.id);
+            // Find relevant progress for THIS child only
+            // Since we removed query-level child_id filter to preserve left join,
+            // we need to filter by child_id in JS (progress list may contain entries for other children)
+            const progressList = book.child_book_progress as any[] || [];
+            const progress = childId 
+                ? progressList.find((p: any) => p.child_id === childId)
+                : null;
 
             return {
                 id: book.id,
@@ -213,15 +279,17 @@ export class BookRepository {
                 totalTokens: book.total_tokens,
                 estimatedReadingTime: book.estimated_reading_time,
                 isRead: progress?.is_completed || false,
-                lastOpenedAt: progress?.last_read_at,
                 isFavorite: progress?.is_favorite || false,
                 level: book.level,
                 isNonFiction: book.is_nonfiction,
-                origin: book.origin
+                origin: book.origin,
+                // Return fields needed for progress bar calculation
+                progress: progress ? {
+                    last_token_index: progress.last_token_index,
+                    is_completed: progress.is_completed
+                } : undefined
             };
-        }));
-
-        return booksWithCovers.filter(Boolean) as any[];
+        });
     }
 
     async getBookById(idOrSlug: string, options: {

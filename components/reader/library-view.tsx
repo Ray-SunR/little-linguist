@@ -26,6 +26,7 @@ interface LibraryViewProps {
         type?: "fiction" | "nonfiction";
         category?: string;
         duration?: string;
+        collection?: "discovery" | "my-tales" | "favorites";
     };
     onFiltersChange: (val: any) => void;
 }
@@ -61,7 +62,14 @@ export default function LibraryView({
     }, [books, searchQuery]);
 
     const handleFilterChange = (key: string, val: any) => {
-        onFiltersChange({ ...filters, [key]: val });
+        const newFilters = { ...filters, [key]: val };
+        
+        // If switching collection to something other than discovery, clear category
+        if (key === 'collection' && val !== 'discovery') {
+            newFilters.category = undefined; 
+        }
+
+        onFiltersChange(newFilters);
     };
 
     const handleCategoryChange = (val: string) => {
@@ -85,14 +93,14 @@ export default function LibraryView({
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 pb-32 flex flex-col gap-8">
                 {/* Hero Section with Grid Layout for Large Screens */}
-                <header className="flex flex-col gap-8 relative z-10 items-start max-w-5xl mx-auto w-full">
+                <header className="flex flex-col gap-6 relative z-10 items-start max-w-7xl mx-auto w-full">
                     {/* Header Content: Title, Search, Filters */}
                     <div className="w-full flex flex-col gap-6">
-                        <div className="flex flex-col gap-2 text-center md:text-left">
-                             <h1 className="font-fredoka text-3xl md:text-5xl font-black text-slate-800 tracking-tight">
-                                Magical <span className="text-purple-600">Library</span>
-                            </h1>
-                            <p className="text-slate-500 font-bold text-lg">Discover stories to fuel your imagination</p>
+                        <div className="flex flex-col gap-3 text-center md:text-left">
+                             <h1 className="font-fredoka text-4xl md:text-6xl font-black text-slate-800 tracking-tight leading-tight">
+                                Magical <span className="text-purple-600 drop-shadow-sm">Library</span>
+                             </h1>
+                             <p className="text-slate-500 font-bold text-xl md:text-2xl max-w-2xl">Discover stories to fuel your imagination</p>
                         </div>
 
                         <LibraryFilters 
@@ -120,8 +128,18 @@ export default function LibraryView({
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-8">
-                        {isLoading ? (
+                    <div className="flex flex-col gap-8 relative min-h-[400px]">
+                        {/* Loading Overlay for Double Buffering */}
+                        {isLoading && books.length > 0 && (
+                            <div className="absolute inset-0 z-20 bg-white/50 backdrop-blur-[2px] rounded-[2.5rem] flex items-start justify-center pt-40 transition-all duration-300">
+                                <div className="bg-white/90 p-4 rounded-2xl shadow-clay-lg border-2 border-purple-100 flex items-center gap-3 animate-bounce">
+                                    <Sparkles className="h-6 w-6 text-purple-600 animate-spin" />
+                                    <span className="font-fredoka font-bold text-purple-900">Updating Library...</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {isLoading && books.length === 0 ? (
                             <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {[...Array(8)].map((_, i) => (
                                     <motion.div 
@@ -240,17 +258,36 @@ export default function LibraryView({
                                 className="flex flex-col items-center justify-center py-20 text-center gap-6"
                             >
                                 <div className="relative">
-                                    <div className="relative text-8xl grayscale opacity-60">🔎</div>
+                                    <div className="relative text-8xl grayscale opacity-60">
+                                        {filters.collection === 'favorites' ? '💖' : (filters.collection as string) === 'my-tales' ? '🪄' : '🔎'}
+                                    </div>
                                 </div>
                                 <div className="space-y-2 relative">
-                                    <h3 className="font-fredoka text-2xl font-bold text-slate-700 tracking-tight">Ops! No stories found...</h3>
-                                    <p className="text-slate-400 max-w-xs mx-auto">Try searching for magic words or check another shelf!</p>
-                                    <button
-                                        onClick={() => { setSearchQuery(""); handleCategoryChange("all"); }}
-                                        className="mt-6 px-8 py-3 rounded-2xl bg-purple-100 text-purple-700 font-bold font-fredoka hover:bg-purple-200 transition-colors"
-                                    >
-                                        Clear search
-                                    </button>
+                                    <h3 className="font-fredoka text-2xl font-bold text-slate-700 tracking-tight">
+                                        {filters.collection === 'favorites' ? 'Your Treasure Chest is empty!' : 
+                                         (filters.collection as string) === 'my-tales' ? 'No personal stories yet!' :
+                                         'Ops! No stories found...'}
+                                    </h3>
+                                    <p className="text-slate-400 max-w-xs mx-auto">
+                                        {filters.collection === 'favorites' ? 'Mark your favorite stories with a heart to see them here!' : 
+                                         (filters.collection as string) === 'my-tales' ? 'Use the Story Maker to create a unique adventure just for you!' :
+                                         'Try searching for magic words or check another shelf!'}
+                                    </p>
+                                    {(filters.collection as string) === 'my-tales' ? (
+                                        <Link
+                                            href="/story-maker"
+                                            className="mt-6 inline-block px-8 py-3 rounded-2xl bg-purple-600 text-white font-bold font-fredoka hover:bg-purple-700 transition-colors shadow-lg shadow-purple-200"
+                                        >
+                                            Create Story
+                                        </Link>
+                                    ) : (
+                                        <button
+                                            onClick={() => { setSearchQuery(""); handleCategoryChange("all"); handleFilterChange("collection", "discovery"); }}
+                                            className="mt-6 px-8 py-3 rounded-2xl bg-purple-100 text-purple-700 font-bold font-fredoka hover:bg-purple-200 transition-colors"
+                                        >
+                                            {filters.collection === 'favorites' || (filters.collection as string) === 'my-tales' ? 'Back to Library' : 'Clear search'}
+                                        </button>
+                                    )}
                                 </div>
                             </motion.div>
                         )}

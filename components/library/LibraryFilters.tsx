@@ -39,12 +39,14 @@ interface LibraryFiltersProps {
     type?: "fiction" | "nonfiction";
     origin?: string;
     duration?: string;
+    collection?: "discovery" | "my-tales" | "favorites";
   };
   onFilterChange: (key: string, val: any) => void;
   sortBy: string;
   onSortChange: (val: string) => void;
   activeCategory?: string;
   onCategoryChange?: (val: string) => void;
+  className?: string;
 }
 
 const CATEGORIES = [
@@ -66,6 +68,12 @@ const CATEGORIES = [
     { id: "vehicles", label: "Vehicles", icon: Car, iconClass: "text-red-500 fill-red-100" },
 ];
 
+const COLLECTIONS = [
+    { id: "discovery", label: "Discovery", icon: Sparkles, iconClass: "text-purple-500 fill-purple-100" },
+    { id: "my-tales", label: "My Tales", icon: Wand2, iconClass: "text-blue-500 fill-blue-100" },
+    { id: "favorites", label: "Treasures", icon: Heart, iconClass: "text-rose-500 fill-rose-100" },
+] as const;
+
 import {
   Sheet,
   SheetContent,
@@ -86,7 +94,8 @@ export function LibraryFilters({
   sortBy,
   onSortChange,
   activeCategory,
-  onCategoryChange
+  onCategoryChange,
+  className
 }: LibraryFiltersProps) {
   const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
 
@@ -168,6 +177,38 @@ export function LibraryFilters({
   const renderMobileDrawerContent = () => (
       <div className="flex flex-col gap-8 py-6 px-1 pb-10 overflow-y-auto max-h-[85vh] scrollbar-hide">
           
+          {/* Collection Section */}
+          <div className="space-y-4">
+              <h4 className="text-xl font-fredoka font-bold text-slate-800 flex items-center gap-3">
+                  <div className="p-2.5 bg-purple-100 rounded-2xl text-purple-600">
+                    <LayoutGrid className="w-6 h-6 stroke-[2.5px]" />
+                  </div>
+                  Magic Shelf
+              </h4>
+              <div className="grid grid-cols-3 gap-2">
+                  {COLLECTIONS.map((col) => {
+                      const isSelected = filters.collection === col.id;
+                      const Icon = col.icon;
+                      return (
+                          <button
+                              key={col.id}
+                              onClick={() => onFilterChange("collection", col.id)}
+                              className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-200 active:scale-95 ${
+                                  isSelected 
+                                  ? 'bg-purple-50 text-purple-600 ring-2 ring-purple-200' 
+                                  : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                              }`}
+                          >
+                              <div className={`p-2 rounded-full ${isSelected ? 'bg-purple-200/50' : 'bg-white'}`}>
+                                  <Icon className={`w-5 h-5 ${isSelected ? 'stroke-[2.5px]' : 'opacity-70'}`} />
+                              </div>
+                              <span className="text-[10px] font-bold font-fredoka uppercase tracking-wider">{col.label}</span>
+                          </button>
+                      )
+                  })}
+              </div>
+          </div>
+
           {/* Level Section */}
           <div className="space-y-4">
               <h4 className="text-xl font-fredoka font-bold text-slate-800 flex items-center gap-3">
@@ -345,58 +386,94 @@ export function LibraryFilters({
   );
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-        {/* Main Filter Row: Search + Mobile Filter Button + Desktop Filters */}
-        <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
+    <div className={`flex flex-col gap-6 w-full ${className}`}>
+        {/* Primary Control Row: Magic Dock + Search (Desktop Grouping) */}
+        <div className="flex flex-col md:flex-row items-center gap-6 w-full lg:px-2">
             
-            {/* Search Bar - Full width on mobile, Fixed on Desktop */}
-            <div className={clayVariants({ color: "white", shape: "pill", intensity: "medium" }) + " flex items-center px-4 py-2 border-2 border-white/60 transition-all hover:scale-[1.02] focus-within:scale-[1.02] focus-within:border-purple-300 shadow-clay-sm flex-1 md:w-64 md:flex-none h-12"}>
-                <div className="mr-3 text-purple-400">
-                    <Search className="w-5 h-5 stroke-[3px]" />
+            {/* Collection Selector - "The Magic Dock" */}
+            <div className="flex-1 flex justify-center md:justify-start w-full md:w-auto order-1">
+                <div className={clayVariants({ color: "white", shape: "pill", intensity: "medium" }) + " flex p-1.5 gap-1.5 border-2 border-white/60 shadow-clay-sm w-full md:w-auto max-w-lg md:max-w-none"}>
+                    {COLLECTIONS.map((col) => {
+                        const isActive = (filters.collection || "discovery") === col.id;
+                        const Icon = col.icon;
+                        
+                        return (
+                            <motion.button
+                                key={col.id}
+                                onClick={() => onFilterChange("collection", col.id)}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className={`flex-1 md:flex-initial flex items-center justify-center gap-2.5 px-4 md:px-7 py-3 rounded-full transition-all duration-300 relative group overflow-hidden`}
+                            >
+                                {isActive && (
+                                    <motion.div 
+                                        layoutId="active-collection-bg"
+                                        className="absolute inset-0 bg-purple-50 rounded-full border border-purple-100 shadow-sm"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
+                                <div className="relative z-10 flex items-center gap-2.5 whitespace-nowrap">
+                                    <Icon className={`w-5 h-5 stroke-[2.5px] transition-all duration-300 ${isActive ? 'text-purple-600 scale-110' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                                    <span className={`font-fredoka font-bold text-base md:text-lg transition-all duration-300 ${isActive ? 'text-purple-700' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                                        {col.label}
+                                    </span>
+                                </div>
+                            </motion.button>
+                        )
+                    })}
                 </div>
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    placeholder="Search..."
-                    aria-label="Search stories"
-                    className="bg-transparent border-none outline-none w-full text-slate-700 font-bold font-fredoka text-lg placeholder:text-slate-400/80 h-full"
-                />
             </div>
 
-            {/* Mobile Filter Drawer Trigger */}
-            <div className="md:hidden">
-                <Sheet>
-                     <SheetTrigger asChild>
-                        <button className={clayVariants({ color: "white", shape: "circle", intensity: "medium" }) + " relative w-12 h-12 flex items-center justify-center border-2 border-white/60 shadow-clay-sm active:scale-95 transition-transform"}>
-                            <Filter className="w-5 h-5 text-purple-500 stroke-[3px]" />
-                            {(filters.level || filters.type || filters.duration) && (
-                                <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
-                            )}
-                        </button>
-                    </SheetTrigger>
-                    <SheetContent side="bottom" className="rounded-t-[32px] border-none bg-white shadow-2xl h-[85vh]">
-                        <SheetClose id="close-drawer" className="hidden" />
-                        <SheetHeader className="mb-4">
-                            <SheetTitle className="text-2xl font-fredoka text-center text-purple-600">Filters</SheetTitle>
-                            <SheetDescription className="text-center font-nunito text-slate-500">
-                                Customize your library view
-                            </SheetDescription>
-                        </SheetHeader>
-                        {renderMobileDrawerContent()}
-                    </SheetContent>
-                </Sheet>
-            </div>
+            {/* Search Bar - Integrated in Primary Row on Desktop */}
+            <div className="w-full md:w-72 order-3 md:order-2 flex gap-3">
+                <div className={clayVariants({ color: "white", shape: "pill", intensity: "medium" }) + " flex items-center px-5 py-2 border-2 border-white/60 transition-all hover:scale-[1.02] focus-within:scale-[1.02] focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-300 shadow-clay-sm flex-1 h-14"}>
+                    <div className="mr-3 text-purple-400">
+                        <Search className="w-5 h-5 stroke-[3px]" />
+                    </div>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        placeholder="Search..."
+                        aria-label="Search stories"
+                        className="bg-transparent border-none outline-none w-full text-slate-700 font-bold font-fredoka text-lg placeholder:text-slate-400/80 h-full"
+                    />
+                </div>
 
-            {/* Desktop Filters (Hidden on Mobile) */}
-            <div className="hidden md:flex items-center gap-3 flex-wrap">
-                {renderDesktopFilters()}
+                {/* Mobile Filter Trigger (Condensed into search row on mobile) */}
+                <div className="md:hidden">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <button className={clayVariants({ color: "white", shape: "circle", intensity: "medium" }) + " relative w-14 h-14 flex items-center justify-center border-2 border-white/60 shadow-clay-sm active:scale-95 transition-transform"}>
+                                <Filter className="w-5 h-5 text-purple-500 stroke-[3px]" />
+                                {(filters.level || filters.type || filters.duration) && (
+                                    <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />
+                                )}
+                            </button>
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="rounded-t-[40px] border-none bg-white shadow-2xl h-[90vh]">
+                            <SheetClose id="close-drawer" className="hidden" />
+                            <SheetHeader className="mb-4 pt-4">
+                                <div className="mx-auto w-12 h-1.5 bg-slate-100 rounded-full mb-4" />
+                                <SheetTitle className="text-3xl font-fredoka text-center text-slate-800">Filters</SheetTitle>
+                                <SheetDescription className="text-center font-nunito text-lg font-bold text-slate-400">
+                                    Magical adjustments
+                                </SheetDescription>
+                            </SheetHeader>
+                            {renderMobileDrawerContent()}
+                        </SheetContent>
+                    </Sheet>
+                </div>
             </div>
-
         </div>
 
-        {/* Categories Grid - Mobile Expandable, Desktop Wrap */}
-        {onCategoryChange && (
+        {/* Secondary Filter Row: Desktop Specific Dropdowns */}
+        <div className="hidden md:flex items-center gap-4 flex-wrap justify-start lg:px-2">
+            {renderDesktopFilters()}
+        </div>
+
+        {/* Categories Grid - Only visible in Discovery Mode */}
+        {onCategoryChange && (!filters.collection || filters.collection === 'discovery') && (
             <div className="w-full">
                  {/* Mobile Grid Layout */}
                 <div className="md:hidden">

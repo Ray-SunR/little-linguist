@@ -52,12 +52,16 @@ export default function LibraryContent() {
         type?: "fiction" | "nonfiction";
         category?: string;
         duration?: string;
-    }>({});
+        collection?: "discovery" | "my-tales" | "favorites";
+    }>({
+        collection: "discovery"
+    });
 
     // Optimization Refs
     const lastHydratedKey = useRef<string | null>(null);
     const lastSyncedSettings = useRef<string>("");
     const abortControllerRef = useRef<AbortController | null>(null);
+    const activeRequestIdRef = useRef<number>(0); // Track active request to prevent stale state updates
     const offsetRef = useRef(0);
     const filtersRef = useRef(filters);
     const sortByRef = useRef(sortBy);
@@ -87,13 +91,23 @@ export default function LibraryContent() {
         const filterKey = JSON.stringify(currentFilters);
         const fetchKey = `${cacheKey}:${currentOffset}:${currentSort}:${filterKey}`;
 
+        // Helper to check if we're in the default "unfiltered" state
+        // collection: 'discovery' is the default tab, so we treat it as unfiltered for caching
+        const isDefaultFilters = (f: typeof currentFilters) => {
+            const keys = Object.keys(f);
+            return (keys.length === 0) || (keys.length === 1 && f.collection === 'discovery');
+        };
+
         // Memory cache check for instant load (on top of sync hydrate)
-        if (isInitial && cachedLibraryBooks[cacheKey] && Object.keys(currentFilters).length === 0 && currentSort === "newest") {
+        if (isInitial && cachedLibraryBooks[cacheKey] && isDefaultFilters(currentFilters) && currentSort === "newest") {
             setBooks(cachedLibraryBooks[cacheKey]);
             setIsLoading(false);
             // We still proceed to background refresh if needed, but we don't return early here
             // to ensure we always have fresh data.
         }
+
+        // Track this request with a unique ID
+        const requestId = ++activeRequestIdRef.current;
 
         const work = async () => {
             try {
@@ -115,26 +129,23 @@ export default function LibraryContent() {
                 if (currentFilters.type) filterParams.set('type', currentFilters.type);
                 if (currentFilters.category) filterParams.set('category', currentFilters.category);
                 if (currentFilters.duration) filterParams.set('duration', currentFilters.duration);
+                if (currentFilters.collection === 'favorites') filterParams.set('isFavorite', 'true');
+                if (currentFilters.collection === 'my-tales') filterParams.set('onlyPersonal', 'true');
 
-                const childIdQuery = activeChild?.id ? `&childId=${activeChild.id}` : '';
-                const progressUrl = `/api/progress?${childIdQuery}`;
                 const booksUrl = `/api/books?${filterParams.toString()}`;
                 
-                const [booksRes, progressRes] = await Promise.all([
-                    fetch(booksUrl, { signal: controller.signal }),
-                    user ? fetch(progressUrl, { signal: controller.signal }).catch(() => ({ ok: false })) : Promise.resolve({ ok: false })
-                ]);
+                // PERFORMANCE: Fetches books + progress + batch-signed covers in one go
+                const booksRes = await fetch(booksUrl, { signal: controller.signal });
 
+                // Check if this request is still the active one before updating state
+                if (requestId !== activeRequestIdRef.current) return;
                 if (controller.signal.aborted) return;
                 if (!booksRes.ok) throw new Error('Failed to fetch books');
 
                 const booksData = await booksRes.json();
-                const progressList = (progressRes as any).ok ? await (progressRes as any).json() : [];
 
+                if (requestId !== activeRequestIdRef.current) return;
                 if (controller.signal.aborted) return;
-
-                const progressMap: Record<string, any> = {};
-                progressList.forEach((p: any) => { if (p.book_id) progressMap[p.book_id] = p; });
 
                 const libraryBooks: LibraryBookCard[] = booksData
                     .filter((book: any) => book.id && book.title)
@@ -146,10 +157,8 @@ export default function LibraryContent() {
                         updated_at: book.updated_at,
                         voice_id: book.voice_id,
                         owner_user_id: book.owner_user_id,
-                        progress: progressMap[book.id] ? {
-                            last_token_index: progressMap[book.id].last_token_index,
-                            total_tokens: book.totalTokens
-                        } : undefined,
+                        // Progress is now directly in the book object
+                        progress: book.progress || undefined,
                         estimatedReadingTime: book.estimatedReadingTime,
                         isRead: book.isRead,
                         lastOpenedAt: book.lastOpenedAt,
@@ -164,10 +173,13 @@ export default function LibraryContent() {
                 if (isInitial) {
                     setBooks(libraryBooks);
                     setOffset(LIMIT);
-                    cachedLibraryBooks[cacheKey] = libraryBooks;
-
-                    const isUnfiltered = Object.keys(currentFilters).length === 0 && currentSort === "newest";
-                    if (isUnfiltered) {
+                    // Only update cache for the main unfiltered view to avoid polluting it with search results
+                    const isDefaultFilters = (f: typeof currentFilters) => {
+                        const keys = Object.keys(f);
+                        return (keys.length === 0) || (keys.length === 1 && f.collection === 'discovery');
+                    };
+                    if (isDefaultFilters(currentFilters) && currentSort === "newest") {
+                        cachedLibraryBooks[cacheKey] = libraryBooks;
                         raidenCache.put(CacheStore.LIBRARY_METADATA, {
                             id: cacheKey,
                             books: libraryBooks,
@@ -179,7 +191,13 @@ export default function LibraryContent() {
                         const existingIds = new Set(prev.map(b => b.id));
                         const newBooks = libraryBooks.filter(b => !existingIds.has(b.id));
                         const combined = [...prev, ...newBooks];
-                        cachedLibraryBooks[cacheKey] = combined;
+                        const isDefaultFilters = (f: typeof currentFilters) => {
+                            const keys = Object.keys(f);
+                            return (keys.length === 0) || (keys.length === 1 && f.collection === 'discovery');
+                        };
+                        if (isDefaultFilters(currentFilters) && currentSort === "newest") {
+                             cachedLibraryBooks[cacheKey] = combined;
+                        }
                         return combined;
                     });
                     setOffset(prev => prev + LIMIT);
@@ -192,13 +210,21 @@ export default function LibraryContent() {
                 }
 
             } catch (err) {
-                if (err instanceof Error && err.name === 'AbortError') return;
+                if (err instanceof Error && err.name === 'AbortError') {
+                    // On abort, only clear loading if this is still the active request
+                    if (requestId === activeRequestIdRef.current) {
+                        setIsLoading(false);
+                        setIsNextPageLoading(false);
+                    }
+                    return;
+                }
                 console.error('[LibraryContent] loadBooks error:', err);
                 if (isInitial && !cachedLibraryBooks[cacheKey]?.length) {
                     setError(err instanceof Error ? err.message : 'Failed to load books');
                 }
             } finally {
-                if (!controller.signal.aborted) {
+                // Only clear loading if this is still the active request
+                if (requestId === activeRequestIdRef.current) {
                     setIsLoading(false);
                     setIsNextPageLoading(false);
                 }
@@ -208,68 +234,66 @@ export default function LibraryContent() {
         return work();
     }, [cacheKey, authLoading, activeChild?.id, user]);
 
-    // 1. Hydrate filters/sort from DB when child changes OR remote settings change
+    // 1. Hydrate filters/sort from DB when child changes (INITIALIZATION ONLY)
     useEffect(() => {
-        if (authLoading || !librarySettings) return;
+        // We only care about initializing when the CHILD IDENTITY changes.
+        // We ignore subsequent updates to librarySettings to prevent feedback loops.
+        const currentChildId = activeChild?.id;
+
+        // Skip if we've already initialized for this child
+        if (lastHydratedKey.current === cacheKey) return;
         
-        const settingsStr = JSON.stringify(librarySettings);
-        
-        // Scenario A: Child switched (Physical key change)
-        const isChildSwitch = lastHydratedKey.current !== cacheKey;
-        
-        // Scenario B: Remote settings changed (but NOT byproduct of our own local save)
-        const isRemoteChange = lastSyncedSettings.current !== settingsStr;
+        let targetFilters = activeChild?.library_settings?.filters || {};
+        const targetSort = activeChild?.library_settings?.sortBy || "newest";
 
-        if (isChildSwitch || isRemoteChange) {
-            let targetFilters = librarySettings.filters || {};
-            const targetSort = librarySettings.sortBy || "newest";
-
-            // --- SMART DEFAULTS ---
-            // If we are initializing for a child and have NO saved filters, apply defaults based on age and interests
-            if (activeChild && Object.keys(targetFilters).length === 0) {
-                const defaults: any = {};
-                
-                // 1. Age-based level mapping
-                const age = activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : null;
-                if (age !== null) {
-                    if (age < 3) defaults.level = 'toddler';
-                    else if (age <= 5) defaults.level = 'preschool';
-                    else if (age <= 8) defaults.level = 'elementary';
-                    else defaults.level = 'intermediate';
-                }
-
-                // 2. Interest-based category mapping
-                // Map known interest options to book categories
-                if (activeChild.interests && activeChild.interests.length > 0) {
-                    const firstInterest = activeChild.interests[0].toLowerCase();
-                    const interestMap: Record<string, string> = {
-                        'animal': 'animals',
-                        'nature': 'nature',
-                        'science': 'science',
-                        'space': 'space',
-                        'dinosaurs': 'dinosaurs',
-                        'fantasy': 'fantasy',
-                        'history': 'history',
-                        'sports': 'sports',
-                        'vehicles': 'vehicles',
-                        'princess': 'fantasy'
-                    };
-                    if (interestMap[firstInterest]) {
-                        defaults.category = interestMap[firstInterest];
-                    }
-                }
-                
-                targetFilters = defaults;
-            }
-            // -----------------------
-
-            setFilters(targetFilters);
-            setSortBy(targetSort);
+        // --- SMART DEFAULTS ---
+        // If we are initializing for a child and have NO saved filters, apply defaults based on age and interests
+        if (currentChildId && Object.keys(targetFilters).length === 0) {
+            const defaults: any = {};
             
-            lastHydratedKey.current = cacheKey;
-            lastSyncedSettings.current = settingsStr;
+            // 1. Age-based level mapping
+            const age = activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : null;
+            if (age !== null) {
+                if (age < 3) defaults.level = 'toddler';
+                else if (age <= 5) defaults.level = 'preschool';
+                else if (age <= 8) defaults.level = 'elementary';
+                else defaults.level = 'intermediate';
+            }
+
+            // 2. Interest-based category mapping
+            // Map known interest options to book categories
+            if (activeChild.interests && activeChild.interests.length > 0) {
+                const firstInterest = activeChild.interests[0].toLowerCase();
+                const interestMap: Record<string, string> = {
+                    'animal': 'animals',
+                    'nature': 'nature',
+                    'science': 'science',
+                    'space': 'space',
+                    'dinosaurs': 'dinosaurs',
+                    'fantasy': 'fantasy',
+                    'history': 'history',
+                    'sports': 'sports',
+                    'vehicles': 'vehicles',
+                    'princess': 'fantasy'
+                };
+                if (interestMap[firstInterest]) {
+                    defaults.category = interestMap[firstInterest];
+                }
+            }
+            
+            targetFilters = defaults;
         }
-    }, [cacheKey, authLoading, librarySettings, activeChild]);
+        // -----------------------
+
+        setFilters(targetFilters);
+        setSortBy(targetSort);
+        
+        lastHydratedKey.current = cacheKey;
+        // lastSyncedSettings is used by the persistence effect to know what to "skip" saving
+        // if it matches what we just loaded.
+        lastSyncedSettings.current = JSON.stringify({ filters: targetFilters, sortBy: targetSort });
+        
+    }, [cacheKey, activeChild]); // DEPENDENCY CHANGE: Removed librarySettings!
 
     // 2. Load books when view state changes
     useEffect(() => {
@@ -281,8 +305,11 @@ export default function LibraryContent() {
         // 1. Reset state with "Magic Buffer":
         // Only clear books immediately if we are switching to a view that has NO cache,
         // to avoid an ugly flash of unrelated books.
-        if (!isUnfiltered || !hasCache) {
-            setBooks([]);
+        // CODEX FIX: Ignore 'collection: discovery' as a filter since it's the default
+        const isDefaultView = isUnfiltered || (Object.keys(filters).length === 1 && filters.collection === 'discovery' && sortBy === 'newest');
+        
+        if (!isDefaultView || !hasCache) {
+            // Double Buffering: Don't clear books, just set loading
             setIsLoading(true);
         }
 
