@@ -1,22 +1,44 @@
-"use client";
-
+import { createClient } from "@/lib/supabase/server";
+import { getChildren, ChildProfile } from "@/app/actions/profiles";
+import { ProfileHydrator } from "@/components/auth/profile-hydrator";
+import { Suspense } from "react";
 import LumoLoader from "@/components/ui/lumo-loader";
 import dynamic from "next/dynamic";
-import { useAuth } from "@/components/auth/auth-provider";
 
-const LibraryContent = dynamic(() => import("./LibraryContent"), { 
+const LibraryContent = dynamic(() => import("./LibraryContent"), {
     ssr: false,
     loading: () => <LumoLoader />
 });
 
-export default function LibraryPage() {
-    const { user, isLoading: authLoading } = useAuth();
-    
-    // While auth is booting, show the loader. 
-    // This provides a cleaner gate for the internal LibraryContent to assume a stable identity.
-    if (authLoading) return <LumoLoader />;
-    
+export default async function LibraryPage() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // 1. Server-Side Fetch
+    // If not authenticated, the client components (ChildGate) will handle the redirect, 
+    // or we could redirect here. But sticking to existing flow, we just pass what we find.
+    let initialProfiles: ChildProfile[] = [];
+    if (user) {
+        const { data, error } = await getChildren();
+        if (!error && data) {
+            initialProfiles = data;
+        }
+    }
+
     return (
-        <LibraryContent key={user?.id || "anonymous"} />
+        <main className="w-full h-full">
+            {/* 2. Hydrate Client State Immediately */}
+            {user && (
+                <ProfileHydrator
+                    initialProfiles={initialProfiles}
+                    userId={user.id}
+                />
+            )}
+
+            {/* 3. Render Content */}
+            <Suspense fallback={<LumoLoader />}>
+                <LibraryContent serverProfiles={initialProfiles} />
+            </Suspense>
+        </main>
     );
 }

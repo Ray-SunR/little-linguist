@@ -20,7 +20,7 @@ export async function ReaderContainer({ bookId, activeChildId, children }: Reade
         const { data: { user } } = await supabase.auth.getUser();
 
         const repo = new BookRepository();
-        
+
         // Fetch full book data
         const bookData = await repo.getBookById(bookId, {
             includeTokens: true,
@@ -38,12 +38,12 @@ export async function ReaderContainer({ bookId, activeChildId, children }: Reade
         let initialProgress = null;
         if (activeChildId) {
             const { data: progressData } = await (supabase as any)
-                .from('child_book_progress')
+                .from('child_books')
                 .select('*')
                 .eq('child_id', activeChildId)
                 .eq('book_id', bookId)
                 .maybeSingle();
-            
+
             initialProgress = progressData;
         }
 

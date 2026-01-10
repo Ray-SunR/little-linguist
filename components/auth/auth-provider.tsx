@@ -21,6 +21,9 @@ interface AuthContextType {
   updateLibrarySettings: (settings: any) => Promise<{ success?: boolean; error?: string }>;
   refreshProfiles: (silent?: boolean) => Promise<void>;
   setActiveChild: (child: ChildProfile | null) => void;
+  // Exposed for Server Component Hydration
+  setProfiles: (profiles: ChildProfile[]) => void;
+  setIsLoading: (isLoading: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -377,7 +380,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: true };
       },
       refreshProfiles,
-      setActiveChild: handleSetActiveChild
+      setActiveChild: handleSetActiveChild,
+      setProfiles,
+      setIsLoading
     }}>
       {children}
     </AuthContext.Provider>

@@ -266,6 +266,19 @@ The story should be fun, educational, and age-appropriate.`;
             avatar_url: childAvatar
         });
 
+        // 4.5 Initialize Child Progress Entry (in child_books)
+        if (childId) {
+            await serviceRoleClient
+                .from('child_books')
+                .upsert({
+                    child_id: childId,
+                    book_id: bookId,
+                    is_completed: false,
+                    is_favorite: false,
+                    last_read_at: new Date().toISOString()
+                }, { onConflict: 'child_id,book_id' });
+        }
+
         // 5. Background Narration (uses service-role since user context is lost)
         const bgStoryRepo = new StoryRepository(serviceRoleClient);
         (async () => {

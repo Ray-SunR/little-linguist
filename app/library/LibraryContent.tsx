@@ -22,8 +22,22 @@ const isDefaultFilters = (f: any, sortBy: string = "newest") => {
     return noOtherFilters && sortBy === "newest";
 };
 
-export default function LibraryContent() {
-    const { user, activeChild, isLoading: authLoading, librarySettings, updateLibrarySettings } = useAuth();
+import { ChildProfile } from "@/app/actions/profiles";
+
+interface LibraryContentProps {
+    serverProfiles?: ChildProfile[];
+}
+
+export default function LibraryContent({ serverProfiles }: LibraryContentProps) {
+    const { user, activeChild, isLoading: authLoading, librarySettings, updateLibrarySettings, profiles: authProfiles } = useAuth();
+
+    // Fast-path: Use server profiles if AuthProvider hasn't hydrated yet.
+    // This removes the "empty shelf" flicker on initial load.
+    const effectiveProfiles = authProfiles.length > 0 ? authProfiles : (serverProfiles || []);
+
+    // We can also try to infer the active child from the server data + cookie if activeChild is null
+    // But mostly we just want to ensure we don't treat this as "Guest" state if we know profiles exist.
+
     const currentUserId = user?.id;
     // Cache key should be scoped by user AND active child to prevent visibility leakage
     const cacheKey = currentUserId

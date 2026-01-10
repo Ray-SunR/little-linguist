@@ -19,7 +19,7 @@ export async function GET(
         const childId = searchParams.get('childId');
 
         const repo = new BookRepository();
-        
+
         if (childId) {
             const progress = await repo.getProgress(childId, params.id);
             return NextResponse.json(progress || {});
@@ -27,10 +27,10 @@ export async function GET(
 
         // If no childId, fetch all progress for this book (filtered by RLS to this guardian's children)
         const { data: progresses, error } = await supabase
-            .from('child_book_progress')
+            .from('child_books')
             .select('*')
             .eq('book_id', params.id);
-        
+
         if (error) throw error;
         return NextResponse.json(progresses || []);
     } catch (error: any) {

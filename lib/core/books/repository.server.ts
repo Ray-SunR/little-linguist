@@ -85,58 +85,83 @@ export class BookRepository {
         childId: string | undefined,
         filters: BookFilters = {}
     ): Promise<BookWithCover[]> {
-        // PERFORMANCE: Split strategy
-        // 1. If filtering by favorite (INNER JOIN needed): Use single efficient query
-        // 2. If just browsing (Discovery): Fetch books first, then fetch progress for ONLY those books (avoid massive LEFT JOIN)
+        // PERFORMANCE: Single Query Strategy (as per user request)
+        // Always join with `child_books` when childId is present to get progress/favorites in one go.
 
-        const shouldUseInnerJoin = !!(childId && filters?.is_favorite);
-        
-        // Base book query fields (NO progress fields initially unless using inner join)
+        const joinType = (filters?.is_favorite) ? 'inner' : 'left';
+
+        // Base fields
         let selectFields = 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin';
-        
-        if (shouldUseInnerJoin) {
-            // Add inner join relation
-            selectFields += ', child_book_progress!inner(child_id, is_favorite, is_completed, last_token_index)';
+
+        // Add join if childId is present
+        if (childId) {
+            selectFields += `, child_books!${joinType}(child_id, is_favorite, is_completed, last_token_index)`;
         }
 
         let query: any = this.supabase
             .from('books')
             .select(selectFields, { count: 'exact' });
 
-        // Visibility logic in query:
-        // 1. System books: owner_user_id is null
-        // 2. Personal books: owner_user_id = userId AND (child_id is null OR child_id = childId)
+        // Visibility logic:
+        // 1. Personal books only: Owner matches user AND (child_id matches childId OR is null for shared)
+        // 2. All books: (Owner is null) OR (Owner matches user)
         if (filters?.only_personal) {
-            // SECURITY: only_personal requires authenticated user
             if (userId) {
-                // Show only user-owned books (with or without child scope)
+                // Personal Scope
                 if (childId) {
-                    query = query.eq('child_id', childId).eq('owner_user_id', userId);
+                    // Logic: Must be owned by user.
+                    // AND: (child_id IS NULL [Household/Shared]) OR (child_id EQ childId [Private])
+                    // We use an OR condition for the child scope
+                    query = query.eq('owner_user_id', userId)
+                        .or(`child_id.is.null,child_id.eq.${childId}`);
                 } else {
+                    // Just user owned (e.g. parent view?)
                     query = query.eq('owner_user_id', userId);
                 }
             } else {
                 return [];
             }
         } else {
-            let filter = 'owner_user_id.is.null';
+            // Discovery Scope (Personal + Public)
             if (userId) {
                 if (childId) {
-                    filter = `owner_user_id.is.null,and(owner_user_id.eq.${userId},child_id.is.null),and(owner_user_id.eq.${userId},child_id.eq.${childId})`;
+                    // Public (null owner) OR (Personal Owned AND (Shared OR Private))
+                    // Note: .or() applies to top-level ANDs unless grouped. 
+                    // Syntax: .or('owner_user_id.is.null,and(owner_user_id.eq.UID,or(child_id.is.null,child_id.eq.CID))') - complicated string syntax
+
+                    // Simpler approach:
+                    // Public OR (Owned AND (Shared OR Private))
+                    query = query.or(`owner_user_id.is.null,and(owner_user_id.eq.${userId},or(child_id.is.null,child_id.eq.${childId}))`);
                 } else {
-                    filter = `owner_user_id.is.null,owner_user_id.eq.${userId}`;
+                    query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
                 }
+            } else {
+                query = query.is('owner_user_id', null);
             }
-            query = query.or(filter);
         }
 
-        // Apply favorite filter conditions if performing join
-        if (shouldUseInnerJoin && childId) {
-             query = query.eq('child_book_progress.is_favorite', true)
-                          .eq('child_book_progress.child_id', childId);
+        // Apply filters on the joined table if necessary
+        if (childId) {
+            // Join condition is effectively: book.id = child_books.book_id AND child_books.child_id = childId
+            // Supabase PostgREST join syntax usually handles foreign key automatically.
+            // But we need to filter the *joined* rows to only be for THIS child.
+            // 'child_books!inner(child_id)' automatically filters where child_id is not null?
+            // Actually, for a left join, we don't filter the *top* rows by child_books.child_id unless we want only books with progress.
+            // But we WANT all books, but only the progress for THIS child.
+            // The `child_books!left` will return null if no match.
+            // However, we must ensure that if a match IS returned, it's for this childId.
+            // PostgREST: `select=*,child_books(*)` with `child_books.child_id=eq.X` filtering on the resource embedding?
+
+            // To filter the *related* resource:
+            query = query.eq('child_books.child_id', childId);
+
+            // If is_favorite is true, we already used inner join, so this effectively filters the top rows too.
+            if (filters.is_favorite) {
+                query = query.eq('child_books.is_favorite', true);
+            }
         }
 
-        // Apply filters
+        // Apply other book filters
         if (filters) {
             const f = filters;
             if (f.level) {
@@ -148,7 +173,7 @@ export class BookRepository {
                     default: query = query.eq('level', f.level);
                 }
             }
-            
+
             if (f.duration) {
                 switch (f.duration) {
                     case 'short': query = query.lt('estimated_reading_time', 5); break;
@@ -184,34 +209,10 @@ export class BookRepository {
         if (booksError) throw booksError;
         if (!booksData || booksData.length === 0) return [];
 
-        // 2. Fetch Progress (Parallelized if separate query needed)
-        let progressMap: Record<string, any> = {};
-
-        // If we didn't join, we need to fetch progress separately
-        if (!shouldUseInnerJoin && childId) {
-             const bookIds = booksData.map((b: any) => b.id);
-             const { data: progressData, error: progressError } = await this.supabase
-                .from('child_book_progress')
-                .select('book_id, is_completed, is_favorite, last_token_index')
-                .eq('child_id', childId)
-                .in('book_id', bookIds);
-            
-            if (progressError) {
-                console.error('Error fetching progress:', progressError);
-            }
-            
-            if (progressData) {
-                progressData.forEach((p: any) => {
-                    progressMap[p.book_id] = p;
-                });
-            }
-        }
-
-        // 3. Batch fetch signed URLs
-        // Collect all paths that need signing
+        // Batch fetch signed URLs
         const pathsToSign: string[] = [];
         const bookMap = new Map<string, any>();
-        
+
         booksData.forEach((book: any) => {
             if (book.cover_image_path) {
                 if (!book.cover_image_path.startsWith('http')) {
@@ -224,7 +225,7 @@ export class BookRepository {
         // Also fetch any media covers if cover_image_path is missing
         const booksMissingCover = booksData.filter((b: any) => !b.cover_image_path);
         const mediaCoverMap = new Map<string, string>();
-        
+
         if (booksMissingCover.length > 0) {
             const bookIds = booksMissingCover.map((b: any) => b.id);
             const { data: mediaData, error: mediaError } = await this.supabase
@@ -234,11 +235,11 @@ export class BookRepository {
                 .in('book_id', bookIds)
                 .order('after_word_index')
                 .order('path');
-            
+
             if (mediaError) {
                 console.error('Error fetching media covers:', mediaError);
             }
-            
+
             if (mediaData) {
                 mediaData.forEach((media: any) => {
                     if (!mediaCoverMap.has(media.book_id) && media.path) {
@@ -260,7 +261,7 @@ export class BookRepository {
                 .createSignedUrls(pathsToSign, 60 * 60);
 
             if (signedError) {
-                 console.error('Error batch signing URLs:', signedError);
+                console.error('Error batch signing URLs:', signedError);
             }
 
             if (signedData) {
@@ -272,11 +273,11 @@ export class BookRepository {
             }
         }
 
-        // 4. Map final results
+        // Map final results
         return booksData.map((book: any) => {
             const coverPath = book.cover_image_path || mediaCoverMap.get(book.id);
             let coverImageUrl = undefined;
-            
+
             if (coverPath) {
                 if (coverPath.startsWith('http')) {
                     coverImageUrl = coverPath;
@@ -285,20 +286,12 @@ export class BookRepository {
                 }
             }
 
-            // Resolve Progress: Either from Join (array) or Map (object)
+            // JOIN RESULT: `child_books` will be an array (or single object if !inner used in specific ways, but typically array in PostgREST JS)
+            // Since we filtered by `child_books.child_id` = childId, the array will contain at most 1 item.
             let progress = null;
-            if (shouldUseInnerJoin && book.child_book_progress) {
-                 // Logic for Joined Result
-                 // book.child_book_progress is an object (due to !inner single match usually) 
-                 // OR array if multiple (but we filtered by child_id). 
-                 // Supabase returns array usually unless single() called, but join returns array usually?
-                 // Actually map above in original code assumed array or object.
-                 // safe check:
-                 const p = Array.isArray(book.child_book_progress) ? book.child_book_progress[0] : book.child_book_progress;
-                 if (p) progress = p;
-            } else if (childId) {
-                // Logic for Separate Query Result
-                progress = progressMap[book.id];
+            if (book.child_books) {
+                const p = Array.isArray(book.child_books) ? book.child_books[0] : book.child_books;
+                if (p) progress = p;
             }
 
             return {
@@ -317,7 +310,6 @@ export class BookRepository {
                 level: book.level,
                 isNonFiction: book.is_nonfiction,
                 origin: book.origin,
-                // Return fields needed for progress bar calculation
                 progress: progress ? {
                     last_token_index: progress.last_token_index,
                     is_completed: progress.is_completed
@@ -581,7 +573,7 @@ export class BookRepository {
         if (!BookRepository.isValidUuid(bookId)) return null;
 
         const { data, error } = await this.supabase
-            .from('child_book_progress')
+            .from('child_books')
             .select('*')
             .match({ child_id: childId, book_id: bookId })
             .maybeSingle();
@@ -609,7 +601,7 @@ export class BookRepository {
         };
 
         const { data, error } = await this.supabase
-            .from('child_book_progress')
+            .from('child_books')
             .upsert(dbProgress, { onConflict: 'child_id,book_id' })
             .select()
             .single();
@@ -624,7 +616,7 @@ export class BookRepository {
         }
 
         const { data, error } = await this.supabase
-            .from('child_book_progress')
+            .from('child_books')
             .upsert({
                 child_id: childId,
                 book_id: bookId,

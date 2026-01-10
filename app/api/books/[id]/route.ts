@@ -113,7 +113,7 @@ export async function DELETE(
         await adminClient.from('book_contents').delete().eq('book_id', id);
 
         // 9. Delete child progress for this book
-        await adminClient.from('child_book_progress').delete().eq('book_id', id);
+        await adminClient.from('child_books').delete().eq('book_id', id);
 
         // 10. Delete stories entry if exists
         await adminClient.from('stories').delete().eq('id', id);

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
         // SECURITY: Only return progress for children that belong to this user
         let query = supabase
-            .from('child_book_progress')
+            .from('child_books')
             .select(`
                 *,
                 children!inner(owner_user_id)
@@ -58,16 +58,16 @@ export async function POST(request: NextRequest) {
         }
 
         const repo = new BookRepository();
-        
+
         // Use active child if not provided in body
         let targetChildId = childId;
         if (!targetChildId) {
-             const { data: authChild, error: authChildError } = await supabase.from('profiles').select('id').eq('user_id', user.id).limit(1).maybeSingle();
-             if (authChildError) {
-                 console.error("Profile fetch error:", authChildError);
-                 return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-             }
-             targetChildId = authChild?.id;
+            const { data: authChild, error: authChildError } = await supabase.from('profiles').select('id').eq('user_id', user.id).limit(1).maybeSingle();
+            if (authChildError) {
+                console.error("Profile fetch error:", authChildError);
+                return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+            }
+            targetChildId = authChild?.id;
         } else {
             if (!BookRepository.isValidUuid(targetChildId)) {
                 return NextResponse.json({ error: "Invalid Child ID" }, { status: 400 });
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
                 .eq('id', targetChildId)
                 .eq('owner_user_id', user.id)
                 .maybeSingle();
-            
+
             if (verifyError) {
                 console.error("Child verification error:", verifyError);
                 return NextResponse.json({ error: "Internal server error" }, { status: 500 });
