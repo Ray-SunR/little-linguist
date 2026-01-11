@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { cn } from "@/lib/core";
 import {
     Search,
     GraduationCap,
@@ -140,7 +141,6 @@ export function BookshelfToolbar({
     totalStories = 0
 }: BookshelfToolbarProps) {
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-    const [isMobileCategoryOpen, setIsMobileCategoryOpen] = useState(false);
     const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
     const visibleCollections = currentUserId
@@ -167,7 +167,7 @@ export function BookshelfToolbar({
             <PopoverTrigger asChild>
                 <button
                     className={`
-                        flex items-center gap-2 px-3 lg:px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-all font-bold font-fredoka text-slate-700 shadow-sm
+                        flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 lg:px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-all font-bold font-fredoka text-slate-700 shadow-sm
                         ${activeCategory !== 'all' ? 'ring-2 ring-purple-100 border-purple-200' : ''}
                     `}
                 >
@@ -177,7 +177,8 @@ export function BookshelfToolbar({
                     `}>
                         <CategoryIcon className={`w-4 h-4 ${selectedCategoryObj.iconClass}`} />
                     </div>
-                    <span className="font-fredoka font-bold text-sm truncate max-w-[120px]">
+                    {/* Hide label on mobile, show on md+ */}
+                    <span className="hidden md:inline font-fredoka font-bold text-sm truncate max-w-[120px]">
                         {selectedCategoryObj.label}
                     </span>
                     {activeCategory !== 'all' ? (
@@ -187,12 +188,12 @@ export function BookshelfToolbar({
                                 e.stopPropagation();
                                 onFilterChange("category", undefined);
                             }}
-                            className="ml-1 p-0.5 hover:bg-purple-200 rounded-full transition-colors"
+                            className="ml-0.5 md:ml-1 p-0.5 hover:bg-purple-200 rounded-full transition-colors"
                         >
                             <X className="w-3 h-3 text-purple-500" />
                         </div>
                     ) : (
-                        <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-50 ml-1" />
+                        <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-50 hidden md:block" />
                     )}
                 </button>
             </PopoverTrigger>
@@ -269,38 +270,55 @@ export function BookshelfToolbar({
                         )}
                     </div>
 
-                    {/* Tabs (Always Descriptive on Mobile) */}
+                    {/* Tabs (Icon-only on mobile for authenticated users, full text on desktop) */}
                     {/* Tabs & Category Dropdown Wrapper */}
                     <div className="flex items-center min-w-0 gap-1.5 md:gap-2 flex-1">
-                        <div className="flex items-center min-w-0 flex-1 overflow-x-auto scrollbar-hide scroll-smooth mask-fade-edges py-0.5">
-                            <div className="flex items-center flex-shrink-0 space-x-1 md:space-x-1.5 pl-4 md:pl-0">
-                                {visibleCollections.map((col) => {
-                                    const Icon = col.icon;
-                                    const isActive = activeCollection === col.id;
-                                    const activeTheme = COLLECTION_THEMES[col.id as keyof typeof COLLECTION_THEMES];
+                        {/* Compact tabs - no scrolling needed now */}
+                        <div className="flex items-center gap-0.5 md:gap-1 pl-1 md:pl-0">
+                            {visibleCollections.map((col) => {
+                                const Icon = col.icon;
+                                const isActive = activeCollection === col.id;
+                                const activeTheme = COLLECTION_THEMES[col.id as keyof typeof COLLECTION_THEMES];
+                                const isMultipleTabs = visibleCollections.length > 1;
 
-                                    return (
-                                        <button
-                                            key={col.id}
-                                            onClick={() => onCollectionChange(col.id)}
-                                            className={`
-                                                relative flex items-center gap-2 px-3 md:px-4 py-2 rounded-full font-fredoka font-bold text-sm transition-all duration-300
-                                                ${isActive
-                                                    ? `${activeTheme} text-white shadow-lg shadow-purple-200/50 scale-105 z-10`
-                                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/80'}
-                                            `}
-                                        >
-                                            <Icon className={`w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 transition-transform ${isActive ? 'scale-110' : ''}`} />
-                                            <span className="whitespace-nowrap">
-                                                <span className="md:hidden">
-                                                    {col.label === 'Discovery' ? 'Find' : col.label === 'My Tales' ? 'Me' : 'Saved'}
-                                                </span>
-                                                <span className="hidden md:inline">{col.label}</span>
+                                return (
+                                    <button
+                                        key={col.id}
+                                        onClick={() => onCollectionChange(col.id)}
+                                        className={cn(
+                                            "relative flex items-center justify-center font-fredoka font-bold text-sm transition-all duration-300 py-2 rounded-full",
+                                            isActive
+                                                ? `${activeTheme} text-white shadow-lg shadow-purple-200/50 scale-105 z-10 px-4`
+                                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/80 px-3",
+                                            !isMultipleTabs && "px-4"
+                                        )}
+                                        title={col.label}
+                                    >
+                                        <Icon className={cn("w-4 h-4 flex-shrink-0 transition-transform", isActive && "scale-110")} />
+
+                                        <AnimatePresence initial={false}>
+                                            {(isActive || !isMultipleTabs) && (
+                                                <motion.span
+                                                    initial={{ width: 0, opacity: 0, marginLeft: 0 }}
+                                                    animate={{ width: "auto", opacity: 1, marginLeft: 8 }}
+                                                    exit={{ width: 0, opacity: 0, marginLeft: 0 }}
+                                                    transition={{ duration: 0.2, ease: "easeOut" }}
+                                                    className="whitespace-nowrap overflow-hidden"
+                                                >
+                                                    {col.id === 'discovery' ? 'Find' : col.id === 'my-tales' ? 'Me' : 'Saved'}
+                                                </motion.span>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {/* Desktop-only full label for inactive tabs */}
+                                        {!isActive && isMultipleTabs && (
+                                            <span className="hidden md:inline ml-2 whitespace-nowrap">
+                                                {col.label}
                                             </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         {/* Category Dropdown (Integrated tightly - Desktop & Mobile) */}
@@ -364,9 +382,10 @@ export function BookshelfToolbar({
                                 prefix="Sort"
                                 icon={ArrowUpDown}
                                 options={[
+                                    { value: "last_opened", label: "Recent", icon: Clock, theme: "bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-emerald-200", iconColor: "text-emerald-200", lightBg: "bg-emerald-50", activeIconColor: "text-white" },
                                     { value: "newest", label: "Date", icon: Star, theme: "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-amber-200", iconColor: "text-amber-200", lightBg: "bg-amber-50", activeIconColor: "text-white" },
                                     { value: "alphabetical", label: "A-Z", icon: BookOpen, theme: "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-purple-200", iconColor: "text-purple-200", lightBg: "bg-purple-50", activeIconColor: "text-white" },
-                                    { value: "reading_time", label: "Time", icon: Clock, theme: "bg-gradient-to-r from-sky-400 to-indigo-500 text-white shadow-sky-200", iconColor: "text-sky-200", lightBg: "bg-sky-50", activeIconColor: "text-white" },
+                                    { value: "reading_time", label: "Time", icon: Compass, theme: "bg-gradient-to-r from-sky-400 to-indigo-500 text-white shadow-sky-200", iconColor: "text-sky-200", lightBg: "bg-sky-50", activeIconColor: "text-white" },
                                 ]}
                             />
                             <button
@@ -589,9 +608,10 @@ export function BookshelfToolbar({
                                         </div>
                                         <div className="flex flex-col gap-2">
                                             {[
+                                                { value: "last_opened", label: "Recently Read", icon: Clock, theme: "bg-gradient-to-r from-emerald-400 to-teal-500 border-transparent text-white shadow-clay-lg", iconColor: "text-emerald-300", lightBg: "bg-emerald-50/30" },
                                                 { value: "newest", label: "Recently Updated", icon: Star, theme: "bg-gradient-to-r from-amber-400 to-orange-500 border-transparent text-white shadow-clay-lg", iconColor: "text-amber-300", lightBg: "bg-amber-50/30" },
                                                 { value: "alphabetical", label: "Alphabetical (A-Z)", icon: BookOpen, theme: "bg-gradient-to-r from-indigo-500 to-purple-600 border-transparent text-white shadow-clay-lg", iconColor: "text-indigo-200", lightBg: "bg-indigo-50/30" },
-                                                { value: "reading_time", label: "Reading Duration", icon: Clock, theme: "bg-gradient-to-r from-sky-400 to-indigo-500 border-transparent text-white shadow-clay-lg", iconColor: "text-sky-200", lightBg: "bg-sky-50/30" },
+                                                { value: "reading_time", label: "Reading Duration", icon: Compass, theme: "bg-gradient-to-r from-sky-400 to-indigo-500 border-transparent text-white shadow-clay-lg", iconColor: "text-sky-200", lightBg: "bg-sky-50/30" },
                                             ].map((opt) => {
                                                 const isActive = sortBy === opt.value;
                                                 const OptIcon = opt.icon;

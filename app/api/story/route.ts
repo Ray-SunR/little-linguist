@@ -447,9 +447,29 @@ FINAL RECAP:
             }
 
             // 5. Background Narration & Image Generation
+            // 5. Background Narration & Image Generation
             const bgStoryRepo = new StoryRepository(serviceRoleClient);
+
+            // Helper to log steps to the story record (Atomic via RPC)
+            const logGenerationStep = async (step: string, data: any) => {
+                try {
+                    await serviceRoleClient.rpc('append_story_log', {
+                        story_id: book.id,
+                        new_log: {
+                            step,
+                            timestamp: new Date().toISOString(),
+                            ...data
+                        }
+                    });
+                } catch (e) {
+                    console.error("Failed to log generation step:", e);
+                }
+            };
+
             (async () => {
                 try {
+                    await logGenerationStep('starting_background_tasks', { actualImageCount });
+
                     // Narration Task
                     const textChunks = TextChunker.chunk(fullContent);
                     const polly = new PollyNarrationService();
@@ -477,6 +497,8 @@ FINAL RECAP:
                         }, { onConflict: 'book_id,chunk_index,voice_id' });
                     }
 
+                    await logGenerationStep('narration_completed', { chunkCount: textChunks.length });
+
                     // Image Generation Task
                     if (actualImageCount > 0) {
                         const { ImageGenerationFactory } = await import('@/lib/features/image-generation/factory');
@@ -494,51 +516,83 @@ FINAL RECAP:
                                 }
                             } catch (err) {
                                 console.warn("Background task: Failed to download user photo reference:", err);
+                                await logGenerationStep('avatar_download_failed', { error: String(err), avatarPath: childAvatar });
                             }
                         }
 
-                        let successfulImages = 0;
-                        for (let i = 0; i < sectionsWithIndices.length; i++) {
-                            const section = sectionsWithIndices[i];
-                            if (!section.image_prompt || section.image_prompt.trim() === "") continue;
+                        // Throttled image generation (Batch size of 2 to avoid rate limits and memory pressure)
+                        const successfulIndices: number[] = [];
+                        const batchSize = 2;
 
-                            try {
-                                const result = await provider.generateImage({
-                                    prompt: section.image_prompt,
-                                    subjectImage: userPhotoBuffer,
-                                    characterDescription: data.mainCharacterDescription,
-                                    imageSize: '1K'
-                                });
+                        for (let i = 0; i < sectionsWithIndices.length; i += batchSize) {
+                            const batch = sectionsWithIndices.slice(i, i + batchSize);
+                            const batchStartIndex = i;
 
-                                const imageStoragePath = `${bookId}/images/section-${i}-${Date.now()}.png`;
+                            await Promise.all(batch.map(async (section: any, relativeIndex: number) => {
+                                const currentIndex = batchStartIndex + relativeIndex;
+                                if (!section.image_prompt || section.image_prompt.trim() === "") return;
 
-                                await serviceRoleClient.storage.from('book-assets').upload(imageStoragePath, result.imageBuffer, {
-                                    contentType: result.mimeType,
-                                    upsert: true
-                                });
+                                try {
+                                    const result = await provider.generateImage({
+                                        prompt: section.image_prompt,
+                                        subjectImage: userPhotoBuffer,
+                                        characterDescription: data.mainCharacterDescription,
+                                        imageSize: '1K'
+                                    });
 
-                                await serviceRoleClient.from('book_media').upsert({
-                                    book_id: bookId,
-                                    media_type: 'image',
-                                    path: imageStoragePath,
-                                    after_word_index: section.after_word_index,
-                                    metadata: {
-                                        caption: `Illustration for section ${i + 1}`,
-                                        alt: section.image_prompt
-                                    },
-                                    owner_user_id: ownerUserId
-                                }, { onConflict: 'book_id,path' });
+                                    const imageStoragePath = `${bookId}/images/section-${currentIndex}-${Date.now()}.png`;
 
-                                successfulImages++;
-                            } catch (err) {
-                                console.error(`Background task: Failed to generate image for section ${i}:`, err);
-                            }
+                                    await serviceRoleClient.storage.from('book-assets').upload(imageStoragePath, result.imageBuffer, {
+                                        contentType: result.mimeType,
+                                        upsert: true
+                                    });
+
+                                    await serviceRoleClient.from('book_media').upsert({
+                                        book_id: bookId,
+                                        media_type: 'image',
+                                        path: imageStoragePath,
+                                        after_word_index: section.after_word_index,
+                                        metadata: {
+                                            caption: `Illustration for section ${currentIndex + 1}`,
+                                            alt: section.image_prompt
+                                        },
+                                        owner_user_id: ownerUserId
+                                    }, { onConflict: 'book_id,path' });
+
+                                    await logGenerationStep(`image_generated_${currentIndex}`, {
+                                        sectionIndex: currentIndex,
+                                        storagePath: imageStoragePath,
+                                        request: result.requestContext,
+                                        response: result.responseMetadata
+                                    });
+
+                                    successfulIndices.push(currentIndex);
+                                } catch (err) {
+                                    console.error(`Background task: Failed to generate image for section ${currentIndex}:`, err);
+                                    await logGenerationStep(`image_failed_${currentIndex}`, {
+                                        sectionIndex: currentIndex,
+                                        error: String(err),
+                                        prompt: section.image_prompt
+                                    });
+                                }
+                            }));
                         }
 
-                        // P2: Refund credits for failed images
-                        if (successfulImages < actualImageCount) {
-                            const failedCount = actualImageCount - successfulImages;
-                            // Only refund if we actually reserved credits (not in test mode)
+                        const successfulCount = successfulIndices.length;
+
+                        await logGenerationStep('image_generation_finished', {
+                            successfulCount,
+                            totalRequested: actualImageCount
+                        });
+
+                        // If ALL requested images failed, we treat the story as failed
+                        if (actualImageCount > 0 && successfulCount === 0) {
+                            throw new Error("All image generations failed. Marking story as failed.");
+                        }
+
+                        // P2: Refund credits for partially failed images
+                        if (successfulCount < actualImageCount) {
+                            const failedCount = actualImageCount - successfulCount;
                             if (failedCount > 0 && identity && !isTestMode) {
                                 console.warn(`[StoryAPI] Failed to generate ${failedCount} images. Refunding credits.`);
                                 await refundCredits(identity, "image_generation", failedCount);
@@ -547,9 +601,34 @@ FINAL RECAP:
                     }
 
                     await bgStoryRepo.updateStoryStatus(book.id, 'completed');
+                    await logGenerationStep('story_completed', {});
                 } catch (err) {
                     console.error(`Background processing failed:`, err);
-                    await bgStoryRepo.updateStoryStatus(book.id, 'failed').catch(e => console.error("Failed to set failure status", e));
+                    const errorMessage = err instanceof Error ? err.message : String(err);
+
+                    // Refund credits on total background failure ONLY if not in test mode
+                    if (identity && identity.identity_key !== 'unknown' && !isTestMode) {
+                        console.warn(`[StoryAPI] Background task failed. Refunding all relevant credits for ${identity.identity_key}`);
+                        // Refund 1 story and ALL images that weren't already accounted for
+                        // However, to keep it simple and safe, we refund the full original imageSceneCount 
+                        // because partial refunds only happen in the success path above.
+                        // If we are in the catch block, we refund everything.
+                        await reserveCredits(identity, [
+                            { featureName: "story_generation", increment: -1 },
+                            { featureName: "image_generation", increment: -imageSceneCount }
+                        ]).catch(e => console.error("Failed to process background refund:", e));
+                    }
+
+                    await serviceRoleClient
+                        .from('stories')
+                        .update({
+                            status: 'failed',
+                            error_message: errorMessage,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', book.id);
+
+                    await logGenerationStep('generation_failed', { error: errorMessage });
                 }
             })();
 

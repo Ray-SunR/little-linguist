@@ -86,7 +86,7 @@ export default function LibraryView({
             setGreetingIndex(prev => (prev + 1) % GREETINGS.length);
         }, 4000);
         return () => clearInterval(interval);
-    }, []);
+    }, [GREETINGS.length]);
 
     const personalizedGreeting = activeChild?.name
         ? `Hi, ${activeChild.name}! ${GREETINGS[greetingIndex]}`
@@ -135,11 +135,46 @@ export default function LibraryView({
                 </div>
 
                 {/* 3. Book Grid Area */}
-                <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative min-h-[400px]">
+                <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative min-h-[400px]">
+
+                    {/* Section Header */}
+                    <motion.div
+                        key={filters.collection || 'discovery'}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="mb-2"
+                    >
+                        <h2 className="font-fredoka text-3xl md:text-4xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                            {filters.collection === 'my-tales' ? (
+                                <>
+                                    <Wand2 className="w-8 h-8 text-rose-500" />
+                                    My Creations
+                                </>
+                            ) : filters.collection === 'favorites' ? (
+                                <>
+                                    <Heart className="w-8 h-8 text-amber-500 fill-amber-100" />
+                                    Favorite Tales
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="w-8 h-8 text-purple-600" />
+                                    Discover New Worlds
+                                </>
+                            )}
+                        </h2>
+                        <p className="mt-2 text-slate-500 font-medium font-nunito max-w-2xl leading-relaxed">
+                            {filters.collection === 'my-tales'
+                                ? "Your personal collection of magical stories you've created together."
+                                : filters.collection === 'favorites'
+                                    ? "Quick access to all the treasure stories you've saved to your heart."
+                                    : "Explore a world of magical stories crafted to spark your imagination."
+                            }
+                        </p>
+                    </motion.div>
 
                     {/* Loading Overlay for Double Buffering */}
                     {isLoading && books.length > 0 && (
-                        <div className="absolute inset-0 z-20 bg-white/50 backdrop-blur-[2px] rounded-[2.5rem] flex items-start justify-center pt-40 transition-all duration-300">
+                        <div className="absolute inset-0 z-20 bg-white/50 backdrop-blur-[2px] rounded-[2.5rem] flex items-start justify-center pt-52 transition-all duration-300">
                             <div className="bg-white/90 p-4 rounded-2xl shadow-clay-lg border-2 border-purple-100 flex items-center gap-3 animate-bounce">
                                 <Sparkles className="h-6 w-6 text-purple-600 animate-spin" />
                                 <span className="font-fredoka font-bold text-purple-900">Updating Library...</span>
@@ -313,7 +348,10 @@ export default function LibraryView({
                                     </Link>
                                 ) : (
                                     <button
-                                        onClick={() => { setSearchQuery(""); handleFilterChange("category", "all"); handleFilterChange("collection", "discovery"); }}
+                                        onClick={() => {
+                                            setSearchQuery("");
+                                            onFiltersChange({ ...filters, category: "all", collection: "discovery" });
+                                        }}
                                         className="mt-6 px-8 py-3 rounded-2xl bg-purple-100 text-purple-700 font-bold font-fredoka hover:bg-purple-200 transition-colors"
                                     >
                                         {filters.collection === 'favorites' || (filters.collection as string) === 'my-tales' ? 'Back to Library' : 'Clear search'}

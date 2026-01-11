@@ -88,13 +88,14 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
         setIsNavigating(true);
     }, []);
 
-    const progressPercent = book.progress
+    // Safety: ensure we have a valid denominator for progress
+    const totalTokens = book.totalTokens ?? book.progress?.total_tokens ?? 0;
+    const progressPercent = (book.progress && totalTokens > 0)
         ? Math.min(
             100,
             Math.max(
                 0,
-                ((book.progress.last_token_index || 0) / (book.totalTokens ?? book.progress.total_tokens ?? 1)) *
-                100
+                ((book.progress.last_token_index || 0) / totalTokens) * 100
             )
         )
         : 0;
@@ -194,7 +195,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                         ) : (
                                             <div className="px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-gray-100 flex items-center gap-1.5 transform transition-all group-hover:scale-110">
                                                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">Gold Edition</span>
+                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">Lumo&apos;s Pick</span>
                                             </div>
                                         )}
 
@@ -219,9 +220,9 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                         )}
                                     </div>
 
-                                    {/* Level Badge (Top Right) */}
+                                    {/* Level Badge (Top Right - offset for favorite button) */}
                                     {book.level && (
-                                        <div className="absolute top-3 right-3 z-20">
+                                        <div className="absolute top-3 right-14 z-20">
                                             <div className={cn(
                                                 "px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border shadow-clay-inset font-fredoka text-[10px] font-black uppercase tracking-tighter transition-all group-hover:scale-110",
                                                 book.level === "Pre-K" ? "bg-purple-100/90 text-purple-600 border-purple-200" :
@@ -388,7 +389,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                 </div>
                                 <h3 className="font-fredoka text-xl font-bold text-slate-800">Delete Story?</h3>
                                 <p className="text-slate-600 text-sm">
-                                    Are you sure you want to delete <span className="font-bold">"{book.title}"</span>? This action cannot be undone.
+                                    Are you sure you want to delete <span className="font-bold">&quot;{book.title}&quot;</span>? This action cannot be undone.
                                 </p>
                                 <div className="flex gap-3 w-full mt-2">
                                     <button
@@ -437,5 +438,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
         </motion.div>
     );
 });
+
+LibraryBookCard.displayName = "LibraryBookCard";
 
 export default LibraryBookCard;

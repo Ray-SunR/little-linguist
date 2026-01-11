@@ -11,7 +11,9 @@ export interface ImageGenerationOptions {
 export interface ImageGenerationResult {
     imageBuffer: Buffer;
     mimeType: string;
-    metadata?: Record<string, any>;
+    requestContext?: Record<string, any>;
+    responseMetadata?: Record<string, any>;
+    metadata?: Record<string, any>; // Deprecated or for additional info
 }
 
 export interface IImageGenerationProvider {

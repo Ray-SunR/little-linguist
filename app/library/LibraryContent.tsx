@@ -15,11 +15,11 @@ const signedUrlCache: Record<string, string> = {};
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error' | 'empty';
 
-const isDefaultFilters = (f: any, sortBy: string = "newest", sortOrder: string = "desc") => {
+const isDefaultFilters = (f: any, sortBy: string = "last_opened", sortOrder: string = "desc") => {
     const keys = Object.keys(f).filter(k => f[k] !== undefined);
     const isBaseCollection = !f.collection || f.collection === 'discovery';
     const noOtherFilters = keys.length === 0 || (keys.length === 1 && isBaseCollection);
-    return noOtherFilters && sortBy === "newest" && sortOrder === "desc";
+    return noOtherFilters && sortBy === "last_opened" && sortOrder === "desc";
 };
 
 import { ChildProfile } from "@/app/actions/profiles";
@@ -65,7 +65,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
 
     // Filtering & Sorting State
-    const [sortBy, setSortBy] = useState("newest");
+    const [sortBy, setSortBy] = useState("last_opened");
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("desc");
     const [activeCollection, setActiveCollection] = useState<"discovery" | "my-tales" | "favorites">("discovery");
 
@@ -321,7 +321,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         if (lastHydratedKey.current === cacheKey) return;
 
         let targetFilters = activeChild?.library_settings?.filters || {};
-        const targetSort = activeChild?.library_settings?.sortBy || "newest";
+        const targetSort = activeChild?.library_settings?.sortBy || "last_opened";
         const targetSortOrder = activeChild?.library_settings?.sortOrder || "desc";
 
         // --- SMART DEFAULTS ---
@@ -485,7 +485,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const handleSortChange = useCallback((newSort: string) => {
         setSortBy(newSort);
         // Apply sensible defaults for sort order when property changes
-        if (newSort === 'newest') {
+        if (newSort === 'newest' || newSort === 'last_opened') {
             setSortOrder('desc');
         } else {
             setSortOrder('asc');

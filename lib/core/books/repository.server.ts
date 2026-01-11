@@ -104,7 +104,7 @@ export class BookRepository {
 
         let query = this.supabase
             .from('books')
-            .select(selectFields, { count: 'exact' });
+            .select(selectFields);
 
         // Visibility logic:
         // 1. Personal books only: Owner matches user AND (child_id matches childId OR is null for shared)
@@ -141,20 +141,19 @@ export class BookRepository {
 
         // Apply filters on the joined table if necessary
         if (childId) {
-            // NOTE: We do NOT apply .eq('child_books.child_id', childId) here because in PostgREST,
-            // filtering on a joined table's column restricts the PARENT rows (effectively an INNER JOIN),
-            // which hides books that haven't been started yet.
-            //
-            // Instead, we rely on RLS to limit `child_books` to the user's family, 
-            // and we filter the array in memory below to pick the specific child's progress.
-
-            // EXCEPT: If we are specifically filtering by favorite, we DO want an inner join behavior
-            // because we only want books that ARE favorites.
+            // SCORING: Always scope child_books records to THIS specific childId to prevent cross-family data leakage.
+            // Since we use the service role key (bypassing RLS), we MUST explicitly filter the joined table.
             if (filters.is_favorite) {
-                // For favorites, we want to ensure the specific child marked it.
-                // This will filter parent rows to only those with a matching child_books entry where is_favorite=true
+                // For favorites, an inner join is appropriate.
                 query = query.eq('child_books.child_id', childId);
                 query = query.eq('child_books.is_favorite', true);
+            } else {
+                // For general views, we want a LEFT JOIN behavior:
+                // Include the progress if it belongs to THIS child, otherwise the progress will be null.
+                // We use .or to pick rows where (matching child) OR (un-matching results are filtered out of the join).
+                // Actually, PostgREST top-level filters on joined tables usually force an inner join.
+                // To maintain a LEFT JOIN where parent rows always appear, we filter the embedded resource specifically.
+                query = query.or(`child_id.eq.${childId},child_id.is.null`, { foreignTable: 'child_books' });
             }
         }
 
@@ -188,17 +187,25 @@ export class BookRepository {
         }
 
         // Apply sorting
-        const sortBy = filters.sortBy || 'newest';
-        const sortOrder = filters.sortOrder || (sortBy === 'newest' ? 'desc' : 'asc');
+        const sortBy = filters.sortBy || 'last_opened';
+        const sortOrder = filters.sortOrder || (sortBy === 'newest' || sortBy === 'last_opened' ? 'desc' : 'asc');
         const isAscending = sortOrder === 'asc';
 
+        // PostgreSQL can order by embedded resource columns in PostgREST.
+        // This ensures the primary ordering happens in the database before pagination (.range).
         if (sortBy === 'newest') {
             query = query.order('updated_at', { ascending: isAscending });
         } else if (sortBy === 'alphabetical') {
             query = query.order('title', { ascending: isAscending });
         } else if (sortBy === 'reading_time') {
             query = query.order('estimated_reading_time', { ascending: isAscending });
+        } else if (sortBy === 'last_opened') {
+            // Order by the joined child_books.last_read_at
+            // We want opened books first (desc) or last (asc).
+            query = query.order('last_read_at', { foreignTable: 'child_books', ascending: isAscending, nullsFirst: false });
         }
+
+        // Final deterministic secondary sort
         query = query.order('title', { ascending: true }).order('id', { ascending: true });
 
         if (filters.limit) {
@@ -274,7 +281,7 @@ export class BookRepository {
         }
 
         // Map final results
-        return booksData.map((book: any) => {
+        const mappedBooks = booksData.map((book: any) => {
             const coverPath = book.cover_image_path || mediaCoverMap.get(book.id);
             let coverImageUrl = undefined;
 
@@ -325,6 +332,10 @@ export class BookRepository {
                 } : undefined
             };
         });
+
+        // No client-side sorting needed anymore, as it's handled in SQL before .range()
+
+        return mappedBooks;
     }
 
     async getBookById(idOrSlug: string, options: {
