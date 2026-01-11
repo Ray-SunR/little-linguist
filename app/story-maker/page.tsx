@@ -28,7 +28,7 @@ export default function StoryMakerPage() {
         name: activeChild.first_name,
         age: activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : 6,
         gender: activeChild.gender === "girl" ? "girl" : "boy",
-        avatarUrl: activeChild.avatar_asset_path,
+        avatarUrl: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
         avatarStoragePath: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
         id: activeChild.id
     } : {
@@ -39,7 +39,10 @@ export default function StoryMakerPage() {
 
     return (
         <Suspense fallback={<LumoLoader />}>
-            <StoryMakerClient initialProfile={initialProfile} />
+            <StoryMakerClient
+                key={activeChild?.id || 'guest'}
+                initialProfile={initialProfile}
+            />
         </Suspense>
     );
 }

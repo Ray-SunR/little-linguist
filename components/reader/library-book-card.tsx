@@ -183,7 +183,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                             </h3>
                                         </div>
                                     )}
- 
+
                                     {/* Tags Overlay - Show metadata badges */}
                                     <div className="absolute top-3 left-3 flex flex-col gap-2 z-20">
                                         {isOwned ? (
@@ -205,14 +205,14 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                             <div className={cn(
                                                 "px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border shadow-clay-inset font-fredoka text-[10px] font-black uppercase tracking-tighter transition-all group-hover:scale-110",
                                                 book.level === "Pre-K" ? "bg-purple-100/90 text-purple-600 border-purple-200" :
-                                                (book.level === "K" || book.level === "Kindergarten") ? "bg-blue-100/90 text-blue-600 border-blue-200" :
-                                                (book.level === "G1-2" || book.level === "Grades 1-2") ? "bg-emerald-100/90 text-emerald-600 border-emerald-200" :
-                                                "bg-orange-100/90 text-orange-600 border-orange-200"
+                                                    (book.level === "K" || book.level === "Kindergarten") ? "bg-blue-100/90 text-blue-600 border-blue-200" :
+                                                        (book.level === "G1-2" || book.level === "Grades 1-2") ? "bg-emerald-100/90 text-emerald-600 border-emerald-200" :
+                                                            "bg-orange-100/90 text-orange-600 border-orange-200"
                                             )}>
-                                                {book.level === "G1-2" ? "Grades 1-2" : 
-                                                 book.level === "G3-5" ? "Grades 3-5" : 
-                                                 book.level === "K" ? "Kindergarten" : 
-                                                 book.level}
+                                                {book.level === "G1-2" ? "Grades 1-2" :
+                                                    book.level === "G3-5" ? "Grades 3-5" :
+                                                        book.level === "K" ? "Kindergarten" :
+                                                            book.level}
                                             </div>
                                         </div>
                                     )}
@@ -254,60 +254,18 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                             )}
                                         </div>
                                     </div>
-
-                                    {/* Rocket Progress Area */}
-                                    <div className="relative pt-2 pb-2">
-                                        {progressPercent > 0 ? (
-                                            <>
-                                                <div className="flex justify-between items-end mb-2.5">
-                                                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Story Progress</span>
-                                                    <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{Math.round(progressPercent)}%</span>
-                                                </div>
-                                                <div className="h-4 w-full bg-slate-100/80 rounded-full overflow-visible relative shadow-clay-inset border-[3px] border-white/50">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${progressPercent}%` }}
-                                                        className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 rounded-full relative shadow-md"
-                                                    >
-                                                        {/* The Rocket Icon tracking the progress */}
-                                                        <motion.div
-                                                            animate={{ y: [0, -2, 0] }}
-                                                            transition={{ repeat: Infinity, duration: 2 }}
-                                                            className="absolute -right-4 -top-4 h-10 w-10 flex items-center justify-center bg-white rounded-full shadow-lg border-[3px] border-emerald-50 z-20"
-                                                        >
-                                                            <Rocket className="h-5 w-5 text-emerald-500 -rotate-45" />
-                                                        </motion.div>
-
-                                                        {/* Progress Trail Particles */}
-                                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                                                            <div className="h-1 w-1 bg-white/60 rounded-full animate-pulse" />
-                                                            <div className="h-1.5 w-1.5 bg-white/40 rounded-full animate-pulse delay-75" />
-                                                        </div>
-                                                    </motion.div>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <div
-                                                className="flex items-center justify-center py-3 px-4 rounded-[1.2rem] bg-slate-50/50 border-2 border-dashed border-slate-200 group-hover:border-emerald-300 group-hover:bg-emerald-50/30 transition-all cursor-pointer"
-                                            >
-                                                <span className="text-[10px] font-black text-slate-400 group-hover:text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                                                    <Rocket className="w-3.5 h-3.5" /> Start Exploring
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Play Button Hover FX */}
-                            <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 backdrop-blur-[6px] bg-white/10 rounded-[2.5rem]">
-                                <motion.div
-                                    whileHover={{ scale: 1.2, rotate: 10 }}
-                                    whileTap={{ scale: 0.8 }}
-                                    className="bg-white p-6 rounded-full shadow-clay border-[5px] border-white transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 flex items-center justify-center"
-                                >
-                                    <Play className="h-10 w-10 text-accent fill-accent translate-x-1" />
-                                </motion.div>
+                                {/* Play Button Hover FX */}
+                                <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 backdrop-blur-[6px] bg-white/10 rounded-[2.5rem]">
+                                    <motion.div
+                                        whileHover={{ scale: 1.2, rotate: 10 }}
+                                        whileTap={{ scale: 0.8 }}
+                                        className="bg-white p-6 rounded-full shadow-clay border-[5px] border-white transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 flex items-center justify-center"
+                                    >
+                                        <Play className="h-10 w-10 text-accent fill-accent translate-x-1" />
+                                    </motion.div>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
@@ -339,7 +297,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                     onClick={async (e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        
+
                         // Redundant check but keeps type safety
                         if (!activeChildId) return;
 
@@ -355,7 +313,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                     isFavorite: newFavState
                                 })
                             });
-                            
+
                             if (!res.ok) {
                                 // Rollback on error
                                 setIsFavorite(!newFavState);

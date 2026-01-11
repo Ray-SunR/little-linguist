@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard, Rocket, Sparkles } from "lucide-react";
+import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard, Rocket, Sparkles, Users } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState } from "react";
@@ -50,17 +50,17 @@ const navItems = [
     },
 ];
 
-const MemoizedNavItem = memo(function NavItem({ 
-    item, 
+const MemoizedNavItem = memo(function NavItem({
+    item,
     isActive,
     onClick
-}: { 
-    item: typeof navItems[0], 
+}: {
+    item: typeof navItems[0],
     isActive: boolean,
     onClick?: (href: string) => void
 }) {
     const Icon = item.icon;
-    
+
     return (
         <Link
             href={item.href}
@@ -92,6 +92,7 @@ export function ClayNav() {
     const { user, isStoryGenerating } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
+    const [usageStats, setUsageStats] = useState<{ usage: Record<string, any>, plan: string } | null>(null);
     const isReaderView = pathname.startsWith("/reader");
     const isLibraryView = pathname.startsWith("/library");
     const [isExpanded, setIsExpanded] = useState(true);
@@ -101,6 +102,16 @@ export function ClayNav() {
         navItems.forEach(item => router.prefetch(item.href));
         router.prefetch("/profiles");
     }, [router]);
+
+    // Fetch usage stats when user is present to show badges/limits
+    useEffect(() => {
+        if (user) {
+            fetch("/api/usage?features=story_generation,word_insight,image_generation")
+                .then(res => res.json())
+                .then(data => setUsageStats(data))
+                .catch(err => console.error("Failed to fetch usage stats:", err));
+        }
+    }, [user]);
 
     // Auto-fold in reader view, auto-expand on all main navigation pages
     useEffect(() => {
@@ -132,7 +143,7 @@ export function ClayNav() {
                 // Clear all Raiden/Lumo keys
                 if (typeof window !== "undefined") {
                     Object.keys(window.localStorage).forEach(key => {
-                        if (key.includes('raiden:') || key.includes('sb-')) { 
+                        if (key.includes('raiden:') || key.includes('sb-')) {
                             window.localStorage.removeItem(key);
                         }
                     });
@@ -251,18 +262,18 @@ export function ClayNav() {
                                             className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-clay-purple border-2 border-white overflow-hidden relative"
                                         >
                                             <motion.div
-                                                animate={{ 
+                                                animate={{
                                                     rotate: 360,
                                                     scale: [1, 1.1, 1]
                                                 }}
-                                                transition={{ 
+                                                transition={{
                                                     rotate: { duration: 3, repeat: Infinity, ease: "linear" },
                                                     scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
                                                 }}
                                             >
                                                 <Sparkles className="w-6 h-6 text-white" />
                                             </motion.div>
-                                            <motion.div 
+                                            <motion.div
                                                 className="absolute inset-0 bg-white/20"
                                                 animate={{ opacity: [0, 0.4, 0] }}
                                                 transition={{ duration: 1.5, repeat: Infinity }}
@@ -294,19 +305,37 @@ export function ClayNav() {
                                         className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-orange-500 overflow-hidden bg-white/40 border-2 border-white shadow-sm active:bg-orange-100/50"
                                         aria-label="Open Adventure Hub"
                                     >
-                                        {avatarUrl ? (
-                                            <CachedImage
-                                                src={avatarUrl}
-                                                alt={fullName}
-                                                width={32}
-                                                height={32}
-                                                className="rounded-full border-2 border-orange-200 object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400/80 to-orange-500/80 flex items-center justify-center shadow-clay-orange ring-1 ring-white">
-                                                <span className="text-[10px] font-fredoka font-black text-white">{userInitial}</span>
-                                            </div>
-                                        )}
+                                        <div className="relative">
+                                            {avatarUrl ? (
+                                                <CachedImage
+                                                    src={avatarUrl}
+                                                    alt={fullName}
+                                                    width={32}
+                                                    height={32}
+                                                    className="rounded-full border-2 border-orange-200 object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400/80 to-orange-500/80 flex items-center justify-center shadow-clay-orange ring-1 ring-white">
+                                                    <span className="text-[10px] font-fredoka font-black text-white">{userInitial}</span>
+                                                </div>
+                                            )}
+
+                                            {/* Tier Badge Mini */}
+                                            {usageStats?.plan && (
+                                                <motion.div
+                                                    initial={{ scale: 0, rotate: -20 }}
+                                                    animate={{ scale: 1, rotate: -12 }}
+                                                    className={cn(
+                                                        "absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border-2 border-white shadow-sm flex items-center justify-center z-10",
+                                                        usageStats.plan === 'pro'
+                                                            ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white"
+                                                            : "bg-slate-500 text-white"
+                                                    )}
+                                                >
+                                                    {usageStats.plan === 'pro' ? <Sparkles className="w-2.5 h-2.5" /> : <Rocket className="w-2.5 h-2.5" />}
+                                                </motion.div>
+                                            )}
+                                        </div>
                                     </motion.button>
                                 ) : (
                                     <Link
@@ -364,85 +393,148 @@ export function ClayNav() {
                             <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-purple-100 rounded-full blur-3xl opacity-60" />
                             <div className="absolute bottom-[-50px] right-[-50px] w-32 h-32 bg-orange-100 rounded-full blur-3xl opacity-60" />
 
-                            <div className="relative w-32 h-32 mx-auto mb-10">
-                                <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                                    className="absolute inset-[-15%] rounded-[3rem] bg-gradient-to-br from-orange-300 via-yellow-400 to-purple-400 opacity-20 blur-2xl"
-                                />
-                                <div className="relative w-full h-full squircle bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-clay-orange border-4 border-white overflow-hidden">
-                                    {avatarUrl ? (
-                                        <CachedImage src={avatarUrl} alt={fullName} fill className="object-cover" />
-                                    ) : user ? (
-                                        <span className="text-6xl font-fredoka font-black text-white drop-shadow-2xl">{userInitial}</span>
-                                    ) : (
-                                        <User className="w-16 h-16 text-white" />
-                                    )}
-                                </div>
-                                <motion.div
-                                    animate={{ scale: [1, 1.2, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                    className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-yellow-400 border-4 border-white flex items-center justify-center shadow-clay-amber"
-                                >
-                                    <LumoCharacter size="sm" className="text-white" />
-                                </motion.div>
-                            </div>
-
-                            <h2 className="text-4xl font-fredoka font-black text-ink mb-3 leading-tight tracking-tight">
-                                {fullName || (user ? "Magic Voyager" : "The Magic Hub")}
-                            </h2>
-
-                            {user ? (
-                                <div className="flex flex-col items-center gap-4 mb-10">
-                                    <div className="flex items-center gap-2 px-6 py-3 bg-orange-50 rounded-2xl border-2 border-orange-100 shadow-sm">
-                                        <Mail className="w-5 h-5 text-orange-500" />
-                                        <span className="text-base font-nunito font-black text-orange-700">{user.email}</span>
-                                    </div>
-                                    <p className="text-slate-500 font-nunito font-bold text-lg mt-2 italic px-4">“Adventure is out there, just one page away!”</p>
-                                </div>
-                            ) : (
-                                <p className="text-slate-500 mb-10 italic font-nunito font-bold text-lg">Your hero's journey begins with a single word...</p>
-                            )}
-
-                            <div className="space-y-4">
-                                {user && (
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                            <Link
-                                                href="/profiles"
-                                                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-purple-50 border-2 border-purple-100 hover:bg-purple-100 transition-all group"
-                                                onClick={() => setIsHubOpen(false)}
+                            <div className="relative">
+                                {user ? (
+                                    <div className="flex flex-col items-center">
+                                        {/* Avatar & Tier Badge Cluster */}
+                                        <div className="relative mb-6">
+                                            <div className="w-32 h-32 rounded-[2rem] border-4 border-white shadow-clay-white overflow-hidden bg-slate-100 rotate-3 transition-transform duration-500">
+                                                {user.user_metadata?.avatar_url ? (
+                                                    <img
+                                                        src={user.user_metadata.avatar_url}
+                                                        alt="Profile"
+                                                        className="w-full h-full object-cover scale-110"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 text-white">
+                                                        <User className="w-12 h-12" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {/* Floating Tier Badge */}
+                                            <motion.div
+                                                initial={{ scale: 0, rotate: -20 }}
+                                                animate={{ scale: 1, rotate: -12 }}
+                                                className={cn(
+                                                    "absolute -bottom-2 -right-4 px-4 py-1.5 rounded-2xl border-4 border-white shadow-lg font-fredoka font-black text-xs uppercase tracking-wider flex items-center gap-1.5 z-10",
+                                                    usageStats?.plan === 'pro'
+                                                        ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white"
+                                                        : "bg-slate-500 text-white"
+                                                )}
                                             >
-                                                <User className="w-6 h-6 text-purple-600 mb-2 group-hover:scale-110 transition-transform" />
-                                                <span className="text-xs font-black font-fredoka text-purple-700 uppercase">Manage Heroes</span>
-                                            </Link>
-                                        <Link
-                                            href="/dashboard"
-                                            onClick={() => setIsHubOpen(false)}
-                                            className="flex flex-col items-center justify-center p-4 rounded-2xl bg-orange-50 border-2 border-orange-100 hover:bg-orange-100 transition-all group"
+                                                {usageStats?.plan === 'pro' ? <Sparkles className="w-3.5 h-3.5" /> : <Rocket className="w-3.5 h-3.5" />}
+                                                {usageStats?.plan === 'pro' ? 'Pro' : 'Free'}
+                                            </motion.div>
+                                        </div>
+
+                                        <div className="text-center mb-6">
+                                            <h2 className="text-4xl font-fredoka font-black text-ink mb-1 leading-tight tracking-tight">
+                                                {fullName || "Magic Voyager"}
+                                            </h2>
+                                            <div className="flex items-center justify-center gap-2 text-slate-400 font-nunito font-bold text-sm">
+                                                <Mail className="w-4 h-4" />
+                                                <span>{user.email}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Usage Stats - Horizontal Grid */}
+                                        {usageStats && (
+                                            <div className="w-full bg-slate-50/50 rounded-[2.5rem] p-6 border-2 border-white shadow-inner-sm mb-8">
+                                                <div className="flex items-center justify-between mb-4 px-2">
+                                                    <span className="text-[10px] font-black font-fredoka uppercase tracking-[0.2em] text-slate-400">
+                                                        Daily Energy
+                                                    </span>
+                                                    {usageStats.plan !== 'pro' && (
+                                                        <Link href="/pricing" onClick={() => setIsHubOpen(false)} className="text-[10px] font-black font-fredoka uppercase text-purple-600 hover:text-purple-700 underline decoration-2 underline-offset-4 tracking-wider">
+                                                            Get Unlimited
+                                                        </Link>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                                    {[
+                                                        { key: 'story_generation', label: 'Stories', icon: Wand2, color: 'from-purple-400 to-indigo-500' },
+                                                        { key: 'image_generation', label: 'Images', icon: Sparkles, color: 'from-pink-400 to-rose-500' },
+                                                        { key: 'word_insight', label: 'Insights', icon: Languages, color: 'from-emerald-400 to-teal-500' }
+                                                    ].map(feat => {
+                                                        const stat = usageStats.usage[feat.key];
+                                                        if (!stat) return null;
+                                                        const percent = Math.min(100, (stat.current / stat.limit) * 100);
+                                                        return (
+                                                            <div key={feat.key} className="relative">
+                                                                <div className="flex items-center justify-between mb-1.5 px-1">
+                                                                    <span className="text-[10px] font-black font-fredoka text-slate-500 uppercase">{feat.label}</span>
+                                                                    <span className="text-[10px] font-bold font-nunito text-slate-400">{stat.current}/{stat.limit}</span>
+                                                                </div>
+                                                                <div className="h-3 bg-white rounded-full overflow-hidden shadow-inner border border-slate-100 p-0.5">
+                                                                    <motion.div
+                                                                        initial={{ width: 0 }}
+                                                                        animate={{ width: `${percent}%` }}
+                                                                        className={cn(
+                                                                            "h-full rounded-full bg-gradient-to-r transition-all duration-1000",
+                                                                            stat.isLimitReached ? "from-rose-400 to-rose-500" : feat.color
+                                                                        )}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Action Grid */}
+                                        <div className="grid grid-cols-2 gap-4 w-full mb-6">
+                                            <button
+                                                onClick={() => { setIsHubOpen(false); router.push("/profiles"); }}
+                                                className="flex flex-col items-center justify-center gap-3 p-5 rounded-[2rem] bg-white border-2 border-slate-100 hover:border-purple-200 hover:bg-purple-50 transition-all group/btn shadow-sm active:scale-95"
+                                            >
+                                                <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center group-hover/btn:scale-110 transition-transform">
+                                                    <Users className="w-6 h-6 text-purple-600" />
+                                                </div>
+                                                <span className="text-xs font-black font-fredoka text-slate-600 uppercase tracking-tight">MANAGE HEROES</span>
+                                            </button>
+
+                                            <button
+                                                onClick={() => { setIsHubOpen(false); router.push("/dashboard"); }}
+                                                className="flex flex-col items-center justify-center gap-3 p-5 rounded-[2rem] bg-white border-2 border-slate-100 hover:border-orange-200 hover:bg-orange-50 transition-all group/btn shadow-sm active:scale-95"
+                                            >
+                                                <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center group-hover/btn:scale-110 transition-transform">
+                                                    <BookOpen className="w-6 h-6 text-orange-600" />
+                                                </div>
+                                                <span className="text-xs font-black font-fredoka text-slate-600 uppercase tracking-tight">GUARDIAN HUB</span>
+                                            </button>
+                                        </div>
+
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full py-4 rounded-[1.5rem] bg-rose-50 border-2 border-rose-100 text-rose-500 font-fredoka font-black text-sm uppercase tracking-widest hover:bg-rose-100 transition-all flex items-center justify-center gap-2 group/out active:scale-[0.98]"
                                         >
-                                            <BookOpen className="w-6 h-6 text-orange-600 mb-2 group-hover:scale-110 transition-transform" />
-                                            <span className="text-xs font-black font-fredoka text-orange-700 uppercase">Guardian Dashboard</span>
+                                            <LogOut className="w-4 h-4 group-hover/out:-translate-x-1 transition-transform" />
+                                            Log Out Hub
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center py-10">
+                                        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-6">
+                                            <User className="w-10 h-10 text-slate-300" />
+                                        </div>
+                                        <p className="text-slate-500 italic font-nunito font-bold text-lg mb-8 uppercase tracking-widest text-center">Your hero's journey begins with a single word...</p>
+                                        <Link
+                                            href="/login"
+                                            className="w-full py-4 rounded-2xl bg-accent text-white font-fredoka font-black text-center shadow-clay-accent"
+                                            onClick={() => setIsHubOpen(false)}
+                                        >
+                                            LOGIN EXPLORER
                                         </Link>
                                     </div>
                                 )}
 
-                                <div className="space-y-3">
-                                    {user && (
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full py-4 px-6 rounded-2xl bg-rose-50 text-rose-600 font-fredoka font-black flex items-center justify-center gap-3 hover:bg-rose-100 transition-all active:scale-95 group border-2 border-rose-100 shadow-sm"
-                                        >
-                                            <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                                            Sign Out Explorer
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => setIsHubOpen(false)}
-                                        className="w-full py-5 font-fredoka text-xl rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-clay-purple hover:from-purple-700 hover:to-indigo-700 transition-all active:scale-95"
-                                    >
-                                        {user ? "Back to Adventure" : "Open Portal"}
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() => setIsHubOpen(false)}
+                                    className="w-full py-5 mt-6 font-fredoka text-xl rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-clay-purple hover:from-purple-700 hover:to-indigo-700 transition-all active:scale-95"
+                                >
+                                    {user ? "Back to Adventure" : "Close Portal"}
+                                </button>
                             </div>
                         </motion.div>
                     </div>

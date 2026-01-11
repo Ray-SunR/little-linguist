@@ -61,6 +61,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [usage, setUsage] = useState<{
+        story: { current: number; limit: number; isLimitReached: boolean } | null;
+        image: { current: number; limit: number; isLimitReached: boolean } | null;
+    }>({ story: null, image: null });
+    const [sceneCount, setSceneCount] = useState(5);
 
     // Track versions to prevent race conditions
     const saveVersionRef = useRef(0);
@@ -73,6 +78,33 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             isMountedRef.current = false;
         };
     }, []);
+
+    const fetchUsage = useCallback(async () => {
+        if (!user) return;
+        try {
+            const [storyRes, imageRes] = await Promise.all([
+                fetch("/api/usage?feature=story_generation"),
+                fetch("/api/usage?feature=image_generation")
+            ]);
+
+            const newUsage = { story: null, image: null };
+
+            if (storyRes.ok) {
+                newUsage.story = await storyRes.json();
+            }
+            if (imageRes.ok) {
+                newUsage.image = await imageRes.json();
+            }
+
+            if (isMountedRef.current) setUsage(newUsage);
+        } catch (err) {
+            console.error("Failed to fetch usage:", err);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        fetchUsage();
+    }, [fetchUsage]);
 
     // Load saved draft on mount
     useEffect(() => {
@@ -108,13 +140,14 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 if (!isMountedRef.current) return;
 
                 if (savedDraft) {
-                    const { profile: savedProfile, selectedWords: savedWords } = savedDraft;
+                    const { profile: savedProfile, selectedWords: savedWords, sceneCount: savedSceneCount } = savedDraft;
                     if (step === "profile" && (savedProfile || savedWords)) {
                         setProfile((prev: UserProfile) => {
                             if (prev.name && !savedProfile?.name) return prev;
                             return { ...prev, ...savedProfile };
                         });
                         if (savedWords) setSelectedWords(savedWords);
+                        if (savedSceneCount) setSceneCount(savedSceneCount);
                     }
                 } else if (activeChild && !profile.name) {
                     // Pre-fill from active child if no draft exists
@@ -180,6 +213,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             console.debug("[StoryMakerClient] Resuming with draft:", draft.profile.name);
             setProfile(draft.profile);
             setSelectedWords(draft.selectedWords);
+            if (draft.sceneCount) setSceneCount(draft.sceneCount);
 
             if (state.isGenerating) {
                 console.debug("[StoryMakerClient] Resuming: Background generation in progress.");
@@ -230,7 +264,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     const draftKey = user
                         ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`)
                         : "draft:guest";
-                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords });
+                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords, sceneCount });
                     if (isMountedRef.current) setIsSaving(false);
                 }
             } catch (err) {
@@ -299,9 +333,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         );
     }
 
-    async function generateStory(overrideWords?: string[], overrideProfile?: UserProfile): Promise<void> {
+    async function generateStory(overrideWords?: string[], overrideProfile?: UserProfile, overrideSceneCount?: number): Promise<void> {
         const finalWords = overrideWords || selectedWords;
         const finalProfile = overrideProfile || profile;
+        const finalSceneCount = overrideSceneCount || sceneCount;
 
         if (!user) {
             await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", profile: finalProfile, selectedWords: finalWords });
@@ -316,6 +351,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
         if (overrideProfile) setProfile(finalProfile);
         if (overrideWords) setSelectedWords(finalWords);
+        if (overrideSceneCount) setSceneCount(finalSceneCount);
 
         setStep("generating");
         setError(null);
@@ -358,7 +394,12 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     console.debug("[StoryMakerClient] Profile created:", result.data.id);
                     currentProfile = { ...currentProfile, id: result.data.id };
                     setProfile(currentProfile);
-                    await raidenCache.put(CacheStore.DRAFTS, { id: `draft:${currentUid}`, profile: currentProfile, selectedWords: finalWords });
+                    await raidenCache.put(CacheStore.DRAFTS, {
+                        id: `draft:${currentUid}`,
+                        profile: currentProfile,
+                        selectedWords: finalWords,
+                        sceneCount: finalSceneCount
+                    });
 
                     setActiveChild(result.data);
                     await refreshProfiles(true);
@@ -368,8 +409,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 }
             }
 
-            console.debug("[StoryMakerClient] Generating story content...");
-            const content = await service.generateStoryContent(finalWords, currentProfile);
+            console.debug("[StoryMakerClient] Generating story content with sceneCount:", finalSceneCount);
+            const content = await service.generateStoryContent(finalWords, currentProfile, finalSceneCount);
 
             // Post-await session validation
             const finalSession = await supabase.auth.getSession();
@@ -420,10 +461,19 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             router.push(`/reader/${content.book_id}`);
             service.generateImagesForBook(content.book_id);
 
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            setError("Oops! Something went wrong while making your story. Please try again.");
+            if (err.name === 'AIError' && (err.message === 'LIMIT_REACHED' || err.message === 'IMAGE_LIMIT_REACHED')) {
+                const msg = err.message === 'IMAGE_LIMIT_REACHED'
+                    ? "You don't have enough energy crystals for that many scenes!"
+                    : "You've reached your story generation limit for today! Upgrade to Pro for more stories.";
+                setError(msg);
+                setStep("profile"); // Drop back to profile step so they can see the error
+            } else {
+                setError("Oops! Something went wrong while making your story. Please try again.");
+            }
         } finally {
+            fetchUsage(); // Refresh usage after attempt
             setIsStoryGenerating(false);
             state.isGenerating = false;
             processingRef.current = false;
@@ -498,7 +548,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 const draftKey = user ? `draft:${user.id}` : "draft:guest";
                                                 const draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
                                                 if (draft) {
-                                                    generateStory(draft.selectedWords, selectedProfile);
+                                                    generateStory(draft.selectedWords, selectedProfile, draft.sceneCount);
                                                 }
                                             }}
                                             className="p-6 rounded-[2.5rem] bg-white border-4 border-purple-50 hover:border-purple-200 transition-all shadow-lg flex flex-col items-center gap-4 group"
@@ -644,15 +694,25 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                         fill
                                                         className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
                                                     />
+
+                                                    {/* Change Photo Overlay */}
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[2rem] z-10">
+                                                        <span className="text-white font-bold font-fredoka flex items-center gap-2">
+                                                            <RefreshCw className="w-5 h-5" />
+                                                            Change
+                                                        </span>
+                                                    </div>
+
                                                     <motion.button
                                                         whileHover={{ scale: 1.1, rotate: 90 }}
                                                         whileTap={{ scale: 0.9 }}
                                                         type="button"
                                                         onClick={(e: React.MouseEvent) => {
                                                             e.preventDefault();
-                                                            setProfile({ ...profile, avatarUrl: undefined });
+                                                            e.stopPropagation();
+                                                            setProfile({ ...profile, avatarUrl: undefined, avatarStoragePath: undefined });
                                                         }}
-                                                        className="absolute top-6 right-6 w-10 h-10 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-xl border-2 border-white"
+                                                        className="absolute top-6 right-6 w-10 h-10 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-xl border-2 border-white z-20"
                                                     >
                                                         ×
                                                     </motion.button>
@@ -681,6 +741,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 accept="image/*"
                                                 className="hidden"
                                                 disabled={isUploading}
+                                                onClick={(e) => { (e.target as HTMLInputElement).value = '' }}
                                                 onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                                                     const file = e.target.files?.[0];
                                                     if (file) {
@@ -725,6 +786,77 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     </div>
                                 </div>
 
+                                {/* New: Story Length Control */}
+                                <div className="mb-10 pt-8 border-t-2 border-purple-50">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <label className="text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka flex items-center gap-2">
+                                            <BookOpen className="w-4 h-4 text-purple-400" />
+                                            Story Length
+                                        </label>
+                                        <span className={cn(
+                                            "px-3 py-1 rounded-full text-xs font-black font-fredoka uppercase tracking-wider",
+                                            sceneCount <= 4 ? "bg-blue-50 text-blue-500" :
+                                                sceneCount <= 7 ? "bg-purple-50 text-purple-500" : "bg-pink-50 text-pink-500"
+                                        )}>
+                                            {sceneCount === 3 ? "Quick Adventure" :
+                                                sceneCount <= 5 ? "Normal Tale" :
+                                                    sceneCount <= 8 ? "Epic Journey" : "Gran Saga"}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-6 p-4 rounded-[2rem] bg-purple-50 shadow-inner border-2 border-white/50">
+                                        <motion.button
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            type="button"
+                                            className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
+                                            onClick={() => setSceneCount(Math.max(3, sceneCount - 1))}
+                                            disabled={sceneCount <= 3}
+                                        >
+                                            −
+                                        </motion.button>
+                                        <div className="flex-1 px-4">
+                                            <div className="flex justify-between mb-2 px-1">
+                                                {[3, 4, 5, 6, 7, 8, 9, 10].map(val => (
+                                                    <div
+                                                        key={val}
+                                                        className={cn(
+                                                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                                                            val <= sceneCount ? "bg-purple-400 scale-125" : "bg-purple-200"
+                                                        )}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="3"
+                                                max="10"
+                                                step="1"
+                                                value={sceneCount}
+                                                onChange={(e) => setSceneCount(parseInt(e.target.value))}
+                                                className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col items-center min-w-[60px]">
+                                            <span className="text-3xl font-black text-purple-600 font-fredoka leading-none">{sceneCount}</span>
+                                            <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">scenes</span>
+                                        </div>
+                                        <motion.button
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            type="button"
+                                            className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
+                                            onClick={() => setSceneCount(Math.min(10, sceneCount + 1))}
+                                            disabled={sceneCount >= 10}
+                                        >
+                                            +
+                                        </motion.button>
+                                    </div>
+                                    <p className="mt-3 text-[10px] font-bold text-ink-muted font-nunito flex items-center gap-1.5 px-2">
+                                        <Sparkles className="w-3 h-3 text-amber-400" />
+                                        This adventure will use <strong>{sceneCount}</strong> images.
+                                    </p>
+                                </div>
+
                                 <motion.button
                                     whileHover={{ scale: 1.02, y: -4 }}
                                     whileTap={{ scale: 0.98 }}
@@ -735,6 +867,17 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <span>Next Step</span>
                                     <ChevronRight className="h-8 w-8" />
                                 </motion.button>
+
+                                {usage && (
+                                    <div className="mt-6 flex items-center justify-center gap-2">
+                                        <div className={cn(
+                                            "px-4 py-2 rounded-full border text-xs font-black font-fredoka uppercase tracking-wider",
+                                            usage.story?.isLimitReached ? "bg-rose-50 border-rose-100 text-rose-500" : "bg-purple-50 border-purple-100 text-purple-400"
+                                        )}>
+                                            {usage.story?.isLimitReached ? "⚠️ Daily Limit Reached" : `✨ ${usage.story?.current ?? 0} / ${usage.story?.limit ?? 0} Stories Used Today`}
+                                        </div>
+                                    </div>
+                                )}
                             </form>
                         )}
                     </motion.div>
@@ -843,13 +986,40 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <span className="text-2xl font-black text-purple-600 font-fredoka">{selectedWords.length}</span>
                                     <span className="text-[10px] uppercase font-black tracking-widest text-purple-400 font-fredoka">/ 5 Words</span>
                                 </div>
+
+                                {usage && (
+                                    <div className={cn(
+                                        "hidden sm:flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white shadow-inner border transition-colors",
+                                        usage.story?.isLimitReached ? "border-rose-200 bg-rose-50" : "border-purple-100"
+                                    )}>
+                                        <span className={cn(
+                                            "text-2xl font-black font-fredoka",
+                                            usage.story?.isLimitReached ? "text-rose-500" : "text-purple-600"
+                                        )}>
+                                            {usage.story?.current ?? 0}
+                                        </span>
+                                        <span className={cn(
+                                            "text-[10px] uppercase font-black tracking-widest font-fredoka",
+                                            usage.story?.isLimitReached ? "text-rose-400" : "text-purple-400"
+                                        )}>
+                                            / {usage.story?.limit ?? 0} Stories
+                                        </span>
+                                    </div>
+                                )}
+
                                 <motion.button
-                                    whileHover={{ scale: 1.02, y: -4 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => generateStory()}
-                                    className="h-16 px-10 rounded-[1.5rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center gap-3 text-xl font-black font-fredoka uppercase tracking-widest"
+                                    whileHover={usage?.story?.isLimitReached ? {} : { scale: 1.02, y: -4 }}
+                                    whileTap={usage?.story?.isLimitReached ? {} : { scale: 0.98 }}
+                                    onClick={() => !usage?.story?.isLimitReached && generateStory()}
+                                    disabled={usage?.story?.isLimitReached}
+                                    className={cn(
+                                        "h-16 px-10 rounded-[1.5rem] text-white border-2 border-white/30 flex items-center gap-3 text-xl font-black font-fredoka uppercase tracking-widest transition-all",
+                                        usage?.story?.isLimitReached
+                                            ? "bg-slate-300 shadow-none cursor-not-allowed opacity-70"
+                                            : "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-clay-purple"
+                                    )}
                                 >
-                                    <span>Cast Spell</span>
+                                    <span>{usage?.story?.isLimitReached ? "Limit Reached" : "Cast Spell"}</span>
                                     <Wand2 className="h-6 w-6" />
                                 </motion.button>
                             </div>

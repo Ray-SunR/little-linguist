@@ -79,7 +79,7 @@ export class GeminiProvider implements AIProvider {
         }
     }
 
-    async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal }): Promise<GeneratedStoryContent> {
+    async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, sceneCount?: number }): Promise<GeneratedStoryContent> {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
                 ? "/api/mock/story"
@@ -90,7 +90,7 @@ export class GeminiProvider implements AIProvider {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ words, userProfile: profile, childId: profile.id }),
+                body: JSON.stringify({ words, userProfile: profile, childId: profile.id, sceneCount: options?.sceneCount }),
                 signal: options?.signal,
             });
 
@@ -98,6 +98,10 @@ export class GeminiProvider implements AIProvider {
                 const errorData = await response.json().catch(() => ({})) as { error?: string };
                 if (response.status === 429) {
                     throw new AIError('rate_limit', 'Rate limit exceeded');
+                }
+                // Updated to handle both error codes
+                if (response.status === 403 && (errorData.error === "LIMIT_REACHED" || errorData.error === "IMAGE_LIMIT_REACHED")) {
+                    throw new AIError('limit_reached', errorData.error);
                 }
                 if (response.status >= 400 && response.status < 500) {
                     throw new AIError('invalid_input', errorData.error || `Invalid input: ${response.statusText}`);

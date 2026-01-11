@@ -43,7 +43,7 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
 
         const purgeCaches = async (shardRecord?: CachedShardRecord) => {
             if (shardRecord?.audioPaths && shardRecord.audioPaths.length > 0) {
-                await Promise.all(shardRecord.audioPaths.map(path => assetCache.purge(path).catch(() => {})));
+                await Promise.all(shardRecord.audioPaths.map(path => assetCache.purge(path).catch(() => { })));
             }
             await raidenCache.delete(CacheStore.BOOKS, bookId);
             await raidenCache.delete(CacheStore.SHARDS, bookId);
@@ -78,11 +78,11 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
                 .filter(Boolean);
 
             await raidenCache.put(CacheStore.BOOKS, bookToCache);
-            await raidenCache.put(CacheStore.SHARDS, { 
-                bookId, 
-                updated_at: bookData.assetTimestamps?.audios, 
-                shards: fullBook.shards, 
-                audioPaths 
+            await raidenCache.put(CacheStore.SHARDS, {
+                bookId,
+                updated_at: bookData.assetTimestamps?.audios,
+                shards: fullBook.shards,
+                audioPaths
             });
 
             setCurrentBook(fullBook);
@@ -98,18 +98,18 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
     // Background sync to cache when initialBook arrives
     useEffect(() => {
         if (initialBook && initialBook.id === bookId) {
-             const { initialProgress: _, ...bookToCache } = initialBook;
-             raidenCache.put(CacheStore.BOOKS, bookToCache);
-             
-             const audioPaths = (initialBook.shards as any[] || [])
+            const { initialProgress: _, ...bookToCache } = initialBook;
+            raidenCache.put(CacheStore.BOOKS, bookToCache);
+
+            const audioPaths = (initialBook.shards as any[] || [])
                 .map((s) => s.storagePath)
                 .filter(Boolean);
 
-             raidenCache.put(CacheStore.SHARDS, { 
-                bookId, 
-                updated_at: initialBook.assetTimestamps?.audios, 
-                shards: initialBook.shards, 
-                audioPaths 
+            raidenCache.put(CacheStore.SHARDS, {
+                bookId,
+                updated_at: initialBook.assetTimestamps?.audios,
+                shards: initialBook.shards,
+                audioPaths
             });
         }
     }, [initialBook, bookId]);
@@ -158,11 +158,11 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
                 .map(s => (s as any).storagePath)
                 .filter(p => !!p);
 
-            raidenCache.put(CacheStore.SHARDS, { 
-                bookId, 
-                updated_at: prev.updated_at, 
+            raidenCache.put(CacheStore.SHARDS, {
+                bookId,
+                updated_at: prev.updated_at,
                 shards: updatedShards,
-                audioPaths 
+                audioPaths
             });
 
             return { ...prev, shards: updatedShards };

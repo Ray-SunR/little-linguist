@@ -15,8 +15,8 @@ export class StoryService implements IStoryService {
         this.provider = provider || getAIProvider();
     }
 
-    async generateStoryContent(words: string[], userProfile: UserProfile): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string, book_id: string, tokens: any[] }> {
-        const generated = await this.provider.generateStory(words, userProfile);
+    async generateStoryContent(words: string[], userProfile: UserProfile, sceneCount?: number): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string, book_id: string, tokens: any[] }> {
+        const generated = await this.provider.generateStory(words, userProfile, { sceneCount });
         return {
             title: generated.title,
             content: generated.content,
@@ -63,9 +63,9 @@ export class StoryService implements IStoryService {
         }
     }
 
-    async generateStory(words: string[], userProfile: UserProfile): Promise<Story> {
+    async generateStory(words: string[], userProfile: UserProfile, sceneCount?: number): Promise<Story> {
         try {
-            const content = await this.generateStoryContent(words, userProfile);
+            const content = await this.generateStoryContent(words, userProfile, sceneCount);
 
             // Trigger background image generation (non-blocking)
             this.generateImagesForBook(content.book_id);

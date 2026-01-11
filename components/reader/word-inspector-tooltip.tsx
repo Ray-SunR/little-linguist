@@ -10,6 +10,7 @@ import type { TooltipPosition } from "../../hooks/use-word-inspector";
 import { Popover, PopoverContent, PopoverAnchor } from "../ui/popover";
 import { WordInsightView } from "./word-insight-view";
 import { INarrationProvider } from "@/lib/features/narration";
+import { useAuth } from "../auth/auth-provider";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -44,6 +45,7 @@ export default function WordInspectorTooltip({
   provider,
   bookId,
 }: WordInspectorTooltipProps) {
+  const { user } = useAuth();
   const anchorRef = useRef<HTMLDivElement>(null);
   const { hasWord, addWord, removeWord } = useWordList();
   const [isMobile, setIsMobile] = useState(false);
@@ -119,19 +121,30 @@ export default function WordInspectorTooltip({
                 <Star className="h-8 w-8 text-purple-500 fill-purple-500" />
               </div>
               <div className="text-center">
-                <p className="text-xl font-fredoka font-black text-ink uppercase tracking-tight">Adventure Awaits!</p>
+                <p className="text-xl font-fredoka font-black text-ink uppercase tracking-tight">
+                  {user ? "Daily Limit Reached!" : "Adventure Awaits!"}
+                </p>
                 <p className="text-sm font-nunito font-bold text-ink-muted mt-2">
-                  You've unlocked several magical words! <br/>
-                  <span className="text-purple-600 font-black">Sign in</span> to save your progress and discover unlimited insights.
+                  {user ? (
+                    <>
+                      You've hit your daily insight limit. <br />
+                      <span className="text-purple-600 font-black">Upgrade to Pro</span> for unlimited magical discoveries!
+                    </>
+                  ) : (
+                    <>
+                      You've unlocked several magical words! <br />
+                      <span className="text-purple-600 font-black">Sign in</span> to save your progress and discover unlimited insights.
+                    </>
+                  )}
                 </p>
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.location.href = '/login'}
+                onClick={() => window.location.href = user ? '/pricing' : '/login'}
                 className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-4 text-lg font-fredoka font-black text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
               >
-                Join the Adventure
+                {user ? "Upgrade Now" : "Join the Adventure"}
               </motion.button>
             </>
           ) : (

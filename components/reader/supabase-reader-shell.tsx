@@ -129,9 +129,9 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
     });
 
     const tooltipProvider = useMemo(() => new WebSpeechNarrationProvider(), []);
-    const { 
-        openWord: openWordInspector, 
-        close: closeWordInspector, 
+    const {
+        openWord: openWordInspector,
+        close: closeWordInspector,
         selectedWordIndex: inspectorSelectedWordIndex,
         insight: inspectorInsight,
         isLoading: isInspectorLoading,
@@ -218,10 +218,10 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
             console.error("Fullscreen API error:", err);
         }
     }, [isMaximized]);
-    
+
     const toggleFavorite = useCallback(async () => {
         if (!selectedBookId || !childId) return;
-        
+
         const newFavState = !isFavorite;
         setIsFavorite(newFavState); // Optimistic UI
 
@@ -234,7 +234,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                     isFavorite: newFavState
                 })
             });
-            
+
             if (!res.ok) {
                 // Rollback on error
                 setIsFavorite(!newFavState);
@@ -334,8 +334,8 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                         disabled={isEmpty || !childId || !selectedBookId}
                         className={cn(
                             "inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border disabled:opacity-50",
-                            isFavorite 
-                                ? "bg-pink-500 border-pink-400 text-white" 
+                            isFavorite
+                                ? "bg-pink-500 border-pink-400 text-white"
                                 : "bg-white/80 dark:bg-card text-slate-400 border-purple-100 dark:border-transparent"
                         )}
                         aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
@@ -366,10 +366,10 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                         title={playbackState === "playing" ? "Pause (Space)" : "Play (Space)"}
                     >
                         {isPreparing ? (
-                            <motion.img 
-                                src="/logo.png" 
-                                className="h-5 w-5 sm:h-6 sm:w-6" 
-                                animate={{ rotate: 360, scale: [1, 1.2, 1] }} 
+                            <motion.img
+                                src="/logo.png"
+                                className="h-5 w-5 sm:h-6 sm:w-6"
+                                animate={{ rotate: 360, scale: [1, 1.2, 1] }}
                                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                             />
                         ) :

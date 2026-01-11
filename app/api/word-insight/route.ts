@@ -22,24 +22,24 @@ export async function POST(req: Request): Promise<NextResponse> {
         const authClient = createAuthClient();
         const { data: { user } } = await authClient.auth.getUser();
         const adminSupabase = getAdminSupabase();
- 
+
         const { word: rawWord } = await req.json();
         if (typeof rawWord !== 'string') {
             return NextResponse.json({ error: "Word must be a string" }, { status: 400 });
         }
- 
+
         const word = normalizeWord(rawWord).replace(/[^a-z0-9-]/g, "");
         if (!word || word.length > 50) {
             return NextResponse.json({ error: "Invalid word" }, { status: 400 });
         }
- 
+
         // 1. Cache Check (Always Service Role)
         const { data: cached } = await adminSupabase
             .from("word_insights")
             .select("*")
             .eq("word", word)
             .maybeSingle();
- 
+
         if (cached?.definition) {
             const bucket = "word-insights-audio";
             async function sign(path: string) {
@@ -47,13 +47,13 @@ export async function POST(req: Request): Promise<NextResponse> {
                 const { data } = await adminSupabase.storage.from(bucket).createSignedUrl(path, 3600);
                 return data?.signedUrl || "";
             }
- 
+
             const [audioUrl, wordAudioUrl, exampleAudioUrl] = await Promise.all([
                 sign(cached.audio_path),
                 sign(`${word}/word.mp3`),
                 sign(`${word}/example_0.mp3`)
             ]);
- 
+
             return NextResponse.json({
                 word: cached.word,
                 definition: cached.definition,
@@ -69,23 +69,22 @@ export async function POST(req: Request): Promise<NextResponse> {
                 exampleTimings: [],
             });
         }
- 
+
         // 2. Identity & Limits
         const identity = await getOrCreateIdentity(user);
         const feature = "word_insight";
-        const defaultLimit = user ? 100 : 5;
- 
+
         // 3. Atomic Increment & Check
-        const success = await tryIncrementUsage(identity, feature, defaultLimit);
- 
+        const success = await tryIncrementUsage(identity, feature);
+
         if (!success) {
             // Fetch status for better error message if needed, or just return 403
-            const status = await checkUsageLimit(identity.identity_key, feature, defaultLimit);
-            return NextResponse.json({ 
+            const status = await checkUsageLimit(identity.identity_key, feature, user?.id);
+            return NextResponse.json({
                 error: "LIMIT_REACHED",
                 message: user ? "You've reached your word insight limit!" : "You've reached your free word insight limit!",
                 limit: status.limit,
-                isGuest: !user 
+                isGuest: !user
             }, { status: 403 });
         }
 
@@ -93,7 +92,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         const insight = await getWordAnalysisProvider().analyzeWord(word);
         const polly = new PollyNarrationService();
         const bucket = "word-insights-audio";
- 
+
         async function synthesizeAndUpload(text: string, path: string) {
             try {
                 const { audioBuffer, speechMarks } = await polly.synthesize(text);
@@ -101,13 +100,13 @@ export async function POST(req: Request): Promise<NextResponse> {
                     contentType: "audio/mpeg",
                     upsert: true
                 });
- 
+
                 const timings = speechMarks.map((mark, idx) => ({
                     wordIndex: idx,
                     startMs: mark.time,
                     endMs: speechMarks[idx + 1] ? speechMarks[idx + 1].time : mark.time + 500
                 }));
- 
+
                 const { data: signData } = await adminSupabase.storage.from(bucket).createSignedUrl(path, 3600);
                 return { path, url: signData?.signedUrl || "", timings };
             } catch (err) {
@@ -115,13 +114,13 @@ export async function POST(req: Request): Promise<NextResponse> {
                 return null;
             }
         }
- 
+
         const [wordAudio, defAudio, exAudio] = await Promise.all([
             synthesizeAndUpload(word, `${word}/word.mp3`),
             synthesizeAndUpload(insight.definition, `${word}/definition.mp3`),
             insight.examples?.[0] ? synthesizeAndUpload(insight.examples[0], `${word}/example_0.mp3`) : Promise.resolve(null)
         ]);
- 
+
         // 5. Persistence
         await adminSupabase.from("word_insights").upsert({
             word: word,
@@ -131,7 +130,7 @@ export async function POST(req: Request): Promise<NextResponse> {
             audio_path: defAudio?.path || "",
             timing_markers: defAudio?.timings || [],
         }, { onConflict: "word" });
- 
+
         return NextResponse.json({
             ...insight,
             wordAudioUrl: wordAudio?.url || "",
@@ -143,7 +142,7 @@ export async function POST(req: Request): Promise<NextResponse> {
             wordTimings: defAudio?.timings || [],
             exampleTimings: exAudio ? [exAudio.timings] : [],
         });
- 
+
     } catch (error: any) {
         console.error("[WordInsight] Route error:", error);
         return NextResponse.json({ error: "Failed to process word insight" }, { status: 500 });

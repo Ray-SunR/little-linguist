@@ -2,6 +2,9 @@ import { createClient } from '@supabase/supabase-js';
 import { Book } from '../types';
 
 // Types for optimized library fetching
+// ~580 tokens reads in 100s = 348 tokens/min. Rounded to 350 for simplicity.
+const TOKENS_PER_MINUTE = 350;
+
 interface BookFilters {
     limit?: number;
     offset?: number;
@@ -303,7 +306,7 @@ export class BookRepository {
                 owner_user_id: book.owner_user_id,
                 child_id: book.child_id,
                 totalTokens: book.total_tokens,
-                estimatedReadingTime: book.estimated_reading_time,
+                estimatedReadingTime: book.estimated_reading_time ?? (book.total_tokens ? Math.ceil(book.total_tokens / TOKENS_PER_MINUTE) : undefined),
                 isRead: progress?.is_completed || false,
                 isFavorite: progress?.is_favorite || false,
                 level: book.level,

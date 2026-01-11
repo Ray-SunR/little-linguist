@@ -37,9 +37,8 @@ export type Story = {
  * Service interface for story generation and persistence
  */
 export interface IStoryService {
-    generateStory(words: string[], userProfile: UserProfile): Promise<Story>;
-    generateStoryContent(words: string[], userProfile: UserProfile): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string, book_id: string, tokens: any[] }>;
+    generateStory(words: string[], userProfile: UserProfile, sceneCount?: number): Promise<Story>;
+    generateStoryContent(words: string[], userProfile: UserProfile, sceneCount?: number): Promise<{ title: string, content: string, scenes: StoryScene[], mainCharacterDescription: string, book_id: string, tokens: any[] }>;
     generateImagesForBook(bookId: string): Promise<void>;
     generateImageForScene(bookId: string, sceneIndex: number): Promise<void>;
-
 }
