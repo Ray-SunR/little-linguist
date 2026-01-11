@@ -24,7 +24,6 @@ async function inspectBook() {
     }
 
     console.log("Book Title:", book.title);
-    console.log("Images Field:", JSON.stringify(book.images, null, 2));
     console.log("Metadata Field:", JSON.stringify(book.metadata, null, 2));
 }
 

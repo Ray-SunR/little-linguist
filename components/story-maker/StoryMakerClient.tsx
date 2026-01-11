@@ -669,7 +669,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             {profile.avatarUrl ? (
                                                 <div className="relative w-full h-full p-4">
                                                     <CachedImage
-                                                        src={profile.avatarUrlResolved || profile.avatarUrl || ''}
+                                                        src={profile.avatarUrl || ''}
                                                         storagePath={profile.avatarStoragePath || (profile.avatarUrl?.includes('/') ? profile.avatarUrl : undefined)}
                                                         alt="Preview"
                                                         fill
@@ -755,8 +755,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                             setProfile({
                                                                 ...profile,
                                                                 avatarUrl: storagePath,
-                                                                avatarStoragePath: storagePath,
-                                                                avatarUrlResolved: publicUrl // Temporary helper for preview
+                                                                avatarStoragePath: storagePath
                                                             });
                                                         } catch (err) {
                                                             console.error("Upload failed:", err);
