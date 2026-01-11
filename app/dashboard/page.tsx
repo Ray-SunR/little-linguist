@@ -19,10 +19,13 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   let initialProfiles: ChildProfile[] = [];
+  let fetchError = false;
+
   if (user) {
     const { data, error } = await getChildren();
     if (error) {
       console.error("[RAIDEN_DIAG][Dashboard] Server-side profile fetch failed:", error);
+      fetchError = true;
     }
     if (!error && data) {
       initialProfiles = data;
@@ -35,6 +38,7 @@ export default async function DashboardPage() {
         <ProfileHydrator
           initialProfiles={initialProfiles}
           userId={user.id}
+          serverError={fetchError}
         />
       )}
       <Suspense fallback={<LumoLoader />}>

@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Trash2, BookOpen, Sparkles, Volume2, Star, Search, RotateCcw } from "lucide-react";
+import { Trash2, BookOpen, Sparkles, Volume2, Star, Search } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight/provider";
 import React, { useState, useMemo, memo, useEffect } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -67,7 +67,7 @@ export default function MyWordsContent() {
                 const date = new Date(word.createdAt || Date.now());
                 const now = new Date();
                 const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24));
-                
+
                 if (diffDays === 0) key = "Today";
                 else if (diffDays === 1) key = "Yesterday";
                 else if (diffDays < 7) key = "This Week";
@@ -92,7 +92,7 @@ export default function MyWordsContent() {
         <div className="min-h-screen page-story-maker p-6 md:p-10 pb-32">
             {!user && (
                 <div className="mx-auto max-w-6xl mb-8">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-[2rem] p-6 shadow-clay-purple border-4 border-white flex flex-col md:flex-row items-center justify-between gap-6"
@@ -231,7 +231,7 @@ export default function MyWordsContent() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="clay-card p-16 flex flex-col items-center justify-center text-center min-h-[500px] relative overflow-hidden"
                     >
-                        <div className="absolute inset-x-[-30px] inset-y-[-30px] bg-amber-400/10 blur-[80px] rounded-full animate-pulse-glow" />
+                        <div className="absolute inset-x-[-30px] inset-y-[-30px] bg-amber-400/10 blur-[80px] rounded-full animate-pulse-glow pointer-events-none" />
                         <div className="relative mb-12">
                             <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-white to-amber-50 shadow-clay-amber flex items-center justify-center border-4 border-white">
                                 <LumoCharacter size="xl" />
@@ -249,14 +249,14 @@ export default function MyWordsContent() {
                             Explore magical stories and tap on starry words to build your treasure collection!
                         </p>
                         <Link href="/library">
-                            <motion.button
+                            <motion.div
                                 whileHover={{ scale: 1.05, y: -4 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="next-step-btn px-12 h-16 text-xl"
+                                className="next-step-btn px-12 h-16 text-xl relative z-10"
                             >
                                 <Sparkles className="h-6 w-6" />
-                                <span>Find Magic Words</span>
-                            </motion.button>
+                                <span>Explore Magic Library</span>
+                            </motion.div>
                         </Link>
                     </motion.div>
                 ) : filteredAndSortedWords.length === 0 ? (
@@ -277,7 +277,7 @@ export default function MyWordsContent() {
                     <div className="space-y-16 pb-20">
                         {(() => {
                             const groupEntries = Object.entries(groupedWords);
-                            
+
                             // Stable sorting for group sections
                             if (groupBy === "date") {
                                 const order = ["Today", "Yesterday", "This Week", "Older", "Other"];
@@ -311,16 +311,16 @@ export default function MyWordsContent() {
                                                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                                     exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                                                    transition={{ 
+                                                    transition={{
                                                         type: "spring",
                                                         stiffness: 300,
                                                         damping: 25,
                                                     }}
                                                 >
-                                                    <MagicCard 
-                                                        word={word} 
-                                                        onRemove={() => removeWord(word.word, word.bookId)} 
-                                                        ttsProvider={tooltipProvider} 
+                                                    <MagicCard
+                                                        word={word}
+                                                        onRemove={() => removeWord(word.word, word.bookId)}
+                                                        ttsProvider={tooltipProvider}
                                                         index={index}
                                                     />
                                                 </motion.div>
@@ -340,6 +340,13 @@ export default function MyWordsContent() {
 const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }: { word: SavedWord; onRemove: () => void; ttsProvider: INarrationProvider; index: number }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const isMounted = React.useRef(true);
+
+    useEffect(() => {
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
 
     const colorSets = [
         { bg: "bg-purple-500", shadow: "shadow-clay-purple", accent: "text-purple-500", light: "bg-purple-50" },
@@ -360,7 +367,7 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
         if (target.closest('button') || target.closest('[data-no-flip]')) {
             return;
         }
-        setIsFlipped(!isFlipped);
+        setIsFlipped(prev => !prev);
     };
 
     const handleListen = async (e?: React.MouseEvent) => {
@@ -382,7 +389,9 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
         } catch (err) {
             console.error("Failed to play word narration:", err);
         } finally {
-            setIsListening(false);
+            if (isMounted.current) {
+                setIsListening(false);
+            }
         }
     };
 
@@ -397,7 +406,7 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
                     isFlipped ? "[transform:rotateY(180deg)] group-hover:[transform:rotateY(182deg)_rotateX(2deg)]" : ""
                 )}
             >
-                <div 
+                <div
                     className="absolute h-full w-full backface-hidden z-10"
                     style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden' }}
                 >
@@ -430,16 +439,16 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
 
                         {/* Metadata Footer */}
                         <div className="w-full space-y-3 mt-6">
-                            {word.bookTitle && (
-                                <Link 
+                            {word.bookTitle && word.bookId && (
+                                <Link
                                     href={`/reader/${word.bookId}`}
                                     data-no-flip
                                     className="flex items-center gap-3 p-2.5 rounded-2xl bg-white border-2 border-slate-100 group/link hover:bg-slate-50 hover:border-accent/20 transition-all block overflow-hidden shadow-sm"
                                 >
                                     <div className="w-10 h-14 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200 group-hover/link:border-accent/20 transition-colors relative">
                                         {word.coverImageUrl ? (
-                                            <CachedImage 
-                                                src={word.coverImageUrl} 
+                                            <CachedImage
+                                                src={word.coverImageUrl}
                                                 storagePath={word.coverImagePath}
                                                 alt={word.bookTitle}
                                                 fill
@@ -463,7 +472,11 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
                                 <div className="flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
                                     <p className="text-[10px] font-bold text-slate-400">
-                                        {word.createdAt ? new Date(word.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Unknown date'}
+                                        {(() => {
+                                            if (!word.createdAt) return 'Unknown date';
+                                            const d = new Date(word.createdAt);
+                                            return isNaN(d.getTime()) ? 'Unknown date' : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                                        })()}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -496,7 +509,7 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
                     </div>
                 </div>
 
-                <div 
+                <div
                     className="absolute h-full w-full [transform:rotateY(180deg)] backface-hidden overflow-hidden rounded-[2.5rem] z-20"
                     style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden' }}
                 >
@@ -510,7 +523,7 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
                             <WordInsightView
                                 insight={word}
                                 isSaved={true}
-                                onToggleSave={() => {}}
+                                onToggleSave={() => { }}
                                 onClose={() => setIsFlipped(false)}
                                 provider={ttsProvider}
                                 compact={true}
@@ -520,7 +533,7 @@ const MagicCard = memo(function MagicCard({ word, onRemove, ttsProvider, index }
                         <div className="mt-4 md:mt-6 text-center pb-2 shrink-0">
                             <button
                                 onClick={(e: React.MouseEvent) => { e.stopPropagation(); setIsFlipped(false); }}
-                                    className={cn("w-full py-3.5 md:py-4 rounded-[1.2rem] md:rounded-3xl font-black font-fredoka text-[10px] md:text-xs uppercase tracking-widest transition-all text-white shadow-xl", theme.bg, theme.shadow)}
+                                className={cn("w-full py-3.5 md:py-4 rounded-[1.2rem] md:rounded-3xl font-black font-fredoka text-[10px] md:text-xs uppercase tracking-widest transition-all text-white shadow-xl", theme.bg, theme.shadow)}
                             >
                                 Got it! 🚀
                             </button>

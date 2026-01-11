@@ -43,9 +43,16 @@ export default function DashboardContent({ serverProfiles = [] }: DashboardConte
     const hasProfiles = effectiveProfiles.length > 0;
 
     if (!isLoading && user && !hasProfiles) {
+      console.warn("[RAIDEN_DIAG][Dashboard] Redirecting to onboarding. State:", {
+        userId: user.id,
+        profilesCount: profiles.length,
+        serverProfilesCount: serverProfiles.length,
+        effectiveProfilesCount: effectiveProfiles.length,
+        isLoading
+      });
       router.push("/onboarding");
     }
-  }, [effectiveProfiles, isLoading, router, user, profiles]);
+  }, [effectiveProfiles, isLoading, router, user, profiles, serverProfiles]);
 
   // DashboardUI handles its own empty states, we just pass activeChild
   return (
