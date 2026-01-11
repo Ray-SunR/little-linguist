@@ -125,8 +125,17 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         time: currentTime,
         playbackState,
         viewMode,
-        speed: playbackSpeed
+        speed: playbackSpeed,
+        // Mark as completed when user has reached ~99% of the book
+        isCompleted: wordTokens.length > 0 && currentWordIndex !== null && currentWordIndex >= wordTokens.length - 1
     });
+
+    // Trigger initial save to update "last opened" timestamp
+    useEffect(() => {
+        if (selectedBookId && childId && isMounted) {
+            saveProgress(true);
+        }
+    }, [selectedBookId, childId, isMounted, saveProgress]);
 
     const tooltipProvider = useMemo(() => new WebSpeechNarrationProvider(), []);
     const {

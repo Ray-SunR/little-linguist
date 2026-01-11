@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
-import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass, Heart, Hash, Sparkles } from "lucide-react";
+import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass, Heart, Hash, Sparkles, Check } from "lucide-react";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import React, { MouseEvent, useRef, useState, memo, useCallback } from "react";
 import { CachedImage } from "@/components/ui/cached-image";
@@ -93,7 +93,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
             100,
             Math.max(
                 0,
-                ((book.progress.last_token_index || 0) / (book.progress.total_tokens || 1)) *
+                ((book.progress.last_token_index || 0) / (book.totalTokens ?? book.progress.total_tokens ?? 1)) *
                 100
             )
         )
@@ -197,6 +197,26 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                                 <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">Gold Edition</span>
                                             </div>
                                         )}
+
+                                        {/* Status Badges */}
+                                        {(book.isRead || Math.round(progressPercent) >= 99) ? (
+                                            <div className="px-3 py-1.5 rounded-full bg-emerald-500/90 backdrop-blur-md shadow-lg border border-emerald-400/50 flex items-center gap-1.5 w-fit">
+                                                <div className="bg-white rounded-full p-0.5">
+                                                    <Check className="h-3 w-3 text-emerald-500" />
+                                                </div>
+                                                <span className="text-[10px] font-black text-white uppercase tracking-tighter">Read</span>
+                                            </div>
+                                        ) : progressPercent > 0 ? (
+                                            <div className="px-3 py-1.5 rounded-full bg-orange-500/90 backdrop-blur-md shadow-lg border border-orange-400/50 flex items-center gap-1.5 w-fit">
+                                                <BookOpen className="h-3 w-3 text-white" />
+                                                <span className="text-[10px] font-black text-white uppercase tracking-tighter">{Math.round(progressPercent)}% Read</span>
+                                            </div>
+                                        ) : (
+                                            <div className="px-3 py-1.5 rounded-full bg-blue-500/90 backdrop-blur-md shadow-lg border border-blue-400/50 flex items-center gap-1.5 w-fit">
+                                                <Sparkles className="h-3 w-3 text-white" />
+                                                <span className="text-[10px] font-black text-white uppercase tracking-tighter">New</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Level Badge (Top Right) */}
@@ -232,27 +252,32 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                 </div>
 
                                 {/* Text Info Area */}
-                                <div className="h-[90px] md:h-[110px] flex flex-col justify-between px-2 py-1">
-                                    <div className="space-y-1.5">
-                                        <h3 className="font-fredoka text-xl font-black text-ink dark:text-slate-800 line-clamp-2 leading-[1.2] group-hover:text-accent transition-colors h-[48px]">
-                                            {book.title}
-                                        </h3>
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-black text-ink-muted uppercase tracking-wider">
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3 text-accent" />
-                                                {Math.max(1, Math.round(Number(book.estimatedReadingTime) || 0))}m
+                                <div className="flex-1 flex flex-col px-2 py-3 gap-2">
+                                    <h3 className="font-fredoka text-xl font-black text-ink dark:text-slate-800 line-clamp-2 leading-tight group-hover:text-accent transition-colors">
+                                        {book.title}
+                                    </h3>
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-black text-ink-muted uppercase tracking-wider mt-auto">
+                                        <span className="flex items-center gap-1">
+                                            <Clock className="w-3 h-3 text-accent" />
+                                            {Math.max(1, Math.round(Number(book.estimatedReadingTime) || 0))}m
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Hash className="w-3 h-3 text-accent" />
+                                            {book.totalTokens || book.progress?.total_tokens || 0} words
+                                        </span>
+                                        {book.lastOpenedAt && (
+                                            <span className="flex items-center gap-1 text-blue-400">
+                                                <BookOpen className="w-3 h-3" />
+                                                Opened {new Date(book.lastOpenedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                                             </span>
-                                            <span className="flex items-center gap-1">
-                                                <Hash className="w-3 h-3 text-accent" />
-                                                {book.totalTokens || book.progress?.total_tokens || 0} words
+                                        )}
+                                        {/* Creation Date for Owned Books */}
+                                        {isOwned && book.createdAt && (
+                                            <span className="flex items-center gap-1 text-slate-400">
+                                                <Sparkles className="w-3 h-3" />
+                                                Created {new Date(book.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                                             </span>
-                                            {book.lastOpenedAt && (
-                                                <span className="flex items-center gap-1">
-                                                    <BookOpen className="w-3 h-3 text-accent" />
-                                                    {new Date(book.lastOpenedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                                                </span>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
 

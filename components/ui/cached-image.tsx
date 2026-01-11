@@ -28,7 +28,11 @@ export function CachedImage({
     onLoadFailure,
     ...props
 }: CachedImageProps) {
-    const [displayUrl, setDisplayUrl] = useState<string>(storagePath ? TRANSPARENT_PIXEL : src);
+    // Guard: Ensure src is a valid URL format for Next.js Image
+    const isValidSrc = src.startsWith('http://') || src.startsWith('https://') || src.startsWith('blob:') || src.startsWith('data:') || src.startsWith('/');
+    const safeSrc = isValidSrc ? src : TRANSPARENT_PIXEL;
+
+    const [displayUrl, setDisplayUrl] = useState<string>(storagePath ? TRANSPARENT_PIXEL : safeSrc);
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Use a ref to track the previous storage token to avoid unnecessary resets
@@ -53,7 +57,7 @@ export function CachedImage({
 
         async function resolveUrl() {
             if (!storagePath) {
-                if (isMounted) setDisplayUrl(src);
+                if (isMounted) setDisplayUrl(safeSrc);
                 return;
             }
 
@@ -103,7 +107,7 @@ export function CachedImage({
                 if (isAbort) return;
 
                 console.warn("[CachedImage] Resolution failed:", err);
-                if (isMounted) setDisplayUrl(src);
+                if (isMounted) setDisplayUrl(safeSrc);
             }
         }
 

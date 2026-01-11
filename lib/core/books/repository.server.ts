@@ -95,11 +95,11 @@ export class BookRepository {
         const joinType = (filters?.is_favorite) ? 'inner' : 'left';
 
         // Base fields
-        let selectFields = 'id, title, updated_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin';
+        let selectFields = 'id, title, updated_at, created_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin';
 
         // Add join if childId is present
         if (childId) {
-            selectFields += `, child_books!${joinType}(child_id, is_favorite, is_completed, last_token_index)`;
+            selectFields += `, child_books!${joinType}(child_id, is_favorite, is_completed, last_token_index, last_read_at)`;
         }
 
         let query = this.supabase
@@ -306,6 +306,7 @@ export class BookRepository {
                 coverImageUrl,
                 coverPath,
                 updated_at: book.updated_at,
+                createdAt: book.created_at,
                 voice_id: book.voice_id,
                 owner_user_id: book.owner_user_id,
                 child_id: book.child_id,
@@ -313,12 +314,14 @@ export class BookRepository {
                 estimatedReadingTime: book.estimated_reading_time ?? (book.total_tokens ? Math.ceil(book.total_tokens / TOKENS_PER_MINUTE) : undefined),
                 isRead: progress?.is_completed || false,
                 isFavorite: progress?.is_favorite || false,
+                lastOpenedAt: progress?.last_read_at,
                 level: book.level,
                 isNonFiction: book.is_nonfiction,
                 origin: book.origin,
                 progress: progress ? {
                     last_token_index: progress.last_token_index,
-                    is_completed: progress.is_completed
+                    is_completed: progress.is_completed,
+                    last_read_at: progress.last_read_at
                 } : undefined
             };
         });

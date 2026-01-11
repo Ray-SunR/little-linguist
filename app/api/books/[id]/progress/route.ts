@@ -66,7 +66,7 @@ export async function POST(
         const result = await repo.saveProgress(childId, params.id, {
             last_token_index: payload.tokenIndex,
             last_shard_index: payload.shardIndex,
-            is_completed: payload.isRead,
+            is_completed: payload.isCompleted ?? payload.isRead, // Support both field names
             total_read_seconds: payload.totalReadSeconds,
             playback_speed: payload.speed
         });
