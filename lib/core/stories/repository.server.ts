@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export type StoryStatus = 'generating' | 'completed' | 'failed';
 
-export interface StoryScene {
+export interface StorySection {
     text: string;
     image_prompt: string;
     after_word_index: number;
@@ -14,11 +14,20 @@ export interface StoryEntity {
     owner_user_id: string | null;
     child_id: string | null;
     main_character_description: string;
-    scenes: StoryScene[];
+    sections: StorySection[];
     status: StoryStatus;
     avatar_url?: string;
     created_at?: string;
     updated_at?: string;
+    story_length_minutes?: number;
+    image_scene_count?: number;
+    child_name?: string;
+    child_age?: number;
+    child_gender?: string;
+    words_used?: string[];
+    book_id?: string;
+    raw_prompt?: string;
+    raw_response?: any;
 }
 
 export class StoryRepository {
@@ -52,9 +61,19 @@ export class StoryRepository {
     }
 
     async createStory(story: Partial<StoryEntity>): Promise<StoryEntity> {
+        // Map camelCase to snake_case for DB if needed, or rely on Supabase to handle it if usage is consistent.
+        // Assuming the Partial<StoryEntity> passed matches DB columns or Supabase auto-mapping.
+        // However, standard Supabase insert expects column names.
+
+        // Let's ensure we are passing the exact column names as per schema
+        const dbStory = {
+            ...story,
+            // Ensure array/json fields are properly formatted if needed (Supabase JS handles array/objects well)
+        };
+
         const { data, error } = await this.supabase
             .from('stories')
-            .insert(story)
+            .insert(dbStory)
             .select()
             .single();
 

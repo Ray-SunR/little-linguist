@@ -25,7 +25,7 @@ class AssetCache {
             try {
                 const metadata = await raidenCache.get<{ id: string; cachedAt: number }>(CacheStore.ASSET_METADATA, objectKey);
                 const updatedTime = typeof updatedAt === 'string' ? new Date(updatedAt).getTime() : updatedAt;
-                
+
                 if (metadata && updatedTime > metadata.cachedAt) {
                     console.debug(`[AssetCache] INVALIDATING stale asset: ${objectKey} (updatedAt: ${updatedTime} > cachedAt: ${metadata.cachedAt})`);
                     await this.purge(objectKey);

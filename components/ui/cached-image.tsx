@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image, { ImageProps } from "next/image";
 import { assetCache } from "@/lib/core/asset-cache";
 import { cn } from "@/lib/core";
+import { createClient } from "@/lib/supabase/client";
 
 interface CachedImageProps extends Omit<ImageProps, "src"> {
     src: string; // The signed URL (fallback)
@@ -60,7 +61,38 @@ export function CachedImage({
             // If it's different, we already set it to transparent above.
 
             try {
-                const cachedUrl = await assetCache.getAsset(storagePath, src, updatedAt, controller.signal);
+                let fetchUrl = src;
+
+                // Logic: If we have a storagePath (meaning it's a Supabase asset), but the 'src' is a Public URL
+                // and the bucket is potentially private, the fetch might fail.
+                // and if it fails with 400/403/404, we assume it needs signing.
+                // For robustness given the user request, let's explicitly sign if it's in 'user-assets'.
+
+                if (storagePath && src.includes('user-assets')) {
+                    // We need to sign it.
+                    const supabase = createClient();
+                    // Assumption: storagePath is strictly the path inside the bucket, e.g. "uid/..."
+                    // But sometimes it might be "bucket/path".
+                    // Let's assume the standard Raiden pattern: storagePath = "uid/file.ext" for user-assets.
+                    // IMPORTANT: We need to know the bucket name. The 'src' usually contains it.
+
+                    // Quick check: does the current 'src' work?
+                    // We can't easily check head without CORS sometimes, but let's just generate a signed URL
+                    // because it's safer for private buckets.
+                    const bucket = 'user-assets';
+                    // storagePath in CachedImage usually is just the object path, not including bucket.
+                    // But let's verify usage in StoryMakerClient: `${user.id}/story-uploads/...` -> Correct.
+
+                    const { data, error } = await supabase.storage
+                        .from(bucket)
+                        .createSignedUrl(storagePath, 3600); // 1 hour validity
+
+                    if (data?.signedUrl) {
+                        fetchUrl = data.signedUrl;
+                    }
+                }
+
+                const cachedUrl = await assetCache.getAsset(storagePath, fetchUrl, updatedAt, controller.signal);
                 if (isMounted) {
                     setDisplayUrl(cachedUrl);
                     // If we were keeping the old image, this update might overlap, but it's safe (blob to blob).

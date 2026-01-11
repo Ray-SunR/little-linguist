@@ -13,8 +13,25 @@ export async function GET(
         const { searchParams } = new URL(request.url);
         const include = searchParams.get('include')?.split(',') || [];
 
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const authClient = createClient();
+        let { data: { user } } = await authClient.auth.getUser();
+
+        // Integration test bypass for development
+        if (!user && process.env.NODE_ENV === 'development') {
+            const testUserId = request.headers.get('x-test-user-id');
+            if (testUserId) {
+                console.warn(`[TEST MODE] Bypassing auth in books API for user: ${testUserId}`);
+                // Since GET normally uses authClient with session, for test mode 
+                // we'll just mock the user object if we find it via admin
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+                const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+                const serviceRoleClient = createAdminClient(supabaseUrl, supabaseServiceKey);
+                const { data: adminUser } = await serviceRoleClient.auth.admin.getUserById(testUserId);
+                if (adminUser?.user) user = adminUser.user;
+            }
+        }
+
+        const supabase = authClient;
 
         const repo = new BookRepository();
         const book = await repo.getBookById(id, {

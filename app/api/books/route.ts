@@ -47,6 +47,9 @@ export async function GET(request: NextRequest) {
             const origin = searchParams.get('origin') || undefined;
             const isNonFiction = searchParams.get('type') === 'nonfiction' ? true : (searchParams.get('type') === 'fiction' ? false : undefined);
             const sortBy = searchParams.get('sortBy') || 'newest';
+            const sortOrder = (searchParams.get('sortOrder') === 'asc' || searchParams.get('sortOrder') === 'desc')
+                ? searchParams.get('sortOrder') as 'asc' | 'desc'
+                : undefined;
             const category = searchParams.get('category') || undefined;
             const duration = searchParams.get('duration') || undefined;
             const isFavorite = searchParams.get('isFavorite') === 'true' || undefined;
@@ -65,6 +68,7 @@ export async function GET(request: NextRequest) {
                     limit,
                     offset,
                     sortBy,
+                    sortOrder,
                     level,
                     origin,
                     is_nonfiction: isNonFiction,

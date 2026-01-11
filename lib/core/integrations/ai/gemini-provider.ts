@@ -17,7 +17,7 @@ interface StoryResponse {
     title: string;
     content: string;
     mainCharacterDescription: string;
-    scenes: {
+    sections: {
         text: string;
         image_prompt: string;
     }[];
@@ -79,7 +79,7 @@ export class GeminiProvider implements AIProvider {
         }
     }
 
-    async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, sceneCount?: number }): Promise<GeneratedStoryContent> {
+    async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, storyLengthMinutes?: number, imageSceneCount?: number }): Promise<GeneratedStoryContent> {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
                 ? "/api/mock/story"
@@ -90,7 +90,13 @@ export class GeminiProvider implements AIProvider {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ words, userProfile: profile, childId: profile.id, sceneCount: options?.sceneCount }),
+                body: JSON.stringify({
+                    words,
+                    userProfile: profile,
+                    childId: profile.id,
+                    storyLengthMinutes: options?.storyLengthMinutes,
+                    imageSceneCount: options?.imageSceneCount
+                }),
                 signal: options?.signal,
             });
 
@@ -111,7 +117,7 @@ export class GeminiProvider implements AIProvider {
 
             const data = await response.json() as StoryResponse;
 
-            if (!data.title || !data.content || !data.scenes) {
+            if (!data.title || !data.content || !data.sections) {
                 throw new AIError('server_error', 'Invalid response format from server');
             }
 
@@ -121,7 +127,9 @@ export class GeminiProvider implements AIProvider {
                 mainCharacterDescription: data.mainCharacterDescription,
                 book_id: (data as any).book_id,
                 tokens: (data as any).tokens || [],
-                scenes: data.scenes,
+                sections: data.sections,
+                rawPrompt: (data as any).rawPrompt,
+                rawResponse: (data as any).rawResponse
             };
 
         } catch (error) {

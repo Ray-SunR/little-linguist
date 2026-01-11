@@ -11,7 +11,7 @@ export interface AIProvider {
     /**
      * Generate a story based on a list of words and user profile
      */
-    generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, sceneCount?: number }): Promise<GeneratedStoryContent>;
+    generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, storyLengthMinutes?: number, imageSceneCount?: number }): Promise<GeneratedStoryContent>;
 }
 
 export interface GeneratedStoryContent {
@@ -20,11 +20,13 @@ export interface GeneratedStoryContent {
     mainCharacterDescription: string;
     book_id: string;
     tokens: any[];
-    scenes: {
+    sections: {
         text: string;
         image_prompt: string;
         after_word_index?: number;
     }[];
+    rawPrompt?: string;
+    rawResponse?: any;
 }
 
 export type AIErrorType = 'rate_limit' | 'invalid_input' | 'server_error' | 'unknown' | 'limit_reached';

@@ -8,19 +8,12 @@ import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/components/auth/auth-provider";
-import { ProfileSwitcher } from "@/components/profile/ProfileSwitcher";
+
 import { CachedImage } from "@/components/ui/cached-image";
+import { useUsage } from "@/lib/hooks/use-usage";
 
 const navItems = [
-    {
-        href: "/dashboard",
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        color: "text-emerald-500",
-        shadow: "shadow-clay-mint",
-        bg: "bg-emerald-50 dark:bg-emerald-900/20",
-        activeBg: "bg-emerald-100 dark:bg-emerald-800/40",
-    },
+
     {
         href: "/library", // Corrected to /library
         label: "Book Library",
@@ -89,10 +82,10 @@ export function ClayNav() {
     const pathname = usePathname();
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
-    const { user, isStoryGenerating } = useAuth();
+    const { user, isStoryGenerating, activeChild } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
-    const [usageStats, setUsageStats] = useState<{ usage: Record<string, any>, plan: string } | null>(null);
+    const { usage, plan, loading } = useUsage(["story_generation", "word_insight", "image_generation"]);
     const isReaderView = pathname.startsWith("/reader");
     const isLibraryView = pathname.startsWith("/library");
     const [isExpanded, setIsExpanded] = useState(true);
@@ -102,16 +95,6 @@ export function ClayNav() {
         navItems.forEach(item => router.prefetch(item.href));
         router.prefetch("/profiles");
     }, [router]);
-
-    // Fetch usage stats when user is present to show badges/limits
-    useEffect(() => {
-        if (user) {
-            fetch("/api/usage?features=story_generation,word_insight,image_generation")
-                .then(res => res.json())
-                .then(data => setUsageStats(data))
-                .catch(err => console.error("Failed to fetch usage stats:", err));
-        }
-    }, [user]);
 
     // Auto-fold in reader view, auto-expand on all main navigation pages
     useEffect(() => {
@@ -253,37 +236,44 @@ export function ClayNav() {
                         </button>
 
                         <div className={cn("flex items-center justify-between w-full relative")}>
-                            {user && (
-                                <div className="mr-2">
-                                    {isStoryGenerating ? (
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-clay-purple border-2 border-white overflow-hidden relative"
-                                        >
-                                            <motion.div
-                                                animate={{
-                                                    rotate: 360,
-                                                    scale: [1, 1.1, 1]
-                                                }}
-                                                transition={{
-                                                    rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-                                                    scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                                                }}
-                                            >
-                                                <Sparkles className="w-6 h-6 text-white" />
-                                            </motion.div>
-                                            <motion.div
-                                                className="absolute inset-0 bg-white/20"
-                                                animate={{ opacity: [0, 0.4, 0] }}
-                                                transition={{ duration: 1.5, repeat: Infinity }}
-                                            />
-                                        </motion.div>
-                                    ) : (
-                                        <ProfileSwitcher />
+
+
+                            {/* Me Button (Replaces Dashboard) */}
+                            <Link
+                                href="/profiles"
+                                className="flex-1"
+                                onClick={() => setPendingHref("/profiles")}
+                            >
+                                <motion.div
+                                    whileTap={{ scale: 0.8, y: -5 }}
+                                    className={cn(
+                                        "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-colors duration-300 mx-1",
+                                        isActive("/profiles")
+                                            ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
+                                            : "text-slate-500 hover:text-slate-700"
                                     )}
-                                </div>
-                            )}
+                                >
+                                    {activeChild?.avatar_asset_path ? (
+                                        <div className={cn("relative w-6 h-6 rounded-full overflow-hidden border border-white shadow-sm mb-1", isActive("/profiles") ? "ring-2 ring-purple-100" : "")}>
+                                            <CachedImage
+                                                src={activeChild.avatar_asset_path}
+                                                alt="Me"
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-1 bg-gradient-to-br from-indigo-400 to-purple-500 text-white shadow-sm", isActive("/profiles") ? "ring-2 ring-purple-100" : "")}>
+                                            <span className="text-[10px] font-fredoka font-black">
+                                                {activeChild?.first_name?.[0] || "M"}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <span className="text-[9px] font-fredoka font-black uppercase tracking-wider leading-none">
+                                        ME
+                                    </span>
+                                </motion.div>
+                            </Link>
 
                             {navItems.map((item) => {
                                 const activeNow = isActive(item.href) || pendingHref === item.href;
@@ -321,18 +311,18 @@ export function ClayNav() {
                                             )}
 
                                             {/* Tier Badge Mini */}
-                                            {usageStats?.plan && (
+                                            {plan && (
                                                 <motion.div
                                                     initial={{ scale: 0, rotate: -20 }}
                                                     animate={{ scale: 1, rotate: -12 }}
                                                     className={cn(
                                                         "absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border-2 border-white shadow-sm flex items-center justify-center z-10",
-                                                        usageStats.plan === 'pro'
+                                                        plan === 'pro'
                                                             ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white"
                                                             : "bg-slate-500 text-white"
                                                     )}
                                                 >
-                                                    {usageStats.plan === 'pro' ? <Sparkles className="w-2.5 h-2.5" /> : <Rocket className="w-2.5 h-2.5" />}
+                                                    {plan === 'pro' ? <Sparkles className="w-2.5 h-2.5" /> : <Rocket className="w-2.5 h-2.5" />}
                                                 </motion.div>
                                             )}
                                         </div>
@@ -417,13 +407,13 @@ export function ClayNav() {
                                                 animate={{ scale: 1, rotate: -12 }}
                                                 className={cn(
                                                     "absolute -bottom-2 -right-4 px-4 py-1.5 rounded-2xl border-4 border-white shadow-lg font-fredoka font-black text-xs uppercase tracking-wider flex items-center gap-1.5 z-10",
-                                                    usageStats?.plan === 'pro'
+                                                    plan === 'pro'
                                                         ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white"
                                                         : "bg-slate-500 text-white"
                                                 )}
                                             >
-                                                {usageStats?.plan === 'pro' ? <Sparkles className="w-3.5 h-3.5" /> : <Rocket className="w-3.5 h-3.5" />}
-                                                {usageStats?.plan === 'pro' ? 'Pro' : 'Free'}
+                                                {plan === 'pro' ? <Sparkles className="w-3.5 h-3.5" /> : <Rocket className="w-3.5 h-3.5" />}
+                                                {plan === 'pro' ? 'Pro' : 'Free'}
                                             </motion.div>
                                         </div>
 
@@ -438,13 +428,13 @@ export function ClayNav() {
                                         </div>
 
                                         {/* Usage Stats - Horizontal Grid */}
-                                        {usageStats && (
+                                        {!loading && (
                                             <div className="w-full bg-slate-50/50 rounded-[2.5rem] p-6 border-2 border-white shadow-inner-sm mb-8">
                                                 <div className="flex items-center justify-between mb-4 px-2">
                                                     <span className="text-[10px] font-black font-fredoka uppercase tracking-[0.2em] text-slate-400">
                                                         Daily Energy
                                                     </span>
-                                                    {usageStats.plan !== 'pro' && (
+                                                    {plan !== 'pro' && (
                                                         <Link href="/pricing" onClick={() => setIsHubOpen(false)} className="text-[10px] font-black font-fredoka uppercase text-purple-600 hover:text-purple-700 underline decoration-2 underline-offset-4 tracking-wider">
                                                             Get Unlimited
                                                         </Link>
@@ -456,7 +446,7 @@ export function ClayNav() {
                                                         { key: 'image_generation', label: 'Images', icon: Sparkles, color: 'from-pink-400 to-rose-500' },
                                                         { key: 'word_insight', label: 'Insights', icon: Languages, color: 'from-emerald-400 to-teal-500' }
                                                     ].map(feat => {
-                                                        const stat = usageStats.usage[feat.key];
+                                                        const stat = usage[feat.key];
                                                         if (!stat) return null;
                                                         const percent = Math.min(100, (stat.current / stat.limit) * 100);
                                                         return (

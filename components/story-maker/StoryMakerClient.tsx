@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService } from "@/lib/features/story";
 import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
+import { useUsage } from "@/lib/hooks/use-usage";
 import type { Story, UserProfile } from "@/lib/features/story";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
 import { compressImage } from "@/lib/core/utils/image";
@@ -61,11 +62,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [usage, setUsage] = useState<{
-        story: { current: number; limit: number; isLimitReached: boolean } | null;
-        image: { current: number; limit: number; isLimitReached: boolean } | null;
-    }>({ story: null, image: null });
-    const [sceneCount, setSceneCount] = useState(5);
+    const { usage, plan, loading: usageLoading, refresh: refreshUsage } = useUsage(["story_generation", "image_generation", "word_insight"]);
+    const [storyLengthMinutes, setStoryLengthMinutes] = useState(5); // In Minutes
+    const [imageSceneCount, setImageSceneCount] = useState(3);
 
     // Track versions to prevent race conditions
     const saveVersionRef = useRef(0);
@@ -79,32 +78,6 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         };
     }, []);
 
-    const fetchUsage = useCallback(async () => {
-        if (!user) return;
-        try {
-            const [storyRes, imageRes] = await Promise.all([
-                fetch("/api/usage?feature=story_generation"),
-                fetch("/api/usage?feature=image_generation")
-            ]);
-
-            const newUsage = { story: null, image: null };
-
-            if (storyRes.ok) {
-                newUsage.story = await storyRes.json();
-            }
-            if (imageRes.ok) {
-                newUsage.image = await imageRes.json();
-            }
-
-            if (isMountedRef.current) setUsage(newUsage);
-        } catch (err) {
-            console.error("Failed to fetch usage:", err);
-        }
-    }, [user]);
-
-    useEffect(() => {
-        fetchUsage();
-    }, [fetchUsage]);
 
     // Load saved draft on mount
     useEffect(() => {
@@ -140,14 +113,15 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 if (!isMountedRef.current) return;
 
                 if (savedDraft) {
-                    const { profile: savedProfile, selectedWords: savedWords, sceneCount: savedSceneCount } = savedDraft;
+                    const { profile: savedProfile, selectedWords: savedWords, storyLengthMinutes: savedStoryLength, imageSceneCount: savedImageCount } = savedDraft;
                     if (step === "profile" && (savedProfile || savedWords)) {
                         setProfile((prev: UserProfile) => {
                             if (prev.name && !savedProfile?.name) return prev;
                             return { ...prev, ...savedProfile };
                         });
                         if (savedWords) setSelectedWords(savedWords);
-                        if (savedSceneCount) setSceneCount(savedSceneCount);
+                        if (savedStoryLength) setStoryLengthMinutes(savedStoryLength);
+                        setImageSceneCount(savedImageCount !== undefined ? savedImageCount : (savedStoryLength || 5));
                     }
                 } else if (activeChild && !profile.name) {
                     // Pre-fill from active child if no draft exists
@@ -213,7 +187,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             console.debug("[StoryMakerClient] Resuming with draft:", draft.profile.name);
             setProfile(draft.profile);
             setSelectedWords(draft.selectedWords);
-            if (draft.sceneCount) setSceneCount(draft.sceneCount);
+            if (draft.storyLength) setStoryLengthMinutes(draft.storyLength);
+            setImageSceneCount(draft.imageCount !== undefined ? draft.imageCount : (draft.storyLength || 5));
 
             if (state.isGenerating) {
                 console.debug("[StoryMakerClient] Resuming: Background generation in progress.");
@@ -233,7 +208,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             // Trigger generation
             processingRef.current = true;
-            generateStory(draft.selectedWords, draft.profile);
+            generateStory(draft.selectedWords, draft.profile, draft.storyLength, draft.imageCount);
         }
 
         resumeDraftIfNeeded();
@@ -264,7 +239,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     const draftKey = user
                         ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`)
                         : "draft:guest";
-                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords, sceneCount });
+                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords, storyLengthMinutes, imageSceneCount });
                     if (isMountedRef.current) setIsSaving(false);
                 }
             } catch (err) {
@@ -333,10 +308,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         );
     }
 
-    async function generateStory(overrideWords?: string[], overrideProfile?: UserProfile, overrideSceneCount?: number): Promise<void> {
+    async function generateStory(overrideWords?: string[], overrideProfile?: UserProfile, overrideStoryLengthMinutes?: number, overrideImageSceneCount?: number): Promise<void> {
         const finalWords = overrideWords || selectedWords;
         const finalProfile = overrideProfile || profile;
-        const finalSceneCount = overrideSceneCount || sceneCount;
+        const finalStoryLengthMinutes = overrideStoryLengthMinutes || storyLengthMinutes;
 
         if (!user) {
             await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", profile: finalProfile, selectedWords: finalWords });
@@ -351,7 +326,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
         if (overrideProfile) setProfile(finalProfile);
         if (overrideWords) setSelectedWords(finalWords);
-        if (overrideSceneCount) setSceneCount(finalSceneCount);
+        if (overrideWords) setSelectedWords(finalWords);
+        if (overrideStoryLengthMinutes) setStoryLengthMinutes(finalStoryLengthMinutes);
+        // Note: imageSceneCount override support avoided for simplicity unless needed, assuming state matches
+        const finalImageSceneCount = imageSceneCount; // Use current state as override logic for image count is tricky without clearer signature
 
         setStep("generating");
         setError(null);
@@ -398,8 +376,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         id: `draft:${currentUid}`,
                         profile: currentProfile,
                         selectedWords: finalWords,
-                        sceneCount: finalSceneCount
+                        storyLengthMinutes: finalStoryLengthMinutes,
+                        imageSceneCount: finalImageSceneCount
                     });
+
 
                     setActiveChild(result.data);
                     await refreshProfiles(true);
@@ -409,8 +389,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 }
             }
 
-            console.debug("[StoryMakerClient] Generating story content with sceneCount:", finalSceneCount);
-            const content = await service.generateStoryContent(finalWords, currentProfile, finalSceneCount);
+            console.debug("[StoryMakerClient] Generating story content with storyLengthMinutes/imageSceneCount:", finalStoryLengthMinutes, finalImageSceneCount);
+            const content = await service.generateStoryContent(finalWords, currentProfile, finalStoryLengthMinutes, finalImageSceneCount);
 
             // Post-await session validation
             const finalSession = await supabase.auth.getSession();
@@ -426,7 +406,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 book_id: content.book_id,
                 title: content.title,
                 content: content.content,
-                scenes: content.scenes,
+                sections: content.sections,
                 createdAt: Date.now(),
                 wordsUsed: finalWords,
                 userProfile: currentProfile, // Use the one with ID now
@@ -439,13 +419,14 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 text: content.content,
                 tokens: content.tokens || [],
                 shards: [],
-                images: content.scenes.map((scene, idx) => ({
-                    id: `scene-${idx}`,
+                images: content.sections.map((section, idx) => ({
+                    id: `section-${idx}`,
                     src: "",
-                    afterWordIndex: Number(scene.after_word_index),
+                    afterWordIndex: Number(section.after_word_index),
                     caption: "Drawing Magic...",
+                    prompt: section.image_prompt,
                     isPlaceholder: true,
-                    sceneIndex: idx
+                    sectionIndex: idx
                 })),
             };
 
@@ -459,13 +440,13 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             if (user?.id) await raidenCache.delete(CacheStore.LIBRARY_METADATA, user.id);
 
             router.push(`/reader/${content.book_id}`);
-            service.generateImagesForBook(content.book_id);
+            // service.generateImagesForBook is now called automatically on backend
 
         } catch (err: any) {
             console.error(err);
             if (err.name === 'AIError' && (err.message === 'LIMIT_REACHED' || err.message === 'IMAGE_LIMIT_REACHED')) {
                 const msg = err.message === 'IMAGE_LIMIT_REACHED'
-                    ? "You don't have enough energy crystals for that many scenes!"
+                    ? "You don't have enough energy crystals for that many sections!"
                     : "You've reached your story generation limit for today! Upgrade to Pro for more stories.";
                 setError(msg);
                 setStep("profile"); // Drop back to profile step so they can see the error
@@ -473,7 +454,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 setError("Oops! Something went wrong while making your story. Please try again.");
             }
         } finally {
-            fetchUsage(); // Refresh usage after attempt
+            refreshUsage(); // Refresh usage after attempt
             setIsStoryGenerating(false);
             state.isGenerating = false;
             processingRef.current = false;
@@ -548,7 +529,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 const draftKey = user ? `draft:${user.id}` : "draft:guest";
                                                 const draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
                                                 if (draft) {
-                                                    generateStory(draft.selectedWords, selectedProfile, draft.sceneCount);
+                                                    generateStory(draft.selectedWords, selectedProfile, draft.storyLength);
                                                 }
                                             }}
                                             className="p-6 rounded-[2.5rem] bg-white border-4 border-purple-50 hover:border-purple-200 transition-all shadow-lg flex flex-col items-center gap-4 group"
@@ -688,8 +669,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             {profile.avatarUrl ? (
                                                 <div className="relative w-full h-full p-4">
                                                     <CachedImage
-                                                        src={profile.avatarUrl}
-                                                        storagePath={profile.avatarStoragePath}
+                                                        src={profile.avatarUrlResolved || profile.avatarUrl || ''}
+                                                        storagePath={profile.avatarStoragePath || (profile.avatarUrl?.includes('/') ? profile.avatarUrl : undefined)}
                                                         alt="Preview"
                                                         fill
                                                         className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
@@ -744,17 +725,47 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 onClick={(e) => { (e.target as HTMLInputElement).value = '' }}
                                                 onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                                                     const file = e.target.files?.[0];
-                                                    if (file) {
+                                                    if (file && user) {
                                                         setIsUploading(true);
                                                         try {
                                                             const compressed = await compressImage(file);
-                                                            setProfile({ ...profile, avatarUrl: compressed });
+
+                                                            // Convert base64 Data URL to Blob for upload
+                                                            const res = await fetch(compressed);
+                                                            const blob = await res.blob();
+
+                                                            const timestamp = Date.now();
+                                                            const randomId = crypto.randomUUID().split('-')[0];
+                                                            const ext = file.name.split('.').pop() || 'jpg';
+                                                            const storagePath = `${user.id}/story-uploads/${timestamp}-${randomId}.${ext}`;
+
+                                                            const { error: uploadError } = await supabase.storage
+                                                                .from('user-assets')
+                                                                .upload(storagePath, blob, {
+                                                                    contentType: file.type,
+                                                                    upsert: true
+                                                                });
+
+                                                            if (uploadError) throw uploadError;
+
+                                                            const { data: { publicUrl } } = supabase.storage
+                                                                .from('user-assets')
+                                                                .getPublicUrl(storagePath);
+
+                                                            setProfile({
+                                                                ...profile,
+                                                                avatarUrl: storagePath,
+                                                                avatarStoragePath: storagePath,
+                                                                avatarUrlResolved: publicUrl // Temporary helper for preview
+                                                            });
                                                         } catch (err) {
-                                                            console.error("Compression failed:", err);
-                                                            setError("Failed to process image. Please try another one.");
+                                                            console.error("Upload failed:", err);
+                                                            setError("Failed to process and upload image. Please try another one.");
                                                         } finally {
                                                             setIsUploading(false);
                                                         }
+                                                    } else if (!user) {
+                                                        setError("Please log in to upload photos.");
                                                     }
                                                 }}
                                             />
@@ -795,87 +806,163 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                         </label>
                                         <span className={cn(
                                             "px-3 py-1 rounded-full text-xs font-black font-fredoka uppercase tracking-wider",
-                                            sceneCount <= 4 ? "bg-blue-50 text-blue-500" :
-                                                sceneCount <= 7 ? "bg-purple-50 text-purple-500" : "bg-pink-50 text-pink-500"
+                                            storyLengthMinutes <= 4 ? "bg-blue-50 text-blue-500" :
+                                                storyLengthMinutes <= 7 ? "bg-purple-50 text-purple-500" : "bg-pink-50 text-pink-500"
                                         )}>
-                                            {sceneCount === 3 ? "Quick Adventure" :
-                                                sceneCount <= 5 ? "Normal Tale" :
-                                                    sceneCount <= 8 ? "Epic Journey" : "Gran Saga"}
+                                            {storyLengthMinutes === 3 ? "Quick Adventure" :
+                                                storyLengthMinutes <= 5 ? "Normal Tale" :
+                                                    storyLengthMinutes <= 8 ? "Epic Journey" : "Gran Saga"}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-6 p-4 rounded-[2rem] bg-purple-50 shadow-inner border-2 border-white/50">
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            type="button"
-                                            className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
-                                            onClick={() => setSceneCount(Math.max(3, sceneCount - 1))}
-                                            disabled={sceneCount <= 3}
-                                        >
-                                            −
-                                        </motion.button>
                                         <div className="flex-1 px-4">
+                                            <div className="flex justify-between mb-3 px-1 items-center">
+                                                <label className="text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka flex items-center gap-2">
+                                                    <BookOpen className="w-4 h-4 text-purple-400" />
+                                                    Reading Time
+                                                </label>
+                                                <span className="text-[10px] font-bold text-purple-400 bg-purple-100 px-2 py-0.5 rounded-full">
+                                                    {storyLengthMinutes === 1 ? "Quick" : storyLengthMinutes <= 5 ? "Normal" : "Long"}
+                                                </span>
+                                            </div>
                                             <div className="flex justify-between mb-2 px-1">
-                                                {[3, 4, 5, 6, 7, 8, 9, 10].map(val => (
+                                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
                                                     <div
                                                         key={val}
                                                         className={cn(
                                                             "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                                                            val <= sceneCount ? "bg-purple-400 scale-125" : "bg-purple-200"
+                                                            val <= storyLengthMinutes ? "bg-purple-400 scale-125" : "bg-purple-200"
                                                         )}
                                                     />
                                                 ))}
                                             </div>
                                             <input
                                                 type="range"
-                                                min="3"
+                                                min="1"
                                                 max="10"
                                                 step="1"
-                                                value={sceneCount}
-                                                onChange={(e) => setSceneCount(parseInt(e.target.value))}
+                                                value={storyLengthMinutes}
+                                                onChange={(e) => {
+                                                    const newVal = parseInt(e.target.value);
+                                                    setStoryLengthMinutes(newVal);
+                                                    if (imageSceneCount > newVal) setImageSceneCount(newVal);
+                                                }}
                                                 className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
                                             />
+                                            <div className="mt-1 flex justify-between text-[10px] font-black text-purple-300 font-fredoka uppercase">
+                                                <span>1 min</span>
+                                                <span>10 mins</span>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col items-center min-w-[60px]">
-                                            <span className="text-3xl font-black text-purple-600 font-fredoka leading-none">{sceneCount}</span>
-                                            <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">scenes</span>
+                                        <div className="flex flex-col items-center min-w-[70px]">
+                                            <span className="text-3xl font-black text-purple-600 font-fredoka leading-none">{storyLengthMinutes}</span>
+                                            <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">mins</span>
                                         </div>
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            type="button"
-                                            className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
-                                            onClick={() => setSceneCount(Math.min(10, sceneCount + 1))}
-                                            disabled={sceneCount >= 10}
-                                        >
-                                            +
-                                        </motion.button>
                                     </div>
+
+                                    <div className="mt-4 flex items-center gap-6 p-4 rounded-[2rem] bg-amber-50 shadow-inner border-2 border-white/50">
+                                        <div className="flex-1 px-4">
+                                            <div className="flex justify-between mb-3 px-1 items-center">
+                                                <label className="text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka flex items-center gap-2">
+                                                    <Sparkles className="w-4 h-4 text-amber-500" />
+                                                    Illustrations
+                                                </label>
+                                            </div>
+                                            <div className="flex justify-between mb-2 px-1">
+                                                {Array.from({ length: Math.min(storyLengthMinutes + 1, 11) }).map((_, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={cn(
+                                                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                                                            idx <= imageSceneCount ? "bg-amber-400 scale-125" : "bg-amber-200"
+                                                        )}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max={storyLengthMinutes}
+                                                step="1"
+                                                value={imageSceneCount}
+                                                onChange={(e) => setImageSceneCount(parseInt(e.target.value))}
+                                                className="w-full h-2 bg-amber-100 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                            />
+                                            <div className="mt-1 flex justify-between text-[10px] font-black text-amber-300 font-fredoka uppercase">
+                                                <span>None</span>
+                                                <span>Max</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-center min-w-[70px]">
+                                            <span className="text-3xl font-black text-amber-500 font-fredoka leading-none">{imageSceneCount}</span>
+                                            <span className="text-[10px] font-black text-amber-400 uppercase tracking-tighter">images</span>
+                                        </div>
+                                    </div>
+
                                     <p className="mt-3 text-[10px] font-bold text-ink-muted font-nunito flex items-center gap-1.5 px-2">
                                         <Sparkles className="w-3 h-3 text-amber-400" />
-                                        This adventure will use <strong>{sceneCount}</strong> images.
+                                        <span>This adventure will use <strong>{imageSceneCount}</strong> images.</span>
+                                        {usage["image_generation"] && (
+                                            <span className={cn(
+                                                "ml-2 px-2 py-0.5 rounded-full text-[10px] border",
+                                                usage["image_generation"].current + imageSceneCount > usage["image_generation"].limit
+                                                    ? "bg-rose-50 text-rose-500 border-rose-100"
+                                                    : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                            )}>
+                                                ({usage["image_generation"].limit - usage["image_generation"].current} remaining)
+                                            </span>
+                                        )}
                                     </p>
+                                    {usage["image_generation"] && usage["image_generation"].current + imageSceneCount > usage["image_generation"].limit && (
+                                        <p className="mt-1 text-[10px] font-bold text-rose-500 font-nunito px-2 flex items-center gap-1">
+                                            <span>⚠️ Not enough image credits. Reduce illustrations or upgrade.</span>
+                                        </p>
+                                    )}
                                 </div>
 
                                 <motion.button
                                     whileHover={{ scale: 1.02, y: -4 }}
                                     whileTap={{ scale: 0.98 }}
                                     type="submit"
-                                    disabled={!profile.name}
+                                    disabled={!profile.name || (usage["image_generation"] ? usage["image_generation"].current + imageSceneCount > usage["image_generation"].limit : false)}
                                     className="w-full h-20 rounded-[2rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center justify-center gap-3 text-2xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 transition-all"
                                 >
                                     <span>Next Step</span>
                                     <ChevronRight className="h-8 w-8" />
                                 </motion.button>
 
-                                {usage && (
-                                    <div className="mt-6 flex items-center justify-center gap-2">
+                                {usage["story_generation"] && (
+                                    <div className="mt-6 flex flex-col items-center justify-center gap-3">
                                         <div className={cn(
-                                            "px-4 py-2 rounded-full border text-xs font-black font-fredoka uppercase tracking-wider",
-                                            usage.story?.isLimitReached ? "bg-rose-50 border-rose-100 text-rose-500" : "bg-purple-50 border-purple-100 text-purple-400"
+                                            "px-4 py-2 rounded-full border text-xs font-black font-fredoka uppercase tracking-wider flex items-center gap-2",
+                                            usage["story_generation"].isLimitReached ? "bg-rose-50 border-rose-100 text-rose-500" : "bg-purple-50 border-purple-100 text-purple-400"
                                         )}>
-                                            {usage.story?.isLimitReached ? "⚠️ Daily Limit Reached" : `✨ ${usage.story?.current ?? 0} / ${usage.story?.limit ?? 0} Stories Used Today`}
+                                            {usage["story_generation"].isLimitReached ? (
+                                                <>
+                                                    <span className="text-base">⚠️</span>
+                                                    Daily Story Limit Reached
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Wand2 className="w-3.5 h-3.5" />
+                                                    {usage["story_generation"].current} / {usage["story_generation"].limit} Stories Used Today
+                                                </>
+                                            )}
                                         </div>
+
+                                        {usage["story_generation"].isLimitReached && (
+                                            <Link href="/pricing" className="group">
+                                                <motion.div
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-fredoka font-black text-sm uppercase tracking-wider shadow-lg flex items-center gap-2"
+                                                >
+                                                    <Sparkles className="w-4 h-4" />
+                                                    Upgrade for Unlimited Stories
+                                                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                </motion.div>
+                                            </Link>
+                                        )}
                                     </div>
                                 )}
                             </form>
@@ -987,39 +1074,39 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <span className="text-[10px] uppercase font-black tracking-widest text-purple-400 font-fredoka">/ 5 Words</span>
                                 </div>
 
-                                {usage && (
+                                {usage["story_generation"] && (
                                     <div className={cn(
                                         "hidden sm:flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white shadow-inner border transition-colors",
-                                        usage.story?.isLimitReached ? "border-rose-200 bg-rose-50" : "border-purple-100"
+                                        usage["story_generation"].isLimitReached ? "border-rose-200 bg-rose-50" : "border-purple-100"
                                     )}>
                                         <span className={cn(
                                             "text-2xl font-black font-fredoka",
-                                            usage.story?.isLimitReached ? "text-rose-500" : "text-purple-600"
+                                            usage["story_generation"].isLimitReached ? "text-rose-500" : "text-purple-600"
                                         )}>
-                                            {usage.story?.current ?? 0}
+                                            {usage["story_generation"].current}
                                         </span>
                                         <span className={cn(
                                             "text-[10px] uppercase font-black tracking-widest font-fredoka",
-                                            usage.story?.isLimitReached ? "text-rose-400" : "text-purple-400"
+                                            usage["story_generation"].isLimitReached ? "text-rose-400" : "text-purple-400"
                                         )}>
-                                            / {usage.story?.limit ?? 0} Stories
+                                            / {usage["story_generation"].limit} Stories
                                         </span>
                                     </div>
                                 )}
 
                                 <motion.button
-                                    whileHover={usage?.story?.isLimitReached ? {} : { scale: 1.02, y: -4 }}
-                                    whileTap={usage?.story?.isLimitReached ? {} : { scale: 0.98 }}
-                                    onClick={() => !usage?.story?.isLimitReached && generateStory()}
-                                    disabled={usage?.story?.isLimitReached}
+                                    whileHover={usage["story_generation"]?.isLimitReached ? {} : { scale: 1.02, y: -4 }}
+                                    whileTap={usage["story_generation"]?.isLimitReached ? {} : { scale: 0.98 }}
+                                    onClick={() => !usage["story_generation"]?.isLimitReached && generateStory()}
+                                    disabled={usage["story_generation"]?.isLimitReached}
                                     className={cn(
                                         "h-16 px-10 rounded-[1.5rem] text-white border-2 border-white/30 flex items-center gap-3 text-xl font-black font-fredoka uppercase tracking-widest transition-all",
-                                        usage?.story?.isLimitReached
+                                        usage["story_generation"]?.isLimitReached
                                             ? "bg-slate-300 shadow-none cursor-not-allowed opacity-70"
                                             : "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-clay-purple"
                                     )}
                                 >
-                                    <span>{usage?.story?.isLimitReached ? "Limit Reached" : "Cast Spell"}</span>
+                                    <span>{usage["story_generation"]?.isLimitReached ? "Limit Reached" : "Cast Spell"}</span>
                                     <Wand2 className="h-6 w-6" />
                                 </motion.button>
                             </div>

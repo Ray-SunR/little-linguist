@@ -123,11 +123,9 @@ export async function checkUsageLimit(
 
         const current = usage?.current_usage ?? 0;
 
-        // Use the plan limit as the source of truth if available, 
-        // falling back to the stored limit (e.g. for grandfathered custom limits) only if higher? 
-        // For now, let's strictly enforce the plan limit to allow immediate upgrades/downgrades.
-        // The RPC will sync the DB row on next write.
-        const effectiveLimit = planLimit;
+        // Use the higher of the plan limit or the stored limit (to support custom overrides)
+        const storedLimit = usage?.max_limit ?? 0;
+        const effectiveLimit = Math.max(planLimit, storedLimit);
 
         return {
             current,
@@ -151,7 +149,19 @@ export async function tryIncrementUsage(
     try {
         const supabase = getAdminClient();
         const userId = identity.owner_user_id || null;
-        const limit = await getQuotaForUser(userId, featureName);
+        let limit = await getQuotaForUser(userId, featureName);
+
+        // Fetch current stored limit to respect overrides
+        const { data: usage } = await supabase
+            .from("feature_usage")
+            .select("max_limit")
+            .eq("identity_key", identity.identity_key)
+            .eq("feature_name", featureName)
+            .maybeSingle();
+
+        if (usage?.max_limit && usage.max_limit > limit) {
+            limit = usage.max_limit;
+        }
 
         const { data, error } = await supabase.rpc("increment_feature_usage", {
             p_identity_key: identity.identity_key,
@@ -188,7 +198,20 @@ export async function reserveCredits(
         // Resolve limits for all requested features in parallel
         const updates = await Promise.all(
             requests.map(async (req) => {
-                const max_limit = await getQuotaForUser(userId, req.featureName);
+                let max_limit = await getQuotaForUser(userId, req.featureName);
+
+                // Check for override
+                const { data: usage } = await supabase
+                    .from("feature_usage")
+                    .select("max_limit")
+                    .eq("identity_key", identity.identity_key)
+                    .eq("feature_name", req.featureName)
+                    .maybeSingle();
+
+                if (usage?.max_limit && usage.max_limit > max_limit) {
+                    max_limit = usage.max_limit;
+                }
+
                 return {
                     feature_name: req.featureName,
                     increment: req.increment,
@@ -219,4 +242,18 @@ export async function reserveCredits(
         console.error("[UsageService] Batch reservation failed:", error);
         return { success: false, error: "System error" };
     }
+}
+
+/**
+ * Refunds credits for a feature by applying a negative increment.
+ * This can be used if an AI task generated fewer assets than reserved.
+ */
+export async function refundCredits(
+    identity: UsageIdentity,
+    featureName: string,
+    amount: number
+): Promise<boolean> {
+    if (amount <= 0) return true;
+    console.log(`[UsageService] Refunding ${amount} credits for ${featureName} to ${identity.identity_key}`);
+    return tryIncrementUsage(identity, featureName, -amount);
 }

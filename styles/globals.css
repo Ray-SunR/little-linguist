@@ -755,6 +755,10 @@ h6 {
   /* Chrome, Safari and Opera */
 }
 
+.mask-fade-edges {
+  mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
+}
+
 /* Book Layout Styles */
 :root {}
 

@@ -7,7 +7,9 @@ const PUBLIC_ROUTES = [
     '/reader',
     '/auth',
     '/api/word-insight',
-    '/api/books'
+    '/api/books',
+    '/api/usage',
+    '/api/story'
 ]
 
 const REDIRECT_TO_DASHBOARD = ['/', '/login']
@@ -47,12 +49,12 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     function createRedirectWithCookies(path: string) {
         const url = new URL(path, request.url)
         const redirectResponse = NextResponse.redirect(url)
-        
+
         // Copy cookies from initial response to preserve session state
         supabaseResponse.cookies.getAll().forEach((cookie) => {
             redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
         })
-        
+
         return redirectResponse
     }
 

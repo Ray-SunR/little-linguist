@@ -34,9 +34,17 @@ export async function GET(req: Request) {
             results[feat] = await checkUsageLimit(identity.identity_key, feat, user?.id);
         }));
 
-        const responseData = featuresParam ? { usage: results, plan: subscriptionStatus } : results[features[0]];
+        const responseData = featuresParam
+            ? { usage: results, plan: subscriptionStatus, identity_key: identity.identity_key }
+            : { ...results[features[0]], identity_key: identity.identity_key };
 
-        return NextResponse.json(responseData);
+        return NextResponse.json(responseData, {
+            headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            }
+        });
     } catch (error: any) {
         console.error("[UsageAPI] Error:", error);
         return NextResponse.json({ error: "Failed to fetch usage" }, { status: 500 });

@@ -194,7 +194,8 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
                 childId={activeChildId ?? null}
             />
 
-            {currentBook?.images?.some(img => img.isPlaceholder) && (
+            {/* Only show AI placeholder if we have a scene that expects an image (image_prompt present) but no image URL yet */}
+            {currentBook?.images?.some(img => img.isPlaceholder && img.prompt && img.prompt.trim() !== "") && (
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-[110] animate-slide-up">
                     <div className="relative">
                         <div className="absolute inset-0 bg-purple-400/30 blur-xl rounded-full animate-pulse" />

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Plus, Edit2, Trash2, ChevronRight, Sparkles, X } from 'lucide-react';
+import { switchActiveChild } from '@/app/actions/profiles';
+import { User, Plus, Edit2, Trash2, Check, Sparkles, X, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/core";
 import { deleteChildProfile, type ChildProfile } from '@/app/actions/profiles';
 import ChildProfileWizard from './ChildProfileWizard';
@@ -16,7 +17,7 @@ interface Props {
 }
 
 export default function ProfileManager({ initialChildren }: Props) {
-  const { profiles: authChildren, refreshProfiles } = useAuth();
+  const { profiles: authChildren, refreshProfiles, activeChild, setActiveChild } = useAuth();
 
   // Use initialChildren as the primary source of truth until auth hydrates,
   // preferring authChildren if they are populated later.
@@ -27,7 +28,28 @@ export default function ProfileManager({ initialChildren }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
   const router = useRouter();
+
+  const handleSwitch = async (child: ChildProfile) => {
+    if (switchingId || activeChild?.id === child.id) return;
+
+    setSwitchingId(child.id);
+    try {
+      const result = await switchActiveChild(child.id);
+      if (result.success) {
+        setActiveChild(child);
+        router.refresh();
+      } else {
+        throw new Error(result.error || "Failed to switch profiles");
+      }
+    } catch (err) {
+      console.error("Switch failed:", err);
+      // Ideally show a toast here
+    } finally {
+      setSwitchingId(null);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
@@ -80,75 +102,117 @@ export default function ProfileManager({ initialChildren }: Props) {
       {/* Hero Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         <AnimatePresence mode="popLayout">
-          {children.map((child) => (
-            <motion.div
-              key={child.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
-              className="group relative"
-            >
-              <div className="clay-card bg-white/80 backdrop-blur-xl p-8 rounded-[3rem] border-4 border-white shadow-xl hover:shadow-2xl transition-all h-full flex flex-col items-center text-center">
+          {children.map((child) => {
+            const isActive = activeChild?.id === child.id;
+            const isSwitching = switchingId === child.id;
 
-                {/* Avatar Circle */}
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full blur-xl opacity-40 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative w-28 h-28 rounded-full border-4 border-white shadow-clay-purple overflow-hidden flex items-center justify-center bg-purple-50">
-                    {child.avatar_asset_path ? (
-                      <CachedImage
-                        src={child.avatar_asset_path}
-                        storagePath={child.avatar_paths?.[child.primary_avatar_index ?? 0] || child.avatar_asset_path}
-                        updatedAt={child.updated_at}
-                        alt={child.first_name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <span className="text-6xl">{child.gender === 'girl' ? '👧' : '👦'}</span>
+            return (
+              <motion.div
+                key={child.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
+                className="group relative"
+              >
+                <div className={cn(
+                  "clay-card bg-white/80 backdrop-blur-xl p-8 rounded-[3rem] border-4 shadow-xl transition-all h-full flex flex-col items-center text-center relative overflow-hidden",
+                  isActive ? "border-purple-500 shadow-clay-purple" : "border-white hover:shadow-2xl"
+                )}>
+
+                  {/* Active Indicator Badge */}
+                  {isActive && (
+                    <div className="absolute top-6 right-6 bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-md flex items-center gap-1">
+                      <Sparkles size={12} /> Active
+                    </div>
+                  )}
+
+                  {/* Avatar Circle */}
+                  <div className="relative mb-6">
+                    <div className={cn(
+                      "absolute inset-0 rounded-full blur-xl opacity-40 transition-opacity",
+                      isActive ? "bg-gradient-to-br from-purple-400 to-indigo-400 opacity-80" : "bg-gradient-to-br from-purple-100 to-indigo-100 group-hover:opacity-100"
+                    )} />
+                    <div className={cn(
+                      "relative w-28 h-28 rounded-full border-4 overflow-hidden flex items-center justify-center bg-purple-50 transition-colors",
+                      isActive ? "border-purple-200" : "border-white"
+                    )}>
+                      {child.avatar_asset_path ? (
+                        <CachedImage
+                          src={child.avatar_asset_path}
+                          storagePath={child.avatar_paths?.[child.primary_avatar_index ?? 0] || child.avatar_asset_path}
+                          updatedAt={child.updated_at}
+                          alt={child.first_name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-6xl">{child.gender === 'girl' ? '👧' : '👦'}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <h3 className="text-2xl font-black text-ink font-fredoka mb-1">{child.first_name}</h3>
+                  <p className="text-purple-500 font-bold font-nunito uppercase tracking-widest text-xs mb-4">
+                    {new Date().getFullYear() - (child.birth_year || new Date().getFullYear())} Years Old
+                  </p>
+
+                  <div className="flex flex-wrap justify-center gap-2 mb-8 flex-grow">
+                    {child.interests.slice(0, 3).map(interest => (
+                      <span key={interest} className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[10px] font-black uppercase tracking-tight border border-purple-100">
+                        {interest}
+                      </span>
+                    ))}
+                    {child.interests.length > 3 && (
+                      <span className="px-3 py-1 bg-slate-50 text-slate-400 rounded-full text-[10px] font-black uppercase tracking-tight">
+                        +{child.interests.length - 3}
+                      </span>
                     )}
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center border-2 border-purple-100">
-                    <Sparkles className="w-5 h-5 text-purple-400" />
+
+                  {/* Actions */}
+                  <div className="flex flex-col gap-3 w-full mt-auto pt-4 border-t border-purple-50/50">
+                    {/* Switch / Active Button */}
+                    <button
+                      onClick={() => handleSwitch(child)}
+                      disabled={isActive || isSwitching}
+                      className={cn(
+                        "w-full py-3 rounded-2xl font-black font-fredoka transition-all flex items-center justify-center gap-2 shadow-sm",
+                        isActive
+                          ? "bg-purple-100/50 text-purple-400 cursor-default"
+                          : "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-clay-purple hover:scale-[1.02] active:scale-[0.98]"
+                      )}
+                    >
+                      {isSwitching ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : isActive ? (
+                        <>
+                          <Check className="w-5 h-5" /> Selected
+                        </>
+                      ) : (
+                        "Select Hero"
+                      )}
+                    </button>
+
+                    <div className="flex items-center gap-3 w-full">
+                      <button
+                        onClick={() => setEditingChild(child)}
+                        className="flex-grow flex items-center justify-center gap-2 py-3 rounded-2xl bg-purple-50 text-purple-600 font-black font-fredoka hover:bg-purple-100 transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" /> Edit
+                      </button>
+                      <button
+                        onClick={() => setDeletingId(child.id)}
+                        className="p-3 rounded-2xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                <h3 className="text-2xl font-black text-ink font-fredoka mb-1">{child.first_name}</h3>
-                <p className="text-purple-500 font-bold font-nunito uppercase tracking-widest text-xs mb-4">
-                  {new Date().getFullYear() - (child.birth_year || new Date().getFullYear())} Years Old
-                </p>
-
-                <div className="flex flex-wrap justify-center gap-2 mb-8 flex-grow">
-                  {child.interests.slice(0, 3).map(interest => (
-                    <span key={interest} className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[10px] font-black uppercase tracking-tight border border-purple-100">
-                      {interest}
-                    </span>
-                  ))}
-                  {child.interests.length > 3 && (
-                    <span className="px-3 py-1 bg-slate-50 text-slate-400 rounded-full text-[10px] font-black uppercase tracking-tight">
-                      +{child.interests.length - 3}
-                    </span>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-3 w-full mt-auto pt-4 border-t border-purple-50/50">
-                  <button
-                    onClick={() => setEditingChild(child)}
-                    className="flex-grow flex items-center justify-center gap-2 py-3 rounded-2xl bg-purple-50 text-purple-600 font-black font-fredoka hover:bg-purple-100 transition-colors"
-                  >
-                    <Edit2 className="w-4 h-4" /> Edit
-                  </button>
-                  <button
-                    onClick={() => setDeletingId(child.id)}
-                    className="p-3 rounded-2xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            )
+          })}
         </AnimatePresence>
 
         {children.length === 0 && (

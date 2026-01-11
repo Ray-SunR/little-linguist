@@ -9,6 +9,7 @@ interface BookFilters {
     limit?: number;
     offset?: number;
     sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
     level?: string;
     origin?: string;
     is_nonfiction?: boolean;
@@ -188,14 +189,17 @@ export class BookRepository {
 
         // Apply sorting
         const sortBy = filters.sortBy || 'newest';
+        const sortOrder = filters.sortOrder || (sortBy === 'newest' ? 'desc' : 'asc');
+        const isAscending = sortOrder === 'asc';
+
         if (sortBy === 'newest') {
-            query = query.order('updated_at', { ascending: false });
+            query = query.order('updated_at', { ascending: isAscending });
         } else if (sortBy === 'alphabetical') {
-            query = query.order('title', { ascending: true });
+            query = query.order('title', { ascending: isAscending });
         } else if (sortBy === 'reading_time') {
-            query = query.order('estimated_reading_time', { ascending: true });
+            query = query.order('estimated_reading_time', { ascending: isAscending });
         }
-        query = query.order('title');
+        query = query.order('title', { ascending: true }).order('id', { ascending: true });
 
         if (filters.limit) {
             const offset = filters.offset || 0;
@@ -426,25 +430,26 @@ export class BookRepository {
 
             if (mediaError) throw mediaError;
 
-            // V2+ Schema: Scenes live in book metadata
-            // V1 Schema: Scenes live in stories table
-            let scenes = [];
-            if (bookMetadata.schema_version >= 2 && Array.isArray(bookMetadata.metadata?.scenes)) {
-                scenes = bookMetadata.metadata.scenes;
+            // V2+ Schema: Sections live in book metadata
+            // V1 Schema: Sections live in stories table
+            let sections = [];
+            const metadata = bookMetadata.metadata || {};
+            if (bookMetadata.schema_version >= 2 && (Array.isArray(metadata.sections) || Array.isArray(metadata.scenes))) {
+                sections = metadata.sections || metadata.scenes;
             } else {
                 const { data: story } = await this.supabase
                     .from('stories')
-                    .select('scenes')
+                    .select('sections')
                     .eq('id', bookMetadata.id)
                     .maybeSingle();
-                if (story && Array.isArray(story.scenes)) {
-                    scenes = story.scenes;
+                if (story && Array.isArray(story?.sections)) {
+                    sections = story.sections;
                 }
             }
 
-            if (scenes.length > 0) {
-                const fullImages = scenes.map((scene: any, index: number) => {
-                    const actualMedia = media?.find(m => Number(m.after_word_index) === Number(scene.after_word_index));
+            if (sections.length > 0) {
+                const fullImages = sections.map((section: any, index: number) => {
+                    const actualMedia = media?.find(m => Number(m.after_word_index) === Number(section.after_word_index));
                     if (actualMedia) {
                         return {
                             id: actualMedia.id,
@@ -454,15 +459,26 @@ export class BookRepository {
                             isPlaceholder: false
                         };
                     } else {
-                        return {
-                            id: `placeholder-${index}`,
-                            afterWordIndex: Number(scene.after_word_index),
-                            caption: "AI is drawing...",
-                            isPlaceholder: true,
-                            src: ""
-                        };
+                        // Only create a placeholder if there is a meaningful image prompt
+                        // Ignored if prompt is missing, empty, or just contains the [1] character marker
+                        const hasPrompt = section.image_prompt &&
+                            section.image_prompt.trim() !== "" &&
+                            section.image_prompt.trim() !== "[1]";
+
+                        if (hasPrompt) {
+                            return {
+                                id: `placeholder-${index}`,
+                                afterWordIndex: Number(section.after_word_index),
+                                caption: "AI is drawing...",
+                                isPlaceholder: true,
+                                src: "",
+                                prompt: section.image_prompt,
+                                sectionIndex: index
+                            };
+                        }
+                        return null;
                     }
-                });
+                }).filter(Boolean); // Remove nulls (sections without images)
 
                 result.images = await Promise.all(fullImages.map(async (img: any) => {
                     if (img.src && !img.src.startsWith('http')) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import LibraryView from "@/components/reader/library-view";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
@@ -15,11 +15,11 @@ const signedUrlCache: Record<string, string> = {};
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error' | 'empty';
 
-const isDefaultFilters = (f: any, sortBy: string = "newest") => {
+const isDefaultFilters = (f: any, sortBy: string = "newest", sortOrder: string = "desc") => {
     const keys = Object.keys(f).filter(k => f[k] !== undefined);
     const isBaseCollection = !f.collection || f.collection === 'discovery';
     const noOtherFilters = keys.length === 0 || (keys.length === 1 && isBaseCollection);
-    return noOtherFilters && sortBy === "newest";
+    return noOtherFilters && sortBy === "newest" && sortOrder === "desc";
 };
 
 import { ChildProfile } from "@/app/actions/profiles";
@@ -66,16 +66,21 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
     // Filtering & Sorting State
     const [sortBy, setSortBy] = useState("newest");
-    const [filters, setFilters] = useState<{
-        level?: string;
-        origin?: string;
-        type?: "fiction" | "nonfiction";
-        category?: string;
-        duration?: string;
-        collection?: "discovery" | "my-tales" | "favorites";
-    }>({
-        collection: "discovery"
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("desc");
+    const [activeCollection, setActiveCollection] = useState<"discovery" | "my-tales" | "favorites">("discovery");
+
+    // Per-collection filter storage to support tab-specific persistence
+    const [collectionFilters, setCollectionFilters] = useState<Record<string, any>>({
+        discovery: {},
+        "my-tales": {},
+        favorites: {}
     });
+
+    // Computed filters object for the active tab
+    const filters = useMemo(() => ({
+        ...collectionFilters[activeCollection],
+        collection: activeCollection
+    }), [activeCollection, collectionFilters]);
 
     // Optimization Refs
     const lastHydratedKey = useRef<string | null>(null);
@@ -85,6 +90,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const offsetRef = useRef(0);
     const filtersRef = useRef(filters);
     const sortByRef = useRef(sortBy);
+    const sortOrderRef = useRef(sortOrder);
     const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Global safety timeout to ensure we never get stuck in "loading" forever
@@ -121,6 +127,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     useEffect(() => { offsetRef.current = offset; }, [offset]);
     useEffect(() => { filtersRef.current = filters; }, [filters]);
     useEffect(() => { sortByRef.current = sortBy; }, [sortBy]);
+    useEffect(() => { sortOrderRef.current = sortOrder; }, [sortOrder]);
 
     const LIMIT = 20;
 
@@ -139,12 +146,13 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         const currentOffset = isInitial ? 0 : offsetRef.current;
         const currentFilters = filtersRef.current;
         const currentSort = sortByRef.current;
+        const currentSortOrder = sortOrderRef.current;
 
         const filterKey = JSON.stringify(currentFilters);
-        const fetchKey = `${cacheKey}:${currentOffset}:${currentSort}:${filterKey}`;
+        const fetchKey = `${cacheKey}:${currentOffset}:${currentSort}:${currentSortOrder}:${filterKey}`;
 
         // Memory cache check for instant load (on top of sync hydrate)
-        if (isInitial && cachedLibraryBooks[cacheKey] && isDefaultFilters(currentFilters, currentSort)) {
+        if (isInitial && cachedLibraryBooks[cacheKey] && isDefaultFilters(currentFilters, currentSort, currentSortOrder)) {
             setBooks(cachedLibraryBooks[cacheKey]);
             setLoadState('success');
             // We still proceed to background refresh if needed, but we don't return early here
@@ -170,6 +178,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 filterParams.set('limit', LIMIT.toString());
                 filterParams.set('offset', currentOffset.toString());
                 filterParams.set('sortBy', currentSort);
+                filterParams.set('sortOrder', currentSortOrder);
 
                 if (currentFilters.level) filterParams.set('level', currentFilters.level);
                 if (currentFilters.origin) filterParams.set('origin', currentFilters.origin);
@@ -231,11 +240,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                     setBooks(libraryBooks);
                     setOffset(LIMIT);
                     // Only update cache for the main unfiltered view to avoid polluting it with search results
-                    const isDefaultFilters = (f: typeof currentFilters) => {
-                        const keys = Object.keys(f);
-                        return (keys.length === 0) || (keys.length === 1 && f.collection === 'discovery');
-                    };
-                    if (isDefaultFilters(currentFilters) && currentSort === "newest") {
+                    if (isDefaultFilters(currentFilters, currentSort, currentSortOrder)) {
                         cachedLibraryBooks[cacheKey] = libraryBooks;
                         raidenCache.put(CacheStore.LIBRARY_METADATA, {
                             id: cacheKey,
@@ -248,11 +253,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                         const existingIds = new Set(prev.map(b => b.id));
                         const newBooks = libraryBooks.filter(b => !existingIds.has(b.id));
                         const combined = [...prev, ...newBooks];
-                        const isDefaultFilters = (f: typeof currentFilters) => {
-                            const keys = Object.keys(f);
-                            return (keys.length === 0) || (keys.length === 1 && f.collection === 'discovery');
-                        };
-                        if (isDefaultFilters(currentFilters) && currentSort === "newest") {
+                        if (isDefaultFilters(currentFilters, currentSort, currentSortOrder)) {
                             cachedLibraryBooks[cacheKey] = combined;
                         }
                         return combined;
@@ -321,6 +322,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
         let targetFilters = activeChild?.library_settings?.filters || {};
         const targetSort = activeChild?.library_settings?.sortBy || "newest";
+        const targetSortOrder = activeChild?.library_settings?.sortOrder || "desc";
 
         // --- SMART DEFAULTS ---
         // If we are initializing for a child and have NO saved filters, apply defaults based on age and interests
@@ -361,15 +363,25 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         }
         // -----------------------
 
-        setFilters(targetFilters);
+        const { collection: savedCollection, ...savedFilters } = targetFilters;
+        if (savedCollection) {
+            setActiveCollection(savedCollection as any);
+        }
+
+        setCollectionFilters(prev => ({
+            ...prev,
+            [savedCollection || "discovery"]: savedFilters
+        }));
+
         setSortBy(targetSort);
+        setSortOrder(targetSortOrder as any);
 
         lastHydratedKey.current = cacheKey;
         // lastSyncedSettings is used by the persistence effect to know what to "skip" saving
         // if it matches what we just loaded.
-        lastSyncedSettings.current = JSON.stringify({ filters: targetFilters, sortBy: targetSort });
+        lastSyncedSettings.current = JSON.stringify({ filters: targetFilters, sortBy: targetSort, sortOrder: targetSortOrder });
 
-    }, [cacheKey, activeChild]); // DEPENDENCY CHANGE: Removed librarySettings!
+    }, [cacheKey, activeChild]);
 
     // 2. Load books when view state changes
     useEffect(() => {
@@ -380,7 +392,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         // 1. Reset state with "Magic Buffer":
         // Only clear books immediately if we are switching to a view that has NO cache,
         // to avoid an ugly flash of unrelated books.
-        const isDefaultView = isDefaultFilters(filters, sortBy);
+        const isDefaultView = isDefaultFilters(filters, sortBy, sortOrder);
 
         if (!isDefaultView || !hasCache) {
             // Double Buffering: Don't clear books, just set loading
@@ -398,18 +410,18 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 abortControllerRef.current.abort();
             }
         };
-    }, [cacheKey, authLoading, filters, sortBy]);
+    }, [cacheKey, authLoading, filters, sortBy, sortOrder]);
 
     // 3. Debounced Persistence to DB
     useEffect(() => {
         if (authLoading || !user || !activeChild?.id) return;
 
         const timeout = setTimeout(() => {
-            const currentSettingsStr = JSON.stringify({ filters, sortBy });
+            const currentSettingsStr = JSON.stringify({ filters, sortBy, sortOrder });
             const remoteSettingsStr = JSON.stringify(librarySettings);
 
             if (currentSettingsStr !== remoteSettingsStr) {
-                updateLibrarySettings({ filters, sortBy }).then(res => {
+                updateLibrarySettings({ filters, sortBy, sortOrder }).then(res => {
                     if (res?.success) {
                         lastSyncedSettings.current = currentSettingsStr;
                     }
@@ -420,7 +432,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         }, 1500);
 
         return () => clearTimeout(timeout);
-    }, [filters, sortBy, activeChild?.id]);
+    }, [filters, sortBy, sortOrder, activeChild?.id]);
 
 
     // Instant hydration from cache on client
@@ -470,20 +482,47 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         }
     }, [currentUserId, cacheKey]);
 
+    const handleSortChange = useCallback((newSort: string) => {
+        setSortBy(newSort);
+        // Apply sensible defaults for sort order when property changes
+        if (newSort === 'newest') {
+            setSortOrder('desc');
+        } else {
+            setSortOrder('asc');
+        }
+    }, []);
+
     return (
         <LibraryView
             books={books}
             onDeleteBook={handleDeleteBook}
             currentUserId={currentUserId}
             activeChildId={activeChild?.id}
+            activeChild={activeChild ? { id: activeChild.id, name: activeChild.first_name, avatar_url: activeChild.avatar_asset_path } : null}
             isLoading={loadState === 'loading'}
             onLoadMore={() => loadBooks(false)}
             hasMore={hasMore}
             isNextPageLoading={isNextPageLoading}
             sortBy={sortBy}
-            onSortChange={setSortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+            onSortOrderChange={setSortOrder}
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={(newFilters: any) => {
+                const nextCollection = newFilters.collection as "discovery" | "my-tales" | "favorites";
+                const { collection, ...rest } = newFilters;
+
+                if (nextCollection !== activeCollection) {
+                    // TAB SWITCH: Active collection changes, filters are restored from collectionFilters state
+                    setActiveCollection(nextCollection);
+                } else {
+                    // FILTER UPDATE: Update the filters for the CURRENT tab
+                    setCollectionFilters(prev => ({
+                        ...prev,
+                        [activeCollection]: rest
+                    }));
+                }
+            }}
             error={error}
             onRetry={() => loadBooks(true)}
         />

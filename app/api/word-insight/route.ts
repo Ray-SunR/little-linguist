@@ -74,11 +74,10 @@ export async function POST(req: Request): Promise<NextResponse> {
         const identity = await getOrCreateIdentity(user);
         const feature = "word_insight";
 
-        // 3. Atomic Increment & Check
+        // 3. Atomic Increment & Check (Only for cache misses)
         const success = await tryIncrementUsage(identity, feature);
 
         if (!success) {
-            // Fetch status for better error message if needed, or just return 403
             const status = await checkUsageLimit(identity.identity_key, feature, user?.id);
             return NextResponse.json({
                 error: "LIMIT_REACHED",
@@ -88,61 +87,77 @@ export async function POST(req: Request): Promise<NextResponse> {
             }, { status: 403 });
         }
 
-        // 4. Generation
-        const insight = await getWordAnalysisProvider().analyzeWord(word);
-        const polly = new PollyNarrationService();
-        const bucket = "word-insights-audio";
+        let generationSuccessful = false;
+        try {
+            // 4. Generation
+            const insight = await getWordAnalysisProvider().analyzeWord(word);
+            const polly = new PollyNarrationService();
+            const bucket = "word-insights-audio";
 
-        async function synthesizeAndUpload(text: string, path: string) {
-            try {
-                const { audioBuffer, speechMarks } = await polly.synthesize(text);
-                await adminSupabase.storage.from(bucket).upload(path, audioBuffer, {
-                    contentType: "audio/mpeg",
-                    upsert: true
-                });
+            async function synthesizeAndUpload(text: string, path: string) {
+                try {
+                    const { audioBuffer, speechMarks } = await polly.synthesize(text);
+                    await adminSupabase.storage.from(bucket).upload(path, audioBuffer, {
+                        contentType: "audio/mpeg",
+                        upsert: true
+                    });
 
-                const timings = speechMarks.map((mark, idx) => ({
-                    wordIndex: idx,
-                    startMs: mark.time,
-                    endMs: speechMarks[idx + 1] ? speechMarks[idx + 1].time : mark.time + 500
-                }));
+                    const timings = speechMarks.map((mark, idx) => ({
+                        wordIndex: idx,
+                        startMs: mark.time,
+                        endMs: speechMarks[idx + 1] ? speechMarks[idx + 1].time : mark.time + 500
+                    }));
 
-                const { data: signData } = await adminSupabase.storage.from(bucket).createSignedUrl(path, 3600);
-                return { path, url: signData?.signedUrl || "", timings };
-            } catch (err) {
-                console.error(`[WordInsight] Synthesis failed for "${text}":`, err);
-                return null;
+                    const { data: signData } = await adminSupabase.storage.from(bucket).createSignedUrl(path, 3600);
+                    return { path, url: signData?.signedUrl || "", timings };
+                } catch (err) {
+                    console.error(`[WordInsight] Synthesis failed for "${text}":`, err);
+                    return null;
+                }
             }
+
+            const [wordAudio, defAudio, exAudio] = await Promise.all([
+                synthesizeAndUpload(word, `${word}/word.mp3`),
+                synthesizeAndUpload(insight.definition, `${word}/definition.mp3`),
+                insight.examples?.[0] ? synthesizeAndUpload(insight.examples[0], `${word}/example_0.mp3`) : Promise.resolve(null)
+            ]);
+
+            // 5. Persistence
+            await adminSupabase.from("word_insights").upsert({
+                word: word,
+                definition: insight.definition,
+                pronunciation: insight.pronunciation,
+                examples: insight.examples,
+                audio_path: defAudio?.path || "",
+                timing_markers: defAudio?.timings || [],
+            }, { onConflict: "word" });
+
+            generationSuccessful = true;
+
+            return NextResponse.json({
+                ...insight,
+                wordAudioUrl: wordAudio?.url || "",
+                audioUrl: defAudio?.url || "",
+                exampleAudioUrls: exAudio ? [exAudio.url] : [],
+                audioPath: defAudio?.path || "",
+                wordAudioPath: wordAudio?.path || "",
+                exampleAudioPaths: exAudio ? [exAudio.path] : [],
+                wordTimings: defAudio?.timings || [],
+                exampleTimings: exAudio ? [exAudio.timings] : [],
+            });
+        } catch (error: any) {
+            console.error("[WordInsight] Generation error:", error);
+
+            // Refund on failure (same pattern as story generation)
+            if (!generationSuccessful) {
+                console.warn(`[WordInsight] Generation failed. Refunding usage for ${identity.identity_key}`);
+                await tryIncrementUsage(identity, feature, -1).catch(e =>
+                    console.error("[WordInsight] Refund failed:", e)
+                );
+            }
+
+            return NextResponse.json({ error: "Failed to generate word insight" }, { status: 500 });
         }
-
-        const [wordAudio, defAudio, exAudio] = await Promise.all([
-            synthesizeAndUpload(word, `${word}/word.mp3`),
-            synthesizeAndUpload(insight.definition, `${word}/definition.mp3`),
-            insight.examples?.[0] ? synthesizeAndUpload(insight.examples[0], `${word}/example_0.mp3`) : Promise.resolve(null)
-        ]);
-
-        // 5. Persistence
-        await adminSupabase.from("word_insights").upsert({
-            word: word,
-            definition: insight.definition,
-            pronunciation: insight.pronunciation,
-            examples: insight.examples,
-            audio_path: defAudio?.path || "",
-            timing_markers: defAudio?.timings || [],
-        }, { onConflict: "word" });
-
-        return NextResponse.json({
-            ...insight,
-            wordAudioUrl: wordAudio?.url || "",
-            audioUrl: defAudio?.url || "",
-            exampleAudioUrls: exAudio ? [exAudio.url] : [],
-            audioPath: defAudio?.path || "",
-            wordAudioPath: wordAudio?.path || "",
-            exampleAudioPaths: exAudio ? [exAudio.path] : [],
-            wordTimings: defAudio?.timings || [],
-            exampleTimings: exAudio ? [exAudio.timings] : [],
-        });
-
     } catch (error: any) {
         console.error("[WordInsight] Route error:", error);
         return NextResponse.json({ error: "Failed to process word insight" }, { status: 500 });

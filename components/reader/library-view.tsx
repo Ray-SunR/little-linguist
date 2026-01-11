@@ -1,25 +1,28 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, BookOpen, Heart, Wand2 } from "lucide-react";
+import { Sparkles, Heart, Wand2 } from "lucide-react";
 import LibraryBookCardComponent from "./library-book-card";
 import { LibraryBookCard } from "@/lib/core/books/library-types";
 import { cn } from "@/lib/core";
 import Link from "next/link";
-import { LibraryFilters } from "@/components/library/LibraryFilters";
+import { BookshelfToolbar } from "@/components/library/BookshelfToolbar";
 
 interface LibraryViewProps {
     books: LibraryBookCard[];
     onDeleteBook?: (id: string) => void;
     currentUserId?: string | null;
     activeChildId?: string;
+    activeChild?: { id: string; name: string; avatar_url?: string | null } | null;
     isLoading?: boolean;
     onLoadMore?: () => void;
     hasMore?: boolean;
     isNextPageLoading?: boolean;
     sortBy: string;
     onSortChange: (val: string) => void;
+    sortOrder: "asc" | "desc";
+    onSortOrderChange: (val: "asc" | "desc") => void;
     filters: {
         level?: string;
         origin?: string;
@@ -38,12 +41,15 @@ export default function LibraryView({
     onDeleteBook,
     currentUserId,
     activeChildId,
+    activeChild,
     isLoading,
     onLoadMore,
     hasMore,
     isNextPageLoading,
     sortBy,
+    sortOrder,
     onSortChange,
+    onSortOrderChange,
     filters,
     onFiltersChange,
     error,
@@ -65,6 +71,27 @@ export default function LibraryView({
         return result;
     }, [books, searchQuery]);
 
+    // Lumo greeting messages
+    const GREETINGS = [
+        "Let's read! 📚",
+        "What adventure today? ✨",
+        "I found new stories! 🌟",
+        "Ready to explore? 🚀",
+        "Let's learn together! 💡"
+    ];
+    const [greetingIndex, setGreetingIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setGreetingIndex(prev => (prev + 1) % GREETINGS.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const personalizedGreeting = activeChild?.name
+        ? `Hi, ${activeChild.name}! ${GREETINGS[greetingIndex]}`
+        : GREETINGS[greetingIndex];
+
     const handleFilterChange = (key: string, val: any) => {
         const newFilters = { ...filters, [key]: val };
 
@@ -74,13 +101,6 @@ export default function LibraryView({
         }
 
         onFiltersChange(newFilters);
-    };
-
-    const handleCategoryChange = (val: string) => {
-        // If "all" is selected, remove the category filter (undefined)
-        // Otherwise set the category string
-        const category = val === "all" ? undefined : val;
-        onFiltersChange({ ...filters, category });
     };
 
     return (
@@ -95,271 +115,247 @@ export default function LibraryView({
                 />
             </div>
 
-            <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 pb-32 flex flex-col gap-8">
-                {/* Hero Section with Grid Layout for Large Screens */}
-                <header className="flex flex-col gap-6 relative z-10 items-start max-w-7xl mx-auto w-full">
-                    {/* Header Content: Title, Search, Filters */}
-                    <div className="w-full flex flex-col gap-6">
-                        <div className="flex flex-col gap-3 text-center md:text-left">
-                            <h1 className="font-fredoka text-4xl md:text-6xl font-black text-slate-800 tracking-tight leading-tight">
-                                Magical <span className="text-purple-600 drop-shadow-sm">Library</span>
-                            </h1>
-                            <p className="text-slate-500 font-bold text-xl md:text-2xl max-w-2xl">Discover stories to fuel your imagination</p>
+            <div className="relative w-full pb-32 flex flex-col gap-0 md:gap-4">
+
+                {/* Sticky Toolbar */}
+                <div className="sticky top-4 z-40 px-3 md:px-6 lg:px-8 mb-8 pt-6 md:pt-10">
+                    <BookshelfToolbar
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        filters={filters}
+                        onFilterChange={handleFilterChange}
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                        onSortChange={onSortChange}
+                        onSortOrderChange={onSortOrderChange}
+                        currentUserId={currentUserId}
+                        activeChild={activeChild}
+                        totalStories={books.length}
+                    />
+                </div>
+
+                {/* 3. Book Grid Area */}
+                <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative min-h-[400px]">
+
+                    {/* Loading Overlay for Double Buffering */}
+                    {isLoading && books.length > 0 && (
+                        <div className="absolute inset-0 z-20 bg-white/50 backdrop-blur-[2px] rounded-[2.5rem] flex items-start justify-center pt-40 transition-all duration-300">
+                            <div className="bg-white/90 p-4 rounded-2xl shadow-clay-lg border-2 border-purple-100 flex items-center gap-3 animate-bounce">
+                                <Sparkles className="h-6 w-6 text-purple-600 animate-spin" />
+                                <span className="font-fredoka font-bold text-purple-900">Updating Library...</span>
+                            </div>
                         </div>
+                    )}
 
-                        <LibraryFilters
-                            searchQuery={searchQuery}
-                            onSearchChange={setSearchQuery}
-                            filters={filters}
-                            onFilterChange={handleFilterChange}
-                            sortBy={sortBy}
-                            onSortChange={onSortChange}
-                            activeCategory={filters.category}
-                            onCategoryChange={handleCategoryChange}
-                            currentUserId={currentUserId}
-                        />
-                    </div>
-                </header>
+                    {/* Error UI Section */}
+                    {error && !isLoading && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="my-8 p-10 rounded-[3rem] bg-pink-50 border-4 border-pink-100 flex flex-col items-center justify-center text-center gap-6 shadow-clay-inset"
+                        >
+                            <div className="w-20 h-20 rounded-3xl bg-white shadow-clay-md flex items-center justify-center">
+                                <Sparkles className="h-10 w-10 text-pink-500 opacity-50" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="font-fredoka text-2xl font-black text-pink-900 leading-tight">
+                                    Oops! Magic is taking a nap
+                                </h3>
+                                <p className="text-pink-600 font-bold max-w-md mx-auto">
+                                    {error}
+                                </p>
+                            </div>
+                            {onRetry && (
+                                <button
+                                    onClick={onRetry}
+                                    className="px-10 py-4 rounded-2xl bg-white text-pink-600 font-fredoka text-lg font-black shadow-clay-md hover:scale-105 active:scale-95 transition-transform border-4 border-pink-100"
+                                >
+                                    Try Once More ✨
+                                </button>
+                            )}
+                        </motion.div>
+                    )}
 
-                {/* Book Grid Area */}
-                <div className="flex flex-col gap-8">
-                    <div className="flex items-center justify-between">
-                        <h2 className="font-fredoka text-2xl font-black text-slate-700 flex items-center gap-3">
-                            <BookOpen className="h-6 w-6 text-purple-500" />
-                            Bookshelf
-                        </h2>
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                            Showing <span className="text-purple-600">{filteredBooks.length}</span> stories
+                    {isLoading && books.length === 0 ? (
+                        <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {[...Array(8)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="h-[420px] md:h-[460px] w-full rounded-[2.5rem] bg-white/40 backdrop-blur-xl border-[5px] border-white shadow-clay p-4 flex flex-col gap-4 overflow-hidden relative group"
+                                >
+                                    {/* 1. Iridescent Background Flow */}
+                                    <div className="absolute inset-0 z-0 bg-gradient-to-br from-purple-100/30 via-blue-100/30 to-pink-100/30 animate-[iridescent_8s_infinite_linear] bg-[length:200%_200%]" />
+
+                                    {/* 2. Floating "Magic Stars" (Decorative Skeletons) */}
+                                    <div className="absolute inset-0 pointer-events-none">
+                                        {[...Array(3)].map((_, si) => (
+                                            <motion.div
+                                                key={si}
+                                                animate={{
+                                                    y: [0, -20, 0],
+                                                    x: [0, (si % 2 === 0 ? 10 : -10), 0],
+                                                    scale: [1, 1.2, 1],
+                                                    opacity: [0.1, 0.3, 0.1]
+                                                }}
+                                                transition={{
+                                                    duration: 3 + si,
+                                                    repeat: Infinity,
+                                                    ease: "easeInOut",
+                                                    delay: si * 0.5
+                                                }}
+                                                className="absolute w-4 h-4 text-purple-200"
+                                                style={{
+                                                    top: `${20 + si * 25}%`,
+                                                    left: `${15 + si * 30}%`
+                                                }}
+                                            >
+                                                <Sparkles className="w-full h-full fill-current" />
+                                            </motion.div>
+                                        ))}
+                                    </div>
+
+                                    {/* 3. Image Area Skeleton with Silhouette */}
+                                    <div className="relative aspect-[3/4] w-full rounded-[1.8rem] bg-white/80 border-4 border-white shadow-clay-inset overflow-hidden flex items-center justify-center">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent -rotate-45 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out" />
+                                        <div className="relative opacity-10 grayscale scale-150 blur-[2px] animate-pulse">
+                                            <div className="w-24 h-24 rounded-full bg-slate-200" />
+                                            <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-slate-200" />
+                                        </div>
+                                        <div className="absolute bottom-3 left-3 w-16 h-6 rounded-full bg-slate-100 opacity-50 border-2 border-white shadow-sm" />
+                                        <div className="absolute top-3 right-3 w-20 h-6 rounded-full bg-slate-100 opacity-50 border-2 border-white shadow-sm" />
+                                    </div>
+
+                                    {/* 4. Text Content Skeletons */}
+                                    <div className="px-2 space-y-3 relative z-10">
+                                        <div className="h-7 w-[85%] bg-gradient-to-r from-slate-100 via-white to-slate-100 animate-[shimmer_3s_infinite_linear] bg-[length:200%_100%] rounded-xl shadow-clay-sm" />
+                                        <div className="flex gap-2">
+                                            <div className="h-4 w-16 bg-slate-100 rounded-lg opacity-60" />
+                                            <div className="h-4 w-12 bg-slate-50 rounded-lg opacity-40" />
+                                        </div>
+                                    </div>
+
+                                    {/* 5. Bottom Interactive Area Skeleton */}
+                                    <div className="mt-auto px-2 pb-2">
+                                        <div className="h-[52px] w-full rounded-2xl bg-white/90 border-2 border-dashed border-purple-100/50 relative overflow-hidden flex items-center justify-center shadow-clay-inset">
+                                            <div className="w-1/3 h-3 bg-purple-50 rounded-full animate-pulse" />
+                                        </div>
+                                    </div>
+
+                                    <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-purple-200/20 blur-[60px] rounded-full animate-[glass-flow_10s_infinite_ease-in-out]" />
+                                </motion.div>
+                            ))}
                         </div>
-                    </div>
-
-                    <div className="flex flex-col gap-8 relative min-h-[400px]">
-                        {/* Loading Overlay for Double Buffering */}
-                        {isLoading && books.length > 0 && (
-                            <div className="absolute inset-0 z-20 bg-white/50 backdrop-blur-[2px] rounded-[2.5rem] flex items-start justify-center pt-40 transition-all duration-300">
-                                <div className="bg-white/90 p-4 rounded-2xl shadow-clay-lg border-2 border-purple-100 flex items-center gap-3 animate-bounce">
-                                    <Sparkles className="h-6 w-6 text-purple-600 animate-spin" />
-                                    <span className="font-fredoka font-bold text-purple-900">Updating Library...</span>
+                    ) : (!currentUserId || filteredBooks.length > 0) ? (
+                        <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {!currentUserId && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative group p-6 rounded-[2.5rem] bg-purple-50 border-4 border-dashed border-purple-200 flex flex-col items-center justify-center text-center gap-4 hover:border-purple-400 transition-colors shadow-clay-inset"
+                                >
+                                    <div className="w-16 h-16 rounded-2xl bg-white shadow-clay-md flex items-center justify-center">
+                                        <Wand2 className="w-8 h-8 text-purple-600 animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-fredoka text-lg font-black text-purple-900 leading-tight">Create Your Own Story</h3>
+                                        <p className="text-xs font-bold text-purple-600/80 font-nunito mt-1">Make a story about anything you can imagine!</p>
+                                    </div>
+                                    <Link
+                                        href="/story-maker"
+                                        className="px-6 py-2.5 rounded-2xl bg-purple-600 text-white font-fredoka text-sm font-black shadow-lg hover:scale-105 active:scale-95 transition-transform"
+                                    >
+                                        Try Wizard
+                                    </Link>
+                                </motion.div>
+                            )}
+                            {filteredBooks.map((book, index) => (
+                                <LibraryBookCardComponent
+                                    key={book.id}
+                                    book={book}
+                                    index={index}
+                                    isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
+                                    activeChildId={activeChildId}
+                                    onDelete={onDeleteBook}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex flex-col items-center justify-center py-20 text-center gap-6"
+                        >
+                            <div className="relative">
+                                <div className="relative text-8xl grayscale opacity-60">
+                                    {filters.collection === 'favorites' ? '💖' : (filters.collection as string) === 'my-tales' ? '🪄' : '🔎'}
                                 </div>
                             </div>
-                        )}
-
-                        {/* Error UI Section */}
-                        {error && !isLoading && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="my-8 p-10 rounded-[3rem] bg-pink-50 border-4 border-pink-100 flex flex-col items-center justify-center text-center gap-6 shadow-clay-inset"
-                            >
-                                <div className="w-20 h-20 rounded-3xl bg-white shadow-clay-md flex items-center justify-center">
-                                    <Sparkles className="h-10 w-10 text-pink-500 opacity-50" />
-                                </div>
-                                <div className="space-y-2">
-                                    <h3 className="font-fredoka text-2xl font-black text-pink-900 leading-tight">
-                                        Oops! Magic is taking a nap
-                                    </h3>
-                                    <p className="text-pink-600 font-bold max-w-md mx-auto">
-                                        {error}
-                                    </p>
-                                </div>
-                                {onRetry && (
-                                    <button
-                                        onClick={onRetry}
-                                        className="px-10 py-4 rounded-2xl bg-white text-pink-600 font-fredoka text-lg font-black shadow-clay-md hover:scale-105 active:scale-95 transition-transform border-4 border-pink-100"
+                            <div className="space-y-2 relative">
+                                <h3 className="font-fredoka text-2xl font-bold text-slate-700 tracking-tight">
+                                    {filters.collection === 'favorites' ? 'Your Treasure Chest is empty!' :
+                                        (filters.collection as string) === 'my-tales' ? 'No personal stories yet!' :
+                                            'Ops! No stories found...'}
+                                </h3>
+                                <p className="text-slate-400 max-w-xs mx-auto">
+                                    {filters.collection === 'favorites' ? 'Mark your favorite stories with a heart to see them here!' :
+                                        (filters.collection as string) === 'my-tales' ? 'Use the Story Maker to create a unique adventure just for you!' :
+                                            'Try searching for magic words or check another shelf!'}
+                                </p>
+                                {(filters.collection as string) === 'my-tales' ? (
+                                    <Link
+                                        href="/story-maker"
+                                        className="mt-6 inline-block px-8 py-3 rounded-2xl bg-purple-600 text-white font-bold font-fredoka hover:bg-purple-700 transition-colors shadow-lg shadow-purple-200"
                                     >
-                                        Try Once More ✨
+                                        Create Story
+                                    </Link>
+                                ) : (
+                                    <button
+                                        onClick={() => { setSearchQuery(""); handleFilterChange("category", "all"); handleFilterChange("collection", "discovery"); }}
+                                        className="mt-6 px-8 py-3 rounded-2xl bg-purple-100 text-purple-700 font-bold font-fredoka hover:bg-purple-200 transition-colors"
+                                    >
+                                        {filters.collection === 'favorites' || (filters.collection as string) === 'my-tales' ? 'Back to Library' : 'Clear search'}
                                     </button>
                                 )}
-                            </motion.div>
-                        )}
-
-                        {isLoading && books.length === 0 ? (
-                            <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {[...Array(8)].map((_, i) => (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        className="h-[420px] md:h-[460px] w-full rounded-[2.5rem] bg-white/40 backdrop-blur-xl border-[5px] border-white shadow-clay p-4 flex flex-col gap-4 overflow-hidden relative group"
-                                    >
-                                        {/* 1. Iridescent Background Flow */}
-                                        <div className="absolute inset-0 z-0 bg-gradient-to-br from-purple-100/30 via-blue-100/30 to-pink-100/30 animate-[iridescent_8s_infinite_linear] bg-[length:200%_200%]" />
-
-                                        {/* 2. Floating "Magic Stars" (Decorative Skeletons) */}
-                                        <div className="absolute inset-0 pointer-events-none">
-                                            {[...Array(3)].map((_, si) => (
-                                                <motion.div
-                                                    key={si}
-                                                    animate={{
-                                                        y: [0, -20, 0],
-                                                        x: [0, (si % 2 === 0 ? 10 : -10), 0],
-                                                        scale: [1, 1.2, 1],
-                                                        opacity: [0.1, 0.3, 0.1]
-                                                    }}
-                                                    transition={{
-                                                        duration: 3 + si,
-                                                        repeat: Infinity,
-                                                        ease: "easeInOut",
-                                                        delay: si * 0.5
-                                                    }}
-                                                    className="absolute w-4 h-4 text-purple-200"
-                                                    style={{
-                                                        top: `${20 + si * 25}%`,
-                                                        left: `${15 + si * 30}%`
-                                                    }}
-                                                >
-                                                    <Sparkles className="w-full h-full fill-current" />
-                                                </motion.div>
-                                            ))}
-                                        </div>
-
-                                        {/* 3. Image Area Skeleton with Silhouette */}
-                                        <div className="relative aspect-[3/4] w-full rounded-[1.8rem] bg-white/80 border-4 border-white shadow-clay-inset overflow-hidden flex items-center justify-center">
-                                            {/* Holographic Shimmer Beam */}
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent -rotate-45 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out" />
-
-                                            {/* Lumo Silhouette Placeholder */}
-                                            <div className="relative opacity-10 grayscale scale-150 blur-[2px] animate-pulse">
-                                                <div className="w-24 h-24 rounded-full bg-slate-200" />
-                                                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-slate-200" />
-                                            </div>
-
-                                            {/* Bottom Badge Skeletons */}
-                                            <div className="absolute bottom-3 left-3 w-16 h-6 rounded-full bg-slate-100 opacity-50 border-2 border-white shadow-sm" />
-                                            <div className="absolute top-3 right-3 w-20 h-6 rounded-full bg-slate-100 opacity-50 border-2 border-white shadow-sm" />
-                                        </div>
-
-                                        {/* 4. Text Content Skeletons */}
-                                        <div className="px-2 space-y-3 relative z-10">
-                                            <div className="h-7 w-[85%] bg-gradient-to-r from-slate-100 via-white to-slate-100 animate-[shimmer_3s_infinite_linear] bg-[length:200%_100%] rounded-xl shadow-clay-sm" />
-                                            <div className="flex gap-2">
-                                                <div className="h-4 w-16 bg-slate-100 rounded-lg opacity-60" />
-                                                <div className="h-4 w-12 bg-slate-50 rounded-lg opacity-40" />
-                                            </div>
-                                        </div>
-
-                                        {/* 5. Bottom Interactive Area Skeleton */}
-                                        <div className="mt-auto px-2 pb-2">
-                                            <div className="h-[52px] w-full rounded-2xl bg-white/90 border-2 border-dashed border-purple-100/50 relative overflow-hidden flex items-center justify-center shadow-clay-inset">
-                                                <div className="w-1/3 h-3 bg-purple-50 rounded-full animate-pulse" />
-                                            </div>
-                                        </div>
-
-                                        {/* Magic Blur Filter for "Liquid" effect */}
-                                        <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-purple-200/20 blur-[60px] rounded-full animate-[glass-flow_10s_infinite_ease-in-out]" />
-                                    </motion.div>
-                                ))}
                             </div>
-                        ) : (!currentUserId || filteredBooks.length > 0) ? (
-                            <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {!currentUserId && (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="relative group p-6 rounded-[2.5rem] bg-purple-50 border-4 border-dashed border-purple-200 flex flex-col items-center justify-center text-center gap-4 hover:border-purple-400 transition-colors shadow-clay-inset"
-                                    >
-                                        <div className="w-16 h-16 rounded-2xl bg-white shadow-clay-md flex items-center justify-center">
-                                            <Wand2 className="w-8 h-8 text-purple-600 animate-pulse" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-fredoka text-lg font-black text-purple-900 leading-tight">Create Your Own Story</h3>
-                                            <p className="text-xs font-bold text-purple-600/80 font-nunito mt-1">Make a story about anything you can imagine!</p>
-                                        </div>
-                                        <Link
-                                            href="/story-maker"
-                                            className="px-6 py-2.5 rounded-2xl bg-purple-600 text-white font-fredoka text-sm font-black shadow-lg hover:scale-105 active:scale-95 transition-transform"
-                                        >
-                                            Try Wizard
-                                        </Link>
-                                    </motion.div>
-                                )}
-                                {filteredBooks.map((book, index) => (
-                                    <LibraryBookCardComponent
-                                        key={book.id}
-                                        book={book}
-                                        index={index}
-                                        isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
-                                        activeChildId={activeChildId}
-                                        onDelete={onDeleteBook}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flex flex-col items-center justify-center py-20 text-center gap-6"
-                            >
-                                <div className="relative">
-                                    <div className="relative text-8xl grayscale opacity-60">
-                                        {filters.collection === 'favorites' ? '💖' : (filters.collection as string) === 'my-tales' ? '🪄' : '🔎'}
-                                    </div>
-                                </div>
-                                <div className="space-y-2 relative">
-                                    <h3 className="font-fredoka text-2xl font-bold text-slate-700 tracking-tight">
-                                        {filters.collection === 'favorites' ? 'Your Treasure Chest is empty!' :
-                                            (filters.collection as string) === 'my-tales' ? 'No personal stories yet!' :
-                                                'Ops! No stories found...'}
-                                    </h3>
-                                    <p className="text-slate-400 max-w-xs mx-auto">
-                                        {filters.collection === 'favorites' ? 'Mark your favorite stories with a heart to see them here!' :
-                                            (filters.collection as string) === 'my-tales' ? 'Use the Story Maker to create a unique adventure just for you!' :
-                                                'Try searching for magic words or check another shelf!'}
-                                    </p>
-                                    {(filters.collection as string) === 'my-tales' ? (
-                                        <Link
-                                            href="/story-maker"
-                                            className="mt-6 inline-block px-8 py-3 rounded-2xl bg-purple-600 text-white font-bold font-fredoka hover:bg-purple-700 transition-colors shadow-lg shadow-purple-200"
-                                        >
-                                            Create Story
-                                        </Link>
-                                    ) : (
-                                        <button
-                                            onClick={() => { setSearchQuery(""); handleCategoryChange("all"); handleFilterChange("collection", "discovery"); }}
-                                            className="mt-6 px-8 py-3 rounded-2xl bg-purple-100 text-purple-700 font-bold font-fredoka hover:bg-purple-200 transition-colors"
-                                        >
-                                            {filters.collection === 'favorites' || (filters.collection as string) === 'my-tales' ? 'Back to Library' : 'Clear search'}
-                                        </button>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
-                    </div>
-
-                    {/* Load More Section */}
-                    {hasMore && (
-                        <div className="flex justify-center mt-8 mb-12">
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={onLoadMore}
-                                disabled={isNextPageLoading}
-                                className={cn(
-                                    "px-10 py-5 rounded-[2rem] font-fredoka text-lg font-black transition-all border-4 shadow-clay-md flex items-center gap-3",
-                                    isNextPageLoading
-                                        ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                                        : "bg-white text-purple-600 border-white hover:border-purple-100"
-                                )}
-                            >
-                                {isNextPageLoading ? (
-                                    <>
-                                        <div className="h-5 w-5 border-4 border-slate-300 border-t-purple-600 animate-spin rounded-full" />
-                                        <span>Summoning more...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className="h-6 w-6" />
-                                        <span>Show More Magic</span>
-                                    </>
-                                )}
-                            </motion.button>
-                        </div>
+                        </motion.div>
                     )}
                 </div>
 
+                {/* Load More Section */}
+                {hasMore && (
+                    <div className="flex justify-center mt-8 mb-12">
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={onLoadMore}
+                            disabled={isNextPageLoading}
+                            className={cn(
+                                "px-10 py-5 rounded-[2rem] font-fredoka text-lg font-black transition-all border-4 shadow-clay-md flex items-center gap-3",
+                                isNextPageLoading
+                                    ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                                    : "bg-white text-purple-600 border-white hover:border-purple-100"
+                            )}
+                        >
+                            {isNextPageLoading ? (
+                                <>
+                                    <div className="h-5 w-5 border-4 border-slate-300 border-t-purple-600 animate-spin rounded-full" />
+                                    <span>Summoning more...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="h-6 w-6" />
+                                    <span>Show More Magic</span>
+                                </>
+                            )}
+                        </motion.button>
+                    </div>
+                )}
+
                 {/* Footer Section */}
-                <footer className="mt-12 py-12 border-t border-purple-100 text-center">
+                <footer className="mt-12 py-12 border-t border-purple-100 text-center max-w-7xl mx-auto w-full">
                     <p className="font-fredoka text-sm text-slate-400 flex items-center justify-center gap-2">
                         Made with <Heart className="h-4 w-4 fill-pink-400 text-pink-400" /> for little explorers.
                     </p>
