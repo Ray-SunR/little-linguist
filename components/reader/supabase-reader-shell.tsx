@@ -132,10 +132,10 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
 
     // Trigger initial save to update "last opened" timestamp
     useEffect(() => {
-        if (selectedBookId && childId && isMounted) {
-            saveProgress(true);
+        if (selectedBookId && isMounted) {
+            saveProgress({ force: true, isOpening: true });
         }
-    }, [selectedBookId, childId, isMounted, saveProgress]);
+    }, [selectedBookId, isMounted, saveProgress]);
 
     const tooltipProvider = useMemo(() => new WebSpeechNarrationProvider(), []);
     const {
@@ -154,7 +154,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
 
     const goNextBook = useCallback(() => {
         if (!books.length) return;
-        saveProgress(true, true);
+        saveProgress({ force: true, isExiting: true });
         const currentIndex = books.findIndex((book) => book.id === selectedBookId);
         const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % books.length;
         const nextBookId = books[nextIndex].id;
@@ -165,7 +165,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         if (!selectedBookId) return;
         pause();
         await seekToWord(0);
-        saveProgress(true);
+        saveProgress({ force: true });
         lastScrolledBookIdRef.current = null;
     }, [selectedBookId, pause, seekToWord, saveProgress]);
 
@@ -196,7 +196,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         if (wordIndex === null) return;
         closeWordInspector();
         await seekToWord(wordIndex);
-        saveProgress(true);
+        saveProgress({ force: true });
         await play();
     }, [inspectorSelectedWordIndex, closeWordInspector, seekToWord, play, saveProgress]);
 
@@ -320,7 +320,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                 <header className="flex items-center gap-1.5 sm:gap-3 mb-3">
                     <Link
                         href="/library"
-                        onClick={() => saveProgress(true, true)}
+                        onClick={() => saveProgress({ force: true, isExiting: true })}
                         className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent"
                         aria-label="Back to Library"
                         title="Back to Library"

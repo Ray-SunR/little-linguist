@@ -3,6 +3,7 @@
 import { BookRepository } from "@/lib/core/books/repository.server";
 import { createClient } from "@/lib/supabase/server";
 import { SupabaseBook } from "@/components/reader/supabase-reader-shell";
+import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 
 interface ReaderContainerProps {
     bookId: string;

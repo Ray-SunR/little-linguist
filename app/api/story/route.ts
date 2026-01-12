@@ -3,6 +3,7 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
+import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 import { Tokenizer } from "@/lib/core/books/tokenizer";
 import { TextChunker } from "@/lib/core/books/text-chunker";
 import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
@@ -230,6 +231,22 @@ FINAL RECAP:
                 message: "Failed to reserve credits. Please try again."
             }, { status: 500 });
         }
+
+        // Audit: Generation Started
+        console.info("[StoryAPI] Logging STORY_STARTED...");
+        await AuditService.log({
+            action: AuditAction.STORY_STARTED,
+            entityType: EntityType.STORY,
+            userId: ownerUserId,
+            identityKey: identity?.identity_key,
+            childId: childId,
+            details: {
+                prompt: userPrompt?.substring(0, 100),
+                imageCount: imageSceneCount,
+                bookId: bookId
+            }
+        });
+        console.info("[StoryAPI] STORY_STARTED logged.");
 
         let creditsRefunded = 0; // Track refunds to avoid double-dipping
 
@@ -620,6 +637,25 @@ FINAL RECAP:
                 }
             })());
 
+            // Audit: Generation Success (Text phase)
+            const totalSections = data.sections.length;
+            console.info("[StoryAPI] Logging STORY_GENERATED...");
+            await AuditService.log({
+                action: AuditAction.STORY_GENERATED,
+                entityType: EntityType.STORY,
+                entityId: bookId,
+                userId: ownerUserId,
+                identityKey: identity?.identity_key,
+                childId: childId,
+                details: {
+                    title: data.sections[0]?.title || "Untitled",
+                    sectionCount: data.sections.length,
+                    sceneCount: totalSections,
+                    totalTokens: data.total_tokens || 0
+                }
+            });
+            console.info("[StoryAPI] STORY_GENERATED logged.");
+
             return NextResponse.json({
                 ...data,
                 sections: sectionsWithIndices,
@@ -644,6 +680,22 @@ FINAL RECAP:
                     await refundCredits(identity, "image_generation", remainingImagesCharged);
                 }
             }
+
+            // Audit: Generation Failed
+            console.info("[StoryAPI] Logging STORY_FAILED...");
+            await AuditService.log({
+                action: AuditAction.STORY_FAILED,
+                entityType: EntityType.STORY,
+                entityId: bookId, // Might exist if ID generated earlier
+                userId: ownerUserId,
+                identityKey: identity?.identity_key,
+                childId: childId,
+                details: {
+                    error: error.message,
+                    refunded: !isTestMode
+                }
+            });
+            console.info("[StoryAPI] STORY_FAILED logged.");
 
             return NextResponse.json({ error: error.message || "Failed to generate story" }, { status: 500 });
         }

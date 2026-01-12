@@ -92,6 +92,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const sortByRef = useRef(sortBy);
     const sortOrderRef = useRef(sortOrder);
     const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isDirtyRef = useRef(false); // Track if settings were changed by user
 
     // Global safety timeout to ensure we never get stuck in "loading" forever
     useEffect(() => {
@@ -414,7 +415,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
     // 3. Debounced Persistence to DB
     useEffect(() => {
-        if (authLoading || !user || !activeChild?.id) return;
+        if (authLoading || !user || !activeChild?.id || !isDirtyRef.current) return;
 
         const timeout = setTimeout(() => {
             const currentSettingsStr = JSON.stringify({ filters, sortBy, sortOrder });
@@ -484,6 +485,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
     const handleSortChange = useCallback((newSort: string) => {
         setSortBy(newSort);
+        isDirtyRef.current = true;
         // Apply sensible defaults for sort order when property changes
         if (newSort === 'newest' || newSort === 'last_opened') {
             setSortOrder('desc');
@@ -506,12 +508,16 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             sortBy={sortBy}
             sortOrder={sortOrder}
             onSortChange={handleSortChange}
-            onSortOrderChange={setSortOrder}
+            onSortOrderChange={(val) => {
+                setSortOrder(val);
+                isDirtyRef.current = true;
+            }}
             filters={filters}
             onFiltersChange={(newFilters: any) => {
                 const nextCollection = newFilters.collection as "discovery" | "my-tales" | "favorites";
                 const { collection, ...rest } = newFilters;
 
+                isDirtyRef.current = true;
                 if (nextCollection !== activeCollection) {
                     // TAB SWITCH: Active collection changes, filters are restored from collectionFilters state
                     setActiveCollection(nextCollection);

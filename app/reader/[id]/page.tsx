@@ -1,5 +1,6 @@
 import { ReaderContainer } from "./ReaderContainer";
 import ReaderContent from "./ReaderContent";
+import { cookies } from "next/headers";
 
 interface ReaderPageProps {
     params: { id: string };
@@ -7,13 +8,15 @@ interface ReaderPageProps {
 
 export default async function ReaderDetailPage({ params }: ReaderPageProps) {
     const bookId = params.id;
+    const cookieStore = cookies();
+    const activeChildId = cookieStore.get("activeChildId")?.value;
 
     // We don't have access to useAuth here, but we can potentially get the session 
     // from cookies if we needed it. However, ReaderContainer will handle 
     // fetching based on the current user's available books.
 
     return (
-        <ReaderContainer bookId={bookId}>
+        <ReaderContainer bookId={bookId} activeChildId={activeChildId}>
             {({ initialBook, error }) => (
                 <ReaderContent
                     bookId={bookId}

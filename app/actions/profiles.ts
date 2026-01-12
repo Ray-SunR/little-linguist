@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 
 export interface ChildProfilePayload {
   first_name: string;
@@ -71,6 +72,15 @@ async function uploadAvatarToBucket(
       return null;
     }
 
+    // Audit: Image Uploaded
+    await AuditService.log({
+      action: AuditAction.IMAGE_UPLOADED,
+      entityType: EntityType.IMAGE,
+      entityId: storagePath,
+      userId: ownerUserId,
+      details: { childId, bucket: AVATAR_BUCKET }
+    });
+
     return storagePath;
   } catch (err) {
     console.error('[profiles:uploadAvatar] Unexpected error:', err);
@@ -133,6 +143,16 @@ export async function createChildProfile(data: ChildProfilePayload) {
     if (newChild) {
       cookies().set('activeChildId', newChild.id, { secure: true, httpOnly: false });
     }
+
+    // Audit: Child Created
+    await AuditService.log({
+      action: AuditAction.CHILD_CREATED,
+      entityType: EntityType.CHILD_PROFILE,
+      entityId: newChild?.id,
+      userId: user.id,
+      childId: newChild?.id,
+      details: { name: newChild?.first_name } // Minimal PII
+    });
 
     return { success: true, data: newChild };
   } catch (err: any) {
@@ -200,6 +220,17 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
     }
 
     revalidatePath('/dashboard');
+
+    // Audit: Child Updated
+    await AuditService.log({
+      action: AuditAction.CHILD_UPDATED,
+      entityType: EntityType.CHILD_PROFILE,
+      entityId: id,
+      userId: user.id,
+      childId: id,
+      details: { fields: Object.keys(data).join(',') }
+    });
+
     return { success: true };
   } catch (err: any) {
     console.error(`[profiles:updateChildProfile] Unexpected error for ${id}:`, err);
@@ -226,7 +257,7 @@ export async function deleteChildProfile(id: string) {
     // 1. Collect Child Avatar Paths
     const { data: childData, error: childError } = await supabase
       .from('children')
-      .select('avatar_paths')
+      .select('first_name, avatar_paths')
       .eq('id', id)
       .eq('owner_user_id', user.id)
       .single();
@@ -337,6 +368,16 @@ export async function deleteChildProfile(id: string) {
     }
 
     revalidatePath('/dashboard');
+    // Audit: Child Deleted
+    await AuditService.log({
+      action: AuditAction.CHILD_DELETED,
+      entityType: EntityType.CHILD_PROFILE,
+      entityId: id,
+      userId: user.id,
+      childId: id,
+      details: { name: childData?.first_name } // Include name for traceability
+    });
+
     return { success: true, remainingCount: count ?? 0 };
   } catch (err: any) {
     console.error(`[profiles:deleteChildProfile] Unexpected error for ${id}:`, err);
@@ -422,7 +463,7 @@ export async function switchActiveChild(childId: string) {
   }
 
   // Verify ownership
-  const { data, error: fetchError } = await supabase.from('children').select('id').eq('id', childId).eq('owner_user_id', user.id).single();
+  const { data, error: fetchError } = await supabase.from('children').select('id, first_name').eq('id', childId).eq('owner_user_id', user.id).single();
 
   if (fetchError || !data) {
     console.error(`[profiles:switchActiveChild] verification error or unauthorized for child ${childId}:`, {
@@ -433,6 +474,17 @@ export async function switchActiveChild(childId: string) {
   }
 
   cookies().set('activeChildId', childId, { secure: true, httpOnly: false });
+
+  // Audit: Child Switched
+  await AuditService.log({
+    action: AuditAction.CHILD_SWITCHED,
+    entityType: EntityType.CHILD_PROFILE,
+    entityId: childId,
+    userId: user.id,
+    childId: childId,
+    details: { name: data?.first_name } // Include name for traceability
+  });
+
   return { success: true };
 }
 
@@ -502,6 +554,16 @@ export async function updateLibrarySettings(childId: string, settings: any) {
         }
       }
     }
+
+    // Audit: Library Settings Updated
+    await AuditService.log({
+      action: AuditAction.LIBRARY_SETTINGS_UPDATED,
+      entityType: EntityType.CHILD_PROFILE,
+      entityId: targetChildId,
+      userId: user.id,
+      childId: targetChildId,
+      details: { settings }
+    });
 
     return { success: true };
   } catch (err: any) {

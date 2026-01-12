@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 
 const getAdminClient = () => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -71,15 +72,35 @@ export async function getQuotaForUser(
 }
 
 export async function getOrCreateIdentity(user?: { id: string } | null): Promise<UsageIdentity> {
+    const cookieStore = cookies();
+    let guestId = cookieStore.get("guest_id")?.value;
+
     if (user) {
+        // Audit: Identity Merged (from Guest to User)
+        if (guestId && guestId !== user.id) {
+            // We use a detached promise to avoid blocking the main flow
+            AuditService.log({
+                action: AuditAction.IDENTITY_MERGED,
+                entityType: EntityType.USER,
+                entityId: user.id,
+                userId: user.id,
+                identityKey: user.id,
+                details: { previous_guest_id: guestId }
+            }).catch(e => console.error("[UsageService] Failed to log identity merge:", e));
+
+            // Clear the guest cookie so we don't merge/log it again on every request
+            try {
+                cookieStore.delete("guest_id");
+            } catch (e) {
+                // Ignore if we can't delete (e.g. read-only context)
+            }
+        }
+
         return {
             owner_user_id: user.id,
             identity_key: user.id
         };
     }
-
-    const cookieStore = cookies();
-    let guestId = cookieStore.get("guest_id")?.value;
 
     if (!guestId) {
         guestId = globalThis.crypto.randomUUID();

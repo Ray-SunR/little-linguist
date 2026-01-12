@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
 import { normalizeWord } from "@/lib/core";
 import { getWordAnalysisProvider } from "@/lib/features/word-insight/server/factory";
 import { createClient as createAuthClient } from "@/lib/supabase/server";
 import { getOrCreateIdentity, checkUsageLimit, tryIncrementUsage } from "@/lib/features/usage/usage-service.server";
+import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +56,7 @@ export async function POST(req: Request): Promise<NextResponse> {
                 sign(`${word}/example_0.mp3`)
             ]);
 
-            return NextResponse.json({
+            const response = NextResponse.json({
                 word: cached.word,
                 definition: cached.definition,
                 pronunciation: cached.pronunciation,
@@ -68,6 +70,19 @@ export async function POST(req: Request): Promise<NextResponse> {
                 wordTimings: cached.timing_markers,
                 exampleTimings: [],
             });
+
+            // Audit: Word Insight Viewed (Cache Hit)
+            const activeChildId = cookies().get('activeChildId')?.value;
+            await AuditService.log({
+                action: AuditAction.WORD_INSIGHT_VIEWED,
+                entityType: EntityType.WORD,
+                entityId: word,
+                userId: user?.id,
+                childId: activeChildId,
+                details: { cached: true }
+            });
+
+            return response;
         }
 
         // 2. Identity & Limits
@@ -134,7 +149,7 @@ export async function POST(req: Request): Promise<NextResponse> {
 
             generationSuccessful = true;
 
-            return NextResponse.json({
+            const response = NextResponse.json({
                 ...insight,
                 wordAudioUrl: wordAudio?.url || "",
                 audioUrl: defAudio?.url || "",
@@ -145,6 +160,20 @@ export async function POST(req: Request): Promise<NextResponse> {
                 wordTimings: defAudio?.timings || [],
                 exampleTimings: exAudio ? [exAudio.timings] : [],
             });
+
+            // Audit: Word Insight Generated (Cache Miss)
+            const activeChildId = cookies().get('activeChildId')?.value;
+            await AuditService.log({
+                action: AuditAction.WORD_INSIGHT_GENERATED,
+                entityType: EntityType.WORD,
+                entityId: word,
+                userId: user?.id,
+                identityKey: identity.identity_key,
+                childId: activeChildId,
+                details: { cached: false }
+            });
+
+            return response;
         } catch (error: any) {
             console.error("[WordInsight] Generation error:", error);
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { normalizeWord } from "@/lib/core";
+import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 
 /**
  * Sanitizes a word for consistent storage and lookup across all APIs.
@@ -30,24 +31,24 @@ export async function GET(request: NextRequest) {
         const { data, error } = await supabase
             .from('child_vocab')
             .select(`
-                status,
-                origin_book_id,
-                created_at,
-                source_type,
-                reps,
-                next_review_at,
-                books:origin_book_id (
-                    title,
-                    cover_image_path
-                ),
-                word_insights (
-                    word,
-                    definition,
-                    pronunciation,
-                    examples,
-                    audio_path,
-                    timing_markers
-                )
+status,
+    origin_book_id,
+    created_at,
+    source_type,
+    reps,
+    next_review_at,
+    books: origin_book_id(
+        title,
+        cover_image_path
+    ),
+        word_insights(
+            word,
+            definition,
+            pronunciation,
+            examples,
+            audio_path,
+            timing_markers
+        )
             `)
             .eq('child_id', childId)
             .order('created_at', { ascending: false });
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
         // Collect paths for batch signing, separated by bucket
         const audioBucket = "word-insights-audio";
         const imageBucket = "book-assets";
-        
+
         const audioPaths = new Set<string>();
         const imagePaths = new Set<string>();
 
@@ -72,10 +73,10 @@ export async function GET(request: NextRequest) {
                 // Determine paths by convention from normalized word
                 // 1. Stored path (likely definition audio)
                 if (wi.audio_path) audioPaths.add(wi.audio_path);
-                
+
                 // 2. Convention paths (constructed from normalized word)
                 const normalized = normalizeWord(wi.word).replace(/[^a-z0-9-]/g, "");
-                
+
                 audioPaths.add(`${normalized}/word.mp3`);
                 audioPaths.add(`${normalized}/definition.mp3`);
                 audioPaths.add(`${normalized}/example_0.mp3`);
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
 
         // Batch sign
         let signedMap = new Map<string, string>();
-        
+
         // Sign audio paths
         const allAudioPaths = Array.from(audioPaths);
         if (allAudioPaths.length > 0) {
@@ -94,7 +95,7 @@ export async function GET(request: NextRequest) {
                 const { data: signs, error: signError } = await supabase.storage
                     .from(audioBucket)
                     .createSignedUrls(chunk, 3600);
-                
+
                 if (!signError && signs) {
                     signs.forEach(s => {
                         if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
@@ -112,7 +113,7 @@ export async function GET(request: NextRequest) {
                 const { data: signs, error: signError } = await supabase.storage
                     .from(imageBucket)
                     .createSignedUrls(chunk, 3600);
-                
+
                 if (!signError && signs) {
                     signs.forEach(s => {
                         if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
@@ -132,10 +133,10 @@ export async function GET(request: NextRequest) {
                 bookId: item.origin_book_id,
                 bookTitle: (item.books as any)?.title,
                 coverImagePath: (item.books as any)?.cover_image_path,
-                coverImageUrl: (item.books as any)?.cover_image_path 
-                    ? ( (item.books as any).cover_image_path.startsWith('http') 
-                        ? (item.books as any).cover_image_path 
-                        : signedMap.get((item.books as any).cover_image_path) ) 
+                coverImageUrl: (item.books as any)?.cover_image_path
+                    ? ((item.books as any).cover_image_path.startsWith('http')
+                        ? (item.books as any).cover_image_path
+                        : signedMap.get((item.books as any).cover_image_path))
                     : undefined,
                 createdAt: item.created_at,
                 status: item.status,
@@ -182,6 +183,7 @@ export async function POST(request: NextRequest) {
 
         // 1. Ensure vocab_term exists
         let termId: string;
+        let newTerm = null; // Initialize newTerm to null
         const { data: existingTerm } = await adminClient
             .from('word_insights')
             .select('id')
@@ -192,7 +194,7 @@ export async function POST(request: NextRequest) {
             termId = existingTerm.id;
         } else {
             // 'word' column serves as both display and unique key
-            const { data: newTerm, error: termError } = await adminClient
+            const { data: createdTerm, error: termError } = await adminClient
                 .from('word_insights')
                 .insert({
                     language: 'en',
@@ -204,7 +206,8 @@ export async function POST(request: NextRequest) {
                 .select('id')
                 .single();
             if (termError) throw termError;
-            termId = newTerm.id;
+            termId = createdTerm.id;
+            newTerm = createdTerm; // Assign to newTerm if created
         }
 
         // 2. Insert into child_vocab
@@ -221,7 +224,21 @@ export async function POST(request: NextRequest) {
 
         if (error) throw error;
 
-        return NextResponse.json(data);
+        // Audit: Word Added
+        await AuditService.log({
+            action: AuditAction.WORD_ADDED,
+            entityType: EntityType.WORD,
+            entityId: normalized,
+            userId: user.id,
+            childId: childId,
+            details: {
+                word: rawWord,
+                bookId: bookId,
+                insightGenerated: !!insight
+            }
+        });
+
+        return NextResponse.json({ success: true, word: normalized, entry: newTerm });
     } catch (error: any) {
         console.error("POST /api/words error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -260,6 +277,18 @@ export async function DELETE(request: NextRequest) {
             .eq('word_id', term.id);
 
         if (error) throw error;
+
+        // Audit: Word Removed
+        await AuditService.log({
+            action: AuditAction.WORD_REMOVED,
+            entityType: EntityType.WORD,
+            entityId: normalized, // Use normalized word as entityId
+            userId: user.id,
+            childId: childId,
+            details: {
+                word: rawWord, // Use rawWord for details
+            }
+        });
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
