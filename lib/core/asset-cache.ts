@@ -7,6 +7,7 @@ import { raidenCache, CacheStore } from "./cache";
  */
 class AssetCache {
     private CACHE_NAME = "raiden-assets-v1";
+    private TTL = 24 * 60 * 60 * 1000; // 1 day
     private pendingFetches = new Map<string, Promise<string>>();
     private registry = new Map<string, { url: string, count: number }>();
 
@@ -24,11 +25,17 @@ class AssetCache {
         if (updatedAt) {
             try {
                 const metadata = await raidenCache.get<{ id: string; cachedAt: number }>(CacheStore.ASSET_METADATA, objectKey);
-                const updatedTime = typeof updatedAt === 'string' ? new Date(updatedAt).getTime() : updatedAt;
 
-                if (metadata && updatedTime > metadata.cachedAt) {
-                    console.debug(`[AssetCache] INVALIDATING stale asset: ${objectKey} (updatedAt: ${updatedTime} > cachedAt: ${metadata.cachedAt})`);
-                    await this.purge(objectKey);
+                if (metadata) {
+                    const updatedTime = typeof updatedAt === 'string' ? new Date(updatedAt).getTime() : updatedAt;
+
+                    // 1a. Check TTL (1 day)
+                    const isExpired = Date.now() - metadata.cachedAt > this.TTL;
+
+                    if (isExpired || updatedTime > metadata.cachedAt) {
+                        console.debug(`[AssetCache] ${isExpired ? 'TTL EXPIRED' : 'INVALIDATING stale'} asset: ${objectKey}`);
+                        await this.purge(objectKey);
+                    }
                 }
             } catch (err) {
                 console.warn(`[AssetCache] Metadata check failed for ${objectKey}:`, err);

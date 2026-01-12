@@ -260,6 +260,7 @@ export function ClayNav() {
                                                 alt="Me"
                                                 fill
                                                 className="object-cover"
+                                                updatedAt={activeChild.updated_at}
                                             />
                                         </div>
                                     ) : (

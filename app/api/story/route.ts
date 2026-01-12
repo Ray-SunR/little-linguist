@@ -126,58 +126,18 @@ export async function POST(req: Request) {
         const ownerUserId = user.id;
         const isTestMode = process.env.TEST_MODE === 'true';
 
-        // 1.1 Determine the avatar to use (Priority: Request Override > DB Default)
-        let childAvatar = userProfile?.avatarUrl || null;
+        // 1.1 Determine the avatar to use (Priority: Storage Path > DB Default)
+        let childAvatar = userProfile?.avatarStoragePath || null;
 
-        // P1: Validate and Upload Custom Avatar Override
-        if (childAvatar && childAvatar.startsWith('data:image/')) {
-            // It's a data URI, we need to upload it
-            try {
-                // simple regex to get mime and base64
-                const matches = childAvatar.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
-                if (!matches) {
-                    console.warn("Invalid data URI format for avatar. Falling back to default.");
-                    childAvatar = null;
-                } else {
-                    const mimeType = matches[1];
-                    const base64Data = matches[2];
-                    const buffer = Buffer.from(base64Data, 'base64');
+        if (childAvatar) {
+            // SECURITY: Validate that the avatar belongs to the user or the child
+            const isOwnedByUser = childAvatar.startsWith(`${ownerUserId}/`);
+            const isChildAsset = avatarPaths?.includes(childAvatar);
 
-                    // 5MB Cap
-                    if (buffer.length > 5 * 1024 * 1024) {
-                        throw new Error("Avatar image too large (max 5MB)");
-                    }
-
-                    if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) {
-                        throw new Error("Unsupported avatar format (jpeg, png, webp only)");
-                    }
-
-                    const avatarPath = `${ownerUserId}/story-uploads/avatar-override-${Date.now()}.png`; // normalize to png or keep extension
-                    // Actually detecting extension from mime is better but let's assume valid image buffer.
-                    // The background task needs to download it.
-
-                    const { error: uploadError } = await serviceRoleClient.storage
-                        .from('user-assets')
-                        .upload(avatarPath, buffer, {
-                            contentType: mimeType,
-                            upsert: true
-                        });
-
-                    if (uploadError) {
-                        console.error("Failed to upload custom avatar override:", uploadError);
-                        childAvatar = null; // fallback
-                    } else {
-                        childAvatar = avatarPath;
-                    }
-                }
-            } catch (e) {
-                console.error("Error processing custom avatar:", e);
+            if (!isOwnedByUser && !isChildAsset) {
+                console.warn(`[Security] Invalid avatar path attempted: ${childAvatar}. User: ${ownerUserId}`);
                 childAvatar = null;
             }
-        } else if (childAvatar && (childAvatar.startsWith('http://') || childAvatar.startsWith('https://'))) {
-            // Reject external URLs to prevent bloat/abuse, only allow storage paths
-            console.warn("Rejecting external URL for avatar override:", childAvatar);
-            childAvatar = null;
         }
 
         // If no override was provided (or it was invalid/rejected), fallback to child's primary avatar
@@ -186,8 +146,6 @@ export async function POST(req: Request) {
                 ? (avatarPaths[primaryAvatarIndex ?? 0] || avatarPaths[0])
                 : null;
         }
-
-
 
         const wordsList = words.join(", ");
         const bookId = crypto.randomUUID();
@@ -272,6 +230,8 @@ FINAL RECAP:
             }, { status: 500 });
         }
 
+        let creditsRefunded = 0; // Track refunds to avoid double-dipping
+
         try {
             const genAI = new GoogleGenAI({ apiKey });
             const response = await genAI.models.generateContent({
@@ -316,7 +276,7 @@ FINAL RECAP:
             });
 
             const rawPrompt = `System: ${systemInstruction}\n\nUser: ${userPrompt}`;
-            const rawResponseText = response.text || '{}';
+            const rawResponseText = typeof response.text === 'function' ? response.text() : (response.text || '{}');
             const data = JSON.parse(rawResponseText);
 
             // 1.5 Validate LLM output structure
@@ -326,7 +286,7 @@ FINAL RECAP:
             }
 
             // Consistency Check: Ensure image_scenes map to valid indices
-            const validImageScenes = data.image_scenes.filter((img: any) =>
+            let validImageScenes = data.image_scenes.filter((img: any) =>
                 typeof img.section_index === 'number' &&
                 img.section_index >= 0 &&
                 img.section_index < data.sections.length &&
@@ -334,12 +294,21 @@ FINAL RECAP:
                 img.image_prompt.trim() !== ""
             );
 
+            // Cap the number of images to the requested amount (Usage Protection)
+            if (validImageScenes.length > imageSceneCount) {
+                console.warn(`[StoryAPI] Model generated more images than requested (${validImageScenes.length}/${imageSceneCount}). Truncating.`);
+                validImageScenes = validImageScenes.slice(0, imageSceneCount);
+            }
+
             // Strong Consistency: Credit Refund if model under-generated
             const actualImageCount = validImageScenes.length;
             if (actualImageCount < imageSceneCount && !isTestMode) {
                 const refundAmount = imageSceneCount - actualImageCount;
-                console.warn(`[StoryAPI] Model under-generated images (${actualImageCount}/${imageSceneCount}). Refunding ${refundAmount} credits.`);
-                await refundCredits(identity!, "image_generation", refundAmount);
+                if (refundAmount > 0) {
+                    console.warn(`[StoryAPI] Model under-generated images (${actualImageCount}/${imageSceneCount}). Refunding ${refundAmount} credits.`);
+                    await refundCredits(identity!, "image_generation", refundAmount);
+                    creditsRefunded += refundAmount;
+                }
             }
 
             // Map image prompts back to sections for compatibility
@@ -447,7 +416,6 @@ FINAL RECAP:
             }
 
             // 5. Background Narration & Image Generation
-            // 5. Background Narration & Image Generation
             const bgStoryRepo = new StoryRepository(serviceRoleClient);
 
             // Helper to log steps to the story record (Atomic via RPC)
@@ -478,10 +446,14 @@ FINAL RECAP:
                         const { audioBuffer, speechMarks } = await polly.synthesize(chunk.text);
                         const storagePath = `${book.id}/audio/${voiceId}/${chunk.index}.mp3`;
 
-                        await serviceRoleClient.storage.from('book-assets').upload(storagePath, audioBuffer, {
+                        const { error: uploadError } = await serviceRoleClient.storage.from('book-assets').upload(storagePath, audioBuffer, {
                             contentType: 'audio/mpeg',
                             upsert: true
                         });
+
+                        if (uploadError) {
+                            throw new Error(`Failed to upload audio chunk ${chunk.index}: ${uploadError.message}`);
+                        }
 
                         const wordTokensForChunk = getWordTokensForChunk(tokens, chunk.startWordIndex, chunk.endWordIndex);
                         const alignedTimings = alignSpeechMarksToTokens(speechMarks, wordTokensForChunk);
@@ -507,9 +479,12 @@ FINAL RECAP:
                         let userPhotoBuffer: Buffer | undefined;
                         if (childAvatar) {
                             try {
-                                const { data: photoData } = await serviceRoleClient.storage
+                                const { data: photoData, error: downloadError } = await serviceRoleClient.storage
                                     .from('user-assets')
                                     .download(childAvatar);
+
+                                if (downloadError) throw downloadError;
+
                                 if (photoData) {
                                     const arrayBuffer = await photoData.arrayBuffer();
                                     userPhotoBuffer = Buffer.from(arrayBuffer);
@@ -520,18 +495,18 @@ FINAL RECAP:
                             }
                         }
 
-                        // Throttled image generation (Batch size of 2 to avoid rate limits and memory pressure)
+                        // Optimization: Filter sections needing images first
+                        const sectionsToGenerate = sectionsWithIndices
+                            .map((section: any, index: number) => ({ section, index }))
+                            .filter(({ section }) => section.image_prompt && section.image_prompt.trim() !== "");
+
                         const successfulIndices: number[] = [];
-                        const batchSize = 2;
+                        const batchSize = 2; // Throttle to avoid rate limits
 
-                        for (let i = 0; i < sectionsWithIndices.length; i += batchSize) {
-                            const batch = sectionsWithIndices.slice(i, i + batchSize);
-                            const batchStartIndex = i;
+                        for (let i = 0; i < sectionsToGenerate.length; i += batchSize) {
+                            const batch = sectionsToGenerate.slice(i, i + batchSize);
 
-                            await Promise.all(batch.map(async (section: any, relativeIndex: number) => {
-                                const currentIndex = batchStartIndex + relativeIndex;
-                                if (!section.image_prompt || section.image_prompt.trim() === "") return;
-
+                            await Promise.all(batch.map(async ({ section, index: currentIndex }) => {
                                 try {
                                     const result = await provider.generateImage({
                                         prompt: section.image_prompt,
@@ -542,10 +517,14 @@ FINAL RECAP:
 
                                     const imageStoragePath = `${bookId}/images/section-${currentIndex}-${Date.now()}.png`;
 
-                                    await serviceRoleClient.storage.from('book-assets').upload(imageStoragePath, result.imageBuffer, {
+                                    const { error: uploadError } = await serviceRoleClient.storage.from('book-assets').upload(imageStoragePath, result.imageBuffer, {
                                         contentType: result.mimeType,
                                         upsert: true
                                     });
+
+                                    if (uploadError) {
+                                        throw new Error(`Failed to upload image: ${uploadError.message}`);
+                                    }
 
                                     await serviceRoleClient.from('book_media').upsert({
                                         book_id: bookId,
@@ -608,15 +587,23 @@ FINAL RECAP:
 
                     // Refund credits on total background failure ONLY if not in test mode
                     if (identity && identity.identity_key !== 'unknown' && !isTestMode) {
-                        console.warn(`[StoryAPI] Background task failed. Refunding all relevant credits for ${identity.identity_key}`);
-                        // Refund 1 story and ALL images that weren't already accounted for
-                        // However, to keep it simple and safe, we refund the full original imageSceneCount 
-                        // because partial refunds only happen in the success path above.
-                        // If we are in the catch block, we refund everything.
-                        await reserveCredits(identity, [
-                            { featureName: "story_generation", increment: -1 },
-                            { featureName: "image_generation", increment: -imageSceneCount }
-                        ]).catch(e => console.error("Failed to process background refund:", e));
+                        console.warn(`[StoryAPI] Background task failed. Refunding credits for ${identity.identity_key}`);
+
+                        // We need to calculate what to refund. 
+                        // We charged: 1 story + imageSceneCount (initial)
+                        // We already refunded: creditsRefunded (under-generation)
+                        // If we are here, something catastrophic happened.
+
+                        // BUT: logic above might have already refunded partial failures if we got past image generation.
+                        // Ideally we check if we are failing BEFORE image generation or AFTER.
+                        // For simplicity/safety: we try to refund the remaining "charged" amount.
+
+                        const remainingImagesCharged = imageSceneCount - creditsRefunded;
+
+                        await refundCredits(identity, "story_generation", 1);
+                        if (remainingImagesCharged > 0) {
+                            await refundCredits(identity, "image_generation", remainingImagesCharged);
+                        }
                     }
 
                     await serviceRoleClient
@@ -647,11 +634,14 @@ FINAL RECAP:
             // Critical: Refund credits on system failure ONLY if identity is known AND not in test mode
             if (identity && identity.identity_key !== 'unknown' && !isTestMode) {
                 console.warn(`[StoryAPI] Generation failed after reservation. Refunding credits for ${identity.identity_key}`);
-                // Attempt refund (negative increment)
-                await reserveCredits(identity, [
-                    { featureName: "story_generation", increment: -1 },
-                    { featureName: "image_generation", increment: -imageSceneCount }
-                ]).catch(e => console.error("Failed to process refund:", e));
+
+                // Refund everything we haven't already refunded
+                const remainingImagesCharged = imageSceneCount - creditsRefunded;
+
+                await refundCredits(identity, "story_generation", 1);
+                if (remainingImagesCharged > 0) {
+                    await refundCredits(identity, "image_generation", remainingImagesCharged);
+                }
             }
 
             return NextResponse.json({ error: error.message || "Failed to generate story" }, { status: 500 });

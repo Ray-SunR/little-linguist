@@ -42,6 +42,7 @@ export type UserProfile = {
     topic?: string;
     setting?: string;
     interests?: string[];
+    updatedAt?: string | number;
 };
 
 /**

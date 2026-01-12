@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createChildProfile, updateChildProfile } from '@/app/actions/profiles';
 import { Loader2, User, Camera, Sparkles, Check, ChevronRight, Wand2, Plus, Minus } from 'lucide-react';
-import type { ChildProfilePayload } from '@/app/actions/profiles';
+import type { ChildProfilePayload, ChildProfile } from '@/app/actions/profiles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { compressImage } from "@/lib/core/utils/image";
@@ -12,7 +12,7 @@ import { CachedImage } from '@/components/ui/cached-image';
 import { useAuth } from '@/components/auth/auth-provider';
 
 interface Props {
-    initialData?: ChildProfilePayload & { id?: string };
+    initialData?: ChildProfile;
     onSuccess?: () => void;
     isFirstTime?: boolean;
 }
@@ -37,6 +37,7 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
 
     // Local state for avatar preview (mirrors story-maker behavior)
     const [avatarPreview, setAvatarPreview] = useState<string | undefined>(initialData?.avatar_asset_path);
+    const [avatarStoragePath, setAvatarStoragePath] = useState<string | undefined>(initialData?.avatar_paths?.[0]);
     const [isUploading, setIsUploading] = useState(false);
     const [errors, setErrors] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -194,7 +195,8 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
                                     <div className="relative w-full h-full p-3 md:p-4">
                                         <CachedImage
                                             src={avatarPreview}
-                                            storagePath={avatarPreview.startsWith('data:') ? undefined : avatarPreview}
+                                            storagePath={avatarStoragePath}
+                                            updatedAt={initialData?.updated_at}
                                             alt="Preview"
                                             fill
                                             className="w-full h-full object-cover rounded-[1.5rem] md:rounded-[2rem] shadow-clay ring-4 ring-white"
@@ -206,6 +208,7 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 setAvatarPreview(undefined);
+                                                setAvatarStoragePath(undefined);
                                             }}
                                             className="absolute top-4 right-4 md:top-6 md:right-6 w-8 h-8 md:w-10 md:h-10 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-lg md:text-xl border-2 border-white"
                                         >
@@ -243,6 +246,7 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
                                             try {
                                                 const compressed = await compressImage(file);
                                                 setAvatarPreview(compressed);
+                                                setAvatarStoragePath(undefined);
                                             } catch (err) {
                                                 console.error("Compression failed:", err);
                                                 setErrors("Failed to process image.");

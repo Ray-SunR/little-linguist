@@ -131,8 +131,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         name: activeChild.first_name,
                         age: age,
                         gender: (activeChild.gender as any) || 'neutral',
-                        avatarUrl: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
+                        avatarUrl: activeChild.avatar_asset_path || undefined,
                         avatarStoragePath: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
+                        updatedAt: activeChild.updated_at,
                         interests: activeChild.interests || [],
                         // Pre-fill topic with first interest if available
                         topic: activeChild.interests?.[0] || ""
@@ -521,8 +522,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                     name: p.first_name,
                                                     age: new Date().getFullYear() - birthYear,
                                                     gender: (p.gender as any) || 'neutral',
-                                                    avatarUrl: (p.avatar_paths && p.avatar_paths.length > 0) ? p.avatar_paths[0] : '',
+                                                    avatarUrl: p.avatar_asset_path || '',
                                                     avatarStoragePath: (p.avatar_paths && p.avatar_paths.length > 0) ? p.avatar_paths[0] : undefined,
+                                                    updatedAt: p.updated_at,
                                                     interests: p.interests || []
                                                 };
                                                 setProfile(selectedProfile);
@@ -539,8 +541,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md">
                                                     {(p.avatar_paths && p.avatar_paths.length > 0) ? (
                                                         <CachedImage
-                                                            src={p.avatar_paths[0]}
-                                                            storagePath={p.avatar_paths[0]}
+                                                            src={p.avatar_asset_path || ''}
+                                                            storagePath={(p.avatar_paths && p.avatar_paths.length > 0) ? p.avatar_paths[0] : undefined}
+                                                            updatedAt={p.updated_at}
                                                             alt={p.first_name}
                                                             fill
                                                             className="object-cover"
@@ -670,7 +673,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 <div className="relative w-full h-full p-4">
                                                     <CachedImage
                                                         src={profile.avatarUrl || ''}
-                                                        storagePath={profile.avatarStoragePath || (profile.avatarUrl?.includes('/') ? profile.avatarUrl : undefined)}
+                                                        storagePath={profile.avatarStoragePath}
+                                                        updatedAt={profile.updatedAt}
                                                         alt="Preview"
                                                         fill
                                                         className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
@@ -754,8 +758,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
                                                             setProfile({
                                                                 ...profile,
-                                                                avatarUrl: storagePath,
-                                                                avatarStoragePath: storagePath
+                                                                avatarUrl: publicUrl,
+                                                                avatarStoragePath: storagePath,
+                                                                updatedAt: Date.now()
                                                             });
                                                         } catch (err) {
                                                             console.error("Upload failed:", err);
