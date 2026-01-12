@@ -102,7 +102,7 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
                         <div className="space-y-8">
                             {/* Name Field */}
                             <div>
-                                <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero's Name</label>
+                                <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero&apos;s Name</label>
                                 <input
                                     type="text"
                                     value={formData.first_name}

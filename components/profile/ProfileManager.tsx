@@ -221,7 +221,7 @@ export default function ProfileManager({ initialChildren }: Props) {
               <User className="w-12 h-12" />
             </div>
             <h3 className="text-2xl font-black text-slate-400 font-fredoka">No heroes found.</h3>
-            <p className="text-slate-300 font-bold font-nunito mb-8">Let's add your first explorer!</p>
+            <p className="text-slate-300 font-bold font-nunito mb-8">Let&apos;s add your first explorer!</p>
           </div>
         )}
       </div>
@@ -314,7 +314,7 @@ export default function ProfileManager({ initialChildren }: Props) {
                 <Trash2 className="w-10 h-10" />
               </div>
               <h3 className="text-2xl font-black text-ink font-fredoka mb-2">Are you sure?</h3>
-              <p className="text-ink-muted font-bold font-nunito mb-6">This will permanently remove the hero's journey.</p>
+              <p className="text-ink-muted font-bold font-nunito mb-6">This will permanently remove the hero&apos;s journey.</p>
 
               {deleteError && (
                 <div className="mb-6 p-4 bg-rose-50 border-2 border-rose-100 rounded-2xl text-rose-500 text-sm font-bold animate-fade-in">

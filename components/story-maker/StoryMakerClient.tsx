@@ -500,7 +500,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     {isGuestOneOffFlow ? "Welcome Back! ✨" : "About the Hero"}
                                 </h2>
                                 <p className="text-ink-muted font-medium font-nunito">
-                                    {isGuestOneOffFlow ? "Pick a child for this adventure." : "Tell us who's going on this adventure!"}
+                                    {isGuestOneOffFlow ? "Pick a child for this adventure." : "Tell us who&apos;s going on this adventure!"}
                                 </p>
                             </div>
                         </div>
@@ -580,7 +580,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 <div className="grid md:grid-cols-2 gap-10 mb-10">
                                     <div className="space-y-8">
                                         <div>
-                                            <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero's Name</label>
+                                            <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero&apos;s Name</label>
                                             <input
                                                 type="text"
                                                 value={profile.name}
@@ -775,7 +775,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 {/* Adventure Details: Topic and Setting */}
                                 <div className="grid md:grid-cols-2 gap-8 mb-10 pt-8 border-t-2 border-purple-50">
                                     <div>
-                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">What's the Story About?</label>
+                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">What&apos;s the Story About?</label>
                                         <input
                                             type="text"
                                             value={profile.topic || ''}
@@ -1224,7 +1224,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
                                     {profile.topic && (
                                         <div className="text-sm font-bold text-ink-muted/60 font-nunito italic">
-                                            "A story about {profile.topic}..."
+                                            &quot;A story about {profile.topic}...&quot;
                                         </div>
                                     )}
                                 </div>

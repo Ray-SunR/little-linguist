@@ -57,7 +57,7 @@ export default function DashboardUI({ activeChild }: Props) {
                         <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-white border-b-2 border-l-2 border-purple-100 rotate-45 rounded-sm" />
 
                         <p className="text-base font-black text-ink font-fredoka leading-tight">
-                            "{childName}! Ready for today's adventure?" 🚀
+                            &quot;{childName}! Ready for today&apos;s adventure?&quot; 🚀
                         </p>
                     </motion.div>
                 </div>
@@ -93,10 +93,10 @@ export default function DashboardUI({ activeChild }: Props) {
                                 </span>
                             </div>
                             <h2 className="text-3xl font-black font-fredoka leading-tight mb-2 group-hover:scale-[1.02] transition-transform origin-left">
-                                Read "The Lost Star"
+                                Read &quot;The Lost Star&quot;
                             </h2>
                             <p className="text-amber-100 font-medium font-nunito max-w-sm">
-                                Find out where the little star went! Earn +50 XP and unlock the "Stargazer" badge.
+                                Find out where the little star went! Earn +50 XP and unlock the &quot;Stargazer&quot; badge.
                             </p>
                         </div>
 

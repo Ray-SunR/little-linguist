@@ -508,7 +508,7 @@ export function ClayNav() {
                                         <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-6">
                                             <User className="w-10 h-10 text-slate-300" />
                                         </div>
-                                        <p className="text-slate-500 italic font-nunito font-bold text-lg mb-8 uppercase tracking-widest text-center">Your hero's journey begins with a single word...</p>
+                                        <p className="text-slate-500 italic font-nunito font-bold text-lg mb-8 uppercase tracking-widest text-center">Your hero&apos;s journey begins with a single word...</p>
                                         <Link
                                             href="/login"
                                             className="w-full py-4 rounded-2xl bg-accent text-white font-fredoka font-black text-center shadow-clay-accent"

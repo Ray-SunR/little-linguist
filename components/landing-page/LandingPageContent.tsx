@@ -225,7 +225,7 @@ export default function LandingPageContent() {
                         </div>
 
                         <h1 className="text-5xl lg:text-7xl font-black text-ink mb-6 font-fredoka tracking-tight leading-[1.1]">
-                            Your Child's <br />
+                            Your Child&apos;s <br />
                             <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500">
                                 AI Companion
                                 <motion.span
@@ -416,7 +416,7 @@ export default function LandingPageContent() {
                                 Magical <span className="text-blue-500">Goal Tracking</span>
                             </h2>
                             <p className="text-xl text-ink-muted font-medium mb-6">
-                                LumoMind helps you set personalized reading goals. Watch your child's confidence grow as they unlock new levels and badges.
+                                LumoMind helps you set personalized reading goals. Watch your child&apos;s confidence grow as they unlock new levels and badges.
                             </p>
                             <ul className="space-y-3 mb-8">
                                 {["AI-recommended stories", "Personalized difficulty levels", "Growth progress & rewards"].map((item, i) => (
@@ -539,7 +539,7 @@ export default function LandingPageContent() {
                     {/* Missing Feature / Coming Soon */}
                     <div className="text-center pt-8">
                         <p className="text-lg text-ink-muted font-medium">
-                            Plus: <span className="font-bold text-ink">Word Collection</span> to review what you've learned, and even <span className="text-purple-500 font-bold">More AI Features</span> coming soon!
+                            Plus: <span className="font-bold text-ink">Word Collection</span> to review what you&apos;ve learned, and even <span className="text-purple-500 font-bold">More AI Features</span> coming soon!
                         </p>
                     </div>
 

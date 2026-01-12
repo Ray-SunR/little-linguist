@@ -134,9 +134,9 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                 selectedWords: formData.selectedWords,
                 isGuestFlow: true
             };
-            
+
             await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", ...draft });
-            
+
             const returnUrl = encodeURIComponent('/story-maker?action=resume_story_maker');
             router.push(`/login?returnTo=${returnUrl}`);
         } catch (err: any) {
@@ -208,8 +208,8 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     </div>
                                     <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-ink font-fredoka">Who is our Hero?</h2>
                                     <p className="text-ink-muted font-bold font-nunito">
-                                        {mode === 'story' 
-                                            ? "Let's name your hero! We'll create a profile to save their adventures." 
+                                        {mode === 'story'
+                                            ? "Let's name your hero! We'll create a profile to save their adventures."
                                             : "Let's start by naming your child's profile."}
                                     </p>
                                 </div>
@@ -243,7 +243,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                             <div className="w-full space-y-10 text-center">
                                 <div className="space-y-4">
                                     <h2 className="text-2xl md:text-4xl font-black text-ink font-fredoka px-4">How old is <span className="text-purple-600">{formData.first_name}</span>?</h2>
-                                    <p className="text-ink-muted font-bold font-nunito text-sm md:text-base">We'll tailor the stories to their age.</p>
+                                    <p className="text-ink-muted font-bold font-nunito text-sm md:text-base">We&apos;ll tailor the stories to their age.</p>
                                 </div>
 
                                 <div className="flex items-center justify-between p-3 md:p-4 rounded-[2.5rem] md:rounded-[3rem] bg-purple-50 shadow-inner border-4 border-white mx-auto max-w-[280px] md:max-w-xs">
@@ -503,8 +503,8 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto shadow-clay-pink-sm">
                                         <BookOpen className="w-8 h-8 md:w-10 md:h-10 text-orange-600" />
                                     </div>
-                                    <h2 className="text-2xl md:text-4xl font-black text-ink font-fredoka uppercase">What's the Story About?</h2>
-                                    <p className="text-ink-muted font-bold font-nunito text-sm md:text-base px-4">Tell us a theme for <span className="text-purple-600">{formData.first_name}</span>'s adventure.</p>
+                                    <h2 className="text-2xl md:text-4xl font-black text-ink font-fredoka uppercase">What&apos;s the Story About?</h2>
+                                    <p className="text-ink-muted font-bold font-nunito text-sm md:text-base px-4">Tell us a theme for <span className="text-purple-600">{formData.first_name}</span>&apos;s adventure.</p>
                                 </div>
 
                                 <div className="relative max-w-sm mx-auto">
@@ -519,7 +519,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     />
                                 </div>
 
-                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                     <button onClick={() => prevStep('interests')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 w-full sm:w-auto justify-center">
                                         <ChevronLeft /> Back
                                     </button>
@@ -565,7 +565,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     />
                                 </div>
 
-                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                     <button onClick={() => prevStep('topic')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 w-full sm:w-auto justify-center">
                                         <ChevronLeft /> Back
                                     </button>
@@ -623,7 +623,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     })}
                                 </div>
 
-                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                     <button onClick={() => prevStep('setting')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
                                         <ChevronLeft /> Back
                                     </button>
@@ -661,7 +661,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                 </div>
                                 <div className="space-y-4">
                                     <h2 className="text-3xl font-black text-ink font-fredoka">Creating Your World...</h2>
-                                    <p className="text-ink-muted font-bold font-nunito">We're getting things ready for <span className="text-purple-600">{formData.first_name}</span>.</p>
+                                    <p className="text-ink-muted font-bold font-nunito">We&apos;re getting things ready for <span className="text-purple-600">{formData.first_name}</span>.</p>
                                 </div>
                             </div>
                         )}

@@ -127,12 +127,12 @@ export default function WordInspectorTooltip({
                 <p className="text-sm font-nunito font-bold text-ink-muted mt-2">
                   {user ? (
                     <>
-                      You've hit your daily insight limit. <br />
+                      You&apos;ve hit your daily insight limit. <br />
                       <span className="text-purple-600 font-black">Upgrade to Pro</span> for unlimited magical discoveries!
                     </>
                   ) : (
                     <>
-                      You've unlocked several magical words! <br />
+                      You&apos;ve unlocked several magical words! <br />
                       <span className="text-purple-600 font-black">Sign in</span> to save your progress and discover unlimited insights.
                     </>
                   )}

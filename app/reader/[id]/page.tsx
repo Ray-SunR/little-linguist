@@ -13,15 +13,14 @@ export default async function ReaderDetailPage({ params }: ReaderPageProps) {
     // fetching based on the current user's available books.
 
     return (
-        <ReaderContainer
-            bookId={bookId}
-            children={({ initialBook, error }) => (
+        <ReaderContainer bookId={bookId}>
+            {({ initialBook, error }) => (
                 <ReaderContent
                     bookId={bookId}
                     initialBook={initialBook}
                     initialError={error}
                 />
             )}
-        />
+        </ReaderContainer>
     ) as any;
 }
