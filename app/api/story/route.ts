@@ -276,7 +276,7 @@ FINAL RECAP:
             });
 
             const rawPrompt = `System: ${systemInstruction}\n\nUser: ${userPrompt}`;
-            const rawResponseText = typeof response.text === 'function' ? response.text() : (response.text || '{}');
+            const rawResponseText = response.text || '{}';
             const data = JSON.parse(rawResponseText);
 
             // 1.5 Validate LLM output structure
@@ -498,7 +498,7 @@ FINAL RECAP:
                         // Optimization: Filter sections needing images first
                         const sectionsToGenerate = sectionsWithIndices
                             .map((section: any, index: number) => ({ section, index }))
-                            .filter(({ section }) => section.image_prompt && section.image_prompt.trim() !== "");
+                            .filter(({ section }: { section: any }) => section.image_prompt && section.image_prompt.trim() !== "");
 
                         const successfulIndices: number[] = [];
                         const batchSize = 2; // Throttle to avoid rate limits
@@ -506,7 +506,7 @@ FINAL RECAP:
                         for (let i = 0; i < sectionsToGenerate.length; i += batchSize) {
                             const batch = sectionsToGenerate.slice(i, i + batchSize);
 
-                            await Promise.all(batch.map(async ({ section, index: currentIndex }) => {
+                            await Promise.all(batch.map(async ({ section, index: currentIndex }: { section: any; index: number }) => {
                                 try {
                                     const result = await provider.generateImage({
                                         prompt: section.image_prompt,
