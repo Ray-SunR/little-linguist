@@ -55,6 +55,8 @@ import {
     SheetClose,
 } from "@/components/ui/sheet";
 
+import { CachedImage } from "@/components/ui/cached-image";
+
 // --- Shared Constants (Move to shared file in future cleanup) ---
 const CATEGORIES = [
     { id: "all", label: "All Stories", icon: LayoutGrid, iconClass: "text-purple-600 fill-purple-100" },
@@ -249,10 +251,11 @@ export function BookshelfToolbar({
                             <Link href="/dashboard" className="block">
                                 <div className="relative w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden ring-2 ring-purple-200 hover:ring-purple-400 transition-all cursor-pointer shadow-sm hover:shadow-md">
                                     {activeChild.avatar_url ? (
-                                        <img
+                                        <CachedImage
                                             src={activeChild.avatar_url}
                                             alt={activeChild.name}
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            className="object-cover"
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white font-fredoka font-bold text-sm">

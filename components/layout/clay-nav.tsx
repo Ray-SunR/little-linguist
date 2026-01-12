@@ -391,9 +391,11 @@ export function ClayNav() {
                                         <div className="relative mb-6">
                                             <div className="w-32 h-32 rounded-[2rem] border-4 border-white shadow-clay-white overflow-hidden bg-slate-100 rotate-3 transition-transform duration-500">
                                                 {user.user_metadata?.avatar_url ? (
-                                                    <img
+                                                    <CachedImage
                                                         src={user.user_metadata.avatar_url}
                                                         alt="Profile"
+                                                        width={128}
+                                                        height={128}
                                                         className="w-full h-full object-cover scale-110"
                                                     />
                                                 ) : (

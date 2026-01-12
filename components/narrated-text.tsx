@@ -142,7 +142,7 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
             if (autoPlay && narration.play && narration.state === "IDLE") {
                 narration.play();
             }
-        }, [autoPlay, narration.play, narration.state]);
+        }, [autoPlay, narration]); // Added narration as dependency
 
         if (!provider) {
             return <p className={className}>{text}</p>;

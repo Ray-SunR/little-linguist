@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useRef } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { getChildren, getUserProfile, updateLibrarySettings as apiUpdateLibrarySettings, type ChildProfile } from "@/app/actions/profiles";
@@ -45,12 +45,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Keep userRef in sync for auth state comparisons
+  // Keep refs in sync
   useEffect(() => { userRef.current = user; }, [user]);
+  useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
+
+  // Keep pathname in ref to avoid re-triggering fetchProfiles on route change if we don't want to
+  // But actually, fetchProfiles USES pathname to redirect.
+  // If we want fetchProfiles to be stable, we can use a ref for pathname.
+  const pathnameRef = useRef(pathname);
+  useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
 
   const supabase = useMemo(() => createClient(), []);
 
-  async function hydrateFromCache(uid?: string): Promise<ChildProfile[]> {
+  const hydrateFromCache = useCallback(async (uid?: string): Promise<ChildProfile[]> => {
     if (typeof window === "undefined") return [];
 
     // Create a 2s ceiling for cache hydration to prevent stalling the whole auth flow
@@ -102,9 +109,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.warn("[RAIDEN_DIAG][Auth] Cache hydration ceiling reached (2s), skipping to network.");
       return [];
     }
-  }
+  }, [supabase]);
 
-  async function persistProfiles(data: ChildProfile[], uid: string): Promise<void> {
+  const persistProfiles = useCallback(async (data: ChildProfile[], uid: string): Promise<void> => {
     if (typeof window === "undefined") return;
     try {
       const { raidenCache, CacheStore } = await import("@/lib/core/cache");
@@ -117,36 +124,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (err) {
       console.warn("[RAIDEN_DIAG][Auth] Failed to persist profile cache:", err);
     }
-  }
+  }, []);
 
-  async function fetchProfiles(uid: string, silent = false, retryCount = 0): Promise<void> {
+  const fetchProfiles = useCallback(async (uid: string, silent = false, retryCount = 0): Promise<void> => {
     const requestId = ++activeFetchIdRef.current;
     if (!silent && retryCount === 0) setIsLoading(true);
 
     console.info(`[RAIDEN_DIAG][Auth] fetchProfiles starting: req=${requestId} uid=${uid} silent=${silent} retry=${retryCount}`);
 
     try {
-      // Dynamic import removed as getChildren is already imported
       const { data, error } = await getChildren();
 
-      // Check if this is still the active request
       if (requestId !== activeFetchIdRef.current) {
         console.info(`[RAIDEN_DIAG][Auth] Skipping stale fetch result (req ${requestId} != active ${activeFetchIdRef.current})`);
         return;
       }
 
-      // Handle transient auth errors from server actions immediately after login
       if (error === 'Not authenticated' && retryCount < 2) {
         console.warn(`[RAIDEN_DIAG][Auth] fetchProfiles (req ${requestId}): Not authenticated on server. Retrying in 500ms... (attempt ${retryCount + 1})`);
         await new Promise(r => setTimeout(r, 500));
-        // Recurse: new call will increment activeFetchIdRef, so this call's 'finally' won't clear loading
         return fetchProfiles(uid, silent, retryCount + 1);
       }
 
       if (error) {
         console.error(`[RAIDEN_DIAG][Auth] getChildren error (req ${requestId}):`, error);
-        // If we hit an error (and not retrying), we SHOULD eventually clear loading 
-        // to avoid infinite spinner, but we won't update profiles.
       } else if (data) {
         setProfiles(data);
         await persistProfiles(data, uid);
@@ -158,26 +159,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setLibrarySettings(finalActive.library_settings);
         }
 
-        // Redirect to onboarding if no profiles found and not already there
-        if (data.length === 0 && pathname !== '/onboarding' && pathname !== '/') {
-          // Allow root page (landing) or onboarding. Redirect other protected routes or dashboard/library.
-          // Actually, if we are authenticated and have 0 profiles, we should probably force onboarding 
-          // unless we are specifically on a "create profile" flow which IS onboarding.
-          // Let's stick to the plan: if (empty) -> onboarding.
+        // Use ref for pathname to avoid dependency cycle
+        const currentPath = pathnameRef.current;
+        if (data.length === 0 && currentPath !== '/onboarding' && currentPath !== '/') {
           router.push('/onboarding');
         }
       }
     } catch (err) {
       console.error(`[RAIDEN_DIAG][Auth] Unexpected fetchProfiles error (req ${requestId}):`, err);
     } finally {
-      // Only clear loading if this is still the active request
-      // If we recursed for a retry, the inner call became the active request.
       if (requestId === activeFetchIdRef.current) {
         setIsLoading(false);
         console.info(`[RAIDEN_DIAG][Auth] fetchProfiles finished, cleared loading for req ${requestId}`);
       }
     }
-  }
+  }, [persistProfiles, router]);
+
+  const refreshProfiles = useCallback(async (silent = false): Promise<void> => {
+    if (userRef.current?.id) {
+      await fetchProfiles(userRef.current.id, silent);
+    }
+  }, [fetchProfiles]);
+
+  const isLoadingRef = useRef(isLoading);
 
   // Sync library settings when active child changes
   useEffect(() => {
@@ -201,7 +205,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       abortControllerRef.current = controller;
 
       const timeoutId = setTimeout(() => {
-        if (mounted && isLoading) {
+        if (mounted && isLoadingRef.current) {
           console.warn("[RAIDEN_DIAG][Auth] Safety timeout triggered: forcing isLoading = false after 20s");
           controller.abort('Timeout');
           setIsLoading(false);
@@ -245,7 +249,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (mounted) setIsLoading(false);
       } finally {
         clearTimeout(timeoutId);
-        if (mounted && isLoading && !controller.signal.aborted) {
+        if (mounted && isLoadingRef.current && !controller.signal.aborted) {
           console.info("[RAIDEN_DIAG][Auth] Initialization finished (silent success or catch-all)");
           setIsLoading(false);
         }
@@ -332,13 +336,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (abortControllerRef.current) abortControllerRef.current.abort();
       subscription.unsubscribe();
     };
-  }, [supabase]);
-
-  async function refreshProfiles(silent = false): Promise<void> {
-    if (user?.id) {
-      await fetchProfiles(user.id, silent);
-    }
-  }
+  }, [supabase, hydrateFromCache, fetchProfiles, refreshProfiles]);
 
   function handleSetActiveChild(child: ChildProfile | null): void {
     setActiveChild(child);

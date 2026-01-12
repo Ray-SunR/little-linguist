@@ -149,6 +149,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             }
         };
         loadDraft();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialProfile, user, activeChild]);
 
     // Unified Effect for Resuming, Result Polling, and Cleanup
@@ -213,6 +214,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         }
 
         resumeDraftIfNeeded();
+        resumeDraftIfNeeded();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, isLoading, searchParams, step]);
 
     // Polling effect for results (if unmounted/remounted into generating state)
@@ -250,7 +253,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         }, 1000); // 1s debounce
 
         return () => clearTimeout(timer);
-    }, [profile, selectedWords, user]);
+        return () => clearTimeout(timer);
+    }, [profile, selectedWords, user, activeChild, storyLengthMinutes, imageSceneCount]);
 
     // Subscribe to realtime updates
     useBookMediaSubscription(supabaseBook?.id, useCallback((newImage: any) => {
@@ -330,7 +334,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         if (overrideWords) setSelectedWords(finalWords);
         if (overrideStoryLengthMinutes) setStoryLengthMinutes(finalStoryLengthMinutes);
         // Note: imageSceneCount override support avoided for simplicity unless needed, assuming state matches
-        const finalImageSceneCount = imageSceneCount; // Use current state as override logic for image count is tricky without clearer signature
+        if (overrideStoryLengthMinutes) setStoryLengthMinutes(finalStoryLengthMinutes);
+        const finalImageSceneCount = overrideImageSceneCount ?? imageSceneCount;
 
         setStep("generating");
         setError(null);

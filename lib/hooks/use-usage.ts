@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export interface UsageStatus {
@@ -22,12 +22,16 @@ export function useUsage(features: string[] = ['story_generation', 'image_genera
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Stable features array to prevent infinite loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const stableFeatures = useMemo(() => features, [features.join(',')]);
+
     const fetchUsage = useCallback(async (options: { silent?: boolean } = {}) => {
         try {
             if (!options.silent) {
                 setLoading(true);
             }
-            const res = await fetch(`/api/usage?features=${features.join(',')}`, {
+            const res = await fetch(`/api/usage?features=${stableFeatures.join(',')}`, {
                 headers: { 'Cache-Control': 'no-cache, no-store' },
                 cache: 'no-store'
             });
@@ -43,7 +47,7 @@ export function useUsage(features: string[] = ['story_generation', 'image_genera
         } finally {
             setLoading(false);
         }
-    }, [features.join(',')]);
+    }, [stableFeatures]);
 
     useEffect(() => {
         fetchUsage();
@@ -66,7 +70,7 @@ export function useUsage(features: string[] = ['story_generation', 'image_genera
                 },
                 (payload) => {
                     const newUsage = payload.new as any;
-                    if (newUsage && features.includes(newUsage.feature_name)) {
+                    if (newUsage && stableFeatures.includes(newUsage.feature_name)) {
                         setUsage(prev => ({
                             ...prev,
                             [newUsage.feature_name]: {
@@ -88,7 +92,7 @@ export function useUsage(features: string[] = ['story_generation', 'image_genera
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [identityKey, features.join(',')]);
+    }, [identityKey, stableFeatures, fetchUsage]);
 
     return {
         usage,

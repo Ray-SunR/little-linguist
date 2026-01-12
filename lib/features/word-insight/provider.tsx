@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useRef, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from "react";
 import type { WordInsight } from "./types";
 import { DatabaseWordService } from "./implementations/database-word-service";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
@@ -40,7 +40,7 @@ const dbService = new DatabaseWordService();
  */
 const hydrateAudio = async (url?: string, storagePath?: string) => {
     if (!url) return undefined;
-    
+
     if (!storagePath) {
         const isStableUrl = url.startsWith("/") || url.startsWith("blob:") || url.startsWith("data:");
         if (!isStableUrl) {
@@ -62,7 +62,7 @@ const hydrateAudio = async (url?: string, storagePath?: string) => {
  */
 const hydrateImage = async (url?: string, storagePath?: string) => {
     if (!url) return undefined;
-    
+
     if (!storagePath) {
         const isStableUrl = url.startsWith("/") || url.startsWith("blob:") || url.startsWith("data:");
         if (!isStableUrl) {
@@ -96,9 +96,9 @@ async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
         const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
         const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
         const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
-        
+
         const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
-            ? await Promise.all(w.exampleAudioUrls.map((u: string, idx: number) => 
+            ? await Promise.all(w.exampleAudioUrls.map((u: string, idx: number) =>
                 hydrateAudio(u, w.example_audio_paths?.[idx] || u)
             ))
             : undefined;
@@ -116,19 +116,20 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         return true;
     });
     const isFetchingRef = useRef(false);
+    const wordsRef = useRef(words);
     const { user, isLoading: authLoading, activeChild } = useAuth();
     const pathname = usePathname();
 
     const isMyWordsRoute = useMemo(() => pathname?.startsWith("/my-words") ?? false, [pathname]);
 
-    const loadWords = async () => {
+    const loadWords = useCallback(async () => {
         if (isFetchingRef.current) return; // Prevent multiple concurrent fetches
         isFetchingRef.current = true;
 
         try {
             // Only set loading if we don't have words yet (visual speedup)
-            if (words.length === 0) setIsLoading(true);
-            
+            if (wordsRef.current.length === 0) setIsLoading(true);
+
             // On identity change, we might want to clear non-guest cache to avoid leakage
             // but for now we just rely on robust filtering.
 
@@ -159,18 +160,18 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
                 // Batch audio hydration to avoid overloading network/memory
                 const BATCH_SIZE = 5;
                 const listForCache: SavedWord[] = [];
-                
+
                 for (let i = 0; i < list.length; i += BATCH_SIZE) {
                     const batch = list.slice(i, i + BATCH_SIZE);
                     const processedBatch = await Promise.all(batch.map(async (w: any) => {
                         const baseId = `${w.word.toLowerCase()}:${w.bookId || 'global'}`;
                         const id = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
-                        
+
                         // Use specific paths to avoid collisions
                         const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
                         const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
                         const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
-                        
+
                         const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
                             ? await Promise.all(w.exampleAudioUrls.slice(0, 2).map((u: string, idx: number) =>
                                 hydrateAudio(u, w.example_audio_paths?.[idx] || u)
@@ -201,7 +202,7 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
                 // 3. Update cache using batched putAll (preserving guest words)
                 const currentCache = await raidenCache.getAll<SavedWord>(CacheStore.USER_WORDS);
                 const guestWords = currentCache.filter((w: SavedWord) => w.id.startsWith("guest:"));
-                
+
                 await raidenCache.clear(CacheStore.USER_WORDS);
                 const finalCache = [...listForCache, ...guestWords];
                 if (finalCache.length > 0) {
@@ -213,37 +214,33 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
             }
         } catch (error) {
             console.error("Failed to load words", error);
-            if (words.length === 0) setWords([]);
+            if (wordsRef.current.length === 0) setWords([]);
         } finally {
             setIsLoading(false);
             isFetchingRef.current = false;
         }
-    };
+    }, [user, activeChild]); // Stable dependencies
+
+    // Keep ref in sync
+    useEffect(() => {
+        wordsRef.current = words;
+    }, [words]);
 
     // Load initial words and refresh on auth change
     useEffect(() => {
-        // If we don't want to fetch on mount, just shut down loader and exit
-        if (!fetchOnMount) {
-            setIsLoading(false);
-            return;
-        }
-        
-        // Wait for auth to settle if it's currently loading
-        if (authLoading) return;
-        
         setWords([]); // Clear UI state immediately on user change
         if (fetchOnMount) {
             loadWords();
         }
-    }, [user?.id, activeChild?.id, authLoading, isMyWordsRoute, fetchOnMount]);
+    }, [user?.id, activeChild?.id, authLoading, isMyWordsRoute, fetchOnMount, loadWords]);
 
     const addWord = async (word: WordInsight, bookId?: string) => {
         const baseId = `${word.word.toLowerCase()}:${bookId || 'global'}`;
         const wordId = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
-        
-        const enrichedWord: SavedWord = { 
-            ...word, 
-            bookId, 
+
+        const enrichedWord: SavedWord = {
+            ...word,
+            bookId,
             id: wordId,
             createdAt: new Date().toISOString(),
             status: 'new'

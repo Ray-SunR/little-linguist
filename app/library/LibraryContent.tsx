@@ -309,7 +309,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         };
 
         return work();
-    }, [cacheKey, authLoading, activeChild?.id, user]);
+    }, [cacheKey, authLoading, activeChild?.id]);
 
     // 1. Hydrate filters/sort from DB when child changes (INITIALIZATION ONLY)
     useEffect(() => {
@@ -410,7 +410,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 abortControllerRef.current.abort();
             }
         };
-    }, [cacheKey, authLoading, filters, sortBy, sortOrder]);
+    }, [cacheKey, authLoading, filters, sortBy, sortOrder, loadBooks]);
 
     // 3. Debounced Persistence to DB
     useEffect(() => {
@@ -432,7 +432,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         }, 1500);
 
         return () => clearTimeout(timeout);
-    }, [filters, sortBy, sortOrder, activeChild?.id]);
+    }, [filters, sortBy, sortOrder, activeChild?.id, authLoading, user, librarySettings, updateLibrarySettings]);
 
 
     // Instant hydration from cache on client

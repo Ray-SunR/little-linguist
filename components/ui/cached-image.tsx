@@ -118,7 +118,7 @@ export function CachedImage({
             controller.abort();
             if (storagePath) assetCache.releaseAsset(storagePath);
         };
-    }, [src, storagePath, updatedAt]);
+    }, [src, storagePath, updatedAt, safeSrc]);
 
     const isBlobOrData = displayUrl.startsWith("blob:") || displayUrl.startsWith("data:");
     const effectiveFill = !!props.fill || !(props.width && props.height);
