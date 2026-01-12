@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
@@ -434,7 +435,7 @@ FINAL RECAP:
                 }
             };
 
-            (async () => {
+            waitUntil((async () => {
                 try {
                     await logGenerationStep('starting_background_tasks', { actualImageCount });
 
@@ -617,7 +618,7 @@ FINAL RECAP:
 
                     await logGenerationStep('generation_failed', { error: errorMessage });
                 }
-            })();
+            })());
 
             return NextResponse.json({
                 ...data,
