@@ -352,7 +352,7 @@ export function ClayNav() {
                             onClick={() => setIsExpanded(true)}
                             className="group relative flex items-center justify-center w-16 h-16 rounded-full bg-white/80 backdrop-blur-lg shadow-xl border-4 border-white hover:scale-105 active:scale-95 transition-all duration-300"
                         >
-                            <LumoCharacter size="md" />
+                            <LumoCharacter size="lg" />
                             <div className="absolute -top-1 -right-1 bg-accent text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Rocket className="w-3 h-3" />
                             </div>

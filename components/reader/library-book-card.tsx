@@ -139,7 +139,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
                                 >
                                     <div className="relative">
                                         <div className="absolute inset-0 bg-purple-400/30 blur-2xl rounded-full animate-pulse" />
-                                        <LumoCharacter size="sm" className="relative animate-bounce-slow" />
+                                        <LumoCharacter size="xl" className="relative animate-bounce-slow" />
                                     </div>
                                     <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full shadow-clay-purple border-2 border-purple-100">
                                         <RefreshCw className="w-4 h-4 animate-spin text-purple-600" />

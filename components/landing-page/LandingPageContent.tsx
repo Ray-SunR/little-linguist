@@ -337,7 +337,7 @@ export default function LandingPageContent() {
                                 transition={{ repeat: Infinity, duration: isInteracting ? 0.5 : 3, ease: "easeInOut" }}
                                 className="relative"
                             >
-                                <LumoCharacter className="w-56 h-56" />
+                                <LumoCharacter className="w-56 h-56" priority={true} />
 
                                 {/* Speech Bubble */}
                                 <AnimatePresence mode="wait">

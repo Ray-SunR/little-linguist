@@ -72,6 +72,34 @@ async function runTest() {
             console.log(`${(i + 1).toString().padStart(2)}. [${ts || "NULL"}] ${b.title.substring(0, 30)} ${marker}`);
         });
     }
+
+    // 3. RPC Verification (Simulated Call)
+    console.log("\n--- Testing RPC (Simulated) ---");
+    console.log("NOTE: This logic requires the 'get_library_books' RPC to be applied.");
+
+    const { data: rpcData, error: rpcError } = await supabase.rpc('get_library_books', {
+        p_child_id: childId,
+        p_filter_owner_id: userId,
+        p_limit: 20,
+        p_offset: 0,
+        p_sort_by: 'last_opened',
+        p_sort_asc: false,
+        p_only_personal: true
+    });
+
+    if (rpcError) {
+        console.error("RPC Error:", rpcError.message);
+    } else {
+        console.log(`RPC Result Count: ${rpcData?.length}`);
+        rpcData?.forEach((b: any, i: number) => {
+            // Note: RPC returns 'progress_last_read_at' (flat), not 'child_books' (nested)
+            const ts = b.progress_last_read_at;
+            const isTarget = b.id === targetBookId;
+            const marker = isTarget ? " <--- TARGET" : "";
+
+            console.log(`${(i + 1).toString().padStart(2)}. [${ts || "NULL"}] ${b.title.substring(0, 30)} ${marker}`);
+        });
+    }
 }
 
 runTest();

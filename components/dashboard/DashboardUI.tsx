@@ -41,7 +41,7 @@ export default function DashboardUI({ activeChild }: Props) {
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                                <LumoCharacter size="xl" />
+                                <LumoCharacter size="xl" priority={true} />
                             </div>
                         )}
                     </motion.div>

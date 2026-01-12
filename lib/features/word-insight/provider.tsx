@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from "react"; // Re-importing
 import type { WordInsight } from "./types";
 import { DatabaseWordService } from "./implementations/database-word-service";
 import { raidenCache, CacheStore } from "@/lib/core/cache";

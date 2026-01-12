@@ -6,9 +6,10 @@ import { cn } from "@/lib/core/utils/cn";
 interface LumoCharacterProps {
   className?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
+  priority?: boolean;
 }
 
-export function LumoCharacter({ className, size = "md" }: LumoCharacterProps) {
+export function LumoCharacter({ className, size = "md", priority = false }: LumoCharacterProps) {
   const sizeClasses = {
     xs: "w-5 h-5",
     sm: "w-6 h-6",
@@ -17,10 +18,11 @@ export function LumoCharacter({ className, size = "md" }: LumoCharacterProps) {
     xl: "w-32 h-32",
   };
 
+  const resolvedSizeClass = sizeClasses[size] ?? sizeClasses.md;
 
   return (
     <div
-      className={cn("relative flex items-center justify-center", sizeClasses[size], className)}
+      className={cn("relative flex items-center justify-center", resolvedSizeClass, className)}
       style={{
         animation: 'lumo-float 4s ease-in-out infinite'
       }}
@@ -35,9 +37,9 @@ export function LumoCharacter({ className, size = "md" }: LumoCharacterProps) {
         src="/lumo-mascot.png"
         alt="Lumo Mascot"
         fill
-        sizes="(max-width: 768px) 48px, 64px"
+        sizes="(max-width: 768px) 100vw, 350px"
         className="object-contain relative z-10 rounded-full"
-        priority
+        priority={priority}
       />
     </div>
   );

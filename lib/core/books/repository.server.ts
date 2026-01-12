@@ -89,132 +89,167 @@ export class BookRepository {
         childId: string | undefined,
         filters: BookFilters = {}
     ): Promise<BookWithCover[]> {
-        // PERFORMANCE: Single Query Strategy (as per user request)
-        // Always join with `child_books` when childId is present to get progress/favorites in one go.
 
-        const joinType = (filters?.is_favorite) ? 'inner' : 'left';
+        let booksData: any[] = [];
+        const isRpcSupported = !!childId; // Start using RPC if childId is present (Since RPC requires child_id context)
 
-        // Base fields
-        let selectFields = 'id, title, updated_at, created_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin';
+        if (isRpcSupported && childId) {
+            // --- RPC STRATEGY (Server-Side Sort) ---
+            const rpcParams = {
+                p_child_id: childId,
+                p_filter_owner_id: userId || null,
+                p_limit: filters.limit || 100,
+                p_offset: filters.offset || 0,
+                p_sort_by: filters.sortBy || 'last_opened',
+                p_sort_asc: filters.sortOrder === 'asc',
+                p_only_personal: !!filters.only_personal,
+                p_filter_level: filters.level || null,
+                p_filter_origin: filters.origin || null,
+                p_filter_is_favorite: filters.is_favorite || null,
+                // New params
+                p_filter_category: filters.category && filters.category !== 'all' ? filters.category : null,
+                p_filter_duration: filters.duration || null,
+                p_filter_is_nonfiction: filters.is_nonfiction ?? null
+            };
 
-        // Add join if childId is present
-        if (childId) {
-            selectFields += `, child_books!${joinType}(child_id, is_favorite, is_completed, last_token_index, last_read_at)`;
-        }
+            const { data, error } = await this.supabase
+                .rpc('get_library_books', rpcParams);
 
-        let query = this.supabase
-            .from('books')
-            .select(selectFields);
+            if (error) throw error;
+            booksData = data || [];
 
-        // Visibility logic:
-        // 1. Personal books only: Owner matches user AND (child_id matches childId OR is null for shared)
-        // 2. All books: (Owner is null) OR (Owner matches user)
-        if (filters?.only_personal) {
-            if (userId) {
-                // Personal Scope
-                if (childId) {
-                    // Logic: Must be owned by user.
-                    // AND: (child_id IS NULL [Household/Shared]) OR (child_id EQ childId [Private])
-                    query = query.eq('owner_user_id', userId)
-                        .or(`child_id.is.null,child_id.eq.${childId}`);
-                } else {
-                    // Just user owned (e.g. parent view?)
-                    query = query.eq('owner_user_id', userId);
-                }
-            } else {
-                return [];
-            }
         } else {
-            // Discovery Scope (Personal + Public)
-            if (userId) {
-                if (childId) {
-                    // Public (null owner) OR (Personal Owned AND (Shared OR Private))
-                    // Note: child_id here refers to books.child_id (private book ownership)
-                    query = query.or(`owner_user_id.is.null,and(owner_user_id.eq.${userId},or(child_id.is.null,child_id.eq.${childId}))`);
+            // --- LEGACY/FALLBACK STRATEGY (PostgREST Query) ---
+            // PERFORMANCE: Single Query Strategy (as per user request)
+            // Always join with `child_books` when childId is present to get progress/favorites in one go.
+
+            const joinType = (filters?.is_favorite) ? 'inner' : 'left';
+
+            // Base fields
+            let selectFields = 'id, title, updated_at, created_at, voice_id, owner_user_id, child_id, total_tokens, estimated_reading_time, cover_image_path, level, is_nonfiction, origin';
+
+            // Add join if childId is present
+            if (childId) {
+                selectFields += `, child_books!${joinType}(child_id, is_favorite, is_completed, last_token_index, last_read_at)`;
+            }
+
+            let query = this.supabase
+                .from('books')
+                .select(selectFields);
+
+            // Visibility logic:
+            // 1. Personal books only: Owner matches user AND (child_id matches childId OR is null for shared)
+            // 2. All books: (Owner is null) OR (Owner matches user)
+            if (filters?.only_personal) {
+                if (userId) {
+                    // Personal Scope
+                    if (childId) {
+                        // Logic: Must be owned by user.
+                        // AND: (child_id IS NULL [Household/Shared]) OR (child_id EQ childId [Private])
+                        query = query.eq('owner_user_id', userId)
+                            .or(`child_id.is.null,child_id.eq.${childId}`);
+                    } else {
+                        // Just user owned (e.g. parent view?)
+                        query = query.eq('owner_user_id', userId);
+                    }
                 } else {
-                    query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
+                    return [];
                 }
             } else {
-                query = query.is('owner_user_id', null);
-            }
-        }
-
-        // Apply filters on the joined table if necessary
-        if (childId) {
-            // SCORING: Always scope child_books records to THIS specific childId to prevent cross-family data leakage.
-            // Since we use the service role key (bypassing RLS), we MUST explicitly filter the joined table.
-            if (filters.is_favorite) {
-                // For favorites, an inner join is appropriate.
-                query = query.eq('child_books.child_id', childId);
-                query = query.eq('child_books.is_favorite', true);
-            } else {
-                // For general views, we want a LEFT JOIN behavior:
-                // Include the progress if it belongs to THIS child, otherwise the progress will be null.
-                // We use .or to pick rows where (matching child) OR (un-matching results are filtered out of the join).
-                // Actually, PostgREST top-level filters on joined tables usually force an inner join.
-                // To maintain a LEFT JOIN where parent rows always appear, we filter the embedded resource specifically.
-                query = query.or(`child_id.eq.${childId},child_id.is.null`, { foreignTable: 'child_books' });
-            }
-        }
-
-        // Apply other book filters
-        // NOTE: Skip these filters for personal books, as user-generated content doesn't have level/category/etc. metadata
-        if (filters && !filters.only_personal) {
-            const f = filters;
-            if (f.level) {
-                switch (f.level) {
-                    case 'toddler': query = query.lte('min_grade', -1); break;
-                    case 'preschool': query = query.eq('min_grade', 0); break;
-                    case 'elementary': query = query.gte('min_grade', 1).lt('min_grade', 3); break;
-                    case 'intermediate': query = query.gte('min_grade', 3); break;
-                    default: query = query.eq('level', f.level);
+                // Discovery Scope (Personal + Public)
+                if (userId) {
+                    if (childId) {
+                        // Public (null owner) OR (Personal Owned AND (Shared OR Private))
+                        // Note: child_id here refers to books.child_id (private book ownership)
+                        query = query.or(`owner_user_id.is.null,and(owner_user_id.eq.${userId},or(child_id.is.null,child_id.eq.${childId}))`);
+                    } else {
+                        query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
+                    }
+                } else {
+                    query = query.is('owner_user_id', null);
                 }
             }
 
-            if (f.duration) {
-                switch (f.duration) {
-                    case 'short': query = query.lt('estimated_reading_time', 5); break;
-                    case 'medium': query = query.gte('estimated_reading_time', 5).lte('estimated_reading_time', 10); break;
-                    case 'long': query = query.gt('estimated_reading_time', 10); break;
+            // Apply filters on the joined table if necessary
+            if (childId) {
+                // SCORING: Always scope child_books records to THIS specific childId to prevent cross-family data leakage.
+                // Since we use the service role key (bypassing RLS), we MUST explicitly filter the joined table.
+                if (filters.is_favorite) {
+                    // For favorites, an inner join is appropriate.
+                    query = query.eq('child_books.child_id', childId);
+                    query = query.eq('child_books.is_favorite', true);
+                } else {
+                    // For general views, we want a LEFT JOIN behavior:
+                    // Include the progress if it belongs to THIS child, otherwise the progress will be null.
+                    // We use .or to pick rows where (matching child) OR (un-matching results are filtered out of the join).
+                    // Actually, PostgREST top-level filters on joined tables usually force an inner join.
+                    // To maintain a LEFT JOIN where parent rows always appear, we filter the embedded resource specifically.
+                    query = query.or(`child_id.eq.${childId},child_id.is.null`, { foreignTable: 'child_books' });
                 }
             }
 
-            if (f.origin) query = query.eq('origin', f.origin);
-            if (f.is_nonfiction !== undefined) query = query.eq('is_nonfiction', f.is_nonfiction);
-            if (f.category && f.category !== 'all') {
-                query = query.contains('categories', [f.category]);
+            // Apply other book filters
+            // NOTE: Skip these filters for personal books, as user-generated content doesn't have level/category/etc. metadata
+            if (filters && !filters.only_personal) {
+                const f = filters;
+                if (f.level) {
+                    switch (f.level) {
+                        case 'toddler': query = query.lte('min_grade', -1); break;
+                        case 'preschool': query = query.eq('min_grade', 0); break;
+                        case 'elementary': query = query.gte('min_grade', 1).lt('min_grade', 3); break;
+                        case 'intermediate': query = query.gte('min_grade', 3); break;
+                        default: query = query.eq('level', f.level);
+                    }
+                }
+
+                if (f.duration) {
+                    switch (f.duration) {
+                        case 'short': query = query.lt('estimated_reading_time', 5); break;
+                        case 'medium': query = query.gte('estimated_reading_time', 5).lte('estimated_reading_time', 10); break;
+                        case 'long': query = query.gt('estimated_reading_time', 10); break;
+                    }
+                }
+
+                if (f.origin) query = query.eq('origin', f.origin);
+                if (f.is_nonfiction !== undefined) query = query.eq('is_nonfiction', f.is_nonfiction);
+                if (f.category && f.category !== 'all') {
+                    query = query.contains('categories', [f.category]);
+                }
             }
+
+            // Apply sorting
+            const sortBy = filters.sortBy || 'last_opened';
+            const sortOrder = filters.sortOrder || (sortBy === 'newest' || sortBy === 'last_opened' ? 'desc' : 'asc');
+            const isAscending = sortOrder === 'asc';
+
+            // PostgreSQL can order by embedded resource columns in PostgREST.
+            // This ensures the primary ordering happens in the database before pagination (.range).
+            if (sortBy === 'newest') {
+                query = query.order('updated_at', { ascending: isAscending });
+            } else if (sortBy === 'alphabetical') {
+                query = query.order('title', { ascending: isAscending });
+            } else if (sortBy === 'reading_time') {
+                query = query.order('estimated_reading_time', { ascending: isAscending });
+            } else if (sortBy === 'last_opened') {
+                // Order by the joined child_books.last_read_at
+                // We want opened books first (desc) or last (asc).
+                query = query.order('last_read_at', { foreignTable: 'child_books', ascending: isAscending, nullsFirst: false });
+            }
+
+            // Final deterministic secondary sort
+            query = query.order('title', { ascending: true }).order('id', { ascending: true });
+
+            if (filters.limit) {
+                const offset = filters.offset || 0;
+                query = query.range(offset, offset + filters.limit - 1);
+            }
+
+            const { data, error } = await query.throwOnError();
+            if (error) throw error;
+            booksData = data || [];
         }
 
-        // Apply sorting
-        const sortBy = filters.sortBy || 'last_opened';
-        const sortOrder = filters.sortOrder || (sortBy === 'newest' || sortBy === 'last_opened' ? 'desc' : 'asc');
-        const isAscending = sortOrder === 'asc';
-
-        // PostgreSQL can order by embedded resource columns in PostgREST.
-        // This ensures the primary ordering happens in the database before pagination (.range).
-        if (sortBy === 'newest') {
-            query = query.order('updated_at', { ascending: isAscending });
-        } else if (sortBy === 'alphabetical') {
-            query = query.order('title', { ascending: isAscending });
-        } else if (sortBy === 'reading_time') {
-            query = query.order('estimated_reading_time', { ascending: isAscending });
-        } else if (sortBy === 'last_opened') {
-            // Order by the joined child_books.last_read_at
-            // We want opened books first (desc) or last (asc).
-            query = query.order('last_read_at', { foreignTable: 'child_books', ascending: isAscending, nullsFirst: false });
-        }
-
-        // Final deterministic secondary sort
-        query = query.order('title', { ascending: true }).order('id', { ascending: true });
-
-        if (filters.limit) {
-            const offset = filters.offset || 0;
-            query = query.range(offset, offset + filters.limit - 1);
-        }
-
-        const { data: booksData, error: booksError } = await query.throwOnError();
-        if (!booksData || booksData.length === 0) return [];
+        if (booksData.length === 0) return [];
 
         // Batch fetch signed URLs
         const pathsToSign: string[] = [];
@@ -293,17 +328,28 @@ export class BookRepository {
                 }
             }
 
-            // JOIN RESULT: `child_books` will be an array because of the one-to-many relationship (Book -> ChildBooks)
-            // Even if we use `child_books!inner`, PostgREST returns it as an array.
+            // Normalization: RPC returns flat progress fields, Query returns nested object
             let progress = null;
-            if (book.child_books) {
-                const pArray = Array.isArray(book.child_books) ? book.child_books : [book.child_books];
-                if (childId) {
-                    // Find the progress entry SPECIFICALLY for this child (since RLS might return siblings' data too)
-                    progress = pArray.find((p: any) => p.child_id === childId);
-                } else {
-                    // Fallback (shouldn't really happen in this filtered context, but safe default)
-                    progress = pArray[0];
+
+            if (isRpcSupported && childId) {
+                // RPC Result (Flat)
+                if (book.progress_last_read_at || book.progress_is_completed || book.progress_is_favorite) {
+                    progress = {
+                        last_token_index: book.progress_last_token_index,
+                        is_completed: book.progress_is_completed,
+                        is_favorite: book.progress_is_favorite,
+                        last_read_at: book.progress_last_read_at
+                    };
+                }
+            } else {
+                // PostgREST Result (Nested)
+                if (book.child_books) {
+                    const pArray = Array.isArray(book.child_books) ? book.child_books : [book.child_books];
+                    if (childId) {
+                        progress = pArray.find((p: any) => p.child_id === childId);
+                    } else {
+                        progress = pArray[0];
+                    }
                 }
             }
 
@@ -332,8 +378,6 @@ export class BookRepository {
                 } : undefined
             };
         });
-
-        // No client-side sorting needed anymore, as it's handled in SQL before .range()
 
         return mappedBooks;
     }

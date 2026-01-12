@@ -36,7 +36,8 @@ import {
     Play,
     Flame,
     Palette,
-    User
+    User,
+    LucideIcon
 } from "lucide-react";
 import { clayVariants } from "@/lib/clay-utils";
 import { ClaySelect } from "./clay-select";
@@ -164,69 +165,7 @@ export function BookshelfToolbar({
         favorites: "bg-gradient-to-r from-amber-400 to-pink-500"
     };
 
-    const CategoryDropdown = () => (
-        <Popover open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-            <PopoverTrigger asChild>
-                <button
-                    className={`
-                        flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 lg:px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-all font-bold font-fredoka text-slate-700 shadow-sm
-                        ${activeCategory !== 'all' ? 'ring-2 ring-purple-100 border-purple-200' : ''}
-                    `}
-                >
-                    <div className={`
-                         flex items-center justify-center w-5 h-5 rounded-full 
-                         ${activeCategory !== 'all' ? 'text-purple-700' : 'text-slate-400 bg-slate-100'}
-                    `}>
-                        <CategoryIcon className={`w-4 h-4 ${selectedCategoryObj.iconClass}`} />
-                    </div>
-                    {/* Hide label on mobile, show on md+ */}
-                    <span className="hidden md:inline font-fredoka font-bold text-sm truncate max-w-[120px]">
-                        {selectedCategoryObj.label}
-                    </span>
-                    {activeCategory !== 'all' ? (
-                        <div
-                            role="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onFilterChange("category", undefined);
-                            }}
-                            className="ml-0.5 md:ml-1 p-0.5 hover:bg-purple-200 rounded-full transition-colors"
-                        >
-                            <X className="w-3 h-3 text-purple-500" />
-                        </div>
-                    ) : (
-                        <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-50 hidden md:block" />
-                    )}
-                </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[90vw] max-w-[340px] p-4 rounded-[24px] shadow-xl border-2 border-purple-100" align="start">
-                <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto scrollbar-hide">
-                    {CATEGORIES.map((cat) => {
-                        const isActive = activeCategory === cat.id;
-                        const Icon = cat.icon;
-                        return (
-                            <button
-                                key={cat.id}
-                                onClick={() => {
-                                    onFilterChange("category", cat.id === 'all' ? undefined : cat.id);
-                                    setIsCategoryOpen(false);
-                                }}
-                                className={`
-                                     flex items-center gap-2.5 p-2 rounded-xl text-left transition-colors
-                                     ${isActive ? 'bg-purple-50 text-purple-700 border border-purple-100' : 'hover:bg-slate-50 text-slate-600 border border-transparent'}
-                                 `}
-                            >
-                                <div className={`p-2 rounded-lg ${isActive ? 'bg-white shadow-sm' : 'bg-slate-100'}`}>
-                                    <Icon className={`w-4 h-4 ${cat.iconClass}`} />
-                                </div>
-                                <span className="text-sm font-bold font-fredoka">{cat.label}</span>
-                            </button>
-                        )
-                    })}
-                </div>
-            </PopoverContent>
-        </Popover>
-    );
+
 
     return (
         <div className={`
@@ -324,10 +263,16 @@ export function BookshelfToolbar({
                             })}
                         </div>
 
-                        {/* Category Dropdown (Integrated tightly - Desktop & Mobile) */}
                         {activeCollection === 'discovery' && (
                             <div className="flex-shrink-0 block">
-                                <CategoryDropdown />
+                                <CategoryDropdown
+                                    isOpen={isCategoryOpen}
+                                    onOpenChange={setIsCategoryOpen}
+                                    activeCategory={activeCategory}
+                                    onFilterChange={onFilterChange}
+                                    selectedCategoryObj={selectedCategoryObj}
+                                    CategoryIcon={CategoryIcon}
+                                />
                             </div>
                         )}
                     </div>
@@ -755,3 +700,103 @@ function FilterSelect({ value, onChange, options, placeholder, icon: BaseIcon, p
         </Popover>
     );
 }
+
+const CategoryDropdown = React.memo(function CategoryDropdown({
+    isOpen,
+    onOpenChange,
+    activeCategory,
+    onFilterChange,
+    selectedCategoryObj,
+    CategoryIcon
+}: {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    activeCategory: string;
+    onFilterChange: (key: string, val: any) => void;
+    selectedCategoryObj: { id: string; label: string; iconClass: string };
+    CategoryIcon: LucideIcon;
+}) {
+    // Helper to calculate common classes
+    const containerClasses = `
+        flex items-center rounded-full border border-slate-200 bg-white transition-all shadow-sm
+        ${activeCategory !== 'all' ? 'ring-2 ring-purple-100 border-purple-200 pl-1 pr-1 gap-1' : 'hover:bg-slate-50 px-0'}
+    `;
+
+    return (
+        <Popover open={isOpen} onOpenChange={onOpenChange}>
+            {activeCategory === 'all' ? (
+                // Default State: Single Trigger Button
+                <PopoverTrigger asChild>
+                    <button
+                        className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 lg:px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-all font-bold font-fredoka text-slate-700 shadow-sm"
+                        aria-label="Category Filter"
+                    >
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full text-slate-400 bg-slate-100">
+                            <CategoryIcon className={`w-4 h-4 ${selectedCategoryObj.iconClass}`} />
+                        </div>
+                        <span className="hidden md:inline font-fredoka font-bold text-sm truncate max-w-[120px]">
+                            {selectedCategoryObj.label}
+                        </span>
+                        <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-50 hidden md:block" />
+                    </button>
+                </PopoverTrigger>
+            ) : (
+                // Active State: Split Trigger + Clear Button
+                <div className={containerClasses}>
+                    <PopoverTrigger asChild>
+                        <button
+                            className="flex items-center gap-1.5 md:gap-2 px-2 md:px-2 py-1.5 rounded-full hover:bg-slate-50 transition-all font-bold font-fredoka text-slate-700"
+                            aria-label={`Category: ${selectedCategoryObj.label}`}
+                        >
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full text-purple-700">
+                                <CategoryIcon className={`w-4 h-4 ${selectedCategoryObj.iconClass}`} />
+                            </div>
+                            <span className="hidden md:inline font-fredoka font-bold text-sm truncate max-w-[120px]">
+                                {selectedCategoryObj.label}
+                            </span>
+                        </button>
+                    </PopoverTrigger>
+
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onFilterChange("category", undefined);
+                        }}
+                        className="p-1 hover:bg-purple-100 rounded-full transition-colors text-purple-500"
+                        aria-label="Clear Category Filter"
+                        title="Clear Category"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            <PopoverContent className="w-[90vw] max-w-[340px] p-4 rounded-[24px] shadow-xl border-2 border-purple-100" align="start">
+                <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto scrollbar-hide">
+                    {CATEGORIES.map((cat) => {
+                        const isActive = activeCategory === cat.id;
+                        const Icon = cat.icon;
+                        return (
+                            <button
+                                key={cat.id}
+                                onClick={() => {
+                                    onFilterChange("category", cat.id === 'all' ? undefined : cat.id);
+                                    onOpenChange(false);
+                                }}
+                                className={`
+                                     flex items-center gap-2.5 p-2 rounded-xl text-left transition-colors
+                                     ${isActive ? 'bg-purple-50 text-purple-700 border border-purple-100' : 'hover:bg-slate-50 text-slate-600 border border-transparent'}
+                                 `}
+                            >
+                                <div className={`p-2 rounded-lg ${isActive ? 'bg-white shadow-sm' : 'bg-slate-100'}`}>
+                                    <Icon className={`w-4 h-4 ${cat.iconClass}`} />
+                                </div>
+                                <span className="text-sm font-bold font-fredoka">{cat.label}</span>
+                            </button>
+                        )
+                    })}
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+});
