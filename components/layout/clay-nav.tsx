@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Wand2, Languages, User, LogOut, Mail, LayoutDashboard, Rocket, Sparkles, Users } from "lucide-react";
+import { BookOpen, Wand2, Languages, User, LogOut, Mail, Rocket, Sparkles, Users } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState } from "react";
@@ -11,6 +11,9 @@ import { useAuth } from "@/components/auth/auth-provider";
 
 import { CachedImage } from "@/components/ui/cached-image";
 import { useUsage } from "@/lib/hooks/use-usage";
+
+const ME_PRIMARY_PATH = "/dashboard";
+const ME_PATHS = ["/dashboard", "/profiles"];
 
 const navItems = [
 
@@ -93,7 +96,7 @@ export function ClayNav() {
     // Prefetch main destinations to reduce perceived nav latency
     useEffect(() => {
         navItems.forEach(item => router.prefetch(item.href));
-        router.prefetch("/profiles");
+        ME_PATHS.forEach(path => router.prefetch(path));
     }, [router]);
 
     // Auto-fold in reader view, auto-expand on all main navigation pages
@@ -238,43 +241,48 @@ export function ClayNav() {
                         <div className={cn("flex items-center justify-between w-full relative")}>
 
 
-                            {/* Me Button (Replaces Dashboard) */}
-                            <Link
-                                href="/profiles"
-                                className="flex-1"
-                                onClick={() => setPendingHref("/profiles")}
-                            >
-                                <motion.div
-                                    whileTap={{ scale: 0.8, y: -5 }}
-                                    className={cn(
-                                        "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-colors duration-300 mx-1",
-                                        isActive("/profiles")
-                                            ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
-                                            : "text-slate-500 hover:text-slate-700"
-                                    )}
-                                >
-                                    {activeChild?.avatar_asset_path ? (
-                                        <div className={cn("relative w-6 h-6 rounded-full overflow-hidden border border-white shadow-sm mb-1", isActive("/profiles") ? "ring-2 ring-purple-100" : "")}>
-                                            <CachedImage
-                                                src={activeChild.avatar_asset_path}
-                                                alt="Me"
-                                                fill
-                                                className="object-cover"
-                                                updatedAt={activeChild.updated_at}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-1 bg-gradient-to-br from-indigo-400 to-purple-500 text-white shadow-sm", isActive("/profiles") ? "ring-2 ring-purple-100" : "")}>
-                                            <span className="text-[10px] font-fredoka font-black">
-                                                {activeChild?.first_name?.[0] || "M"}
+                            {/* Me Button (Active for Dashboard or Profiles) */}
+                            {(() => {
+                                const isMeActive = ME_PATHS.some(path => isActive(path));
+                                return (
+                                    <Link
+                                        href={ME_PRIMARY_PATH}
+                                        className="flex-1"
+                                        onClick={() => setPendingHref(ME_PRIMARY_PATH)}
+                                    >
+                                        <motion.div
+                                            whileTap={{ scale: 0.8, y: -5 }}
+                                            className={cn(
+                                                "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-colors duration-300 mx-1",
+                                                isMeActive
+                                                    ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
+                                                    : "text-slate-500 hover:text-slate-700"
+                                            )}
+                                        >
+                                            {activeChild?.avatar_asset_path ? (
+                                                <div className={cn("relative w-6 h-6 rounded-full overflow-hidden border border-white shadow-sm mb-1", isMeActive ? "ring-2 ring-purple-100" : "")}>
+                                                    <CachedImage
+                                                        src={activeChild.avatar_asset_path}
+                                                        alt="Me"
+                                                        fill
+                                                        className="object-cover"
+                                                        updatedAt={activeChild.updated_at}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-1 bg-gradient-to-br from-indigo-400 to-purple-500 text-white shadow-sm", isMeActive ? "ring-2 ring-purple-100" : "")}>
+                                                    <span className="text-[10px] font-fredoka font-black">
+                                                        {activeChild?.first_name?.[0] || "M"}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <span className="text-[9px] font-fredoka font-black uppercase tracking-wider leading-none">
+                                                ME
                                             </span>
-                                        </div>
-                                    )}
-                                    <span className="text-[9px] font-fredoka font-black uppercase tracking-wider leading-none">
-                                        ME
-                                    </span>
-                                </motion.div>
-                            </Link>
+                                        </motion.div>
+                                    </Link>
+                                );
+                            })()}
 
                             {navItems.map((item) => {
                                 const activeNow = isActive(item.href) || pendingHref === item.href;
