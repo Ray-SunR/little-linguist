@@ -25,21 +25,21 @@ export function ChildGate() {
     }
 
     console.debug(`[ChildGate] Checking profiles for ${user.email}:`, {
-        count: profiles.length,
-        pathname,
-        isLoading
+      count: profiles.length,
+      pathname,
+      isLoading
     });
 
     if (profiles && profiles.length === 0) {
       // Small timeout to allow state to settle after navigation/refresh
       const timer = setTimeout(() => {
         if (profiles.length === 0) {
-            console.warn('[ChildGate] Redirecting to onboarding because no profiles found.');
-            router.push('/onboarding');
+          console.warn('[ChildGate] Redirecting to onboarding! Profiles still 0 after 500ms safety wait. (Possible false negative or true new user)');
+          router.push('/onboarding');
         }
       }, 500);
       return () => clearTimeout(timer);
-    } 
+    }
   }, [pathname, router, user, profiles, isLoading]);
 
   return null; // This component handles side effects only

@@ -49,12 +49,15 @@ export function ProfileHydrator({ initialProfiles, userId, serverError }: Profil
             setProfiles(initialProfiles);
         }
 
-        // Crucial: Release the loading lock regardless of profile count
-        // If 0 profiles, ChildGate handles the redirect logic.
-        // We just need to stop the global loading spinner.
-        if (isLoading) {
-            console.info("[RAIDEN_DIAG][Auth] Clearing loading state from Server Component");
+        // --- THE "TRUST BUT VERIFY" FIX ---
+        // Crucial: ONLY release the loading lock if we actually found profiles on the server.
+        // If 0 profiles, we stay in "loading" state and let the client-side fetch in AuthProvider 
+        // confirm if they are truly 0 or if the server fetch was a false negative.
+        if (isLoading && hasProfiles) {
+            console.info("[RAIDEN_DIAG][Auth] Clearing loading state from Server Component (profiles found)");
             setIsLoading(false);
+        } else if (isLoading) {
+            console.info("[RAIDEN_DIAG][Auth] 0 profiles found on server, keeping loading lock for client fetch verify.");
         }
 
         hydratedRef.current = true;

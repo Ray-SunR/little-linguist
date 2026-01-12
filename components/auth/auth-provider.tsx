@@ -32,6 +32,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
+  const profilesRef = useRef<ChildProfile[]>(profiles);
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStoryGenerating, setIsStoryGenerating] = useState(false);
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Keep refs in sync
   useEffect(() => { userRef.current = user; }, [user]);
+  useEffect(() => { profilesRef.current = profiles; }, [profiles]);
   useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
 
   // Keep pathname in ref to avoid re-triggering fetchProfiles on route change if we don't want to
@@ -149,6 +151,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (error) {
         console.error(`[RAIDEN_DIAG][Auth] getChildren error (req ${requestId}):`, error);
       } else if (data) {
+        const prevCount = profilesRef.current.length;
+        const newCount = data.length;
+
+        if (prevCount === 0 && newCount > 0) {
+          console.warn(`[RAIDEN_DIAG][Auth] False Negative detected: Server had 0 profiles (or pre-hydrated with 0), but Client found ${newCount}. requestId=${requestId}`);
+        } else {
+          console.info(`[RAIDEN_DIAG][Auth] Profile fetch summary: client=${newCount} (prev=${prevCount}) requestId=${requestId}`);
+        }
+
         setProfiles(data);
         await persistProfiles(data, uid);
         const activeId = getCookie("activeChildId");
@@ -162,6 +173,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Use ref for pathname to avoid dependency cycle
         const currentPath = pathnameRef.current;
         if (data.length === 0 && currentPath !== '/onboarding' && currentPath !== '/') {
+          console.warn(`[RAIDEN_DIAG][Auth] Redirecting to onboarding because client fetch confirmed 0 profiles. requestId=${requestId}`);
           router.push('/onboarding');
         }
       }
