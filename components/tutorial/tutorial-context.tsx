@@ -62,8 +62,19 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     // Validation helper
     const validateStepId = useCallback((id: string | null): string => {
         if (!id) return availableSteps[0]?.id || "";
+
         const exists = availableSteps.some(s => s.id === id);
-        return exists ? id : availableSteps[0]?.id || "";
+        if (exists) return id;
+
+        // If current step is no longer available (e.g. skipped due to auth change)
+        // Find the "nearest next" available step by looking ahead in the global list
+        const currentIndexInGlobal = TUTORIAL_STEPS.findIndex(s => s.id === id);
+        const nextAvailable = availableSteps.find(s => {
+            const globalIndex = TUTORIAL_STEPS.findIndex(gs => gs.id === s.id);
+            return globalIndex >= currentIndexInGlobal;
+        });
+
+        return nextAvailable?.id || availableSteps[0]?.id || "";
     }, [availableSteps]);
 
     // Initialize and Migrate
@@ -79,6 +90,14 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
 
         if (completed) {
             setIsCompleted(true);
+            return;
+        }
+
+        // Inheritance logic: If guest already completed, don't nag the new user
+        const guestCompleted = localStorage.getItem(`${STORAGE_COMPLETED_KEY}_guest`) === "true";
+        if (user && guestCompleted) {
+            setIsCompleted(true);
+            localStorage.setItem(storageCompletedKey, "true");
             return;
         }
 

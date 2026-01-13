@@ -109,6 +109,7 @@ export default function TutorialOverlay() {
     const { currentStep, isActive, isCompleted, isDisplayPaused, nextStep, prevStep, skipTutorial, activeStepDetails, currentStepIndex } = useTutorial();
     // const { user } = useAuth();
     const [isClient, setIsClient] = useState(false);
+    const lastScrolledStepId = useRef<string | null>(null);
 
     useEffect(() => {
         setIsClient(true);
@@ -116,9 +117,12 @@ export default function TutorialOverlay() {
 
     const targetRect = useRect(activeStepDetails?.targetId, activeStepDetails?.dataTourTarget);
 
-    // Auto-scroll logic
+    // Auto-scroll logic (Only fire once per step or when target appears)
     useEffect(() => {
         if (isActive && targetRect && activeStepDetails) {
+            // Only scroll if we haven't scrolled for this step yet
+            if (lastScrolledStepId.current === activeStepDetails.id) return;
+
             // Check if element is in viewport
             const isInViewport = (
                 targetRect.top >= 0 &&
@@ -128,12 +132,16 @@ export default function TutorialOverlay() {
             );
 
             if (!isInViewport) {
-                // If we have the ref (which we don't directly here easily without querying again), scroll it.
-                // We'll re-query briefly.
                 const el = document.getElementById(activeStepDetails.targetId) ||
                     document.querySelector(`[data-tour-target="${activeStepDetails.dataTourTarget}"]`);
 
-                el?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    lastScrolledStepId.current = activeStepDetails.id;
+                }
+            } else {
+                // If it's already in viewport, still mark as handled so we don't fight user scroll later
+                lastScrolledStepId.current = activeStepDetails.id;
             }
         }
     }, [isActive, activeStepDetails, targetRect]);
@@ -160,6 +168,8 @@ export default function TutorialOverlay() {
         width: targetRect.width + (padding * 2),
         height: targetRect.height + (padding * 2)
     } : { x: 0, y: 0, width: 0, height: 0 };
+
+    const tooltipPos = getTooltipPosition(hole, position);
 
 
     return (
@@ -218,7 +228,9 @@ export default function TutorialOverlay() {
                 className="absolute pointer-events-auto"
                 style={{
                     zIndex: 101, // Above backdrop
-                    ...getTooltipPosition(hole, position)
+                    top: tooltipPos.top,
+                    left: tooltipPos.left,
+                    transform: tooltipPos.transform
                 }}
             >
                 <AnimatePresence mode="wait">
@@ -230,7 +242,10 @@ export default function TutorialOverlay() {
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                         className="w-80" // Move width here or keep in inner div
                     >
-                        <div className="w-80 bg-white/95 backdrop-blur-xl rounded-[2rem] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 ring-1 ring-purple-100/50">
+                        <div
+                            className="w-80 bg-white/95 backdrop-blur-xl rounded-[2rem] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 ring-1 ring-purple-100/50 overflow-y-auto custom-scrollbar"
+                            style={{ maxHeight: tooltipPos.maxHeight }}
+                        >
                             {/* Decorative background element */}
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-blue-200/30 rounded-full blur-2xl pointer-events-none" />
 
@@ -295,17 +310,20 @@ export default function TutorialOverlay() {
                     </motion.div>
                 </AnimatePresence>
             </div>
-        </div>
+        </div >
     );
 }
 
-function getTooltipPosition(targetRect: { x: number, y: number, width: number, height: number, bottom?: number, right?: number } | null, position: string): React.CSSProperties {
+function getTooltipPosition(targetRect: { x: number, y: number, width: number, height: number, bottom?: number, right?: number } | null, position: string): { top: number, left: number, transform: string, maxHeight: number } {
     if (!targetRect || targetRect.width === 0) {
         // Fallback checks
+        const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+        const vw = typeof window !== 'undefined' ? window.innerWidth : 1000;
         return {
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)' // Centered
+            top: vh / 2,
+            left: vw / 2,
+            transform: 'translate(-50%, -50%)', // Centered
+            maxHeight: vh - 32
         };
     }
 
@@ -316,7 +334,7 @@ function getTooltipPosition(targetRect: { x: number, y: number, width: number, h
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
     const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
     const tooltipWidth = 320; // w-80 is 20rem = 320px
-    const estimatedHeight = 280; // Slightly reduced estimate
+    const estimatedHeight = 400; // Increased estimate to be safer for flipping
 
     // Ensure left position doesn't overflow
     const clampHorizontal = (left: number) => {
@@ -339,7 +357,6 @@ function getTooltipPosition(targetRect: { x: number, y: number, width: number, h
     // Vertical Flipping Logic - prefer the direction with MORE space
     if (position === 'top' || position === 'bottom') {
         const neededSpace = estimatedHeight + spacing;
-        const preferTop = spaceAbove >= spaceBelow;
 
         if (position === 'top' && spaceAbove < neededSpace) {
             // Not enough space above, check if bottom is better
@@ -389,25 +406,40 @@ function getTooltipPosition(targetRect: { x: number, y: number, width: number, h
             transform = 'translate(-50%, 0)';
     }
 
-    // Final vertical clamping to ensure tooltip stays within viewport
-    // Account for transform offset
+    // Calculate Max Height based on available space in the effective direction
+    let maxHeight = viewportHeight - (margin * 2);
     if (effectivePosition === 'top') {
-        // Tooltip extends upward from 'top', so actual top edge is top - estimatedHeight
-        const actualTop = top - estimatedHeight;
-        if (actualTop < margin) {
-            // Shift down to keep at least margin from top
-            top = margin + estimatedHeight;
-        }
+        maxHeight = Math.max(0, spaceAbove - spacing);
     } else if (effectivePosition === 'bottom') {
-        // Tooltip extends downward from 'top', so actual bottom is top + estimatedHeight
-        const actualBottom = top + estimatedHeight;
-        if (actualBottom > viewportHeight - margin) {
-            // Shift up to keep at least margin from bottom
-            top = viewportHeight - margin - estimatedHeight;
-        }
+        maxHeight = Math.max(0, spaceBelow - spacing);
     } else if (effectivePosition === 'left' || effectivePosition === 'right') {
-        // For left/right, card is vertically centered, so check both edges
-        const halfHeight = estimatedHeight / 2;
+        // For side tooltips, we still want to ensure they don't exceed viewport height
+        maxHeight = viewportHeight - (margin * 2);
+
+        // Horizontal clamping for side tooltips (ensure they don't go off-screen)
+        if (effectivePosition === 'left') {
+            if (left - tooltipWidth < margin) {
+                left = margin + tooltipWidth;
+            }
+        } else if (effectivePosition === 'right') {
+            if (left + tooltipWidth > viewportWidth - margin) {
+                left = viewportWidth - margin - tooltipWidth;
+            }
+        }
+    }
+
+    // Horizontal and vertical clamping for safety (keeping the transform logic simple)
+    // Horizontal check for top/bottom
+    if (effectivePosition === 'top' || effectivePosition === 'bottom') {
+        // Already handled by clampHorizontal
+    }
+
+    // Vertical clamping for side tooltips (centered)
+    if (effectivePosition === 'left' || effectivePosition === 'right') {
+        // Logic for keeping the horizontally-centered card within the vertical viewport
+        // (already partially handled by margin check if needed, but let's be explicit)
+        const estimatedCardHeight = Math.min(estimatedHeight, maxHeight);
+        const halfHeight = estimatedCardHeight / 2;
         if (top - halfHeight < margin) {
             top = margin + halfHeight;
         }
@@ -416,23 +448,5 @@ function getTooltipPosition(targetRect: { x: number, y: number, width: number, h
         }
     }
 
-    // Final horizontal clamping for left/right positioned tooltips
-    if (effectivePosition === 'left') {
-        // Tooltip extends to the LEFT from 'left' position, so actual left edge is left - tooltipWidth
-        const actualLeft = left - tooltipWidth;
-        if (actualLeft < margin) {
-            // Not enough space on left - shift the card right OR reconsider position
-            // For now, clamp and remove the transform offset
-            left = margin + tooltipWidth;
-        }
-    } else if (effectivePosition === 'right') {
-        // Tooltip extends to the RIGHT from 'left' position
-        const actualRight = left + tooltipWidth;
-        if (actualRight > viewportWidth - margin) {
-            // Not enough space on right - shift the card left
-            left = viewportWidth - margin - tooltipWidth;
-        }
-    }
-
-    return { top, left, transform };
+    return { top, left, transform, maxHeight };
 }
