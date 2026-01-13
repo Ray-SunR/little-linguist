@@ -16,7 +16,7 @@ const config: Config = {
 			colors: {
 				shell: 'var(--shell)',
 				card: {
-					DEFAULT: 'hsl(var(--card))',
+					DEFAULT: 'var(--card)',
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				ink: 'var(--ink)',
@@ -43,7 +43,7 @@ const config: Config = {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
+					DEFAULT: 'var(--accent)',
 					foreground: 'hsl(var(--accent-foreground))'
 				},
 				destructive: {

@@ -2,87 +2,80 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { login, signup, checkEmail } from './actions'
-import { useState, useEffect, memo, useMemo, Suspense } from 'react'
-import { Loader2, MoveRight, Sparkles, Mail, Lock, ChevronLeft, RefreshCw } from 'lucide-react'
+import { useState, useEffect, memo, useMemo, Suspense, useRef } from 'react'
+import { Loader2, MoveRight, Sparkles, Mail, Lock, ChevronLeft, RefreshCw, BookOpen, Star, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/core'
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { LumoCharacter } from '@/components/ui/lumo-character'
 
 // --- Cinematic Components ---
 
 const MagicBackground = memo(() => {
-    // Persistent particles that don't re-render with the form
-    const particles = useMemo(() => Array.from({ length: 40 }, (_, i) => ({
-        id: i,
-        size: Math.random() * 2 + 1,
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        depth: Math.random() * 1.5 + 0.5, // Parallax depth factor
-        opacity: Math.random() * 0.5 + 0.2,
-    })), [])
-
     return (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden bg-[#05060f]">
-            {/* Nebula Effects - Static Deep Layer */}
-            <div className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-purple-600/10 blur-[150px] rounded-full animate-floaty" style={{ animationDuration: '35s' }} />
-            <div className="absolute bottom-[-10%] right-[-20%] w-[70vw] h-[70vw] bg-blue-600/10 blur-[130px] rounded-full animate-floaty" style={{ animationDuration: '40s', animationDelay: '-20s' }} />
+        <div className="absolute inset-0 pointer-events-none overflow-hidden bg-shell dark:bg-[#05060f]">
+            {/* Pro Max Aurora Effects */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[120vw] h-[120vw] bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent blur-[120px] animate-aurora rounded-full" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[100vw] h-[100vw] bg-gradient-to-tl from-cta/15 via-purple-400/10 to-transparent blur-[100px] animate-aurora rounded-full" style={{ animationDirection: 'reverse', animationDuration: '45s' }} />
+            </div>
 
-            {/* Parallax Star Layers */}
-            <StarLayer layerIndex={1} count={15} sizeRange={[1, 2]} speed={0.02} />
-            <StarLayer layerIndex={2} count={20} sizeRange={[0.5, 1.5]} speed={0.01} />
+            {/* Mesh Gradients / Blobs */}
+            <div className="absolute inset-0 opacity-40 dark:opacity-20 pointer-events-none">
+                <div className="absolute top-[20%] left-[10%] w-96 h-96 bg-purple-400 blur-3xl animate-blob-slow rounded-full mix-blend-multiply dark:mix-blend-lighten" />
+                <div className="absolute top-[30%] right-[10%] w-80 h-80 bg-blue-300 blur-3xl animate-blob-reverse rounded-full mix-blend-multiply dark:mix-blend-lighten" />
+                <div className="absolute bottom-[20%] left-[20%] w-72 h-72 bg-pink-200 blur-3xl animate-blob-pulse rounded-full mix-blend-multiply dark:mix-blend-lighten" />
+            </div>
 
-            {/* Ambient Particles */}
-            {particles.map((p) => (
-                <div
-                    key={p.id}
-                    className="absolute bg-white rounded-full"
-                    style={{
-                        width: `${p.size}px`,
-                        height: `${p.size}px`,
-                        left: p.left,
-                        top: p.top,
-                        opacity: p.opacity,
-                        boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
-                    }}
-                />
-            ))}
+            {/* Reactive Rim Light (Global) */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_var(--mouse-x)_var(--mouse-y),rgba(139,75,255,0.05),transparent)] pointer-events-none" />
         </div>
     )
 })
 
 MagicBackground.displayName = 'MagicBackground'
 
-const StarLayer = ({ layerIndex, count, sizeRange, speed }: { layerIndex: number, count: number, sizeRange: [number, number], speed: number }) => {
-    const stars = useMemo(() => Array.from({ length: count }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * (sizeRange[1] - sizeRange[0]) + sizeRange[0],
-        opacity: Math.random() * 0.4 + 0.3
-    })), [count, sizeRange])
+const FloatingElements = memo(() => {
+    // Elements floating around the central mascot
+    const elements = useMemo(() => [
+        { Icon: BookOpen, color: 'text-blue-400', delay: 0, x: -60, y: -20, size: 24, rotation: -15 },
+        { Icon: Star, color: 'text-yellow-400', delay: 1.5, x: 60, y: -30, size: 20, rotation: 15 },
+        { Icon: Sparkles, color: 'text-purple-400', delay: 0.8, x: -50, y: 40, size: 18, rotation: -10 },
+        { Icon: Zap, color: 'text-amber-400', delay: 2.2, x: 50, y: 30, size: 16, rotation: 10 },
+    ], [])
 
     return (
-        <div className="absolute inset-0 overflow-hidden">
-            {stars.map((star) => (
+        <div className="absolute inset-0 pointer-events-none">
+            {elements.map((el, i) => (
                 <motion.div
-                    key={`${layerIndex}-${star.id}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: star.opacity }}
-                    transition={{ duration: 2, delay: Math.random() * 2 }}
-                    className="absolute bg-white rounded-full"
-                    style={{
-                        left: `${star.x}%`,
-                        top: `${star.y}%`,
-                        width: `${star.size}px`,
-                        height: `${star.size}px`,
-                        boxShadow: `0 0 ${star.size * 2}px white`,
+                    key={i}
+                    className="absolute left-1/2 top-1/2"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{
+                        opacity: [0, 1, 1, 0],
+                        scale: [0.5, 1, 1, 0.5],
+                        x: [el.x, el.x + (i % 2 === 0 ? 10 : -10)],
+                        y: [el.y, el.y + (i % 2 === 0 ? -10 : 10)],
+                        rotate: [el.rotation, el.rotation + (i % 2 === 0 ? 10 : -10)]
                     }}
-                />
+                    transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        delay: el.delay,
+                        ease: "easeInOut"
+                    }}
+                >
+                    <div className={cn("p-2 bg-white/30 backdrop-blur-md rounded-xl border border-white/40 shadow-lg", el.color)}>
+                        <el.Icon size={el.size} strokeWidth={2.5} />
+                    </div>
+                </motion.div>
             ))}
         </div>
     )
-}
+})
+FloatingElements.displayName = 'FloatingElements'
 
 // --- Main Page ---
 
@@ -102,13 +95,13 @@ function LoginForm() {
     // Construct the full redirect path including original params
     const redirectTo = useMemo(() => {
         if (!returnTo) return undefined
-        
+
         // Ensure the path is relative and safe
         const isRelative = returnTo.startsWith('/') && !returnTo.startsWith('//')
         const safePath = isRelative ? returnTo : '/'
 
         if (!action) return safePath
-        
+
         try {
             const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
             const url = new URL(safePath, base)
@@ -141,41 +134,29 @@ function LoginForm() {
     const [mounted, setMounted] = useState(false)
 
     // Mouse Parallax & Rim Light
-    const mouseX = useMotionValue(0)
-    const mouseY = useMotionValue(0)
-    const springX = useSpring(mouseX, { damping: 20, stiffness: 100 })
-    const springY = useSpring(mouseY, { damping: 20, stiffness: 100 })
+    const cardRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         setMounted(true)
         const handleMouseMove = (e: MouseEvent) => {
-            const { clientX, clientY } = e
-            const { innerWidth, innerHeight } = window
-            mouseX.set((clientX / innerWidth) - 0.5)
-            mouseY.set((clientY / innerHeight) - 0.5)
-
             // Update CSS variables for rim light
-            const card = document.querySelector('.glass-card') as HTMLElement;
-            if (card) {
-                const rect = card.getBoundingClientRect();
+            if (cardRef.current) {
+                const rect = cardRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
+                cardRef.current.style.setProperty('--mouse-x', `${x}px`);
+                cardRef.current.style.setProperty('--mouse-y', `${y}px`);
             }
         }
         window.addEventListener('mousemove', handleMouseMove)
         return () => window.removeEventListener('mousemove', handleMouseMove)
-    }, [mouseX, mouseY])
-
-    const parallaxX = useTransform(springX, (v) => v * 30)
-    const parallaxY = useTransform(springY, (v) => v * 30)
+    }, [])
 
     const handleOAuthLogin = async (provider: 'google') => {
         setLoading(provider)
         setError(null)
         setSuccess(null)
-        
+
         const callbackUrl = new URL(`${location.origin}/auth/callback`)
         if (redirectTo) {
             callbackUrl.searchParams.set('next', redirectTo)
@@ -242,69 +223,82 @@ function LoginForm() {
 
     return (
         <div className={cn(
-            "min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden page-story-maker selection:bg-purple-200 dark:selection:bg-purple-900/40",
+            "min-h-screen w-full flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden bg-shell selection:bg-purple-200 dark:selection:bg-purple-900/40",
             mounted ? "opacity-100" : "opacity-0 transition-opacity duration-1000"
         )}>
 
             <MagicBackground />
 
-            {/* Parallax Content Container */}
-            <motion.div
-                style={{ x: parallaxX, y: parallaxY }}
+            {/* Content Container */}
+            <div
                 className={cn(
                     "w-full max-w-[480px] relative z-10 transition-all duration-1000 flex flex-col items-center",
                     mounted ? "translate-y-0 opacity-100 scale-100" : "translate-y-12 opacity-0 scale-95"
                 )}
             >
-                {/* Radiance Token */}
-                <div className="relative mb-10 group perspective-1000">
-                    <div className="absolute inset-x-[-30px] inset-y-[-30px] bg-amber-400/20 blur-[50px] rounded-full animate-pulse-glow" />
-                    <div className="relative w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-[#ffd700] via-[#ffa500] to-[#ff4500] border-4 border-white/40 shadow-[0_15px_40px_rgba(255,69,0,0.4)] flex items-center justify-center rotate-3 group-hover:rotate-0 transition-all duration-700 ease-&lsqb;cubic-bezier(0.34,1.56,0.64,1)&rsqb; group-hover:scale-110">
-                        <Sparkles className="h-12 w-12 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)] animate-bounce-subtle" strokeWidth={2.5} />
+                {/* Lumo Brand Mascot */}
+                <motion.div
+                    initial={{ scale: 0, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.5 }}
+                    className="relative mb-8 group"
+                >
+                    <div className="absolute inset-0 bg-accent/20 blur-[40px] rounded-full animate-pulse-glow" />
+
+                    {/* Portal Halo */}
+                    <div className="absolute inset-[-20%] rounded-full border-2 border-dashed border-white/40 animate-[spin_10s_linear_infinite] opacity-70" />
+                    <div className="absolute inset-[-10%] rounded-full border border-white/20 animate-[spin_15s_linear_infinite_reverse] opacity-70" />
+
+                    {/* Floating Icons */}
+                    <FloatingElements />
+
+                    <div className="relative p-7 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-[3rem] border-2 border-white/50 dark:border-white/10 shadow-clay-lg group-hover:scale-110 transition-all duration-500 group-hover:rotate-6 z-10">
+                        <LumoCharacter size="lg" />
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Liquid Glass Portal Card */}
-                <div className="w-full relative group">
+                <div ref={cardRef} className="w-full relative group px-2 sm:px-0">
                     {/* Reactive Rim Light */}
                     <motion.div
-                        className="absolute -inset-[1px] rounded-[3.5rem] bg-gradient-to-br from-white/40 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
+                        className="absolute -inset-[1px] rounded-[3rem] bg-gradient-to-br from-white/40 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
                         style={{
                             background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.4), transparent)`
                         }}
                     />
 
-                    <div className="relative glass-card border-white/10 dark:border-white/5 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] p-10 md:p-12 flex flex-col items-center backdrop-blur-[50px] bg-white/5 dark:bg-[#1a1c2e]/70 border-[1.5px] rounded-[3.5rem] overflow-hidden">
+                    <div className="relative glass-card border-white/20 dark:border-white/10 shadow-clay-lg p-8 sm:p-10 md:p-12 flex flex-col items-center backdrop-blur-3xl bg-white/60 dark:bg-[#1a1c2e]/70 border-[1.5px] rounded-[3rem] overflow-hidden">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={authStep === 'email' ? 'email-step' : 'identity-step'}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                 className="w-full flex flex-col items-center"
                             >
                                 {/* Typography: High Contrast Headlines */}
-                                <div className="mb-10 w-full text-center">
-                                    <h1 className="text-4xl font-black tracking-tighter text-[#1e2238] dark:text-white mb-2 leading-tight">
-                                        {authStep === 'email' ? "The Golden Portal" :
-                                            emailExists ? "Welcome Back" : "Begin Adventure"}
+                                <div className="mb-8 w-full text-center">
+                                    <h1 className="text-3xl sm:text-4xl font-black tracking-tighter text-ink dark:text-white mb-2 leading-tight font-fredoka">
+                                        {authStep === 'email' ? "Magical Portal" :
+                                            emailExists ? "Welcome Back" : "New Journey"}
                                     </h1>
-                                    <p className="text-base font-bold text-[#5c6285] dark:text-slate-400 leading-relaxed max-w-[280px] mx-auto">
+                                    <p className="text-sm sm:text-base font-bold text-ink-muted dark:text-slate-400 leading-relaxed max-w-[280px] mx-auto">
                                         {authStep === 'email' ? "Step back into the world of magic and imagination." :
-                                            emailExists ? "The realm remembers you, traveler. Please enter your secret word." :
-                                                "A new traveler! Create your legacy account to start your journey."}
+                                            emailExists ? "The realm remembers you, traveler. Enter your secret word." :
+                                                "Create your traveler's profile to start your magical journey."}
                                     </p>
                                 </div>
 
                                 {authStep === 'email' ? (
                                     <div className="w-full">
                                         {/* Social Option */}
-                                        <div className="w-full mb-8">
+                                        <div className="w-full mb-6">
                                             <button
                                                 onClick={() => handleOAuthLogin('google')}
                                                 disabled={!!loading}
-                                                className="group relative w-full h-[60px] rounded-[1.25rem] overflow-hidden active:scale-[0.98] transition-all bg-white border border-[#e2e8f0] shadow-sm hover:shadow-md dark:bg-slate-800 dark:border-slate-700"
+                                                className="group relative w-full h-[56px] rounded-[1.25rem] overflow-hidden active:scale-[0.98] transition-all bg-white/80 dark:bg-slate-800/80 border border-white/50 dark:border-slate-700 shadow-clay-sm hover:shadow-clay-md"
+                                                aria-label="Sign in with Google"
                                             >
                                                 <div className="relative flex items-center justify-center gap-3 h-full px-6">
                                                     {loading === 'google' ? (
@@ -319,20 +313,20 @@ function LoginForm() {
                                                                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                                                                 </svg>
                                                             </div>
-                                                            <span className="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight">Enter with Google</span>
+                                                            <span className="text-base font-black text-ink dark:text-slate-100 tracking-tight">Enter with Google</span>
                                                         </>
                                                     )}
                                                 </div>
                                             </button>
                                         </div>
 
-                                        <div className="w-full flex items-center gap-4 mb-8 opacity-50">
-                                            <div className="h-[1px] flex-1 bg-[#cbd5e1] dark:bg-white/10" />
-                                            <span className="text-[10px] font-black text-[#5c6285] dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">Ink & Scroll</span>
-                                            <div className="h-[1px] flex-1 bg-[#cbd5e1] dark:bg-white/10" />
+                                        <div className="w-full flex items-center gap-4 mb-6 opacity-50">
+                                            <div className="h-[1px] flex-1 bg-ink/20 dark:bg-white/20" />
+                                            <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">Secret Scroll</span>
+                                            <div className="h-[1px] flex-1 bg-ink/20 dark:bg-white/20" />
                                         </div>
 
-                                        <form onSubmit={handleEmailCheck} className="w-full space-y-6">
+                                        <form onSubmit={handleEmailCheck} className="w-full space-y-4">
                                             <div className="relative group/input">
                                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within/input:text-purple-500 transition-colors" />
                                                 <input
@@ -342,13 +336,14 @@ function LoginForm() {
                                                     autoFocus
                                                     disabled={loading === 'checking'}
                                                     onChange={(e) => setEmail(e.target.value)}
-                                                    className="w-full pl-12 pr-4 h-[56px] bg-[#f8fafc] dark:bg-white/5 border-2 border-transparent focus:border-purple-500/30 rounded-2xl outline-none transition-all placeholder:text-slate-400 font-bold text-[#1e2238] dark:text-white disabled:opacity-50"
+                                                    className="w-full pl-12 pr-4 h-[56px] bg-white/50 dark:bg-white/5 border-2 border-transparent focus:border-purple-500/30 rounded-2xl outline-none transition-all placeholder:text-slate-400 font-bold text-ink dark:text-white disabled:opacity-50 shadow-clay-inset"
                                                     required
+                                                    aria-label="Email address"
                                                 />
                                             </div>
 
                                             {error && (
-                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-4 bg-rose-50 border border-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20 rounded-2xl text-rose-600 dark:text-rose-400 text-sm font-bold text-center">
+                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-sm font-bold text-center">
                                                     {error}
                                                 </motion.div>
                                             )}
@@ -357,15 +352,13 @@ function LoginForm() {
                                                 type="submit"
                                                 disabled={!!loading || !isValidEmail}
                                                 className={cn(
-                                                    "w-full group relative h-[60px] rounded-2xl overflow-hidden transition-all duration-300",
-                                                    (!!loading || !isValidEmail) ? "opacity-50 grayscale cursor-not-allowed" : "active:scale-[0.98] shadow-lg hover:shadow-xl hover:shadow-purple-500/20"
+                                                    "w-full group relative h-[56px] rounded-2xl overflow-hidden transition-all duration-300",
+                                                    (!!loading || !isValidEmail) ? "opacity-50 cursor-not-allowed" : "active:scale-[0.98] shadow-clay-lg hover:shadow-xl hover:shadow-purple-500/20"
                                                 )}
                                             >
                                                 <div className={cn(
-                                                    "absolute inset-0 bg-gradient-to-r transition-all duration-500",
-                                                    (!!loading || !isValidEmail)
-                                                        ? "from-slate-400 to-slate-500"
-                                                        : "from-[#8b5cf6] to-[#6366f1] group-hover:from-[#7c3aed] group-hover:to-[#4f46e5]"
+                                                    "absolute inset-0 bg-gradient-to-r from-accent to-indigo-600 transition-all duration-500",
+                                                    !(!!loading || !isValidEmail) && "group-hover:from-purple-600 group-hover:to-indigo-500"
                                                 )} />
                                                 <div className="relative flex items-center justify-center gap-3 h-full px-8">
                                                     {loading === 'checking' ? (
@@ -381,7 +374,7 @@ function LoginForm() {
                                         </form>
                                     </div>
                                 ) : (
-                                    <form onSubmit={handleEmailAuth} className="w-full space-y-6">
+                                    <form onSubmit={handleEmailAuth} className="w-full space-y-4">
                                         <div className="flex flex-col gap-4">
                                             <div className="relative group/input opacity-60">
                                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -389,7 +382,8 @@ function LoginForm() {
                                                     type="email"
                                                     value={email}
                                                     readOnly
-                                                    className="w-full pl-12 pr-4 h-[56px] bg-[#f8fafc] dark:bg-white/5 border-2 border-transparent rounded-2xl outline-none font-bold text-[#1e2238] dark:text-white cursor-not-allowed"
+                                                    className="w-full pl-12 pr-4 h-[56px] bg-white/50 dark:bg-white/5 border-2 border-transparent rounded-2xl outline-none font-bold text-ink dark:text-white cursor-not-allowed shadow-clay-inset"
+                                                    aria-label="Email address (read-only)"
                                                 />
                                             </div>
                                             <div className="relative group/input">
@@ -400,8 +394,9 @@ function LoginForm() {
                                                     value={password}
                                                     autoFocus
                                                     onChange={(e) => setPassword(e.target.value)}
-                                                    className="w-full pl-12 pr-4 h-[56px] bg-[#f8fafc] dark:bg-white/5 border-2 border-transparent focus:border-purple-500/30 rounded-2xl outline-none transition-all placeholder:text-slate-400 font-bold text-[#1e2238] dark:text-white"
+                                                    className="w-full pl-12 pr-4 h-[56px] bg-white/50 dark:bg-white/5 border-2 border-transparent focus:border-purple-500/30 rounded-2xl outline-none transition-all placeholder:text-slate-400 font-bold text-ink dark:text-white shadow-clay-inset"
                                                     required
+                                                    aria-label="Secret Word (Password)"
                                                 />
                                             </div>
                                         </div>
@@ -413,11 +408,11 @@ function LoginForm() {
                                         )}
 
                                         <motion.button
-                                            whileHover={{ scale: 1.02, y: -4 }}
+                                            whileHover={{ scale: 1.02, y: -2 }}
                                             whileTap={{ scale: 0.98 }}
                                             type="submit"
                                             disabled={!!loading || !isValidPassword}
-                                            className="h-16 w-full rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple transition-all disabled:opacity-50 border-2 border-white/30 text-xl font-black font-fredoka uppercase tracking-widest"
+                                            className="h-14 w-full rounded-2xl bg-gradient-to-r from-accent to-indigo-600 text-white shadow-clay-lg transition-all disabled:opacity-50 border-2 border-white/30 text-lg font-black font-fredoka uppercase tracking-widest"
                                         >
                                             {loading === 'auth' ? (
                                                 <RefreshCw className="mx-auto h-6 w-6 animate-spin" />
@@ -434,7 +429,7 @@ function LoginForm() {
                                                 setSuccess(null)
                                                 setPassword('')
                                             }}
-                                            className="w-full flex items-center justify-center gap-2 py-2 text-sm font-bold text-[#5c6285] dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
+                                            className="w-full flex items-center justify-center gap-2 py-2 text-sm font-bold text-ink-muted dark:text-slate-500 hover:text-accent dark:hover:text-purple-400 transition-colors group"
                                         >
                                             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                             Use different email
@@ -446,12 +441,12 @@ function LoginForm() {
                     </div>
                 </div>
 
-                <div className="text-center pt-8">
+                <div className="text-center pt-6">
                     <p className="text-sm font-bold font-nunito text-ink-muted">
-                        New explorer? <span className="text-purple-600 hover:underline cursor-pointer">Request Invitation</span>
+                        New explorer? <span className="text-accent hover:underline cursor-pointer">Request Invitation</span>
                     </p>
                 </div>
-            </motion.div>
+            </div>
 
             {/* Cinematic Footer */}
             <div className="mt-12 py-4 flex items-center justify-center gap-10 text-[10px] font-black text-slate-500 transition-colors tracking-[0.2em] uppercase relative z-10">
