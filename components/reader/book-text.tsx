@@ -5,26 +5,28 @@ import type { BookImage, WordToken } from "@/lib/core";
 import { CachedImage } from "@/components/ui/cached-image";
 
 type BookTextProps = {
-  tokens: WordToken[];
-  currentWordIndex: number | null;
-  onWordClick?: (word: string, element: HTMLElement, wordIndex: number) => void;
-  images?: BookImage[];
-  onImageLoad?: () => void;
+    tokens: WordToken[];
+    currentWordIndex: number | null;
+    onWordClick?: (word: string, element: HTMLElement, wordIndex: number) => void;
+    images?: BookImage[];
+    onImageLoad?: () => void;
 };
 
 // Memoized individual word component to prevent thousands of re-renders when currentWordIndex changes
-const Word = React.memo(({ 
-    token, 
-    isActive, 
+const Word = React.memo(({
+    token,
+    isActive,
     onWordClick,
     imagesAtIndex,
-    onImageLoad
-}: { 
-    token: WordToken; 
-    isActive: boolean; 
+    onImageLoad,
+    isTourTarget
+}: {
+    token: WordToken;
+    isActive: boolean;
     onWordClick?: (word: string, element: HTMLElement, wordIndex: number) => void;
     imagesAtIndex?: BookImage[];
     onImageLoad?: () => void;
+    isTourTarget?: boolean;
 }) => {
     const wordText = token.text;
 
@@ -32,6 +34,7 @@ const Word = React.memo(({
         <React.Fragment>
             <span
                 data-word-index={token.wordIndex}
+                data-tour-target={isTourTarget ? "first-word" : undefined}
                 className={`word-token${isActive ? " highlight-word" : ""}`}
             >
                 {onWordClick ? (
@@ -100,6 +103,12 @@ export default function BookText({
         return map;
     }, [images]);
 
+    // Determine target word for tutorial
+    const targetWordIndex = useMemo(() => {
+        const pixelatedIndex = tokens.findIndex(t => t.text.toLowerCase().includes("pixelated"));
+        return pixelatedIndex !== -1 ? pixelatedIndex : 0;
+    }, [tokens]);
+
     if (tokens.length === 0) {
         return <p className="text-ink-muted">Pick a book to begin.</p>;
     }
@@ -107,13 +116,14 @@ export default function BookText({
     return (
         <div className="px-5 py-6 text-left text-xl font-nunito font-semibold leading-relaxed text-ink md:text-2xl md:leading-relaxed">
             {tokens.map((token) => (
-                <Word 
+                <Word
                     key={token.wordIndex}
                     token={token}
                     isActive={token.wordIndex === currentWordIndex}
                     onWordClick={onWordClick}
                     imagesAtIndex={imagesByIndex.get(token.wordIndex)}
                     onImageLoad={onImageLoad}
+                    isTourTarget={token.wordIndex === targetWordIndex}
                 />
             ))}
         </div>

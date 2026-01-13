@@ -124,18 +124,20 @@ export const NarratedText = forwardRef<NarratedTextRef, NarratedTextProps>(
             isPreparing: narration.isPreparing,
         }));
 
+        // Track if playback has actually started to avoid firing onPlaybackEnd on mount or during loading
+        const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
+
         // Notify parent of playback state changes
         useEffect(() => {
             if (narration.state === "PLAYING") {
+                setHasStartedPlaying(true);
                 onPlaybackStart?.();
-            } else if (narration.state === "STOPPED" || narration.state === "IDLE") {
-                // We only fire onEnd if it naturally stopped (checking logic is hard here without event, 
-                // but hook state is reliable). Actually, 'STOPPED' usually implies finished or manual stop.
-                // We might want to distinguish. Hook sets STOPPED on 'ended' event.
-                // For now, this is sufficient.
+            } else if ((narration.state === "STOPPED" || narration.state === "IDLE") && hasStartedPlaying) {
+                // Only fire onPlaybackEnd if we actually started playing
+                setHasStartedPlaying(false);
                 onPlaybackEnd?.();
             }
-        }, [narration.state, onPlaybackStart, onPlaybackEnd]);
+        }, [narration.state, hasStartedPlaying, onPlaybackStart, onPlaybackEnd]);
 
         // Autoplay logic
         useEffect(() => {

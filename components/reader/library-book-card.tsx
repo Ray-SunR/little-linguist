@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/core";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { RefreshCw } from "lucide-react";
+import { useTutorial } from "@/components/tutorial/tutorial-context";
 
 interface LibraryBookCardProps {
     book: LibraryBookCard;
@@ -17,9 +18,10 @@ interface LibraryBookCardProps {
     isOwned?: boolean;
     onDelete?: (id: string) => void;
     activeChildId?: string;
+    dataTourTarget?: string;
 }
 
-const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }: LibraryBookCardProps) => {
+const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId, dataTourTarget }: LibraryBookCardProps) => {
     const ref = useRef<HTMLDivElement>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -84,9 +86,12 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
         router.prefetch(`/reader/${book.id}`);
     }, [router, book.id]);
 
+    const { completeStep } = useTutorial();
+
     const handleClick = useCallback(() => {
         setIsNavigating(true);
-    }, []);
+        completeStep('library-book-list');
+    }, [completeStep]);
 
     // Safety: ensure we have a valid denominator for progress
     const totalTokens = book.totalTokens ?? book.progress?.total_tokens ?? 0;
@@ -106,6 +111,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId }:
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}
             className="group relative h-[420px] md:h-[460px] w-full perspective-[2000px] will-change-transform"
+            data-tour-target={dataTourTarget}
         >
             <Link
                 href={`/reader/${book.id}`}

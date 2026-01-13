@@ -11,14 +11,15 @@ import { useAuth } from "@/components/auth/auth-provider";
 
 import { CachedImage } from "@/components/ui/cached-image";
 import { useUsage } from "@/lib/hooks/use-usage";
+import { useTutorial } from "@/components/tutorial/tutorial-context";
 
 const ME_PRIMARY_PATH = "/dashboard";
 const ME_PATHS = ["/dashboard", "/profiles"];
 
 const navItems = [
-
     {
-        href: "/library", // Corrected to /library
+        id: "nav-item-library",
+        href: "/library",
         label: "Book Library",
         icon: BookOpen,
         color: "text-blue-500",
@@ -27,6 +28,7 @@ const navItems = [
         activeBg: "bg-blue-100 dark:bg-blue-800/40",
     },
     {
+        id: "nav-item-story",
         href: "/story-maker",
         label: "Story Maker",
         icon: Wand2,
@@ -36,6 +38,7 @@ const navItems = [
         activeBg: "bg-purple-100 dark:bg-purple-800/40",
     },
     {
+        id: "nav-item-words",
         href: "/my-words",
         label: "Word List",
         icon: Languages,
@@ -59,6 +62,8 @@ const MemoizedNavItem = memo(function NavItem({
 
     return (
         <Link
+            id={(item as any).id}
+            data-tour-target={(item as any).id}
             href={item.href}
             className="flex-1"
             onClick={() => onClick?.(item.href)}
@@ -89,6 +94,7 @@ export function ClayNav() {
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
     const { usage, plan, loading } = useUsage(["story_generation", "word_insight", "image_generation"]);
+    const { completeStep } = useTutorial();
     const isReaderView = pathname.startsWith("/reader");
     const isLibraryView = pathname.startsWith("/library");
     const [isExpanded, setIsExpanded] = useState(true);
@@ -166,6 +172,7 @@ export function ClayNav() {
 
     const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
     const isOnboarding = pathname === "/onboarding";
+    const isMeActive = ME_PATHS.some(path => isActive(path));
 
     // --- ONBOARDING VARIANT ---
     if (isOnboarding) {
@@ -237,6 +244,7 @@ export function ClayNav() {
                         )}
                     >
                         <button
+                            data-tour-target="nav-item-lumo-character"
                             onClick={() => setIsExpanded(false)}
                             className="flex items-center gap-3 group relative z-50 pl-2 shrink-0"
                             title="Fold Navigation"
@@ -250,47 +258,45 @@ export function ClayNav() {
 
 
                             {/* Me Button (Active for Dashboard or Profiles) */}
-                            {(() => {
-                                const isMeActive = ME_PATHS.some(path => isActive(path));
-                                return (
-                                    <Link
-                                        href={ME_PRIMARY_PATH}
-                                        className="flex-1"
-                                        onClick={() => setPendingHref(ME_PRIMARY_PATH)}
-                                    >
-                                        <motion.div
-                                            whileTap={{ scale: 0.8, y: -5 }}
-                                            className={cn(
-                                                "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-colors duration-300 mx-1",
-                                                isMeActive
-                                                    ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
-                                                    : "text-slate-500 hover:text-slate-700"
-                                            )}
-                                        >
-                                            {activeChild?.avatar_asset_path ? (
-                                                <div className={cn("relative w-6 h-6 rounded-full overflow-hidden border border-white shadow-sm mb-1", isMeActive ? "ring-2 ring-purple-100" : "")}>
-                                                    <CachedImage
-                                                        src={activeChild.avatar_asset_path}
-                                                        alt="Me"
-                                                        fill
-                                                        className="object-cover"
-                                                        updatedAt={activeChild.updated_at}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-1 bg-gradient-to-br from-indigo-400 to-purple-500 text-white shadow-sm", isMeActive ? "ring-2 ring-purple-100" : "")}>
-                                                    <span className="text-[10px] font-fredoka font-black">
-                                                        {activeChild?.first_name?.[0] || "M"}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            <span className="text-[9px] font-fredoka font-black uppercase tracking-wider leading-none">
-                                                ME
+                            {/* Me Button (Active for Dashboard or Profiles) */}
+                            <Link
+                                href={ME_PRIMARY_PATH}
+                                id="nav-item-profile"
+                                data-tour-target="nav-item-profile"
+                                className="flex-1"
+                                onClick={() => setPendingHref(ME_PRIMARY_PATH)}
+                            >
+                                <motion.div
+                                    whileTap={{ scale: 0.8, y: -5 }}
+                                    className={cn(
+                                        "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-colors duration-300 mx-1",
+                                        isMeActive
+                                            ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
+                                            : "text-slate-500 hover:text-slate-700"
+                                    )}
+                                >
+                                    {activeChild?.avatar_asset_path ? (
+                                        <div className={cn("relative w-6 h-6 rounded-full overflow-hidden border border-white shadow-sm mb-1", isMeActive ? "ring-2 ring-purple-100" : "")}>
+                                            <CachedImage
+                                                src={activeChild.avatar_asset_path}
+                                                alt="Me"
+                                                fill
+                                                className="object-cover"
+                                                updatedAt={activeChild.updated_at}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-1 bg-gradient-to-br from-indigo-400 to-purple-500 text-white shadow-sm", isMeActive ? "ring-2 ring-purple-100" : "")}>
+                                            <span className="text-[10px] font-fredoka font-black">
+                                                {activeChild?.first_name?.[0] || "M"}
                                             </span>
-                                        </motion.div>
-                                    </Link>
-                                );
-                            })()}
+                                        </div>
+                                    )}
+                                    <span className="text-[9px] font-fredoka font-black uppercase tracking-wider leading-none">
+                                        ME
+                                    </span>
+                                </motion.div>
+                            </Link>
 
                             {navItems.map((item) => {
                                 const activeNow = isActive(item.href) || pendingHref === item.href;
@@ -372,11 +378,15 @@ export function ClayNav() {
                         initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
                         animate={prefersReducedMotion ? { scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
                         exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0, opacity: 0 }}
-                        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
+                        className="fixed bottom-6 left-0 right-0 mx-auto w-max z-50 pointer-events-auto"
                     >
                         <button
-                            onClick={() => setIsExpanded(true)}
-                            className="group relative flex items-center justify-center w-16 h-16 rounded-full bg-white/80 backdrop-blur-lg shadow-xl border-4 border-white hover:scale-105 active:scale-95 transition-all duration-300"
+                            onClick={() => {
+                                setIsExpanded(true);
+                                completeStep('nav-item-lumo');
+                            }}
+                            data-tour-target="nav-item-lumo-character"
+                            className="group relative flex items-center justify-center w-20 h-20 hover:scale-110 active:scale-90 transition-all duration-500 pointer-events-auto"
                         >
                             <LumoCharacter size="lg" />
                             <div className="absolute -top-1 -right-1 bg-accent text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -23,9 +23,6 @@ export function LumoCharacter({ className, size = "md", priority = false }: Lumo
   return (
     <div
       className={cn("relative flex items-center justify-center", resolvedSizeClass, className)}
-      style={{
-        animation: 'lumo-float 4s ease-in-out infinite'
-      }}
     >
       <style jsx>{`
         @keyframes lumo-float {
@@ -33,14 +30,23 @@ export function LumoCharacter({ className, size = "md", priority = false }: Lumo
           50% { transform: translateY(-5px) rotate(5deg); }
         }
       `}</style>
-      <Image
-        src="/lumo-mascot.png"
-        alt="Lumo Mascot"
-        fill
-        sizes="(max-width: 768px) 100vw, 350px"
-        className="object-contain relative z-10 rounded-full"
-        priority={priority}
-      />
-    </div>
+      <div
+        className="relative w-full h-full"
+        style={{
+          animation: 'lumo-float 4s ease-in-out infinite',
+          maskImage: 'radial-gradient(closest-side, black 85%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(closest-side, black 85%, transparent 100%)'
+        }}
+      >
+        <Image
+          src="/lumo-mascot.png"
+          alt="Lumo Mascot"
+          fill
+          unoptimized={true}
+          className="object-contain relative z-10 rounded-full"
+          priority={priority}
+        />
+      </div>
+    </div >
   );
 }

@@ -168,7 +168,10 @@ export function BookshelfToolbar({
 
 
     return (
-        <div className={`
+        <div
+            id="library-filters"
+            data-tour-target="library-filters"
+            className={`
              sticky top-0 z-30 transition-all duration-300
              mx-auto w-full max-w-7xl
              ${className}
@@ -728,6 +731,7 @@ const CategoryDropdown = React.memo(function CategoryDropdown({
                 // Default State: Single Trigger Button
                 <PopoverTrigger asChild>
                     <button
+                        data-tour-target="library-category-btn"
                         className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 lg:px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-all font-bold font-fredoka text-slate-700 shadow-sm"
                         aria-label="Category Filter"
                     >
