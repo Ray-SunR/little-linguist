@@ -18,6 +18,7 @@ import { CachedImage } from "@/components/ui/cached-image";
 import { useAuth } from "@/components/auth/auth-provider";
 import { createChildProfile, switchActiveChild } from "@/app/actions/profiles";
 import { createClient } from "@/lib/supabase/client";
+import { useTutorial } from "@/components/tutorial/tutorial-context";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -48,6 +49,7 @@ export function clearStoryMakerGlobals(): void {
 export default function StoryMakerClient({ initialProfile }: StoryMakerClientProps) {
     const { words } = useWordList();
     const { activeChild, isLoading, user, profiles, refreshProfiles, setActiveChild, isStoryGenerating, setIsStoryGenerating } = useAuth();
+    const { completeStep } = useTutorial();
     const router = useRouter();
     const searchParams = useSearchParams();
     const service = getStoryService();
@@ -339,6 +341,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
         setStep("generating");
         setError(null);
+        completeStep('story-create');
 
         try {
             let currentProfile = finalProfile;
@@ -445,6 +448,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             await raidenCache.put(CacheStore.BOOKS, initialSupabaseBook);
             if (user?.id) await raidenCache.delete(CacheStore.LIBRARY_METADATA, user.id);
 
+            completeStep('story-generating');
             router.push(`/reader/${content.book_id}`);
             // service.generateImagesForBook is now called automatically on backend
 
@@ -586,10 +590,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         ) : (
                             <form onSubmit={handleProfileSubmit} className="relative">
                                 <div className="grid md:grid-cols-2 gap-10 mb-10">
-                                    <div className="space-y-8">
+                                    <div data-tour-target="story-hero-section" className="space-y-10">
                                         <div>
-                                            <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero&apos;s Name</label>
+                                            <label className="mb-4 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero&apos;s Name</label>
                                             <input
+                                                id="child-profile-input"
                                                 type="text"
                                                 value={profile.name}
                                                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
@@ -930,9 +935,18 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 </div>
 
                                 <motion.button
+                                    id="story-next-step"
+                                    data-tour-target="story-next-step"
                                     whileHover={{ scale: 1.02, y: -4 }}
                                     whileTap={{ scale: 0.98 }}
                                     type="submit"
+                                    onClick={() => {
+                                        // handleProfileSubmit(e) is handled by form submission if this is a type="submit"
+                                        // But if it's just a button click, we should ensure it's gated.
+                                        if (profile.name) {
+                                            completeStep('story-profile');
+                                        }
+                                    }}
                                     disabled={!profile.name || (usage["image_generation"] ? usage["image_generation"].current + imageSceneCount > usage["image_generation"].limit : false)}
                                     className="w-full h-20 rounded-[2rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center justify-center gap-3 text-2xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 transition-all"
                                 >
@@ -1033,7 +1047,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 </div>
                             </div>
                         ) : (
-                            <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <div data-tour-target="story-word-grid" className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {words.map((w) => {
                                     const isSelected = selectedWords.includes(w.word);
                                     return (
@@ -1104,9 +1118,15 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 )}
 
                                 <motion.button
+                                    id="story-create-btn"
+                                    data-tour-target="story-create-btn"
                                     whileHover={usage["story_generation"]?.isLimitReached ? {} : { scale: 1.02, y: -4 }}
                                     whileTap={usage["story_generation"]?.isLimitReached ? {} : { scale: 0.98 }}
-                                    onClick={() => !usage["story_generation"]?.isLimitReached && generateStory()}
+                                    onClick={() => {
+                                        if (!usage["story_generation"]?.isLimitReached) {
+                                            generateStory();
+                                        }
+                                    }}
                                     disabled={usage["story_generation"]?.isLimitReached}
                                     className={cn(
                                         "h-16 px-10 rounded-[1.5rem] text-white border-2 border-white/30 flex items-center gap-3 text-xl font-black font-fredoka uppercase tracking-widest transition-all",
@@ -1182,7 +1202,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <div className="absolute inset-[-40px] bg-purple-400/20 blur-[60px] rounded-full animate-pulse" />
 
                                     {/* Main Wand Hexagon/Circle */}
-                                    <div className="relative w-32 h-32 rounded-[2.5rem] bg-white shadow-clay-purple flex items-center justify-center border-4 border-purple-100 ring-8 ring-purple-50/50">
+                                    <div
+                                        id="story-generating-status"
+                                        data-tour-target="story-generating-status"
+                                        className="relative w-32 h-32 rounded-[2.5rem] bg-white shadow-clay-purple flex items-center justify-center border-4 border-purple-100 ring-8 ring-purple-50/50"
+                                    >
                                         <motion.div
                                             animate={{
                                                 rotate: [0, 15, -15, 0],

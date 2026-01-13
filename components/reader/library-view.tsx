@@ -8,6 +8,7 @@ import { LibraryBookCard } from "@/lib/core/books/library-types";
 import { cn } from "@/lib/core";
 import Link from "next/link";
 import { BookshelfToolbar } from "@/components/library/BookshelfToolbar";
+import { useTutorial } from "@/components/tutorial/tutorial-context";
 
 interface LibraryViewProps {
     books: LibraryBookCard[];
@@ -92,6 +93,26 @@ export default function LibraryView({
         ? `Hi, ${activeChild.name}! ${GREETINGS[greetingIndex]}`
         : GREETINGS[greetingIndex];
 
+    // Tutorial Integration: Ensure filters are reset when "Choose a Book" step is active
+    const { activeStepDetails } = useTutorial();
+    useEffect(() => {
+        if (activeStepDetails?.id === 'library-book-list') {
+            // Check if we need to reset to ensure visibility
+            // We force reset to 'discovery' and clear other filters
+            if (filters.collection !== 'discovery' || filters.category || filters.level || searchQuery) {
+                onFiltersChange({
+                    collection: 'discovery',
+                    category: undefined,
+                    level: undefined,
+                    type: undefined,
+                    duration: undefined,
+                    origin: undefined
+                });
+                setSearchQuery("");
+            }
+        }
+    }, [activeStepDetails?.id, filters.collection, filters.category, filters.level, searchQuery, onFiltersChange]);
+
     const handleFilterChange = (key: string, val: any) => {
         const newFilters = { ...filters, [key]: val };
 
@@ -135,7 +156,7 @@ export default function LibraryView({
                 </div>
 
                 {/* 3. Book Grid Area */}
-                <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative min-h-[400px]">
+                <div id="library-book-list" data-tour-target="library-book-list" className="flex flex-col gap-6 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative min-h-[400px]">
 
                     {/* Section Header */}
                     <motion.div
@@ -143,6 +164,7 @@ export default function LibraryView({
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         className="mb-2"
+                        data-tour-target="library-page-header"
                     >
                         <h2 className="font-fredoka text-3xl md:text-4xl font-black text-slate-800 tracking-tight flex items-center gap-3">
                             {filters.collection === 'my-tales' ? (
@@ -314,6 +336,10 @@ export default function LibraryView({
                                     isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
                                     activeChildId={activeChildId}
                                     onDelete={onDeleteBook}
+                                    dataTourTarget={
+                                        book.title.includes("Alex's Blocky World Adventure") ? "first-book" :
+                                            (!filteredBooks.some(b => b.title.includes("Alex's Blocky World Adventure")) && index === 0) ? "first-book" : undefined
+                                    }
                                 />
                             ))}
                         </div>

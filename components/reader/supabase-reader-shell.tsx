@@ -16,6 +16,7 @@ import { playSentence } from "@/lib/features/narration";
 import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementations/web-speech-provider";
 import type { ViewMode } from "@/lib/core";
 import { cn } from "@/lib/core";
+import { useTutorial } from "@/components/tutorial/tutorial-context";
 
 import BookLayout from "./book-layout";
 import ControlPanel from "./control-panel";
@@ -175,11 +176,14 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         playbackStateRef.current = playbackState;
     }, [playbackState]);
 
+    const { completeStep } = useTutorial();
+
     const handleWordClick = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
         if (playbackStateRef.current === "playing") pause();
         await openWordInspector(word, element, wordIndex);
         await seekToWord(wordIndex);
-    }, [pause, openWordInspector, seekToWord]);
+        completeStep('reader-text-content'); // Tutorial Step: Click Word
+    }, [pause, openWordInspector, seekToWord, completeStep]);
     // Note: removed playbackState from dependencies
 
 
@@ -366,8 +370,17 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                     </button>
 
                     <button
+                        id="reader-play-btn"
+                        data-tour-target="reader-play-btn"
                         type="button"
-                        onClick={playbackState === "playing" ? pause : play}
+                        onClick={() => {
+                            if (playbackState === "playing") {
+                                pause();
+                            } else {
+                                play();
+                                completeStep('reader-play-btn');
+                            }
+                        }}
                         disabled={isEmpty || isPreparing}
                         className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 flex-shrink-0"
                         style={{ background: 'linear-gradient(135deg, #8B4BFF, #7C3AED)' }}
@@ -390,6 +403,8 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                     </button>
 
                     <button
+                        id="reader-settings-btn"
+                        data-tour-target="reader-settings-btn"
                         ref={toggleButtonRef}
                         type="button"
                         onClick={() => setControlsExpanded(!controlsExpanded)}
@@ -431,7 +446,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                 )}
 
                 <div ref={scrollContainerRef} className="flex-1 min-h-0 flex flex-col pt-1">
-                    <div className="relative h-full overflow-hidden rounded-[1.8rem] bg-card/60 dark:bg-card/40 shadow-soft">
+                    <div id="reader-text-content" data-tour-target="reader-text-content" className="relative h-full overflow-hidden rounded-[1.8rem] bg-card/60 dark:bg-card/40 shadow-soft">
                         <BookLayout
                             tokens={wordTokens}
                             images={selectedBook?.images}

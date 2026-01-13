@@ -1,18 +1,20 @@
 "use client";
 
 import { Volume2, Play, Star, X, Pause, RefreshCw } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/core";
 import type { WordInsight } from "@/lib/features/word-insight";
 import { NarratedText, type NarratedTextRef } from "../narrated-text";
 import { INarrationProvider } from "@/lib/features/narration";
+import { useTutorial } from "@/components/tutorial/tutorial-context";
+import { useCachedAudio } from "@/components/hooks/use-cached-audio";
 
 type WordInsightViewProps = {
     insight: WordInsight;
     isSaved: boolean;
     onToggleSave: () => void;
-    onPlaySentence?: (sentence: string) => void; // Kept for backward compat or pausing parent
+    onPlaySentence?: (sentence: string) => void;
     onPlayFromWord?: () => void;
     onClose?: () => void;
     onRequestPauseMain?: () => void;
@@ -28,7 +30,7 @@ export function WordInsightView({
     insight,
     isSaved,
     onToggleSave,
-    onPlaySentence, // We'll use this to signal parent to pause
+    onPlaySentence,
     onPlayFromWord,
     onClose,
     onRequestPauseMain,
@@ -37,6 +39,19 @@ export function WordInsightView({
 }: WordInsightViewProps) {
     const [currentlyPlayingSection, setCurrentlyPlayingSection] = useState<string | null>(null);
     const [isAudioLoading, setIsAudioLoading] = useState(false);
+    const { completeStep, pauseDisplay } = useTutorial();
+
+    // Cache audio assets
+    const cachedWordAudio = useCachedAudio(insight.wordAudioUrl);
+    const cachedDefinitionAudio = useCachedAudio(insight.audioUrl);
+    const cachedExampleAudio = useCachedAudio(insight.exampleAudioUrls?.[0]);
+
+    // Tutorial Gating: Complete step only when word is actually saved
+    useEffect(() => {
+        if (isSaved) {
+            completeStep('word-save');
+        }
+    }, [isSaved, completeStep]);
 
     // Refs for NarratedText components
     const wordRef = useRef<NarratedTextRef>(null);
@@ -46,6 +61,14 @@ export function WordInsightView({
     const handlePlaySection = async (section: string, ref: NarratedTextRef | null) => {
         if (!ref) return;
 
+        // Hide tutorial card immediately when starting audio playback
+        pauseDisplay();
+
+        // Trigger tutorial step completion for pronunciation
+        if (section === 'word') {
+            completeStep('word-pronunciation');
+        }
+
         // If clicking the currently playing section, pause/stop it
         if (currentlyPlayingSection === section) {
             if (ref.isPlaying) {
@@ -53,9 +76,8 @@ export function WordInsightView({
                 setCurrentlyPlayingSection(null);
             } else {
                 // Resume
-                // Pause main reader first
                 onRequestPauseMain?.();
-                onPlaySentence?.(""); // Hacky signal if onRequestPauseMain missing
+                onPlaySentence?.("");
                 setIsAudioLoading(true);
                 try {
                     await ref.play();
@@ -75,7 +97,7 @@ export function WordInsightView({
 
         // Play new section
         onRequestPauseMain?.();
-        onPlaySentence?.(""); // Signal parent
+        onPlaySentence?.("");
         setCurrentlyPlayingSection(section);
         setIsAudioLoading(true);
         try {
@@ -86,30 +108,37 @@ export function WordInsightView({
     };
 
     const handlePlaybackEnd = () => {
+        // Delayed tutorial completion: wait for audio to finish
+        if (currentlyPlayingSection === 'definition') {
+            completeStep('word-definition-audio');
+        } else if (currentlyPlayingSection === 'example') {
+            completeStep('word-example-audio');
+        }
         setCurrentlyPlayingSection(null);
     };
 
     return (
         <div className={cn("relative font-nunito h-full", compact ? "px-1" : "")}>
             {/* Header: Word & Action Buttons */}
-            <div className={cn("flex items-start justify-between", compact ? "mb-2" : "mb-4")}>
-                <div className="flex items-center gap-3">
+            <div className={cn("flex items-start justify-between gap-4", compact ? "mb-2" : "mb-4")}>
+                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
                     <motion.button
+                        data-tour-target="word-pronunciation-btn"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => handlePlaySection('word', wordRef.current)}
                         className={cn(
-                            "rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-clay-purple flex items-center justify-center border-2 border-white/30 group/word cursor-pointer flex-shrink-0",
+                            "rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-clay-purple flex items-center justify-center border-2 border-white/30 group/word cursor-pointer flex-shrink-0 max-w-full",
                             compact ? "h-10 px-4 scale-90 origin-left" : "h-14 px-5"
                         )}
                     >
                         <NarratedText
                             ref={wordRef}
                             text={insight.word}
-                            audio={insight.wordAudioUrl}
-                            voiceProvider={insight.wordAudioUrl ? "remote_tts" : "web_speech"}
+                            audio={cachedWordAudio}
+                            voiceProvider={cachedWordAudio ? "remote_tts" : "web_speech"}
                             showControls={false}
-                            className={cn("font-black text-white font-fredoka uppercase tracking-tight", compact ? "text-lg" : "text-xl")}
+                            className={cn("font-black text-white font-fredoka uppercase tracking-tight truncate", compact ? "text-lg" : "text-xl")}
                             highlightClassName="text-yellow-200 drop-shadow-[0_0_8px_rgba(253,224,71,0.5)]"
                             onPlaybackEnd={handlePlaybackEnd}
                             suppressErrors={true}
@@ -125,9 +154,14 @@ export function WordInsightView({
                 {!compact && (
                     <div className="flex items-center gap-2">
                         <motion.button
+                            data-tour-target="word-save-btn"
                             whileHover={{ scale: 1.1, rotate: 5 }}
                             whileTap={{ scale: 0.9 }}
-                            onClick={onToggleSave}
+                            onClick={() => {
+                                // Just toggle. The useEffect above handles tutorial completion when state changes.
+                                // If not logged in, parent handles auth modal.
+                                onToggleSave();
+                            }}
                             className={cn(
                                 "group flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-all shadow-clay",
                                 isSaved
@@ -166,9 +200,9 @@ export function WordInsightView({
                             <NarratedText
                                 ref={definitionRef}
                                 text={insight.definition}
-                                audio={insight.audioUrl}
+                                audio={cachedDefinitionAudio}
                                 timings={insight.wordTimings}
-                                voiceProvider={insight.audioUrl ? "remote_tts" : "web_speech"}
+                                voiceProvider={cachedDefinitionAudio ? "remote_tts" : "web_speech"}
                                 showControls={false}
                                 className={cn("font-bold text-ink leading-snug font-nunito", compact ? "text-sm" : "text-base")}
                                 highlightClassName="bg-amber-100 text-amber-900 rounded ring-2 ring-amber-50"
@@ -177,9 +211,12 @@ export function WordInsightView({
                             />
                         </div>
                         <motion.button
+                            data-tour-target="word-definition-audio"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => handlePlaySection('definition', definitionRef.current)}
+                            onClick={() => {
+                                handlePlaySection('definition', definitionRef.current);
+                            }}
                             className={cn(
                                 "flex-shrink-0 flex items-center justify-center rounded-xl bg-purple-500 text-white shadow-clay-purple border border-white/30 z-10 cursor-pointer will-change-transform",
                                 compact ? "h-8 w-8" : "h-10 w-10"
@@ -211,9 +248,9 @@ export function WordInsightView({
                                 <NarratedText
                                     ref={exampleRef}
                                     text={insight.examples[0]}
-                                    audio={insight.exampleAudioUrls?.[0]}
+                                    audio={cachedExampleAudio}
                                     timings={insight.exampleTimings?.[0]}
-                                    voiceProvider={insight.exampleAudioUrls?.[0] ? "remote_tts" : "web_speech"}
+                                    voiceProvider={cachedExampleAudio ? "remote_tts" : "web_speech"}
                                     showControls={false}
                                     className={cn("font-bold text-ink italic leading-snug font-nunito", compact ? "text-sm" : "text-base")}
                                     highlightClassName="bg-emerald-100 text-emerald-900 rounded ring-2 ring-emerald-50"
@@ -222,9 +259,12 @@ export function WordInsightView({
                                 />
                             </div>
                             <motion.button
+                                data-tour-target="word-example-audio"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => handlePlaySection('example', exampleRef.current)}
+                                onClick={() => {
+                                    handlePlaySection('example', exampleRef.current);
+                                }}
                                 className={cn(
                                     "flex-shrink-0 flex items-center justify-center rounded-xl bg-emerald-500 text-white shadow-clay-mint border border-white/30 z-10 cursor-pointer will-change-transform",
                                     compact ? "h-8 w-8" : "h-10 w-10"
@@ -247,9 +287,13 @@ export function WordInsightView({
                     <div className="flex gap-3 pt-2">
                         {onPlayFromWord && (
                             <motion.button
+                                data-tour-target="word-read-from-here"
                                 whileHover={{ scale: 1.02, y: -2 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={onPlayFromWord}
+                                onClick={() => {
+                                    onPlayFromWord();
+                                    completeStep('word-read-from-here');
+                                }}
                                 className="flex-1 flex h-14 items-center justify-center gap-2 rounded-2xl bg-amber-400 text-white shadow-clay-amber border-2 border-white/30 font-fredoka font-black text-sm uppercase tracking-wider"
                             >
                                 <Play className="h-5 w-5 fill-white" />
