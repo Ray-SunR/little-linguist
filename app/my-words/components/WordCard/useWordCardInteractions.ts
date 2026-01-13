@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { type SavedWord } from "@/lib/features/word-insight/provider";
 import { RemoteTtsNarrationProvider } from "@/lib/features/narration/implementations/remote-tts-provider";
 import { playWordOnly, type INarrationProvider } from "@/lib/features/narration";
@@ -6,6 +6,18 @@ import { playWordOnly, type INarrationProvider } from "@/lib/features/narration"
 export function useWordCardInteractions(word: SavedWord, ttsProvider: INarrationProvider, isMuted: boolean) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const audioProviderRef = useRef<RemoteTtsNarrationProvider | null>(null);
+
+    // Cleanup audio on unmount
+    useEffect(() => {
+        return () => {
+            if (audioProviderRef.current) {
+                // Assuming provider might have a stop method, or just let garbage collection handle it 
+                // but explicitly clearing the ref is good practice.
+                audioProviderRef.current = null;
+            }
+        };
+    }, []);
 
     const handleFlip = useCallback(() => {
         setIsFlipped(prev => !prev);
@@ -14,20 +26,22 @@ export function useWordCardInteractions(word: SavedWord, ttsProvider: INarration
     const handleListen = useCallback(async (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (isListening) return;
-
-        // Check mute state from viewModel if we had access, but for now we pass isMuted prop
         if (isMuted) return;
 
         setIsListening(true);
         try {
             if (word.wordAudioUrl) {
-                const provider = new RemoteTtsNarrationProvider(word.wordAudioUrl);
-                await provider.prepare({
+                // Reuse existing provider if URL hasn't changed, or create new one
+                if (!audioProviderRef.current) {
+                    audioProviderRef.current = new RemoteTtsNarrationProvider(word.wordAudioUrl);
+                }
+
+                await audioProviderRef.current.prepare({
                     contentId: `word-only-${word.word}`,
                     rawText: word.word,
                     tokens: [{ wordIndex: 0, text: word.word }],
                 });
-                await provider.play();
+                await audioProviderRef.current.play();
             } else {
                 await playWordOnly(word.word, ttsProvider);
             }

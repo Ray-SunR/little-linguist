@@ -38,7 +38,7 @@ export function WordGrid({ groupedWords, sortedGroupKeys, groupBy, onRemove, tts
                            Note: For virtualization with React Window, we'd replace this grid with a FixedSizeGrid 
                            or dynamic equivalent. Currently employing CSS grid with AnimatePresence for < 50 items.
                         */}
-                        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             <AnimatePresence mode="popLayout">
                                 {groupWords.map((word, index) => (
                                     <motion.div
@@ -52,7 +52,7 @@ export function WordGrid({ groupedWords, sortedGroupKeys, groupBy, onRemove, tts
                                             stiffness: 300,
                                             damping: 25,
                                         }}
-                                        className="h-[28rem]" // Enforce fixed height
+                                        className="h-[22rem]" // Reduced fixed height
                                     >
                                         <WordCard
                                             word={word}

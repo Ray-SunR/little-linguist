@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Volume2 } from "lucide-react";
+import { Volume2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
 import { type SavedWord } from "@/lib/features/word-insight/provider";
 
@@ -14,46 +14,50 @@ interface WordCardFrontProps {
 
 export function WordCardFront({ word, index, isListening, onFlip, onListen, theme }: WordCardFrontProps) {
     return (
-        <div className="relative h-full w-full bg-white rounded-[2.5rem] border-4 border-white shadow-clay flex flex-col items-center justify-between p-6 md:p-8 overflow-hidden">
-            {word.nextReviewAt && new Date(word.nextReviewAt) <= new Date() && (
-                <div className="absolute top-6 left-6 px-4 py-1.5 rounded-full bg-amber-400 text-white font-black font-fredoka text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-clay-amber z-10 animate-bounce-subtle">
-                    <span>✨</span>
-                    Ready to Play
-                </div>
-            )}
+        <div
+            onClick={onFlip}
+            className="relative h-full w-full bg-white rounded-[2rem] shadow-xl border border-white/50 flex flex-col items-center justify-between p-6 overflow-hidden hover:shadow-2xl transition-shadow"
+        >
+            {/* Background Decor */}
+            <div className={cn("absolute inset-0 opacity-10 blur-3xl", theme.bg)} />
 
-            <div className="flex flex-col items-center gap-4 md:gap-6 mt-6 md:mt-10 w-full flex-1 justify-center">
+            {/* Top Bar */}
+            <div className="w-full flex justify-between items-start z-10 relative">
+                {word.nextReviewAt && new Date(word.nextReviewAt) <= new Date() ? (
+                    <div className="px-3 py-1 rounded-full bg-amber-100 text-amber-600 font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        <span>Ready</span>
+                    </div>
+                ) : <div />}
+
                 <motion.button
-                    onClick={onListen}
+                    onClick={(e) => { e.stopPropagation(); onListen(e); }}
                     disabled={isListening}
+                    whileTap={{ scale: 0.9 }}
                     animate={isListening ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}}
-                    transition={{ duration: 0.5, repeat: isListening ? Infinity : 0 }}
                     className={cn(
-                        "w-20 h-20 rounded-3xl flex items-center justify-center border-4 border-white shadow-clay transition-all hover:scale-105 active:scale-95 z-20",
+                        "w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-sm text-white",
                         theme.bg
                     )}
                     aria-label={`Listen to pronunciation for ${word.word}`}
                 >
-                    <Volume2 className="h-10 w-10 text-white fill-current" />
+                    <Volume2 className="h-5 w-5 fill-current" />
                 </motion.button>
-
-                <div className="text-center w-full">
-                    <h3 className={cn("text-3xl md:text-4xl lg:text-5xl font-black font-fredoka uppercase tracking-tight mb-2 drop-shadow-sm truncate px-2", theme.accent)}>
-                        {word.word}
-                    </h3>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onFlip(); }}
-                        className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-slate-50 text-slate-400 font-black font-fredoka text-[10px] uppercase tracking-widest border border-slate-100 hover:bg-slate-100 transition-colors"
-                        aria-label={`Reveal details for ${word.word}`}
-                    >
-                        Tap to see secret ✨
-                    </button>
-                </div>
             </div>
 
-            {/* Decorative bottom element */}
-            <div className="w-full flex justify-center mt-auto opacity-30">
-                <div className={cn("w-16 h-1 rounded-full", theme.bg)} />
+            {/* Main Word - Centered */}
+            <div className="flex-1 flex flex-col items-center justify-center w-full z-10 relative -mt-4">
+                <h3 className={cn("text-3xl md:text-4xl font-black font-fredoka uppercase tracking-tight text-center break-words w-full px-2 drop-shadow-sm", theme.accent)}>
+                    {word.word}
+                </h3>
+            </div>
+
+            {/* Bottom Action */}
+            <div className="text-center z-10 relative w-full">
+                <span className="text-xs font-bold text-slate-300 uppercase tracking-widest group-hover:text-slate-400 transition-colors">
+                    Tap to reveal
+                </span>
+                <div className={cn("mt-2 h-1.5 w-12 mx-auto rounded-full opacity-20", theme.bg)} />
             </div>
         </div>
     );

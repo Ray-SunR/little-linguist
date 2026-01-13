@@ -33,7 +33,6 @@ export const WordCard = memo(function WordCard({ word, index, onRemove, ttsProvi
     return (
         <div
             className="group relative h-[28rem] cursor-pointer perspective-1500"
-            onClick={handleFlip}
             role="button"
             aria-expanded={isFlipped}
             aria-controls={backId}
@@ -55,6 +54,7 @@ export const WordCard = memo(function WordCard({ word, index, onRemove, ttsProvi
                 <div
                     className="absolute h-full w-full backface-hidden z-10"
                     style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden' }}
+                    aria-hidden={isFlipped}
                 >
                     <WordCardFront
                         word={word}

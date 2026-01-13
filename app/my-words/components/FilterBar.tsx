@@ -11,57 +11,65 @@ interface FilterBarProps {
 
 export function FilterBar({ activeCategory, setCategory, groupBy, setGroupBy }: FilterBarProps) {
     return (
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-10">
-            {/* Categories */}
-            <div role="tablist" className="flex overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 flex-nowrap md:flex-wrap items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+            {/* Categories - Sleek Pills */}
+            <div className="flex bg-slate-100/50 p-1.5 rounded-[1.5rem] w-full md:w-auto relative overflow-hidden backdrop-blur-sm">
                 {[
-                    { id: "all", label: "All", color: "bg-purple-500", shadow: "shadow-clay-purple", icon: "🌈" },
-                    { id: "new", label: "New", color: "bg-blue-500", shadow: "shadow-clay-blue", icon: "✨" },
-                    { id: "review", label: "Ready", color: "bg-amber-500", shadow: "shadow-clay-amber", icon: "⭐" },
-                ].map((cat) => (
-                    <button
-                        key={cat.id}
-                        role="tab"
-                        aria-selected={activeCategory === cat.id}
-                        onClick={() => setCategory(cat.id as WordCategory)}
-                        className={cn(
-                            "relative flex items-center gap-2 px-6 py-3 rounded-2xl font-black font-fredoka text-xs uppercase tracking-wider transition-all border-4 whitespace-nowrap outline-none focus-visible:ring-4 ring-offset-2 ring-accent/30",
-                            activeCategory === cat.id
-                                ? `${cat.color} text-white ${cat.shadow} border-white shadow-xl scale-105`
-                                : "bg-white/60 text-slate-400 border-white hover:bg-white hover:text-slate-600 shadow-sm"
-                        )}
-                    >
-                        <span className="text-lg" aria-hidden="true">{cat.icon}</span>
-                        {cat.label}
-                    </button>
-                ))}
+                    { id: "all", label: "All Words", icon: "🌈" },
+                    { id: "new", label: "New", icon: "✨" },
+                    { id: "review", label: "Ready", icon: "⭐" },
+                ].map((cat) => {
+                    const isActive = activeCategory === cat.id;
+                    return (
+                        <button
+                            key={cat.id}
+                            onClick={() => setCategory(cat.id as WordCategory)}
+                            aria-pressed={isActive}
+                            className={cn(
+                                "relative flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-[1.2rem] font-bold text-sm transition-all duration-300 outline-none focus-visible:ring-2 ring-indigo-500/30",
+                                isActive
+                                    ? "bg-white text-indigo-600 shadow-sm"
+                                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                            )}
+                        >
+                            <span className="text-base">{cat.icon}</span>
+                            <span>{cat.label}</span>
+                        </button>
+                    )
+                })}
             </div>
 
-            <div className="h-10 w-px bg-slate-200 hidden md:block" />
+            {/* Separator - Hidden on mobile */}
+            {/* <div className="h-px w-full md:w-px md:h-10 bg-gradient-to-r md:bg-gradient-to-b from-transparent via-slate-200 to-transparent" /> */}
 
-            {/* Grouping */}
-            <div className="flex overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0 flex-nowrap md:flex-wrap items-center gap-3 w-full md:w-auto">
-                <span className="text-[10px] uppercase font-black text-slate-400 tracking-widest mr-2 md:hidden">Group by:</span>
+            {/* Grouping - Minimalist Toggles */}
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-center md:justify-end">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2 hidden md:inline-block">View:</span>
                 {[
-                    { id: "none", label: "No Group", icon: "📦" },
-                    { id: "date", label: "By Date", icon: "📅" },
-                    { id: "book", label: "By Book", icon: "📖" },
-                    { id: "proficiency", label: "By Skill", icon: "🏆" },
-                ].map((g) => (
-                    <button
-                        key={g.id}
-                        onClick={() => setGroupBy(g.id as GroupBy)}
-                        className={cn(
-                            "flex items-center gap-2 px-4 py-2 rounded-xl font-black font-fredoka text-[10px] uppercase tracking-wider transition-all border-2 outline-none focus-visible:ring-2 ring-accent",
-                            groupBy === g.id
-                                ? "bg-ink text-white border-white shadow-lg"
-                                : "bg-white text-ink/40 border-slate-100 hover:bg-slate-50"
-                        )}
-                    >
-                        <span aria-hidden="true">{g.icon}</span>
-                        {g.label}
-                    </button>
-                ))}
+                    { id: "none", label: "Grid", icon: "📦" },
+                    { id: "date", label: "Date", icon: "📅" },
+                    { id: "book", label: "Book", icon: "📖" },
+                    { id: "proficiency", label: "Skill", icon: "🏆" },
+                ].map((g) => {
+                    const isActive = groupBy === g.id;
+                    return (
+                        <button
+                            key={g.id}
+                            onClick={() => setGroupBy(g.id as GroupBy)}
+                            aria-pressed={isActive}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-xs transition-all border outline-none",
+                                isActive
+                                    ? "bg-indigo-50 text-indigo-600 border-indigo-200 shadow-sm"
+                                    : "bg-transparent text-slate-400 border-transparent hover:bg-slate-50 hover:text-slate-600"
+                            )}
+                            title={g.label}
+                        >
+                            <span className="text-sm">{g.icon}</span>
+                            <span className="hidden sm:inline">{g.label}</span>
+                        </button>
+                    )
+                })}
             </div>
         </div>
     );

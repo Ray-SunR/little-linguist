@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { Search } from "lucide-react";
+import { useDebounce } from "@/lib/hooks/use-debounce";
 
 interface HeroSectionProps {
     count: number;
@@ -9,51 +11,66 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ count, searchQuery, setSearchQuery }: HeroSectionProps) {
+    const [localQuery, setLocalQuery] = useState(searchQuery);
+    const debouncedQuery = useDebounce(localQuery, 300);
+
+    useEffect(() => {
+        if (debouncedQuery !== searchQuery) {
+            setSearchQuery(debouncedQuery);
+        }
+    }, [debouncedQuery, searchQuery, setSearchQuery]);
+
     return (
-        <header className="mx-auto mb-10 max-w-6xl">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 mb-8">
-                <div className="flex items-start gap-4 md:gap-6">
-                    <div className="relative group shrink-0">
+        <header className="mx-auto mb-12 max-w-6xl">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                {/* Title & Character Area */}
+                <div className="flex items-center gap-6 relative">
+                    <div className="relative shrink-0 z-10">
                         <motion.div
-                            animate={{ rotate: [0, 5, -5, 0] }}
-                            transition={{ duration: 4, repeat: Infinity }}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: "spring", bounce: 0.5 }}
                         >
-                            <LumoCharacter size="lg" className="md:w-32 md:h-32 drop-shadow-2xl" />
+                            <LumoCharacter size="lg" className="w-24 h-24 md:w-28 md:h-28 drop-shadow-xl" />
                         </motion.div>
+
+                        {/* Simplified Badge */}
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.8, x: 20 }}
-                            animate={{ opacity: 1, scale: 1, x: 0 }}
-                            className="absolute -top-10 left-32 bg-white px-6 py-4 rounded-[2rem] shadow-clay border-4 border-white whitespace-nowrap hidden lg:block z-20"
-                            aria-hidden="true"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="absolute -top-2 -right-2 bg-gradient-to-tr from-amber-300 to-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shadow-lg border-2 border-white"
                         >
-                            <span className="text-lg font-fredoka font-black text-purple-600 block leading-tight">Look at all these</span>
-                            <span className="text-2xl font-black text-amber-500 font-fredoka uppercase">Magic Words! ✨</span>
-                            <div className="absolute left-[-16px] top-6 w-8 h-8 bg-white border-l-4 border-t-4 border-white rotate-[-45deg]" />
+                            ✨
                         </motion.div>
                     </div>
+
                     <div>
-                        <h1 className="text-3xl md:text-5xl font-black text-ink font-fredoka uppercase tracking-tight leading-none mb-2">
+                        <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 font-fredoka tracking-tighter mb-1">
                             My Treasury
                         </h1>
-                        <p className="text-xl text-ink-muted font-bold font-nunito flex items-center gap-2" role="status" aria-live="polite">
-                            <span className="inline-block w-2 h-2 rounded-full bg-amber-400" />
-                            {count} sparkles collected so far!
-                        </p>
+                        <div className="flex items-center gap-2 text-slate-500 font-nunito font-bold text-lg">
+                            <span className="flex items-center justify-center bg-amber-100 text-amber-600 rounded-full px-3 py-0.5 text-sm font-black shadow-sm">
+                                {count} Words
+                            </span>
+                            <span>collected</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative group w-full md:w-auto">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-accent transition-colors" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search word..."
-                            className="pl-12 pr-6 py-4 rounded-3xl bg-white/80 backdrop-blur-md border-4 border-white shadow-clay-inset text-ink font-bold placeholder:text-slate-200 outline-none focus:border-accent/30 focus:bg-white transition-all w-full md:w-72"
-                            aria-label="Search your collected words"
-                        />
+                {/* Search Bar - Modern & Glassy */}
+                <div className="w-full md:w-auto relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-indigo-400 group-focus-within:text-indigo-600 transition-colors" />
                     </div>
+                    <input
+                        type="text"
+                        value={localQuery}
+                        onChange={(e) => setLocalQuery(e.target.value)}
+                        placeholder="Search your magic words..."
+                        className="w-full md:w-80 pl-11 pr-5 py-3.5 rounded-2xl bg-white/60 hover:bg-white/80 focus:bg-white border text-ink font-bold placeholder:text-slate-400 border-white/50 focus:border-indigo-200 outline-none shadow-sm focus:shadow-md transition-all backdrop-blur-xl"
+                        aria-label="Search your collected words"
+                    />
                 </div>
             </div>
         </header>
