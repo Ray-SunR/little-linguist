@@ -115,7 +115,7 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
         }, 1000);
 
         return () => clearTimeout(timer);
-    }, [storageCompletedKey, storageStepIdKey, validateStepId, availableSteps]);
+    }, [storageCompletedKey, storageStepIdKey, validateStepId, availableSteps, user]);
 
     // Cross-tab sync
     useEffect(() => {

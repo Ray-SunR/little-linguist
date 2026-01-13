@@ -16,7 +16,7 @@ interface ProfileHydratorProps {
  * ensuring profiles are available immediately without waiting for client-side fetch.
  */
 export function ProfileHydrator({ initialProfiles, userId, serverError }: ProfileHydratorProps) {
-    const { setProfiles, user, activeChild, setActiveChild, isLoading, setIsLoading } = useAuth();
+    const { setProfiles, user, activeChild, setActiveChild, isLoading, setStatus } = useAuth();
     const hydratedRef = useRef(false);
 
     // Reset hydration state if userId changes
@@ -55,13 +55,13 @@ export function ProfileHydrator({ initialProfiles, userId, serverError }: Profil
         // confirm if they are truly 0 or if the server fetch was a false negative.
         if (isLoading && hasProfiles) {
             console.info("[RAIDEN_DIAG][Auth] Clearing loading state from Server Component (profiles found)");
-            setIsLoading(false);
+            setStatus('ready');
         } else if (isLoading) {
             console.info("[RAIDEN_DIAG][Auth] 0 profiles found on server, keeping loading lock for client fetch verify.");
         }
 
         hydratedRef.current = true;
-    }, [initialProfiles, userId, user, setProfiles, activeChild, isLoading, setIsLoading, serverError]);
+    }, [initialProfiles, userId, user, setProfiles, activeChild, isLoading, setStatus, serverError]);
 
     return null;
 }

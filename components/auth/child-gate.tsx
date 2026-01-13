@@ -8,39 +8,28 @@ import { useAuth } from '@/components/auth/auth-provider';
 export function ChildGate() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, profiles, isLoading } = useAuth();
+  const { user, profiles, status, profileError } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return;
-
-    // If not logged in, we don't block
-    if (!user) {
-      return;
-    }
+    // Only redirect if we are strictly in 'ready' state and authenticated.
+    if (status !== 'ready' || !user) return;
 
     // If already on onboarding or login, don't redirect loop.
-    // Also ignore story-maker as it handles its own profile creation logic (guest flow)
     if (pathname.startsWith('/onboarding') || pathname === '/login' || pathname.startsWith('/story-maker')) {
       return;
     }
 
-    console.debug(`[ChildGate] Checking profiles for ${user.email}:`, {
-      count: profiles.length,
-      pathname,
-      isLoading
-    });
-
-    if (profiles && profiles.length === 0) {
-      // Small timeout to allow state to settle after navigation/refresh
-      const timer = setTimeout(() => {
-        if (profiles.length === 0) {
-          console.warn('[ChildGate] Redirecting to onboarding! Profiles still 0 after 500ms safety wait. (Possible false negative or true new user)');
-          router.push('/onboarding');
-        }
-      }, 500);
-      return () => clearTimeout(timer);
+    // Never redirect if there was an error fetching profiles.
+    if (profileError) {
+      console.warn('[ChildGate] Skipping onboarding check due to profile fetch error:', profileError);
+      return;
     }
-  }, [pathname, router, user, profiles, isLoading]);
+
+    if (profiles.length === 0) {
+      console.warn('[ChildGate] Redirecting to onboarding! Profiles confirmed 0 in ready state.');
+      router.push('/onboarding');
+    }
+  }, [pathname, router, user, profiles, status, profileError]);
 
   return null; // This component handles side effects only
 }

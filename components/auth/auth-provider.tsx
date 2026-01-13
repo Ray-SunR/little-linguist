@@ -7,6 +7,15 @@ import { getChildren, getUserProfile, updateLibrarySettings as apiUpdateLibraryS
 import { getCookie, setCookie, deleteCookie } from "cookies-next";
 import { useRouter, usePathname } from "next/navigation";
 
+const DEBUG = process.env.NODE_ENV === "development";
+const Log = {
+  info: (msg: string, ...args: any[]) => DEBUG && console.info(`[RAIDEN_DIAG][Auth] ${msg}`, ...args),
+  warn: (msg: string, ...args: any[]) => DEBUG && console.warn(`[RAIDEN_DIAG][Auth] ${msg}`, ...args),
+  error: (msg: string, ...args: any[]) => console.error(`[RAIDEN_DIAG][Auth] ${msg}`, ...args),
+};
+
+export type AuthStatus = 'loading' | 'hydrating' | 'ready' | 'error';
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -15,6 +24,7 @@ interface AuthContextType {
   user: User | null;
   profiles: ChildProfile[];
   activeChild: ChildProfile | null;
+  status: AuthStatus;
   isLoading: boolean;
   isStoryGenerating: boolean;
   setIsStoryGenerating: (val: boolean) => void;
@@ -24,7 +34,8 @@ interface AuthContextType {
   setActiveChild: (child: ChildProfile | null) => void;
   // Exposed for Server Component Hydration
   setProfiles: (profiles: ChildProfile[]) => void;
-  setIsLoading: (isLoading: boolean) => void;
+  setStatus: (status: AuthStatus) => void;
+  profileError: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,13 +45,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
   const profilesRef = useRef<ChildProfile[]>(profiles);
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState<AuthStatus>('loading');
   const [isStoryGenerating, setIsStoryGenerating] = useState(false);
   const [librarySettings, setLibrarySettings] = useState<any>({});
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeFetchIdRef = useRef<number>(0);
   const userRef = useRef<User | null>(user);
   const eventRef = useRef<string>("INITIAL");
+  const [profileError, setProfileError] = useState<string | null>(null);
   const authListenerFiredRef = useRef<boolean>(false);
 
   const router = useRouter();
@@ -49,7 +61,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Keep refs in sync
   useEffect(() => { userRef.current = user; }, [user]);
   useEffect(() => { profilesRef.current = profiles; }, [profiles]);
-  useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
+  const statusRef = useRef<AuthStatus>(status);
+  useEffect(() => { statusRef.current = status; }, [status]);
 
   // Keep pathname in ref to avoid re-triggering fetchProfiles on route change if we don't want to
   // But actually, fetchProfiles USES pathname to redirect.
@@ -94,9 +107,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (cached?.profiles && Array.isArray(cached.profiles) && cached.profiles.length > 0) {
           setProfiles(cached.profiles);
           const activeId = getCookie("activeChildId");
-          const found = activeId ? cached.profiles.find((c) => c.id === activeId) : null;
+           const found = activeId ? cached.profiles.find((c) => c.id === activeId) : null;
           setActiveChild(found ?? cached.profiles[0]);
-          if (uid) setIsLoading(false);
+          if (uid) setStatus('ready');
           return cached.profiles;
         }
       } catch (err) {
@@ -130,34 +143,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const fetchProfiles = useCallback(async (uid: string, silent = false, retryCount = 0): Promise<void> => {
     const requestId = ++activeFetchIdRef.current;
-    if (!silent && retryCount === 0) setIsLoading(true);
+    if (!silent && retryCount === 0) setStatus('loading');
+    setProfileError(null);
 
-    console.info(`[RAIDEN_DIAG][Auth] fetchProfiles starting: req=${requestId} uid=${uid} silent=${silent} retry=${retryCount}`);
+    Log.info(`fetchProfiles starting: req=${requestId} uid=${uid} silent=${silent} retry=${retryCount}`);
 
     try {
       const { data, error } = await getChildren();
 
       if (requestId !== activeFetchIdRef.current) {
-        console.info(`[RAIDEN_DIAG][Auth] Skipping stale fetch result (req ${requestId} != active ${activeFetchIdRef.current})`);
+        Log.info(`Skipping stale fetch result (req ${requestId} != active ${activeFetchIdRef.current})`);
         return;
       }
 
       if (error === 'Not authenticated' && retryCount < 2) {
-        console.warn(`[RAIDEN_DIAG][Auth] fetchProfiles (req ${requestId}): Not authenticated on server. Retrying in 500ms... (attempt ${retryCount + 1})`);
+        Log.warn(`fetchProfiles (req ${requestId}): Not authenticated on server. Retrying in 500ms... (attempt ${retryCount + 1})`);
         await new Promise(r => setTimeout(r, 500));
         return fetchProfiles(uid, silent, retryCount + 1);
       }
 
       if (error) {
-        console.error(`[RAIDEN_DIAG][Auth] getChildren error (req ${requestId}):`, error);
+        Log.error(`getChildren error (req ${requestId}):`, error);
+        setProfileError(typeof error === 'string' ? error : 'Fetch failed');
+        setStatus('error');
       } else if (data) {
         const prevCount = profilesRef.current.length;
         const newCount = data.length;
 
         if (prevCount === 0 && newCount > 0) {
-          console.warn(`[RAIDEN_DIAG][Auth] False Negative detected: Server had 0 profiles (or pre-hydrated with 0), but Client found ${newCount}. requestId=${requestId}`);
+          Log.warn(`False Negative detected: Server had 0 profiles (or pre-hydrated with 0), but Client found ${newCount}. requestId=${requestId}`);
         } else {
-          console.info(`[RAIDEN_DIAG][Auth] Profile fetch summary: client=${newCount} (prev=${prevCount}) requestId=${requestId}`);
+          Log.info(`Profile fetch summary: client=${newCount} (prev=${prevCount}) requestId=${requestId}`);
         }
 
         setProfiles(data);
@@ -169,31 +185,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (finalActive?.library_settings) {
           setLibrarySettings(finalActive.library_settings);
         }
-
-        // Use ref for pathname to avoid dependency cycle
-        const currentPath = pathnameRef.current;
-        if (data.length === 0 && currentPath !== '/onboarding' && currentPath !== '/') {
-          console.warn(`[RAIDEN_DIAG][Auth] Redirecting to onboarding because client fetch confirmed 0 profiles. requestId=${requestId}`);
-          router.push('/onboarding');
-        }
       }
     } catch (err) {
-      console.error(`[RAIDEN_DIAG][Auth] Unexpected fetchProfiles error (req ${requestId}):`, err);
+      Log.error(`Unexpected fetchProfiles error (req ${requestId}):`, err);
+      setProfileError('Unexpected error');
+      setStatus('error');
     } finally {
       if (requestId === activeFetchIdRef.current) {
-        setIsLoading(false);
-        console.info(`[RAIDEN_DIAG][Auth] fetchProfiles finished, cleared loading for req ${requestId}`);
+        setStatus('ready');
+        Log.info(`fetchProfiles finished, cleared loading for req ${requestId}`);
       }
     }
-  }, [persistProfiles, router]);
+  }, [persistProfiles]);
 
   const refreshProfiles = useCallback(async (silent = false): Promise<void> => {
     if (userRef.current?.id) {
       await fetchProfiles(userRef.current.id, silent);
     }
   }, [fetchProfiles]);
-
-  const isLoadingRef = useRef(isLoading);
 
   // Sync library settings when active child changes
   useEffect(() => {
@@ -217,53 +226,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
       abortControllerRef.current = controller;
 
       const timeoutId = setTimeout(() => {
-        if (mounted && isLoadingRef.current) {
-          console.warn("[RAIDEN_DIAG][Auth] Safety timeout triggered: forcing isLoading = false after 20s");
+        if (mounted && statusRef.current === 'loading') {
+          Log.warn("Safety timeout triggered: forcing status = error after 20s");
           controller.abort('Timeout');
-          setIsLoading(false);
+          setStatus('error');
         }
       }, 20000);
 
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) console.warn("[RAIDEN_DIAG][Auth] getSession error:", sessionError);
+        if (sessionError) Log.warn("getSession error:", sessionError);
 
         if (!mounted || controller.signal.aborted) return;
 
         // If the onAuthStateChange listener has already handled a session/user,
         // we skip the init fetch to avoid race condition double-calls.
         if (authListenerFiredRef.current && userRef.current) {
-          console.info("[RAIDEN_DIAG][Auth] Init: auth listener already handled user, skipping init fetch.");
+          Log.info("Init: auth listener already handled user, skipping init fetch.");
           return;
         }
 
         const uid = session?.user?.id;
-        console.info("[RAIDEN_DIAG][Auth] Session resolved from getSession:", { uid });
+        Log.info("Session resolved from getSession:", { uid });
 
         if (uid) {
           if (!userRef.current) {
             setUser(session?.user ?? null);
           }
-          console.info("[RAIDEN_DIAG][Auth] Hydrating profiles for:", uid);
+          Log.info("Hydrating profiles for:", uid);
+          setStatus('hydrating');
           await hydrateFromCache(uid); // Internal check for session consistency exists inside
           if (controller.signal.aborted) return;
           await fetchProfiles(uid, true);
         } else {
-          console.info("[RAIDEN_DIAG][Auth] No session found, skipping profile hydration.");
-          setIsLoading(false);
+          Log.info("No session found, skipping profile hydration.");
+          setStatus('ready');
         }
       } catch (err) {
         if (err === 'Timeout' || (err instanceof Error && err.name === 'AbortError')) {
-          console.warn("[RAIDEN_DIAG][Auth] Initialization aborted or timed out.");
+          Log.warn("Initialization aborted or timed out.");
         } else {
-          console.error("[RAIDEN_DIAG][Auth] Init failed:", err);
+          Log.error("Init failed:", err);
         }
-        if (mounted) setIsLoading(false);
+        if (mounted) setStatus('error');
       } finally {
         clearTimeout(timeoutId);
-        if (mounted && isLoadingRef.current && !controller.signal.aborted) {
-          console.info("[RAIDEN_DIAG][Auth] Initialization finished (silent success or catch-all)");
-          setIsLoading(false);
+        if (mounted && statusRef.current === 'loading' && !controller.signal.aborted) {
+          Log.info("Initialization finished (silent success or catch-all)");
+          setStatus('ready');
         }
       }
     }
@@ -277,7 +287,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const prevUser = userRef.current;
       eventRef.current = event;
 
-      console.info("[RAIDEN_DIAG][Auth] Auth state change:", { event, uid: newUser?.id });
+      Log.info("Auth state change:", { event, uid: newUser?.id });
 
       if (newUser && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         // Optimisation: If user ID hasn't changed, don't trigger full loading state
@@ -285,7 +295,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const isSameUser = prevUser?.id === newUser.id;
 
         if (!isSameUser || event === 'INITIAL_SESSION') {
-          if (event === 'SIGNED_IN') setIsLoading(true);
+          if (event === 'SIGNED_IN') setStatus('loading');
           setUser(newUser);
 
           // Invalidate cache on explicit sign-in to ensure fresh data
@@ -339,7 +349,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
           });
         }
-        setIsLoading(false);
+        setStatus('ready');
       }
     });
 
@@ -369,7 +379,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user,
       profiles,
       activeChild,
-      isLoading,
+      status,
+      isLoading: status === 'loading' || status === 'hydrating',
       isStoryGenerating,
       setIsStoryGenerating,
       librarySettings,
@@ -405,7 +416,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       refreshProfiles,
       setActiveChild: handleSetActiveChild,
       setProfiles,
-      setIsLoading
+      setStatus,
+      profileError
     }}>
       {children}
     </AuthContext.Provider>
