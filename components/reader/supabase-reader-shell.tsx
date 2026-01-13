@@ -324,6 +324,8 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                 <header className="flex items-center gap-1.5 sm:gap-3 mb-3">
                     <Link
                         href="/library"
+                        id="reader-back-to-library"
+                        data-tour-target="reader-back-to-library"
                         onClick={() => saveProgress({ force: true, isExiting: true })}
                         className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent"
                         aria-label="Back to Library"
