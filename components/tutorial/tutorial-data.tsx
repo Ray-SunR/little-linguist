@@ -130,6 +130,16 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         position: 'top',
         actionRequired: true
     },
+    // 10b. Back to Library (NEW)
+    {
+        id: 'reader-back-to-library',
+        targetId: 'reader-back-to-library',
+        dataTourTarget: 'reader-back-to-library',
+        title: 'Return to the Library',
+        content: 'Finished exploring the reader? Tap the back arrow anytime to choose another magical adventure!',
+        route: '/reader/*',
+        position: 'bottom'
+    },
     // 11. Your Magic Friend (Lumo)
     {
         id: 'nav-item-lumo',
@@ -156,8 +166,8 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         id: 'word-list-nav',
         targetId: 'nav-item-words',
         dataTourTarget: 'nav-item-words',
-        title: 'Visit Your Treasury',
-        content: 'Tap here to see all the magic words you\'ve collected so far!',
+        title: 'See Your Magic Words',
+        content: 'Tap here to see all the magic words you\'ve found! Even as a visitor, you can explore your collection here.',
         route: '/my-words',
         position: 'top'
     },
@@ -176,8 +186,8 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         id: 'story-maker-nav',
         targetId: 'nav-item-story',
         dataTourTarget: 'nav-item-story',
-        title: 'The Ultimate Power',
-        content: 'Now for the best part! Use your collected words to weave your very own magical tales. Ready to cast a spell?',
+        title: 'Warp to Story Maker',
+        content: 'Ready to create? Use your found words to weave your very own magical tales. Let\'s see how it works!',
         route: '/story-maker',
         position: 'top'
     },
