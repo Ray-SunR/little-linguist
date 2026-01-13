@@ -49,6 +49,13 @@ async function uploadAvatarToBucket(
   }
 
   try {
+    // 5MB limit for single avatar upload to prevent OOM
+    const MAX_BASE64_SIZE = 5 * 1024 * 1024;
+    if (base64DataUrl.length > MAX_BASE64_SIZE) {
+      console.error('[profiles:uploadAvatar] Rejected: Base64 payload too large');
+      return null;
+    }
+
     const matches = base64DataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
     if (!matches) return null;
 
@@ -144,6 +151,19 @@ export async function createChildProfile(data: ChildProfilePayload) {
       cookies().set('activeChildId', newChild.id, { secure: true, httpOnly: false });
     }
 
+    // If we have an avatar, get a signed URL for it to return immediately
+    let avatar_asset_path = data.avatar_asset_path;
+    if (avatarPaths.length > 0) {
+      const { data: signData } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .createSignedUrl(avatarPaths[0], 86400);
+      if (signData?.signedUrl) {
+        avatar_asset_path = signData.signedUrl;
+      }
+    }
+
+    const returnChild = { ...newChild, avatar_asset_path };
+
     // Audit: Child Created
     await AuditService.log({
       action: AuditAction.CHILD_CREATED,
@@ -154,7 +174,7 @@ export async function createChildProfile(data: ChildProfilePayload) {
       details: { name: newChild?.first_name } // Minimal PII
     });
 
-    return { success: true, data: newChild };
+    return { success: true, data: returnChild as ChildProfile };
   } catch (err: any) {
     console.error('[profiles:createChildProfile] Unexpected error:', err);
     return { error: err.message || 'An unexpected error occurred' };
@@ -231,7 +251,16 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
       details: { fields: Object.keys(data).join(',') }
     });
 
-    return { success: true };
+    // If avatar was updated, return the signed URL
+    let updatedAvatarUrl = undefined;
+    if (updatePayload.avatar_paths && updatePayload.avatar_paths.length > 0) {
+      const { data: signData } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .createSignedUrl(updatePayload.avatar_paths[updatePayload.primary_avatar_index ?? 0], 86400);
+      updatedAvatarUrl = signData?.signedUrl;
+    }
+
+    return { success: true, avatar_asset_path: updatedAvatarUrl };
   } catch (err: any) {
     console.error(`[profiles:updateChildProfile] Unexpected error for ${id}:`, err);
     return { error: err.message || 'An unexpected error occurred' };
@@ -324,7 +353,9 @@ export async function deleteChildProfile(id: string) {
         .from('user-assets')
         .remove(storagePathsUserAssets);
       if (userStorageError) {
-        console.error(`[profiles:deleteChildProfile] Error deleting user-assets:`, userStorageError);
+        // We log but proceed to avoid blocking profile deletion due to non-critical storage errors.
+        // Orphaned files can be cleaned up by a batch garbage collection job.
+        console.warn(`[profiles:deleteChildProfile] Warning: Failed to delete user-assets for ${id}:`, userStorageError);
       }
     }
 
@@ -337,7 +368,8 @@ export async function deleteChildProfile(id: string) {
         .from('book-assets')
         .remove(storagePathsBookAssets);
       if (bookStorageError) {
-        console.error(`[profiles:deleteChildProfile] Error deleting book-assets:`, bookStorageError);
+        // Logging as warning since we don't want to abort the DB deletion if files are missing or RLS is tricky.
+        console.warn(`[profiles:deleteChildProfile] Warning: Failed to delete book-assets for child ${id}:`, bookStorageError);
       }
     }
 

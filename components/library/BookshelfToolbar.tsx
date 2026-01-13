@@ -198,6 +198,7 @@ export function BookshelfToolbar({
                                             alt={activeChild.name}
                                             fill
                                             className="object-cover"
+                                            bucket="user-assets"
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white font-fredoka font-bold text-sm">

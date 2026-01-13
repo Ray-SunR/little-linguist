@@ -130,17 +130,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         position: 'top',
         actionRequired: true
     },
-    // 10b. Back to Library (NEW)
-    {
-        id: 'reader-back-to-library',
-        targetId: 'reader-back-to-library',
-        dataTourTarget: 'reader-back-to-library',
-        title: 'Return to the Library',
-        content: 'Finished exploring the reader? Tap the back arrow anytime to choose another magical adventure!',
-        route: '/reader/*',
-        position: 'bottom'
-    },
-    // 11. Your Magic Friend (Lumo)
+    // 10b. Your Magic Friend (Lumo)
     {
         id: 'nav-item-lumo',
         targetId: 'nav-item-lumo-character',
@@ -151,17 +141,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         position: 'top',
         actionRequired: true
     },
-    // 11b. Back to Library
-    {
-        id: 'nav-item-library',
-        targetId: 'nav-item-library',
-        dataTourTarget: 'nav-item-library',
-        title: 'Return to the Library',
-        content: 'Finished reading? Tap here to go back and choose another adventure!',
-        route: '*',
-        position: 'top'
-    },
-    // 12. Visit Your Treasury
+    // 11. Visit Your Treasury
     {
         id: 'word-list-nav',
         targetId: 'nav-item-words',
@@ -169,29 +149,32 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         title: 'See Your Magic Words',
         content: 'Tap here to see all the magic words you\'ve found! Even as a visitor, you can explore your collection here.',
         route: '/my-words',
-        position: 'top'
+        position: 'top',
+        actionRequired: true
     },
-    // 13. Treasury Verification
+    // 12. Treasury Verification
     {
         id: 'treasury-check',
         targetId: 'first-saved-word',
         dataTourTarget: 'first-saved-word',
         title: 'Your Word Collection',
-        content: 'There it is! Every word you save is kept here like a rare gem. Collect more to unlock new powers!',
+        content: 'There it is! Every word you save is kept here like a rare gem. Tap on the card to reveal its magical secrets!',
         route: '/my-words',
-        position: 'bottom'
+        position: 'bottom',
+        actionRequired: true
     },
-    // 14. Story Maker Nav (The Pitch)
+    // 13. Story Maker Nav (The Pitch)
     {
         id: 'story-maker-nav',
         targetId: 'nav-item-story',
         dataTourTarget: 'nav-item-story',
         title: 'Warp to Story Maker',
-        content: 'Ready to create? Use your found words to weave your very own magical tales. Let\'s see how it works!',
-        route: '/story-maker',
-        position: 'top'
+        content: 'Ready to create? Tap here to use your found words and weave your very own magical tales. Let\'s see how it works!',
+        route: '*',
+        position: 'top',
+        actionRequired: true
     },
-    // 15. Story Maker Profile
+    // 14. Story Maker Profile
     {
         id: 'story-profile',
         targetId: 'story-next-step',
@@ -202,7 +185,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         position: 'top',
         actionRequired: true
     },
-    // 16. Story Maker Word Selection
+    // 15. Story Maker Word Selection
     {
         id: 'story-word-selection',
         targetId: 'story-word-grid',
@@ -214,7 +197,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         position: 'top',
         actionRequired: false
     },
-    // 17. Story Maker Create
+    // 16. Story Maker Create
     {
         id: 'story-create',
         targetId: 'story-create-btn',
@@ -246,7 +229,17 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         route: '/reader/*',
         position: 'bottom'
     },
-    // 19. Final Step: Save & Sync
+    // 19. Back to Library
+    {
+        id: 'nav-item-library',
+        targetId: 'nav-item-library',
+        dataTourTarget: 'nav-item-library',
+        title: 'Return to the Library',
+        content: 'Tap here to go back the library and choose another adventure!',
+        route: '*',
+        position: 'top'
+    },
+    // 20. Final Step: Save & Sync
     {
         id: 'final-login',
         targetId: 'nav-item-library',

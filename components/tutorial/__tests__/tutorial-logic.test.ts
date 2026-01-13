@@ -1,4 +1,4 @@
-
+import { describe, test, expect } from "vitest";
 import { TUTORIAL_STEPS } from "../tutorial-data";
 
 /**
@@ -20,7 +20,7 @@ describe("Tutorial Logic", () => {
 
     test("story-maker-nav step points to the correct route", () => {
         const step = TUTORIAL_STEPS.find(s => s.id === "story-maker-nav");
-        expect(step?.route).toBe("/story-maker");
+        expect(step?.route).toBe("*");
     });
 
     test("requiresAuth steps have actionRequired where intended", () => {

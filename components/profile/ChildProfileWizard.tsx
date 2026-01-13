@@ -367,6 +367,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                                     alt="Preview"
                                                     fill
                                                     className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
+                                                    bucket="user-assets"
                                                 />
                                                 <motion.button
                                                     whileHover={{ scale: 1.1, rotate: 90 }}

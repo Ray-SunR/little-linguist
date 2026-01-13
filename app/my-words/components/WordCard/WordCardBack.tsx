@@ -63,6 +63,7 @@ export function WordCardBack({ word, onFlip, onRemove, theme, ttsProvider }: Wor
                                         alt={word.bookTitle}
                                         fill
                                         className="object-cover"
+                                        bucket="book-assets"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-300">

@@ -1,10 +1,11 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { cn } from "@/lib/core/utils/cn";
 import { type SavedWord } from "@/lib/features/word-insight/provider";
 import { type INarrationProvider } from "@/lib/features/narration";
 import { WordCardFront } from "./WordCardFront";
 import { WordCardBack } from "./WordCardBack";
 import { useWordCardInteractions } from "./useWordCardInteractions";
+import { useTutorial } from "@/components/tutorial/tutorial-context";
 
 interface WordCardProps {
     word: SavedWord;
@@ -12,6 +13,7 @@ interface WordCardProps {
     onRemove: () => void;
     ttsProvider: INarrationProvider;
     isMuted: boolean;
+    isFirstWord?: boolean;
 }
 
 const colorSets = [
@@ -22,16 +24,26 @@ const colorSets = [
     { bg: "bg-rose-500", shadow: "shadow-clay-rose", accent: "text-rose-500", light: "bg-rose-50" },
 ];
 
-export const WordCard = memo(function WordCard({ word, index, onRemove, ttsProvider, isMuted }: WordCardProps) {
+export const WordCard = memo(function WordCard({ word, index, onRemove, ttsProvider, isMuted, isFirstWord }: WordCardProps) {
     const { isFlipped, isListening, handleFlip, handleListen } = useWordCardInteractions(word, ttsProvider, isMuted);
+    const { completeStep } = useTutorial();
     const theme = colorSets[index % colorSets.length];
 
     const safeId = encodeURIComponent(word.word).replace(/%/g, '');
     const cardId = `word-card-${safeId}-${index}`;
     const backId = `word-card-back-${safeId}-${index}`;
 
+    // Hook tutorial progression to flip
+    useEffect(() => {
+        if (isFlipped && isFirstWord) {
+            completeStep('treasury-check', 2000);
+        }
+    }, [isFlipped, isFirstWord, completeStep]);
+
     return (
         <div
+            id={isFirstWord ? "first-saved-word" : undefined}
+            data-tour-target={isFirstWord ? "first-saved-word" : undefined}
             className="group relative h-[28rem] cursor-pointer perspective-1500"
             role="button"
             aria-expanded={isFlipped}

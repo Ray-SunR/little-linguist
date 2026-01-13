@@ -72,6 +72,7 @@ const Word = React.memo(({
                             height={600}
                             onLoad={onImageLoad}
                             sizes="(max-width: 768px) 100vw, 800px"
+                            bucket="book-assets"
                         />
                     )}
                     <figcaption className="book-caption">{image.isPlaceholder ? "..." : image.caption}</figcaption>

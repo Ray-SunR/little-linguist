@@ -14,7 +14,7 @@ interface TutorialContextType {
     nextStep: () => void;
     prevStep: () => void;
     skipTutorial: () => void;
-    completeStep: (stepId: string) => void;
+    completeStep: (identifier: string, delayMs?: number) => void;
     resetTutorial: () => void;
     pauseDisplay: () => void;
     activeStepDetails: TutorialStep | null;
@@ -167,12 +167,20 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(storageStepIdKey);
     }, [storageCompletedKey, storageStepIdKey]);
 
-    const nextStep = useCallback(() => {
-        if (currentStepIndex < availableSteps.length - 1) {
-            const nextStep = availableSteps[currentStepIndex + 1];
-            setCurrentStepId(nextStep.id);
+    const nextStep = useCallback((delayMs?: number) => {
+        const triggerNext = () => {
+            if (currentStepIndex < availableSteps.length - 1) {
+                const nextStep = availableSteps[currentStepIndex + 1];
+                setCurrentStepId(nextStep.id);
+            } else {
+                endTutorial();
+            }
+        };
+
+        if (delayMs) {
+            setTimeout(triggerNext, delayMs);
         } else {
-            endTutorial();
+            triggerNext();
         }
     }, [currentStepIndex, availableSteps, endTutorial]);
 
@@ -183,12 +191,19 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
         }
     }, [currentStepIndex, availableSteps]);
 
-    const completeStep = useCallback((stepId: string) => {
+    const completeStep = useCallback((identifier: string, delayMs?: number) => {
         // Resume display when completing a step
         setIsDisplayPaused(false);
-        // Only advance if the completed step is exactly the one we are on
-        if (activeStep && activeStep.id === stepId) {
-            nextStep();
+        
+        // Match by ID or targetId/dataTourTarget
+        const isMatch = activeStep && (
+            activeStep.id === identifier || 
+            activeStep.targetId === identifier || 
+            activeStep.dataTourTarget === identifier
+        );
+
+        if (isMatch) {
+            nextStep(delayMs);
         }
     }, [activeStep, nextStep]);
 

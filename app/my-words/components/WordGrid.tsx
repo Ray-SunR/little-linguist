@@ -60,6 +60,7 @@ export function WordGrid({ groupedWords, sortedGroupKeys, groupBy, onRemove, tts
                                             onRemove={() => onRemove(word.word, word.bookId)}
                                             ttsProvider={ttsProvider}
                                             isMuted={isMuted}
+                                            isFirstWord={groupName === sortedGroupKeys[0] && index === 0}
                                         />
                                     </motion.div>
                                 ))}

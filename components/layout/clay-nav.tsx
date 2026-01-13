@@ -52,11 +52,13 @@ const navItems = [
 const MemoizedNavItem = memo(function NavItem({
     item,
     isActive,
-    onClick
+    onClick,
+    onComplete
 }: {
     item: typeof navItems[0],
     isActive: boolean,
-    onClick?: (href: string) => void
+    onClick?: (href: string) => void,
+    onComplete?: (id: string) => void
 }) {
     const Icon = item.icon;
 
@@ -66,7 +68,10 @@ const MemoizedNavItem = memo(function NavItem({
             data-tour-target={(item as any).id}
             href={item.href}
             className="flex-1"
-            onClick={() => onClick?.(item.href)}
+            onClick={() => {
+                onClick?.(item.href);
+                if (onComplete) onComplete((item as any).id);
+            }}
         >
             <motion.div
                 whileTap={{ scale: 0.8, y: -5 }}
@@ -279,10 +284,12 @@ export function ClayNav() {
                                         <div className={cn("relative w-6 h-6 rounded-full overflow-hidden border border-white shadow-sm mb-1", isMeActive ? "ring-2 ring-purple-100" : "")}>
                                             <CachedImage
                                                 src={activeChild.avatar_asset_path}
+                                                storagePath={activeChild.avatar_paths?.[activeChild.primary_avatar_index ?? 0]}
                                                 alt="Me"
                                                 fill
                                                 className="object-cover"
                                                 updatedAt={activeChild.updated_at}
+                                                bucket="user-assets"
                                             />
                                         </div>
                                     ) : (
@@ -306,6 +313,7 @@ export function ClayNav() {
                                         item={item}
                                         isActive={activeNow}
                                         onClick={(href) => setPendingHref(href)}
+                                        onComplete={completeStep}
                                     />
                                 );
                             })}

@@ -145,6 +145,7 @@ export default function ProfileManager({ initialChildren }: Props) {
                           alt={child.first_name}
                           fill
                           className="object-cover"
+                          bucket="user-assets"
                         />
                       ) : (
                         <span className="text-6xl">{child.gender === 'girl' ? '👧' : '👦'}</span>

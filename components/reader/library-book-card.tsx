@@ -181,6 +181,7 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId, d
                                             fill
                                             className="object-cover transition-transform duration-700 group-hover:scale-110"
                                             sizes="(max-width: 768px) 100vw, 300px"
+                                            bucket="book-assets"
                                         />
                                     ) : (
                                         <div className={cn("h-full w-full bg-gradient-to-br flex items-center justify-center p-6 text-center", style.bg)}>

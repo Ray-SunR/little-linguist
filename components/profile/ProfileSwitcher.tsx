@@ -66,6 +66,7 @@ export function ProfileSwitcher() {
           className={cn(className, "object-cover")}
           width={32}
           height={32}
+          bucket="user-assets"
         />
       );
     }

@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus } from "lucide-react";
+import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus, Zap } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -59,7 +59,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [story, setStory] = useState<Story | null>(null);
     const [supabaseBook, setSupabaseBook] = useState<SupabaseBook | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<{ message: string; type?: 'quota' | 'general' } | null>(null);
     const [isGuestOneOffFlow, setIsGuestOneOffFlow] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
@@ -216,7 +216,6 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         }
 
         resumeDraftIfNeeded();
-        resumeDraftIfNeeded();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, isLoading, searchParams, step]);
 
@@ -254,7 +253,6 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             }
         }, 1000); // 1s debounce
 
-        return () => clearTimeout(timer);
         return () => clearTimeout(timer);
     }, [profile, selectedWords, user, activeChild, storyLengthMinutes, imageSceneCount]);
 
@@ -341,6 +339,32 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
         setStep("generating");
         setError(null);
+
+        // Pre-flight check
+        if (usage.story_generation?.isLimitReached) {
+            setError({
+                message: "You've reached your story generation limit for today! Upgrade to Pro for more stories.",
+                type: 'quota'
+            });
+            setStep("profile");
+            setIsStoryGenerating(false);
+            return;
+        }
+
+        // Check if they have enough images for the selected scene count
+        if (usage.image_generation) {
+            const remainingImages = usage.image_generation.limit - usage.image_generation.current;
+            if (remainingImages < finalImageSceneCount) {
+                setError({
+                    message: `You only have ${remainingImages} image crystal${remainingImages === 1 ? '' : 's'} left, but this story needs ${finalImageSceneCount}. Upgrade to Pro for more images!`,
+                    type: 'quota'
+                });
+                setStep("profile");
+                setIsStoryGenerating(false);
+                return;
+            }
+        }
+
         completeStep('story-create');
 
         try {
@@ -373,7 +397,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 if (postFetchSession.data.session?.user.id !== currentUid) {
                     console.warn("[StoryMakerClient] Aborting: Session changed during profile creation.");
                     setStep("profile");
-                    setError("Session changed. Please try again.");
+                    setError({ message: "Session changed. Please try again.", type: 'general' });
                     return;
                 }
 
@@ -406,7 +430,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             if (finalSession.data.session?.user.id !== currentUid) {
                 console.warn("[StoryMakerClient] Aborting: Session changed during story generation.");
                 setStep("profile");
-                setError("Session changed. Please try again.");
+                setError({ message: "Session changed. Please try again.", type: 'general' });
                 return;
             }
 
@@ -458,13 +482,16 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 const msg = err.message === 'IMAGE_LIMIT_REACHED'
                     ? "You don't have enough energy crystals for that many sections!"
                     : "You've reached your story generation limit for today! Upgrade to Pro for more stories.";
-                setError(msg);
+                setError({ message: msg, type: 'quota' });
                 setStep("profile"); // Drop back to profile step so they can see the error
             } else {
-                setError("Oops! Something went wrong while making your story. Please try again.");
+                setError({ message: "Oops! Something went wrong while making your story. Please try again.", type: 'general' });
             }
         } finally {
-            refreshUsage(); // Refresh usage after attempt
+            // Immediate refresh
+            refreshUsage();
+            setTimeout(() => refreshUsage(), 5000);
+            
             setIsStoryGenerating(false);
             state.isGenerating = false;
             processingRef.current = false;
@@ -480,17 +507,95 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
     return (
         <div className="min-h-screen page-story-maker p-6 md:p-10 pb-32">
-            <header className="mx-auto mb-8 flex max-w-3xl items-center justify-between">
+            <header className="flex items-center justify-between mb-4 relative z-10">
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-3xl font-black text-ink">
-                            Story Maker
-                        </h1>
-                    </div>
+                    <button
+                        onClick={() => router.back()}
+                        className="w-10 h-10 rounded-full bg-white/80 border-2 border-white shadow-clay-sm flex items-center justify-center hover:scale-110 active:scale-95 transition-all text-slate-400 hover:text-indigo-500"
+                        title="Go Back"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h1 className="text-3xl font-black text-ink font-fredoka tracking-tight">Story Maker</h1>
                 </div>
             </header>
 
-            <main className="mx-auto max-w-3xl">
+            <main className="mx-auto max-w-3xl relative">
+                {/* Sticky Magic Energy Hub */}
+                {user && (
+                    <div className="sticky top-2 z-40 mb-6 mx-auto w-full max-w-lg px-2">
+                        {usageLoading ? (
+                            <div className="clay-card py-3 px-5 bg-white/60 backdrop-blur-md border-2 border-white shadow-clay-purple flex items-center justify-between gap-4 opacity-60 animate-pulse">
+                                <div className="h-10 w-full bg-slate-100 rounded-2xl" />
+                                <div className="h-10 w-full bg-slate-100 rounded-2xl" />
+                            </div>
+                        ) : (
+                            <motion.div 
+                                initial={{ y: -10, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                className="clay-card py-2.5 px-4 bg-white/90 backdrop-blur-md border-2 border-white shadow-clay-purple flex items-center justify-between gap-2 sm:gap-6"
+                            >
+                                {/* Stories Section */}
+                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-50 flex items-center justify-center shadow-clay-sm shrink-0 border border-purple-100">
+                                        <Wand2 className="w-4 sm:w-5 h-4 sm:h-5 text-purple-600 drop-shadow-sm" />
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex justify-between items-baseline mb-0.5 gap-2">
+                                            <span className="text-[10px] sm:text-[11px] font-black text-purple-600 uppercase tracking-tighter sm:tracking-widest font-fredoka">Stories</span>
+                                            <span className="text-[10px] font-black text-ink-muted/60 font-nunito whitespace-nowrap">
+                                                {usage.story_generation ? Math.max(0, usage.story_generation.limit - usage.story_generation.current) : 0}
+                                            </span>
+                                        </div>
+                                        <div className="w-16 sm:w-24 h-1.5 bg-purple-100/30 rounded-full overflow-hidden p-0.5 shadow-inner">
+                                            <motion.div 
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${usage.story_generation ? (1 - usage.story_generation.current / usage.story_generation.limit) * 100 : 0}%` }}
+                                                transition={{ type: "spring", damping: 15, stiffness: 100 }}
+                                                className="h-full bg-gradient-to-r from-purple-400 to-indigo-500 rounded-full shadow-md"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="w-px h-6 bg-slate-100 shrink-0" />
+
+                                {/* Images Section */}
+                                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-50 flex items-center justify-center shadow-clay-sm shrink-0 border border-amber-100">
+                                        <Sparkles className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500 drop-shadow-sm" />
+                                    </div>
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                        <div className="flex justify-between items-baseline mb-0.5 gap-2">
+                                            <span className="text-[10px] sm:text-[11px] font-black text-amber-500 uppercase tracking-tighter sm:tracking-widest font-fredoka">Images</span>
+                                            <span className="text-[10px] font-black text-ink-muted/60 font-nunito whitespace-nowrap">
+                                                {usage.image_generation ? Math.max(0, usage.image_generation.limit - usage.image_generation.current) : 0}
+                                            </span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-amber-100/30 rounded-full overflow-hidden p-0.5 shadow-inner">
+                                            <motion.div 
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${usage.image_generation ? (1 - usage.image_generation.current / usage.image_generation.limit) * 100 : 0}%` }}
+                                                transition={{ type: "spring", damping: 15, stiffness: 100 }}
+                                                className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full shadow-md"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Upgrade Shortcut */}
+                                {plan === 'free' && (
+                                    <Link href="/pricing" className="ml-1 shrink-0 group">
+                                        <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 px-3 py-1.5 rounded-2xl shadow-clay-purple hover:scale-105 active:scale-95 transition-all">
+                                            <Zap className="w-3.5 h-3.5 text-white fill-white" />
+                                            <span className="text-[10px] font-black text-white font-fredoka uppercase tracking-wider">Go Pro</span>
+                                        </div>
+                                    </Link>
+                                )}
+                            </motion.div>
+                        )}
+                    </div>
+                )}
                 {step === "profile" && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -509,11 +614,43 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 <h2 className="text-3xl font-black text-ink font-fredoka uppercase tracking-tight">
                                     {isGuestOneOffFlow ? "Welcome Back! ✨" : "About the Hero"}
                                 </h2>
-                                <p className="text-ink-muted font-medium font-nunito">
-                                    {isGuestOneOffFlow ? "Pick a child for this adventure." : "Tell us who&apos;s going on this adventure!"}
+                                <p className="text-ink-muted font-medium font-nunito leading-relaxed">
+                                    {isGuestOneOffFlow ? "Pick a child for this adventure." : "Tell us who's going on this adventure!"}
                                 </p>
                             </div>
                         </div>
+
+                        {error && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className={cn(
+                                    "mb-8 p-6 rounded-3xl border-4 flex flex-col sm:flex-row items-center gap-6",
+                                    error.type === 'quota' 
+                                        ? "bg-amber-50 border-amber-200 text-amber-900" 
+                                        : "bg-rose-50 border-rose-200 text-rose-900"
+                                )}
+                            >
+                                <div className={cn(
+                                    "w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center text-2xl shadow-clay-sm bg-white",
+                                    error.type === 'quota' ? "text-amber-500" : "text-rose-500"
+                                )}>
+                                    {error.type === 'quota' ? "✨" : "⚠️"}
+                                </div>
+                                <div className="flex-1 text-center sm:text-left">
+                                    <p className="font-fredoka font-bold text-lg leading-tight mb-1">{error.message}</p>
+                                    <p className="text-sm opacity-70 font-bold uppercase tracking-wider">Magic energy is low</p>
+                                </div>
+                                {error.type === 'quota' && (
+                                    <Link 
+                                        href="/upgrade"
+                                        className="whitespace-nowrap bg-gradient-to-br from-amber-400 to-orange-500 text-white px-6 py-3 rounded-2xl font-black font-fredoka shadow-clay-pink hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-wider"
+                                    >
+                                        Level Up to Pro
+                                    </Link>
+                                )}
+                            </motion.div>
+                        )}
 
                         {isGuestOneOffFlow ? (
                             <div className="max-w-4xl mx-auto mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -556,6 +693,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                             alt={p.first_name}
                                                             fill
                                                             className="object-cover"
+                                                            bucket="user-assets"
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full bg-slate-100 flex items-center justify-center">
@@ -688,6 +826,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                         alt="Preview"
                                                         fill
                                                         className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
+                                                        bucket="user-assets"
                                                     />
 
                                                     {/* Change Photo Overlay */}
@@ -774,12 +913,12 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                             });
                                                         } catch (err) {
                                                             console.error("Upload failed:", err);
-                                                            setError("Failed to process and upload image. Please try another one.");
+                                                            setError({ message: "Failed to process and upload image. Please try another one.", type: 'general' });
                                                         } finally {
                                                             setIsUploading(false);
                                                         }
                                                     } else if (!user) {
-                                                        setError("Please log in to upload photos.");
+                                                        setError({ message: "Please log in to upload photos.", type: 'general' });
                                                     }
                                                 }}
                                             />
@@ -912,6 +1051,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             <span className="text-[10px] font-black text-amber-400 uppercase tracking-tighter">images</span>
                                         </div>
                                     </div>
+                                    {error?.type === 'quota' && (
+                                        <p className="text-rose-500 font-bold text-center mb-6 bg-rose-50 p-4 rounded-2xl border-2 border-rose-100 animate-in fade-in slide-in-from-top-2">
+                                            {error.message}
+                                        </p>
+                                    )}
 
                                     <p className="mt-3 text-[10px] font-bold text-ink-muted font-nunito flex items-center gap-1.5 px-2">
                                         <Sparkles className="w-3 h-3 text-amber-400" />
@@ -1021,7 +1165,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
                         {error && (
                             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-8 p-5 rounded-2xl bg-rose-50 border-2 border-rose-100 text-rose-600 font-bold font-nunito flex items-center gap-3 shadow-sm">
-                                <span className="text-2xl">⚠️</span> {error}
+                                <span className="text-2xl">⚠️</span> {error.message}
                             </motion.div>
                         )}
 
@@ -1160,7 +1304,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 </div>
                                 <div className="text-center space-y-2">
                                     <h2 className="text-3xl font-black font-fredoka text-ink uppercase">Oh no!</h2>
-                                    <p className="text-lg font-bold text-ink-muted font-nunito max-w-sm mx-auto">{error}</p>
+                                    <p className="text-lg font-bold text-ink-muted font-nunito max-w-sm mx-auto">{error.message}</p>
                                 </div>
                                 <div className="flex gap-4 mt-4">
                                     <button

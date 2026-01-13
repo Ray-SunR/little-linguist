@@ -38,6 +38,7 @@ export default function DashboardUI({ activeChild }: Props) {
                                 alt={`${childName}'s Avatar`}
                                 fill
                                 className="object-cover rounded-3xl shadow-clay-purple border-4 border-purple-50"
+                                bucket="user-assets"
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
