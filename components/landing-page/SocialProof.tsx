@@ -14,7 +14,7 @@ const REVIEWS = [
 
 export default function SocialProof() {
   return (
-    <section className="py-10 border-y border-white/20 bg-white/10 backdrop-blur-sm overflow-hidden relative z-20">
+    <section className="py-6 md:py-10 border-y border-white/20 bg-white/10 backdrop-blur-sm overflow-hidden relative z-20">
       <div className="absolute inset-0 bg-gradient-to-r from-[--shell] via-transparent to-[--shell] z-10 pointer-events-none" />
 
       <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">

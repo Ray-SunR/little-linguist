@@ -3,6 +3,7 @@ import { Fredoka, Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Metadata } from "next";
 import { ClayNav } from "@/components/layout/clay-nav";
+import { GuestBanner } from "@/components/layout/guest-banner";
 import { ChildGate } from "@/components/auth/child-gate";
 import { WordListGate } from "@/components/providers/word-list-gate";
 import { NarrationGate } from "@/components/providers/narration-gate";
@@ -48,6 +49,7 @@ export default function RootLayout({
               <div className="relative flex flex-col lg:flex-row min-h-screen">
                 <ClayNav />
                 <div className="flex-1 w-full overflow-y-auto">
+                  <GuestBanner />
                   {children}
                 </div>
               </div>

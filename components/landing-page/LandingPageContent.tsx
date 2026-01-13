@@ -5,6 +5,9 @@ import Link from "next/link";
 import { BookOpen, Sparkles, Brain, ArrowRight, Library, PenTool, Volume2, Music, Cloud, Star } from "lucide-react";
 
 import SocialProof from "@/components/landing-page/SocialProof";
+import { ReaderDemo, StoryDemo } from "@/components/landing-page/demos";
+import { StickyTrialCTA } from "@/components/landing-page/StickyTrialCTA";
+import { ScrollProgressBar } from "@/components/landing-page/ScrollProgressBar";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
@@ -85,12 +88,13 @@ export default function LandingPageContent() {
 
     return (
         <main className="min-h-screen page-story-maker overflow-x-hidden bg-[--shell]">
+            <ScrollProgressBar />
             {/* 
         HERO SECTION 
         Split Layout: Text Left, Image Right
         Compacted padding
       */}
-            <section className="relative min-h-[85vh] flex items-center px-6 lg:pl-28 py-8 lg:py-0 pb-32 overflow-hidden">
+            <section className="relative min-h-[85vh] flex items-center px-6 lg:pl-28 py-12 md:py-8 lg:py-0 pb-32 overflow-hidden">
                 {/* Background Decorative Blobs & Aurora & Path */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
                     {/* Noise Texture */}
@@ -171,7 +175,7 @@ export default function LandingPageContent() {
                     </div>
                 </div>
 
-                <div className="container max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
+                <div className="container max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10 px-4 md:px-8">
                     {/* Left: Text Content */}
                     <motion.div
                         initial={{ opacity: 0, x: -30 }}
@@ -312,7 +316,7 @@ export default function LandingPageContent() {
 
                         {/* Lumo Floating Character - Hero */}
                         <motion.div
-                            className="absolute bottom-20 right-10 z-20 cursor-pointer"
+                            className="absolute bottom-10 right-0 md:bottom-20 md:right-10 z-20 cursor-pointer"
                             initial={{ scale: 0, opacity: 0, rotate: -20 }}
                             animate={{
                                 scale: isInteracting ? 1.2 : 1,
@@ -337,7 +341,7 @@ export default function LandingPageContent() {
                                 transition={{ repeat: Infinity, duration: isInteracting ? 0.5 : 3, ease: "easeInOut" }}
                                 className="relative"
                             >
-                                <LumoCharacter className="w-56 h-56" priority={true} />
+                                <LumoCharacter className="w-32 h-32 md:w-56 md:h-56" priority={true} />
 
                                 {/* Speech Bubble */}
                                 <AnimatePresence mode="wait">
@@ -347,9 +351,9 @@ export default function LandingPageContent() {
                                         animate={{ scale: 1, opacity: 1, y: 0 }}
                                         exit={{ scale: 0, opacity: 0, y: -10 }}
                                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                        className="absolute -top-16 -left-24 bg-white px-4 py-3 rounded-2xl rounded-tr-none shadow-xl border-2 border-purple-100 z-30 transform -rotate-6 min-w-[140px] flex items-center justify-center"
+                                        className="absolute -top-12 -left-20 md:-top-16 md:-left-24 bg-white px-3 py-2 md:px-4 md:py-3 rounded-2xl rounded-tr-none shadow-xl border-2 border-purple-100 z-30 transform -rotate-6 min-w-[120px] md:min-w-[140px] flex items-center justify-center"
                                     >
-                                        <p className="text-sm font-bold text-purple-600 whitespace-nowrap font-fredoka">{messageList[messageIndex]}</p>
+                                        <p className="text-xs md:text-sm font-bold text-purple-600 whitespace-nowrap font-fredoka">{messageList[messageIndex]}</p>
                                     </motion.div>
                                 </AnimatePresence>
                             </motion.div>
@@ -387,11 +391,14 @@ export default function LandingPageContent() {
             {/* Social Proof Strip */}
             <SocialProof />
 
+            {/* Interactive Reader Demo */}
+            <ReaderDemo />
+
             {/* 
         FEATURE DEEP DIVE (ZIG-ZAG)
         Showcasing specific app capabilities
       */}
-            <section className="relative py-16 px-6 lg:pl-28 bg-white/40 pt-24">
+            <section className="relative py-12 md:py-16 px-6 lg:pl-28 bg-white/40 pt-24 md:pt-32">
                 {/* Organic Wave Top (Inverted or Matching flow) */}
                 <div className="absolute top-0 left-0 w-full overflow-hidden leading-[0] rotate-180">
                     <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block h-[60px] md:h-[100px] w-[calc(100%+1.3px)] fill-white/10">
@@ -399,23 +406,38 @@ export default function LandingPageContent() {
                     </svg>
                 </div>
 
-                <div className="max-w-7xl mx-auto space-y-24">
+                <div className="max-w-7xl mx-auto space-y-16 md:space-y-24">
 
                     {/* Feature 1: Library */}
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        <div className="order-1 perspective-1000">
+                            <motion.div
+                                whileHover={{ rotateY: -5, scale: 1.02 }}
+                                className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-blue-50/50 p-4 md:p-8"
+                            >
+                                <div className="relative w-full h-[320px] md:h-full">
+                                    <CachedImage
+                                        src="/images/feature-library.png"
+                                        alt="Library Interface"
+                                        fill
+                                        className="object-contain"
+                                    />
+                                </div>
+                            </motion.div>
+                        </div>
                         <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="order-2 lg:order-1"
+                            className="order-2 px-4 md:px-0"
                         >
                             <div className="inline-block p-3 rounded-2xl bg-blue-100 text-blue-600 mb-4 shadow-sm">
                                 <Library className="w-6 h-6" />
                             </div>
-                            <h2 className="text-4xl font-black text-ink font-fredoka mb-4">
+                            <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
                                 Magical <span className="text-blue-500">Goal Tracking</span>
                             </h2>
-                            <p className="text-xl text-ink-muted font-medium mb-6">
+                            <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
                                 LumoMind helps you set personalized reading goals. Watch your child&apos;s confidence grow as they unlock new levels and badges.
                             </p>
                             <ul className="space-y-3 mb-8">
@@ -427,27 +449,14 @@ export default function LandingPageContent() {
                                 ))}
                             </ul>
                         </motion.div>
-                        <div className="order-1 lg:order-2 perspective-1000">
-                            <motion.div
-                                whileHover={{ rotateY: -5, scale: 1.02 }}
-                                className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
-                            >
-                                <CachedImage
-                                    src="/images/feature-library.png"
-                                    alt="Library Interface"
-                                    fill
-                                    className="object-cover"
-                                />
-                            </motion.div>
-                        </div>
                     </div>
 
-                    {/* Feature 2: Reader (Reversed) */}
+                    {/* Feature 2: Reader (Reversed on Desktop) */}
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        <div className="perspective-1000 relative">
+                        <div className="order-1 lg:order-2 perspective-1000 relative">
                             {/* Lumo Peeking - Interactive Reading Buddy Feature */}
                             <motion.div
-                                className="absolute -top-12 -left-8 z-20 hidden lg:block"
+                                className="absolute -top-12 -right-8 z-20 hidden lg:block"
                                 initial={{ y: 50, opacity: 0 }}
                                 whileInView={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.5, type: "spring" }}
@@ -458,30 +467,33 @@ export default function LandingPageContent() {
 
                             <motion.div
                                 whileHover={{ rotateY: 5, scale: 1.02 }}
-                                className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
+                                className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-amber-50/50 p-4 md:p-8"
                             >
-                                <CachedImage
-                                    src="/images/feature-reader.png"
-                                    alt="Reader Interface"
-                                    fill
-                                    className="object-cover"
-                                />
+                                <div className="relative w-full h-[320px] md:h-full">
+                                    <CachedImage
+                                        src="/images/feature-reader.png"
+                                        alt="Reader Interface"
+                                        fill
+                                        className="object-contain"
+                                    />
+                                </div>
                             </motion.div>
                         </div>
                         <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
+                            className="order-2 lg:order-1 px-4 md:px-0"
                         >
                             <div className="inline-block p-3 rounded-2xl bg-amber-100 text-amber-600 mb-4 shadow-sm">
                                 <Volume2 className="w-6 h-6" />
                             </div>
                             <div className="relative">
-                                <h2 className="text-4xl font-black text-ink font-fredoka mb-4">
+                                <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
                                     Interactive <span className="text-amber-500">Reading Buddy</span>
                                 </h2>
                             </div>
-                            <p className="text-xl text-ink-muted font-medium mb-6">
+                            <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
                                 More than just text. Our AI companion listens, narrates, and explains tricky words instantly, making every story a learning moment.
                             </p>
                             <ul className="space-y-3 mb-8">
@@ -497,19 +509,34 @@ export default function LandingPageContent() {
 
                     {/* Feature 3: Story Maker */}
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        <div className="order-1 perspective-1000">
+                            <motion.div
+                                whileHover={{ rotateY: -5, scale: 1.02 }}
+                                className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-purple-50/50 p-4 md:p-8"
+                            >
+                                <div className="relative w-full h-[320px] md:h-full">
+                                    <CachedImage
+                                        src="/images/feature-storymaker.png"
+                                        alt="Story Maker Interface"
+                                        fill
+                                        className="object-contain"
+                                    />
+                                </div>
+                            </motion.div>
+                        </div>
                         <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="order-2 lg:order-1"
+                            className="order-2 px-4 md:px-0"
                         >
                             <div className="inline-block p-3 rounded-2xl bg-purple-100 text-purple-600 mb-4 shadow-sm">
                                 <PenTool className="w-6 h-6" />
                             </div>
-                            <h2 className="text-4xl font-black text-ink font-fredoka mb-4">
+                            <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
                                 Create <span className="text-purple-500">Your Own World</span>
                             </h2>
-                            <p className="text-xl text-ink-muted font-medium mb-6">
+                            <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
                                 Spark creativity by co-writing stories with AI. Your child becomes the hero, choosing themes and characters for endless unique adventures.
                             </p>
                             <ul className="space-y-3 mb-8">
@@ -521,23 +548,10 @@ export default function LandingPageContent() {
                                 ))}
                             </ul>
                         </motion.div>
-                        <div className="order-1 lg:order-2 perspective-1000">
-                            <motion.div
-                                whileHover={{ rotateY: -5, scale: 1.02 }}
-                                className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform"
-                            >
-                                <CachedImage
-                                    src="/images/feature-storymaker.png"
-                                    alt="Story Maker Interface"
-                                    fill
-                                    className="object-cover"
-                                />
-                            </motion.div>
-                        </div>
                     </div>
 
                     {/* Missing Feature / Coming Soon */}
-                    <div className="text-center pt-8">
+                    <div className="text-center pt-4 md:pt-8 pb-4">
                         <p className="text-lg text-ink-muted font-medium">
                             Plus: <span className="font-bold text-ink">Word Collection</span> to review what you&apos;ve learned, and even <span className="text-purple-500 font-bold">More AI Features</span> coming soon!
                         </p>
@@ -547,13 +561,16 @@ export default function LandingPageContent() {
                 </div>
             </section>
 
+            {/* Interactive Story Maker Demo */}
+            <StoryDemo />
+
 
             {/* 
         HOW IT WORKS 
         Horizontal Step Flow
         Compacted padding
       */}
-            <section className="relative py-16 px-6 lg:pl-28 overflow-hidden">
+            <section className="relative py-12 md:py-16 px-6 lg:pl-28 overflow-hidden">
                 <div className="max-w-7xl mx-auto relative z-10">
                     <div className="text-center mb-12">
                         <h2 className="text-4xl md:text-5xl font-black text-ink font-fredoka mb-4">
@@ -606,7 +623,7 @@ export default function LandingPageContent() {
             {/* 
         BOTTOM CTA 
       */}
-            <section className="py-16 px-6 lg:pl-28">
+            <section className="py-12 md:py-16 px-6 lg:pl-28">
                 <div className="max-w-5xl mx-auto clay-card p-10 md:p-16 bg-gradient-to-br from-purple-600 to-indigo-700 text-center relative overflow-hidden group">
                     <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-20" />
 
@@ -660,6 +677,7 @@ export default function LandingPageContent() {
                     </div>
                 </div>
             </footer>
+            <StickyTrialCTA />
         </main>
     );
 }

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { BookOpen, Wand2, Languages, User, LogOut, Mail, Rocket, Sparkles, Users } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/components/auth/auth-provider";
 
@@ -92,6 +92,14 @@ export function ClayNav() {
     const isReaderView = pathname.startsWith("/reader");
     const isLibraryView = pathname.startsWith("/library");
     const [isExpanded, setIsExpanded] = useState(true);
+    const hubModalRef = useRef<HTMLDivElement>(null);
+
+    // Auto-focus the hub modal when it opens
+    useEffect(() => {
+        if (isHubOpen) {
+            hubModalRef.current?.focus();
+        }
+    }, [isHubOpen]);
 
     // Prefetch main destinations to reduce perceived nav latency
     useEffect(() => {
@@ -337,13 +345,23 @@ export function ClayNav() {
                                         </div>
                                     </motion.button>
                                 ) : (
-                                    <Link
-                                        href="/login"
-                                        className="flex items-center justify-center w-14 h-14 rounded-full bg-accent text-white shadow-clay-accent border-2 border-white/50 hover:scale-105 active:scale-95 transition-all"
-                                        aria-label="Login"
+                                    <motion.button
+                                        whileTap={prefersReducedMotion ? undefined : { scale: 0.9 }}
+                                        onClick={() => setIsHubOpen(true)}
+                                        className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg border-2 border-white/50 hover:scale-105 active:scale-95 transition-all"
+                                        aria-label="Join the Adventure"
                                     >
                                         <User className="w-6 h-6" />
-                                    </Link>
+                                        {/* Pulsing Sparkle Badge */}
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={prefersReducedMotion ? { scale: 1 } : { scale: [1, 1.2, 1] }}
+                                            transition={prefersReducedMotion ? {} : { repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#FFAA00] border-2 border-white shadow-sm flex items-center justify-center"
+                                        >
+                                            <Sparkles className="w-2.5 h-2.5 text-white" />
+                                        </motion.div>
+                                    </motion.button>
                                 )}
                             </div>
                         </div>
@@ -386,7 +404,12 @@ export function ClayNav() {
                             animate={prefersReducedMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0 }}
                             exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0, y: 10 }}
                             transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 0.2 }}
-                            className="relative w-full max-w-sm clay-card p-10 text-center bg-white border-8 border-white shadow-2xl overflow-hidden"
+                            ref={hubModalRef}
+                            className="relative w-full max-w-sm clay-card p-10 text-center bg-white border-8 border-white shadow-2xl overflow-hidden outline-none"
+                            tabIndex={-1}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="hub-modal-title"
                         >
                             {/* Decorative Blobs */}
                             <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-purple-100 rounded-full blur-3xl opacity-60" />
@@ -429,7 +452,7 @@ export function ClayNav() {
                                         </div>
 
                                         <div className="text-center mb-6">
-                                            <h2 className="text-4xl font-fredoka font-black text-ink mb-1 leading-tight tracking-tight">
+                                            <h2 id="hub-modal-title" className="text-4xl font-fredoka font-black text-ink mb-1 leading-tight tracking-tight">
                                                 {fullName || "Magic Voyager"}
                                             </h2>
                                             <div className="flex items-center justify-center gap-2 text-slate-400 font-nunito font-bold text-sm">
@@ -515,17 +538,63 @@ export function ClayNav() {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col items-center py-10">
-                                        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-6">
-                                            <User className="w-10 h-10 text-slate-300" />
+                                    <div className="flex flex-col items-center py-6">
+                                        {/* Hero Visual */}
+                                        <div className="relative mb-6">
+                                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                                                <Sparkles className="w-12 h-12 text-indigo-500" />
+                                            </div>
+                                            <motion.div
+                                                initial={{ scale: 0, rotate: -20 }}
+                                                animate={{ scale: 1, rotate: 12 }}
+                                                className="absolute -bottom-2 -right-2 px-3 py-1 rounded-full bg-[#FFAA00] text-white text-[10px] font-fredoka font-black uppercase tracking-wide shadow-md border-2 border-white"
+                                            >
+                                                Free!
+                                            </motion.div>
                                         </div>
-                                        <p className="text-slate-500 italic font-nunito font-bold text-lg mb-8 uppercase tracking-widest text-center">Your hero&apos;s journey begins with a single word...</p>
+
+                                        {/* Hero Copy */}
+                                        <h2 id="hub-modal-title" className="text-2xl font-fredoka font-black text-ink mb-2 leading-tight text-center">
+                                            Keep Your Magical Library Forever
+                                        </h2>
+                                        <p className="text-slate-500 font-nunito font-semibold text-sm mb-6 text-center max-w-[280px]">
+                                            Create an account to save your stories, track your reading adventures, and unlock more magical books!
+                                        </p>
+
+                                        {/* Benefits */}
+                                        <div className="w-full grid grid-cols-3 gap-3 mb-6">
+                                            {[
+                                                { icon: BookOpen, label: "Save Progress", color: "text-blue-500 bg-blue-50" },
+                                                { icon: Wand2, label: "Create Stories", color: "text-purple-500 bg-purple-50" },
+                                                { icon: Languages, label: "Track Words", color: "text-orange-500 bg-orange-50" },
+                                            ].map((benefit) => (
+                                                <div key={benefit.label} className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm">
+                                                    <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", benefit.color)}>
+                                                        <benefit.icon className="w-4 h-4" />
+                                                    </div>
+                                                    <span className="text-[9px] font-fredoka font-black text-slate-600 uppercase tracking-tight text-center leading-tight">
+                                                        {benefit.label}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Primary CTA */}
                                         <Link
-                                            href="/login"
-                                            className="w-full py-4 rounded-2xl bg-accent text-white font-fredoka font-black text-center shadow-clay-accent"
+                                            href="/signup"
+                                            className="w-full py-4 rounded-2xl bg-[#FFAA00] hover:bg-[#FFB700] text-white font-fredoka font-black text-center text-lg shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                                             onClick={() => setIsHubOpen(false)}
                                         >
-                                            LOGIN EXPLORER
+                                            Create Free Account
+                                        </Link>
+
+                                        {/* Secondary */}
+                                        <Link
+                                            href="/login"
+                                            className="mt-3 text-sm font-fredoka font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+                                            onClick={() => setIsHubOpen(false)}
+                                        >
+                                            Already have an account? <span className="underline">Log In</span>
                                         </Link>
                                     </div>
                                 )}
