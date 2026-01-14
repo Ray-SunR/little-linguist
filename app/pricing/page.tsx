@@ -197,13 +197,20 @@ export default function PricingPage() {
                 </motion.section>
 
                 <footer className="mt-20 text-center pb-12">
-                    <p className="text-ink-muted font-bold text-sm">
-                        Questions? <Link href="/contact" className="text-purple-600 underline underline-offset-4 decoration-2">Let us know!</Link>
+                    <p className="text-ink-muted font-bold text-sm mb-6">
+                        Questions? <Link href="/support/contact" className="text-purple-600 underline underline-offset-4 decoration-2">Let us know!</Link>
                     </p>
+                    <div className="flex items-center justify-center gap-6 text-[10px] text-ink-muted font-black uppercase tracking-widest">
+                        <Link href="/legal/privacy" className="hover:text-ink">Privacy</Link>
+                        <span>•</span>
+                        <Link href="/legal/terms" className="hover:text-ink">Terms</Link>
+                        <span>•</span>
+                        <Link href="/support/faq" className="hover:text-ink">FAQ</Link>
+                    </div>
                 </footer>
             </div>
             {/* Nav spacer for mobile */}
-            <div className="h-20 md:hidden" />
+            <div className="h-24 md:hidden" />
         </div>
     );
 }

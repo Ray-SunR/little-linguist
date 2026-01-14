@@ -6,6 +6,8 @@ const PUBLIC_ROUTES = [
     '/library',
     '/reader',
     '/auth',
+    '/legal',
+    '/support',
     '/api/word-insight',
     '/api/books',
     '/api/usage',

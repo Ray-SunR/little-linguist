@@ -36,6 +36,8 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import { TutorialProvider } from "@/components/tutorial/tutorial-context";
 import TutorialOverlay from "@/components/tutorial/tutorial-overlay";
 
+import { CookieConsent } from "@/components/ui/cookie-consent";
+
 export default function RootLayout({
   children,
 }: {
@@ -62,6 +64,7 @@ export default function RootLayout({
             </WordListGate>
           </TutorialProvider>
         </AuthProvider>
+        <CookieConsent />
         <Analytics />
       </body>
     </html>

@@ -124,10 +124,15 @@ export default function UpgradePage() {
                             </p>
                         </div>
 
-                        <div className="mt-6 text-center">
-                            <Link href="/pricing" className="text-xs font-black text-ink-muted uppercase tracking-widest hover:text-purple-600 transition-colors underline decoration-2 underline-offset-4 decoration-purple-100">
+                        <div className="mt-6 text-center space-y-4">
+                            <Link href="/pricing" className="text-xs font-black text-ink-muted uppercase tracking-widest hover:text-purple-600 transition-colors underline decoration-2 underline-offset-4 decoration-purple-100 block">
                                 View all plans and details
                             </Link>
+                            <div className="flex items-center justify-center gap-4 text-[10px] text-ink-muted font-bold uppercase tracking-widest">
+                                <Link href="/legal/terms" className="hover:text-ink">Terms</Link>
+                                <span>•</span>
+                                <Link href="/legal/privacy" className="hover:text-ink">Privacy</Link>
+                            </div>
                         </div>
                     </aside>
                 </div>

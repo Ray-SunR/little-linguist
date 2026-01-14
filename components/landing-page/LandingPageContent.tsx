@@ -672,8 +672,9 @@ export default function LandingPageContent() {
                     </div>
                     <div className="flex items-center gap-6">
                         <span>© 2026 LumoMind</span>
-                        <Link href="#" className="hover:text-purple-600 transition-colors">Privacy</Link>
-                        <Link href="#" className="hover:text-purple-600 transition-colors">Terms</Link>
+                        <Link href="/support/faq" className="hover:text-purple-600 transition-colors">Support</Link>
+                        <Link href="/legal/privacy" className="hover:text-purple-600 transition-colors">Privacy</Link>
+                        <Link href="/legal/terms" className="hover:text-purple-600 transition-colors">Terms</Link>
                     </div>
                 </div>
             </footer>

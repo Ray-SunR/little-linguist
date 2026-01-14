@@ -8,6 +8,7 @@ import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/components/auth/auth-provider";
+import { ParentalLink } from "@/components/ui/parental-gate";
 
 import { CachedImage } from "@/components/ui/cached-image";
 import { useUsage } from "@/lib/hooks/use-usage";
@@ -488,13 +489,12 @@ export function ClayNav() {
                                                         <Sparkles className="w-5 h-5 text-amber-300" />
                                                         <span className="text-[12px] font-black font-fredoka uppercase tracking-tight">Unlock Premium Access</span>
                                                     </div>
-                                                    <Link 
+                                                    <ParentalLink 
                                                         href="/pricing" 
-                                                        onClick={() => setIsHubOpen(false)}
                                                         className="px-5 py-2 bg-white text-indigo-600 rounded-xl font-black font-fredoka text-[11px] uppercase shadow-sm active:scale-95 transition-all shrink-0"
                                                     >
                                                         Upgrade
-                                                    </Link>
+                                                    </ParentalLink>
                                                 </div>
 
                                                 {!loading && (
@@ -535,28 +535,25 @@ export function ClayNav() {
 
                                         {/* Action Matrix (2x2 Grid) */}
                                         <div className="grid grid-cols-2 gap-4">
-                                            <button
-                                                onClick={() => { setIsHubOpen(false); router.push("/profiles"); }}
+                                            <ParentalLink
+                                                href="/profiles"
                                                 className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-white border border-slate-100/50 hover:bg-purple-50 transition-all shadow-clay-sm active:scale-95 cursor-pointer"
                                             >
                                                 <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center shrink-0 shadow-inner-sm">
                                                     <Users className="w-6 h-6 text-purple-600" />
                                                 </div>
                                                 <span className="text-[10px] font-black font-fredoka text-ink uppercase leading-tight tracking-wider">Profiles</span>
-                                            </button>
+                                            </ParentalLink>
 
-                                            <button
-                                                onClick={() => {
-                                                    setIsHubOpen(false);
-                                                    router.push("/dashboard/subscription");
-                                                }}
+                                            <ParentalLink
+                                                href="/dashboard/subscription"
                                                 className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-white border border-slate-100/50 hover:bg-orange-50 transition-all shadow-clay-sm active:scale-95 cursor-pointer"
                                             >
                                                 <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center shrink-0 shadow-inner-sm">
                                                     <ShieldCheck className="w-6 h-6 text-orange-600" />
                                                 </div>
                                                 <span className="text-[10px] font-black font-fredoka text-ink uppercase leading-tight tracking-wider">Subscription</span>
-                                            </button>
+                                            </ParentalLink>
 
                                             <button
                                                 onClick={handleLogout}
