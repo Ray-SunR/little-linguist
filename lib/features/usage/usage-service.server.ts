@@ -195,12 +195,15 @@ export async function reserveCredits(
         const supabase = getAdminClient();
         const userId = identity.owner_user_id || null;
 
-        // Resolve limits for all requested features in parallel
+        // Resolve plan quota once for all features in the batch
+        // This is much faster than fetching it for each feature individually
+        const quotas = await getQuotasForUser(userId);
+
         const updates = await Promise.all(
             requests.map(async (req) => {
-                let max_limit = await getQuotaForUser(userId, req.featureName);
+                let max_limit = quotas[req.featureName] || 0;
 
-                // Check for override
+                // Check for override in the usage table
                 const { data: usage } = await supabase
                     .from("feature_usage")
                     .select("max_limit")
@@ -237,7 +240,6 @@ export async function reserveCredits(
         if (result?.success) {
             return { success: true };
         } else {
-            // Parse error message (e.g. "LIMIT_REACHED: image_generation")
             return { success: false, error: result?.error_message || "Unknown error" };
         }
 
@@ -248,17 +250,129 @@ export async function reserveCredits(
 }
 
 /**
+ * Highly optimized helper to get all quotas for a user in one go.
+ */
+async function getQuotasForUser(userId: string | null): Promise<Record<string, number>> {
+    const DEFAULT_FREE_LIMITS: Record<string, number> = {
+        word_insight: 100,
+        story_generation: 3,
+        image_generation: 10
+    };
+
+    const DEFAULT_GUEST_LIMITS: Record<string, number> = {
+        word_insight: 5,
+        story_generation: 0,
+        image_generation: 0
+    };
+
+    if (!userId) return DEFAULT_GUEST_LIMITS;
+
+    try {
+        const supabase = getAdminClient();
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("subscription_status")
+            .eq("id", userId)
+            .single();
+
+        const status = profile?.subscription_status || "free";
+
+        const { data: plan } = await supabase
+            .from("subscription_plans")
+            .select("quotas")
+            .eq("code", status)
+            .single();
+
+        return (plan?.quotas as Record<string, number>) || DEFAULT_FREE_LIMITS;
+    } catch (error) {
+        return DEFAULT_FREE_LIMITS;
+    }
+}
+
+/**
  * Refunds credits for a feature by applying a negative increment.
- * This can be used if an AI task generated fewer assets than reserved.
  */
 export async function refundCredits(
     identity: UsageIdentity,
     featureName: string,
     amount: number,
     childId?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    idempotencyKey?: string
 ): Promise<boolean> {
     if (amount <= 0) return true;
+
+    // Generate a derived idempotency key if one isn't provided to prevent double-refunding
+    const refundKey = idempotencyKey ? `refund:${idempotencyKey}:${featureName}` : undefined;
+
     console.log(`[UsageService] Refunding ${amount} credits for ${featureName} to ${identity.identity_key}`);
-    return tryIncrementUsage(identity, featureName, -amount, childId, { ...metadata, is_refund: true });
+
+    const result = await reserveCredits(identity, [{
+        featureName,
+        increment: -amount,
+        childId,
+        metadata: { ...metadata, is_refund: true },
+        idempotencyKey: refundKey
+    }]);
+
+    return result.success;
+}
+
+/**
+ * A robust wrapper that handles the entire "Reserve -> Run -> Cleanup" lifecycle.
+ */
+export async function withUsageReservation<T>(
+    identity: UsageIdentity,
+    requests: UsageRequest[],
+    onFailure: (error: string) => Promise<NextResponse>,
+    action: (reservation: { refund: (feature: string, amount: number, reason?: string) => Promise<void> }) => Promise<T>
+): Promise<T | NextResponse> {
+    // 1. Reserve
+    const reservationResult = await reserveCredits(identity, requests);
+
+    if (!reservationResult.success) {
+        return onFailure(reservationResult.error || "RESERVATION_FAILED");
+    }
+
+    // Tracker for what has been used vs reserved
+    const usageTracker: Record<string, { reserved: number; used: number }> = {};
+    requests.forEach(r => {
+        usageTracker[r.featureName] = { reserved: r.increment, used: r.increment };
+    });
+
+    const refund = async (featureName: string, amount: number, reason?: string) => {
+        if (amount <= 0) return;
+
+        // Find the original request to get metadata and childId
+        const req = requests.find(r => r.featureName === featureName);
+
+        await refundCredits(
+            identity,
+            featureName,
+            amount,
+            req?.childId,
+            { ...req?.metadata, refund_reason: reason },
+            req?.idempotencyKey
+        );
+
+        if (usageTracker[featureName]) {
+            usageTracker[featureName].used -= amount;
+        }
+    };
+
+    try {
+        // 2. Execute Action
+        return await action({ refund });
+    } catch (error) {
+        // 3. Catastrophic failure: Refund everything remaining
+        console.error("[UsageService] Action failed, refunding all reserved credits:", error);
+
+        for (const [featureName, stats] of Object.entries(usageTracker)) {
+            if (stats.used > 0) {
+                await refund(featureName, stats.used, "CATASTROPHIC_FAILURE");
+            }
+        }
+
+        throw error;
+    }
 }
