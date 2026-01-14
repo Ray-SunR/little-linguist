@@ -14,6 +14,15 @@ export interface ChildProfilePayload {
   avatar_asset_path?: string; // Still accept this for backwards compat, but we store to avatar_paths
 }
 
+export interface LibrarySettings {
+  readingLevel?: string;
+  excludedCategories?: string[];
+  theme?: string;
+  filters?: Record<string, any>;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export interface ChildProfile extends ChildProfilePayload {
   id: string;
   owner_user_id: string;
@@ -22,10 +31,11 @@ export interface ChildProfile extends ChildProfilePayload {
   deleted_at?: string;
   avatar_paths?: string[];
   primary_avatar_index?: number;
-  library_settings?: any;
+  library_settings?: LibrarySettings;
 }
 
-const AVATAR_BUCKET = 'user-assets';
+import { BUCKETS } from "@/lib/constants/storage";
+const AVATAR_BUCKET = BUCKETS.USER_ASSETS;
 
 /**
  * Upload a base64 image to the avatar bucket and return the storage path.
@@ -59,7 +69,15 @@ async function uploadAvatarToBucket(
     const matches = base64DataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
     if (!matches) return null;
 
-    const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+    const mimeType = matches[1].toLowerCase();
+    const validMimes = ['jpeg', 'jpg', 'png', 'webp'];
+    
+    if (!validMimes.includes(mimeType)) {
+        console.warn('[profiles:uploadAvatar] Rejected invalid MIME type:', mimeType);
+        return null;
+    }
+
+    const ext = mimeType === 'jpeg' ? 'jpg' : mimeType;
     const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, 'base64');
 
@@ -350,7 +368,7 @@ export async function deleteChildProfile(id: string) {
     // 5. Delete from 'user-assets' bucket
     if (storagePathsUserAssets.length > 0) {
       const { error: userStorageError } = await supabase.storage
-        .from('user-assets')
+        .from(BUCKETS.USER_ASSETS)
         .remove(storagePathsUserAssets);
       if (userStorageError) {
         // We log but proceed to avoid blocking profile deletion due to non-critical storage errors.
@@ -365,7 +383,7 @@ export async function deleteChildProfile(id: string) {
     // If RLS is strict, we might need a service role client for storage removal of multiple files.
     if (storagePathsBookAssets.length > 0) {
       const { error: bookStorageError } = await supabase.storage
-        .from('book-assets')
+        .from(BUCKETS.BOOK_ASSETS)
         .remove(storagePathsBookAssets);
       if (bookStorageError) {
         // Logging as warning since we don't want to abort the DB deletion if files are missing or RLS is tricky.

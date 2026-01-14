@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Wand2, Languages, User, LogOut, Mail, Rocket, Sparkles, Users } from "lucide-react";
+import { BookOpen, Wand2, Languages, User, LogOut, Mail, Rocket, Sparkles, Users, Settings, ShieldCheck } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState, useRef } from "react";
@@ -413,7 +413,7 @@ export function ClayNav() {
                             initial={prefersReducedMotion ? false : { opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-purple-900/40 backdrop-blur-md"
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
                             onClick={() => setIsHubOpen(false)}
                         />
 
@@ -423,7 +423,7 @@ export function ClayNav() {
                             exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0, y: 10 }}
                             transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 0.2 }}
                             ref={hubModalRef}
-                            className="relative w-full max-w-sm clay-card p-10 text-center bg-white border-8 border-white shadow-2xl overflow-hidden outline-none"
+                            className="relative w-full max-w-md clay-card p-10 text-center bg-white/95 backdrop-blur-2xl shadow-2xl overflow-hidden outline-none"
                             tabIndex={-1}
                             role="dialog"
                             aria-modal="true"
@@ -435,125 +435,149 @@ export function ClayNav() {
 
                             <div className="relative">
                                 {user ? (
-                                    <div className="flex flex-col items-center">
-                                        {/* Avatar & Tier Badge Cluster */}
-                                        <div className="relative mb-6">
-                                            <div className="w-32 h-32 rounded-[2rem] border-4 border-white shadow-clay-white overflow-hidden bg-slate-100 rotate-3 transition-transform duration-500">
-                                                {user.user_metadata?.avatar_url ? (
-                                                    <CachedImage
-                                                        src={user.user_metadata.avatar_url}
-                                                        alt="Profile"
-                                                        width={128}
-                                                        height={128}
-                                                        className="w-full h-full object-cover scale-110"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 text-white">
-                                                        <User className="w-12 h-12" />
+                                    <div className="flex flex-col gap-8">
+                                        {/* Horizontal Header */}
+                                        <div className="flex items-center gap-6 bg-slate-50/50 p-5 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                                            <div className="relative shrink-0">
+                                                <div className="w-24 h-24 rounded-3xl bg-white border-4 border-white shadow-clay-white overflow-hidden flex items-center justify-center">
+                                                    {user.user_metadata?.avatar_url ? (
+                                                        <CachedImage
+                                                            src={user.user_metadata.avatar_url}
+                                                            alt="Profile"
+                                                            width={96}
+                                                            height={96}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-500 text-white">
+                                                            <User className="w-10 h-10" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <motion.div
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    className={cn(
+                                                        "absolute -bottom-1 -right-1 px-2 py-0.5 rounded-lg border-2 border-white shadow-sm font-fredoka font-black text-[8px] uppercase tracking-wider flex items-center gap-1 z-10",
+                                                        plan === 'pro' ? "bg-amber-400 text-white" : "bg-slate-500 text-white"
+                                                    )}
+                                                >
+                                                    {plan === 'pro' ? 'Pro' : 'Free'}
+                                                </motion.div>
+                                            </div>
+
+                                            <div className="text-left flex-1 min-w-0">
+                                                <h2 id="hub-modal-title" className="text-xl font-fredoka font-black text-ink mb-0.5 truncate">
+                                                    {fullName || "Magic Voyager"}
+                                                </h2>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-[10px] font-fredoka font-black text-purple-600 uppercase tracking-widest">Parent Account</span>
+                                                    <div className="flex items-center gap-1.5 text-slate-400 font-nunito font-bold text-xs truncate">
+                                                        <Mail className="w-3 h-3" />
+                                                        <span className="truncate">{user.email}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Slim Subscription & Micro-Usage Row */}
+                                        {plan !== 'pro' ? (
+                                            <div className="flex flex-col gap-6">
+                                                <div className="relative overflow-hidden rounded-3xl bg-indigo-600 p-5 text-white shadow-clay-purple flex items-center justify-between gap-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <Sparkles className="w-5 h-5 text-amber-300" />
+                                                        <span className="text-[12px] font-black font-fredoka uppercase tracking-tight">Unlock Premium Access</span>
+                                                    </div>
+                                                    <Link 
+                                                        href="/pricing" 
+                                                        onClick={() => setIsHubOpen(false)}
+                                                        className="px-5 py-2 bg-white text-indigo-600 rounded-xl font-black font-fredoka text-[11px] uppercase shadow-sm active:scale-95 transition-all shrink-0"
+                                                    >
+                                                        Upgrade
+                                                    </Link>
+                                                </div>
+
+                                                {!loading && (
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        {[
+                                                            { key: 'story_generation', label: 'Stories', icon: Wand2, color: 'text-purple-500' },
+                                                            { key: 'image_generation', label: 'Images', icon: Sparkles, color: 'text-pink-500' },
+                                                            { key: 'word_insight', label: 'Insights', icon: Languages, color: 'text-emerald-500' }
+                                                        ].map(feat => {
+                                                            const stat = usage[feat.key];
+                                                            if (!stat) return null;
+                                                            return (
+                                                                <div key={feat.key} className="bg-white border border-slate-100 p-3 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-clay-sm">
+                                                                    <feat.icon className={cn("w-4 h-4 mb-0.5", feat.color)} />
+                                                                    <div className="flex flex-col items-center">
+                                                                        <span className="text-[11px] font-black font-fredoka text-ink leading-tight">
+                                                                            {stat.current}/{stat.limit}
+                                                                        </span>
+                                                                        <span className="text-[8px] font-bold font-nunito text-slate-400 uppercase tracking-tighter leading-tight">
+                                                                            {feat.label}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 )}
                                             </div>
-                                            {/* Floating Tier Badge */}
-                                            <motion.div
-                                                initial={{ scale: 0, rotate: -20 }}
-                                                animate={{ scale: 1, rotate: -12 }}
-                                                className={cn(
-                                                    "absolute -bottom-2 -right-4 px-4 py-1.5 rounded-2xl border-4 border-white shadow-lg font-fredoka font-black text-xs uppercase tracking-wider flex items-center gap-1.5 z-10",
-                                                    plan === 'pro'
-                                                        ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white"
-                                                        : "bg-slate-500 text-white"
-                                                )}
-                                            >
-                                                {plan === 'pro' ? <Sparkles className="w-3.5 h-3.5" /> : <Rocket className="w-3.5 h-3.5" />}
-                                                {plan === 'pro' ? 'Pro' : 'Free'}
-                                            </motion.div>
-                                        </div>
-
-                                        <div className="text-center mb-6">
-                                            <h2 id="hub-modal-title" className="text-4xl font-fredoka font-black text-ink mb-1 leading-tight tracking-tight">
-                                                {fullName || "Magic Voyager"}
-                                            </h2>
-                                            <div className="flex items-center justify-center gap-2 text-slate-400 font-nunito font-bold text-sm">
-                                                <Mail className="w-4 h-4" />
-                                                <span>{user.email}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Usage Stats - Horizontal Grid */}
-                                        {!loading && (
-                                            <div className="w-full bg-slate-50/50 rounded-[2.5rem] p-6 border-2 border-white shadow-inner-sm mb-8">
-                                                <div className="flex items-center justify-between mb-4 px-2">
-                                                    <span className="text-[10px] font-black font-fredoka uppercase tracking-[0.2em] text-slate-400">
-                                                        Daily Energy
-                                                    </span>
-                                                    {plan !== 'pro' && (
-                                                        <Link href="/pricing" onClick={() => setIsHubOpen(false)} className="text-[10px] font-black font-fredoka uppercase text-purple-600 hover:text-purple-700 underline decoration-2 underline-offset-4 tracking-wider">
-                                                            Get Unlimited
-                                                        </Link>
-                                                    )}
+                                        ) : (
+                                            <div className="bg-emerald-50/50 border border-emerald-100 p-3 rounded-2xl flex items-center justify-between px-4 shadow-inner-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                                    <span className="text-[10px] font-black font-fredoka uppercase tracking-widest text-emerald-600">Pro Portal Active</span>
                                                 </div>
-                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                    {[
-                                                        { key: 'story_generation', label: 'Stories', icon: Wand2, color: 'from-purple-400 to-indigo-500' },
-                                                        { key: 'image_generation', label: 'Images', icon: Sparkles, color: 'from-pink-400 to-rose-500' },
-                                                        { key: 'word_insight', label: 'Insights', icon: Languages, color: 'from-emerald-400 to-teal-500' }
-                                                    ].map(feat => {
-                                                        const stat = usage[feat.key];
-                                                        if (!stat) return null;
-                                                        const percent = Math.min(100, (stat.current / stat.limit) * 100);
-                                                        return (
-                                                            <div key={feat.key} className="relative">
-                                                                <div className="flex items-center justify-between mb-1.5 px-1">
-                                                                    <span className="text-[10px] font-black font-fredoka text-slate-500 uppercase">{feat.label}</span>
-                                                                    <span className="text-[10px] font-bold font-nunito text-slate-400">{stat.current}/{stat.limit}</span>
-                                                                </div>
-                                                                <div className="h-3 bg-white rounded-full overflow-hidden shadow-inner border border-slate-100 p-0.5">
-                                                                    <motion.div
-                                                                        initial={{ width: 0 }}
-                                                                        animate={{ width: `${percent}%` }}
-                                                                        className={cn(
-                                                                            "h-full rounded-full bg-gradient-to-r transition-all duration-1000",
-                                                                            stat.isLimitReached ? "from-rose-400 to-rose-500" : feat.color
-                                                                        )}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
+                                                <span className="text-[10px] font-black font-fredoka text-emerald-400">Unlimited Access</span>
                                             </div>
                                         )}
 
-                                        {/* Action Grid */}
-                                        <div className="grid grid-cols-2 gap-4 w-full mb-6">
+                                        {/* Action Matrix (2x2 Grid) */}
+                                        <div className="grid grid-cols-2 gap-4">
                                             <button
                                                 onClick={() => { setIsHubOpen(false); router.push("/profiles"); }}
-                                                className="flex flex-col items-center justify-center gap-3 p-5 rounded-[2rem] bg-white border-2 border-slate-100 hover:border-purple-200 hover:bg-purple-50 transition-all group/btn shadow-sm active:scale-95"
+                                                className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-white border border-slate-100/50 hover:bg-purple-50 transition-all shadow-clay-sm active:scale-95 cursor-pointer"
                                             >
-                                                <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center group-hover/btn:scale-110 transition-transform">
+                                                <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center shrink-0 shadow-inner-sm">
                                                     <Users className="w-6 h-6 text-purple-600" />
                                                 </div>
-                                                <span className="text-xs font-black font-fredoka text-slate-600 uppercase tracking-tight">MANAGE HEROES</span>
+                                                <span className="text-[10px] font-black font-fredoka text-ink uppercase leading-tight tracking-wider">Profiles</span>
                                             </button>
 
                                             <button
-                                                onClick={() => { setIsHubOpen(false); router.push("/dashboard"); }}
-                                                className="flex flex-col items-center justify-center gap-3 p-5 rounded-[2rem] bg-white border-2 border-slate-100 hover:border-orange-200 hover:bg-orange-50 transition-all group/btn shadow-sm active:scale-95"
+                                                onClick={() => {
+                                                    setIsHubOpen(false);
+                                                    router.push("/dashboard/subscription");
+                                                }}
+                                                className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-white border border-slate-100/50 hover:bg-orange-50 transition-all shadow-clay-sm active:scale-95 cursor-pointer"
                                             >
-                                                <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center group-hover/btn:scale-110 transition-transform">
-                                                    <BookOpen className="w-6 h-6 text-orange-600" />
+                                                <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center shrink-0 shadow-inner-sm">
+                                                    <ShieldCheck className="w-6 h-6 text-orange-600" />
                                                 </div>
-                                                <span className="text-xs font-black font-fredoka text-slate-600 uppercase tracking-tight">GUARDIAN HUB</span>
+                                                <span className="text-[10px] font-black font-fredoka text-ink uppercase leading-tight tracking-wider">Subscription</span>
+                                            </button>
+
+                                            <button
+                                                onClick={handleLogout}
+                                                className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-rose-50 border border-rose-100/50 hover:bg-rose-100 transition-all shadow-clay-sm active:scale-95 cursor-pointer"
+                                            >
+                                                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-inner-sm">
+                                                    <LogOut className="w-6 h-6 text-rose-500" />
+                                                </div>
+                                                <span className="text-[10px] font-black font-fredoka text-rose-600 uppercase leading-tight tracking-wider">Log Out</span>
+                                            </button>
+
+                                            <button
+                                                onClick={() => setIsHubOpen(false)}
+                                                className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-clay-md active:scale-95 cursor-pointer"
+                                            >
+                                                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+                                                    <Rocket className="w-6 h-6" />
+                                                </div>
+                                                <span className="text-[10px] font-black font-fredoka uppercase leading-tight tracking-wider">Return</span>
                                             </button>
                                         </div>
-
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full py-4 rounded-[1.5rem] bg-rose-50 border-2 border-rose-100 text-rose-500 font-fredoka font-black text-sm uppercase tracking-widest hover:bg-rose-100 transition-all flex items-center justify-center gap-2 group/out active:scale-[0.98]"
-                                        >
-                                            <LogOut className="w-4 h-4 group-hover/out:-translate-x-1 transition-transform" />
-                                            Log Out Hub
-                                        </button>
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center py-6">
@@ -573,10 +597,10 @@ export function ClayNav() {
 
                                         {/* Hero Copy */}
                                         <h2 id="hub-modal-title" className="text-2xl font-fredoka font-black text-ink mb-2 leading-tight text-center">
-                                            Keep Your Magical Library Forever
+                                            Secure Your Family&apos;s Magical Library
                                         </h2>
                                         <p className="text-slate-500 font-nunito font-semibold text-sm mb-6 text-center max-w-[280px]">
-                                            Create an account to save your stories, track your reading adventures, and unlock more magical books!
+                                            Create a parent account to manage your child&apos;s stories, track their learning progress, and unlock infinite adventures.
                                         </p>
 
                                         {/* Benefits */}
@@ -619,7 +643,7 @@ export function ClayNav() {
 
                                 <button
                                     onClick={() => setIsHubOpen(false)}
-                                    className="w-full py-5 mt-6 font-fredoka text-xl rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-clay-purple hover:from-purple-700 hover:to-indigo-700 transition-all active:scale-95"
+                                    className="hidden"
                                 >
                                     {user ? "Back to Adventure" : "Close Portal"}
                                 </button>

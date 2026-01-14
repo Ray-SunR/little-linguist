@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   if (user) {
     const { data, error } = await getChildren();
     if (error) {
-      console.error("[RAIDEN_DIAG][Dashboard] Server-side profile fetch failed:", error);
+      console.error("[Dashboard] Server-side profile fetch failed:", error);
       fetchError = true;
     }
     if (!error && data) {
@@ -36,6 +36,7 @@ export default async function DashboardPage() {
     <>
       {user && (
         <ProfileHydrator
+          key={user.id}
           initialProfiles={initialProfiles}
           userId={user.id}
           serverError={fetchError}

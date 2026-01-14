@@ -34,18 +34,12 @@ export function ProfileHydrator({ initialProfiles, userId, serverError }: Profil
         // If server fetch failed, do not hydrate and DO NOT release loading lock.
         // Let the client-side retry logic in AuthProvider handle it.
         if (serverError) {
-            console.warn("[RAIDEN_DIAG][Auth] Server component reported fetch error, deferring to client fetch.");
             return;
         }
 
         const hasProfiles = initialProfiles && initialProfiles.length > 0;
 
         if (hasProfiles) {
-            console.info("[RAIDEN_DIAG][Auth] Hydrating profiles from Server Component", {
-                count: initialProfiles.length,
-                userId
-            });
-
             setProfiles(initialProfiles);
         }
 
@@ -54,10 +48,7 @@ export function ProfileHydrator({ initialProfiles, userId, serverError }: Profil
         // If 0 profiles, we stay in "loading" state and let the client-side fetch in AuthProvider 
         // confirm if they are truly 0 or if the server fetch was a false negative.
         if (isLoading && hasProfiles) {
-            console.info("[RAIDEN_DIAG][Auth] Clearing loading state from Server Component (profiles found)");
             setStatus('ready');
-        } else if (isLoading) {
-            console.info("[RAIDEN_DIAG][Auth] 0 profiles found on server, keeping loading lock for client fetch verify.");
         }
 
         hydratedRef.current = true;

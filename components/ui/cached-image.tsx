@@ -5,6 +5,7 @@ import Image, { ImageProps } from "next/image";
 import { assetCache } from "@/lib/core/asset-cache";
 import { cn } from "@/lib/core";
 import { createClient } from "@/lib/supabase/client";
+import { BUCKETS } from "@/lib/constants/storage";
 
 interface CachedImageProps extends Omit<ImageProps, "src"> {
     src: string; // The signed URL (fallback)
@@ -12,7 +13,7 @@ interface CachedImageProps extends Omit<ImageProps, "src"> {
     updatedAt?: string | number; // Last update timestamp for cache invalidation
     className?: string;
     onLoadFailure?: () => void;
-    bucket?: "user-assets" | "book-assets";
+    bucket?: typeof BUCKETS[keyof typeof BUCKETS];
 }
 
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -66,21 +67,28 @@ export function CachedImage({
             // If it's the same asset, we keep the current displayUrl while we re-verify in background.
             // If it's different, we already set it to transparent above.
 
+            // Optimization: If 'src' is already a signed URL (contains http/https), we should trust it for the first attempt.
+            // Only sign if we strictly only have a storage path and src is NOT a usable URL.
+            // OR if the implementation specifically requires ensuring a fresh token (but standard behavior should trust props).
+            
             try {
                 let fetchUrl = src;
+                const isSignedUrl = src.startsWith('http');
 
                 // Logic: If 'src' doesn't look like a URL but looks like a storage path (contains slashes like uid/path),
                 // we treat it as a storage path if storagePath wasn't explicitly passed.
                 const looksLikeStoragePath = src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && src.includes('/');
                 const activePath = storagePath || (looksLikeStoragePath ? src : undefined);
                 
-                if (activePath) {
+                // CRITICAL FIX: Only sign if we DON'T have a valid signed URL yet.
+                // If the parent component passed a signed URL in `src`, use it directly to avoid N+1.
+                if (activePath && !isSignedUrl) {
                     // Always try to sign if it's not a URL yet, or if it was explicitly requested via storagePath
                     const supabase = createClient();
                     
                     // Determine bucket. We default to 'user-assets' for user-uploaded content.
                     // If an explicit bucket is passed, we use it.
-                    const bucket = explicitBucket || (src.includes('book-assets') ? 'book-assets' : 'user-assets');
+                    const bucket = explicitBucket || (src.includes(BUCKETS.BOOK_ASSETS) ? BUCKETS.BOOK_ASSETS : BUCKETS.USER_ASSETS);
 
                     const { data, error } = await supabase.storage
                         .from(bucket)
