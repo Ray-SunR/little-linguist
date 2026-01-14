@@ -29,15 +29,19 @@ const colorSets = [
 export const WordListItemV2 = memo(function WordListItemV2({ word, bookId, bookTitle, onRemove, index }: WordListItemV2Props) {
     const theme = useMemo(() => colorSets[index % colorSets.length], [index]);
     const { insight, audioUrls, isLoading, error } = useWordCache(word);
-    const [activeNarrationType, setActiveNarrationType] = useState<"definition" | "example" | "none">("none");
+    const [activeNarrationType, setActiveNarrationType] = useState<"definition" | "example" | "word" | "none">("none");
 
     const ttsProvider = useMemo(() => new WebSpeechNarrationProvider(), []);
 
-    // Audio for Definition/Example (Amazon Polly via Cache)
+    // Audio for Word/Definition/Example (Amazon Polly via Cache)
     const [audioProvider, setAudioProvider] = useState<BlobNarrationProvider | null>(null);
     const narrationInput = useMemo(() => {
         if (activeNarrationType === "none" || !insight) return null;
-        const text = activeNarrationType === "definition" ? insight.definition : insight.examples[0];
+        let text = "";
+        if (activeNarrationType === "definition") text = insight.definition;
+        else if (activeNarrationType === "example") text = insight.examples[0];
+        else if (activeNarrationType === "word") text = word;
+
         const tokens = text.split(" ").map((t: string, i: number) => ({ wordIndex: i, text: t }));
         return {
             contentId: `${word}-${activeNarrationType}`,
@@ -65,14 +69,23 @@ export const WordListItemV2 = memo(function WordListItemV2({ word, bookId, bookT
         currentTimeSec,
         tokensCount: activeNarrationType === "definition" 
             ? (insight?.definition?.split(" ").length || 0)
-            : (insight?.examples?.[0]?.split(" ").length || 0),
+            : (activeNarrationType === "example" ? (insight?.examples?.[0]?.split(" ").length || 0) : 1),
         durationMs,
         wordTimings: activeNarrationType === "definition" ? insight?.wordTimings : [] 
     });
 
-    // Pronunciation (Web Speech - Quick)
+    // Pronunciation Handler
     const handlePronounce = async (e: React.MouseEvent) => {
         e.stopPropagation();
+        
+        // 1. Try high-quality cached audio first
+        if (audioUrls.word) {
+            await handlePlayNarration("word");
+            return;
+        }
+
+        // 2. Fallback to Web Speech if Polly audio is missing
+        console.debug(`[WordListItemV2] Falling back to WebSpeech for: ${word}`);
         await ttsProvider.prepare({
             contentId: `${word}-pronounce`,
             rawText: word,
@@ -81,19 +94,24 @@ export const WordListItemV2 = memo(function WordListItemV2({ word, bookId, bookT
         await ttsProvider.play();
     };
 
-    const handlePlayNarration = async (type: "definition" | "example") => {
+    const handlePlayNarration = async (type: "definition" | "example" | "word") => {
         if (activeNarrationType === type && polyState === "PLAYING") {
             await pausePoly();
             return;
         }
 
-        const url = type === "definition" ? audioUrls.definition : audioUrls.example;
+        const url = type === "definition" 
+            ? audioUrls.definition 
+            : (type === "example" ? audioUrls.example : audioUrls.word);
+            
         if (!url) return;
 
         setActiveNarrationType(type);
-        const provider = new BlobNarrationProvider(url, type === "definition" ? insight?.wordTimings : []);
+        const provider = new BlobNarrationProvider(
+            url, 
+            type === "definition" ? insight?.wordTimings : []
+        );
         setAudioProvider(provider);
-        // useAudioNarration will auto-prepare when provider changes
     };
 
     // Auto-play when ready if needed, but useAudioNarration wait for prepare.
