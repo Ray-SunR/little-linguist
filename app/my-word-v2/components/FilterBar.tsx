@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/core/utils/cn";
-import { type WordCategory, type GroupBy } from "../hooks/useMyWordsViewModel";
+import { type WordCategory, type GroupBy } from "../hooks/useMyWordsV2ViewModel";
 
 interface FilterBarProps {
     activeCategory: WordCategory;

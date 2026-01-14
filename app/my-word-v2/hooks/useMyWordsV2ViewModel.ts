@@ -1,34 +1,16 @@
+"use client";
+
 import { useMemo, useState, useEffect } from "react";
 import { useWordList, type SavedWord } from "@/lib/features/word-insight/provider";
 
 export type WordCategory = "all" | "new" | "review";
 export type GroupBy = "none" | "date" | "book" | "proficiency";
 
-export function useMyWordsViewModel() {
+export function useMyWordsV2ViewModel() {
     const { words, removeWord, isLoading } = useWordList();
     const [activeCategory, setActiveCategory] = useState<WordCategory>("all");
     const [groupBy, setGroupBy] = useState<GroupBy>("none");
     const [searchQuery, setSearchQuery] = useState("");
-
-    // Mute State Persistence (Session only)
-    const [isMuted, setIsMuted] = useState(false);
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const stored = sessionStorage.getItem("my-words-muted");
-            if (stored) setIsMuted(JSON.parse(stored));
-        }
-    }, []);
-
-    const toggleMute = () => {
-        setIsMuted(prev => {
-            const next = !prev;
-            if (typeof window !== "undefined") {
-                sessionStorage.setItem("my-words-muted", JSON.stringify(next));
-            }
-            return next;
-        });
-    };
 
     const filteredAndSortedWords = useMemo(() => {
         let list = [...words];
@@ -55,10 +37,10 @@ export function useMyWordsViewModel() {
         });
     }, [words, activeCategory, searchQuery]);
 
-    const groupedWords = useMemo(() => {
-        if (groupBy === "none") return { "All Sparkles": filteredAndSortedWords };
+    const groups = useMemo(() => {
+        if (groupBy === "none") return [{ name: "All Sparkles", words: filteredAndSortedWords }];
 
-        const groups: Record<string, SavedWord[]> = {};
+        const groupMap: Record<string, SavedWord[]> = {};
 
         filteredAndSortedWords.forEach((word: SavedWord) => {
             let key = "Other";
@@ -66,7 +48,12 @@ export function useMyWordsViewModel() {
             if (groupBy === "date") {
                 const date = new Date(word.createdAt || Date.now());
                 const now = new Date();
-                const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24));
+                now.setHours(0, 0, 0, 0);
+                const itemDate = new Date(date);
+                itemDate.setHours(0, 0, 0, 0);
+                
+                const diffTime = now.getTime() - itemDate.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 3600 * 24));
 
                 if (diffDays === 0) key = "Today";
                 else if (diffDays === 1) key = "Yesterday";
@@ -81,47 +68,46 @@ export function useMyWordsViewModel() {
                 else key = "Mastered";
             }
 
-            if (!groups[key]) groups[key] = [];
-            groups[key].push(word);
+            if (!groupMap[key]) groupMap[key] = [];
+            groupMap[key].push(word);
         });
 
-        return groups;
+        const sortedKeys = Object.keys(groupMap).sort((a, b) => {
+            if (groupBy === "date") {
+                const order = ["Today", "Yesterday", "This Week", "Older", "Other"];
+                return order.indexOf(a) - order.indexOf(b);
+            }
+            if (groupBy === "proficiency") {
+                const order = ["New Sparkles", "Learning", "Mastered"];
+                return order.indexOf(a) - order.indexOf(b);
+            }
+            return a.localeCompare(b);
+        });
+
+        return sortedKeys.map(key => ({
+            name: key,
+            words: groupMap[key]
+        }));
 
     }, [filteredAndSortedWords, groupBy]);
 
-    const sortedGroupKeys = useMemo(() => {
-        const keys = Object.keys(groupedWords);
-
-        const sortWithOrder = (order: string[]) => {
-            return keys.sort((a, b) => {
-                const indexA = order.indexOf(a);
-                const indexB = order.indexOf(b);
-                // If both are found in order list
-                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-                // If only A is found, it comes first
-                if (indexA !== -1) return -1;
-                // If only B is found, it comes first
-                if (indexB !== -1) return 1;
-                // Both unknown (or "Other"), sort alphabetically
-                return a.localeCompare(b);
+    const flatList = useMemo(() => {
+        const flat: Array<{ type: "header" | "word"; data: any }> = [];
+        groups.forEach(group => {
+            if (groupBy !== "none") {
+                flat.push({ type: "header", data: group.name });
+            }
+            group.words.forEach(word => {
+                flat.push({ type: "word", data: word });
             });
-        };
-
-        if (groupBy === "date") {
-            return sortWithOrder(["Today", "Yesterday", "This Week", "Older", "Other"]);
-        }
-        if (groupBy === "proficiency") {
-            return sortWithOrder(["New Sparkles", "Learning", "Mastered"]);
-        }
-        return keys.sort((a, b) => a.localeCompare(b));
-    }, [groupedWords, groupBy]);
-
+        });
+        return flat;
+    }, [groups, groupBy]);
 
     return {
         words,
-        filteredWords: filteredAndSortedWords,
-        groupedWords,
-        sortedGroupKeys,
+        groups,
+        flatList,
         filters: {
             category: activeCategory,
             setCategory: setActiveCategory,
@@ -132,11 +118,9 @@ export function useMyWordsViewModel() {
         },
         actions: {
             removeWord,
-            toggleMute,
         },
         state: {
             isLoading,
-            isMuted,
         }
     };
 }

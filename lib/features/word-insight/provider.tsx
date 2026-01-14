@@ -12,9 +12,6 @@ export interface SavedWord extends WordInsight {
     id: string; // word:bookId or word:global
     bookId?: string;
     createdAt?: string;
-    audio_path?: string;
-    word_audio_path?: string;
-    example_audio_paths?: string[];
     // Status/SRS fields
     status?: 'new' | 'review' | 'mastered';
     nextReviewAt?: string;
@@ -81,6 +78,12 @@ const hydrateImage = async (url?: string, storagePath?: string) => {
 
 const WordListContext = createContext<WordListContextType | undefined>(undefined);
 
+interface LegacySavedWord extends Partial<SavedWord> {
+    audio_path?: string;
+    word_audio_path?: string;
+    example_audio_paths?: string[];
+}
+
 /**
  * Common logic to read words from cache and hydrate their audio URLs from assetCache.
  */
@@ -91,19 +94,34 @@ async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
     const prefix = userId ? `u:${userId}:` : 'guest:';
     const filteredList = cachedList.filter((w: SavedWord) => w.id.startsWith(prefix));
 
-    return await Promise.all(filteredList.map(async (w: SavedWord) => {
+    return await Promise.all(filteredList.map(async (w: LegacySavedWord) => {
+        // Migration: Map old snake_case fields to camelCase if present
+        const audioPath = w.audioPath || w.audio_path;
+        const wordAudioPath = w.wordAudioPath || w.word_audio_path;
+        const exampleAudioPaths = w.exampleAudioPaths || w.example_audio_paths;
+
         // Blob URLs don't survive reloads, signed URLs expire. Always try to resolve from assetCache.
-        const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
-        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
+        const audioUrl = await hydrateAudio(w.audioUrl, audioPath);
+        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, wordAudioPath);
         const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
 
         const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
             ? await Promise.all(w.exampleAudioUrls.map((u: string, idx: number) =>
-                hydrateAudio(u, w.example_audio_paths?.[idx] || u)
+                hydrateAudio(u, exampleAudioPaths?.[idx] || u)
             ))
             : undefined;
 
-        return { ...w, audioUrl, wordAudioUrl, exampleAudioUrls, coverImageUrl } as SavedWord;
+        // Ensure we return the migrated and hydrated word
+        return { 
+            ...w, 
+            audioPath, 
+            wordAudioPath, 
+            exampleAudioPaths, 
+            audioUrl, 
+            wordAudioUrl, 
+            exampleAudioUrls, 
+            coverImageUrl 
+        } as SavedWord;
     }));
 }
 
@@ -168,13 +186,13 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
                         const id = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
 
                         // Use specific paths to avoid collisions
-                        const audioUrl = await hydrateAudio(w.audioUrl, w.audio_path);
-                        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.word_audio_path);
+                        const audioUrl = await hydrateAudio(w.audioUrl, w.audioPath);
+                        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.wordAudioPath);
                         const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
 
                         const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
                             ? await Promise.all(w.exampleAudioUrls.slice(0, 2).map((u: string, idx: number) =>
-                                hydrateAudio(u, w.example_audio_paths?.[idx] || u)
+                                hydrateAudio(u, w.exampleAudioPaths?.[idx] || u)
                             ))
                             : undefined;
 

@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 
-const MyWordV2Content = dynamic(() => import("../my-word-v2/MyWordV2Content"), {
+const MyWordV2Content = dynamic(() => import("./MyWordV2Content"), {
     ssr: false,
     loading: () => (
         <div className="min-h-screen page-story-maker flex items-center justify-center p-8">
@@ -15,6 +15,6 @@ const MyWordV2Content = dynamic(() => import("../my-word-v2/MyWordV2Content"), {
     )
 });
 
-export default function MyWordsPage() {
+export default function MyWordV2Page() {
     return <MyWordV2Content />;
 }
