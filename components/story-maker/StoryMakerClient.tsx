@@ -16,7 +16,7 @@ import { compressImage } from "@/lib/core/utils/image";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { CachedImage } from "@/components/ui/cached-image";
 import { useAuth } from "@/components/auth/auth-provider";
-import { createChildProfile, switchActiveChild } from "@/app/actions/profiles";
+import { createChildProfile, switchActiveChild, getAvatarUploadUrl } from "@/app/actions/profiles";
 import { createClient } from "@/lib/supabase/client";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
 
@@ -339,22 +339,22 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         // Note: imageSceneCount override support avoided for simplicity unless needed, assuming state matches
         if (overrideStoryLengthMinutes) setStoryLengthMinutes(finalStoryLengthMinutes);
         const finalImageSceneCount = overrideImageSceneCount ?? imageSceneCount;
-        
+
         // Idempotency: Use override, or current state, or generate new
         const finalIdempotencyKey = overrideIdempotencyKey || currentIdempotencyKey || crypto.randomUUID();
-        
+
         // Persist key immediately to handle reload/resume
         if (finalIdempotencyKey !== currentIdempotencyKey) {
             setCurrentIdempotencyKey(finalIdempotencyKey);
             // Must save to cache immediately
-             const draftKey = (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`);
-             await raidenCache.put(CacheStore.DRAFTS, { 
-                id: draftKey, 
-                profile: finalProfile, 
-                selectedWords: finalWords, 
-                storyLengthMinutes: finalStoryLengthMinutes, 
+            const draftKey = (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`);
+            await raidenCache.put(CacheStore.DRAFTS, {
+                id: draftKey,
+                profile: finalProfile,
+                selectedWords: finalWords,
+                storyLengthMinutes: finalStoryLengthMinutes,
                 imageSceneCount: finalImageSceneCount,
-                idempotencyKey: finalIdempotencyKey 
+                idempotencyKey: finalIdempotencyKey
             });
         }
 
@@ -446,20 +446,20 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             console.debug("[StoryMakerClient] Generating story content with storyLengthMinutes/imageSceneCount:", finalStoryLengthMinutes, finalImageSceneCount);
             const content = await service.generateStoryContent(finalWords, currentProfile, finalStoryLengthMinutes, finalImageSceneCount, finalIdempotencyKey);
-            
+
             // Clear idempotency key on success (so next story is fresh)
             setCurrentIdempotencyKey(undefined);
             const draftKey = (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`);
             // We only need to clear it from the draft, but we'll overwrite the whole draft or delete it soon anyway?
             // Actually, we usually don't delete the draft until explicitly reset or new one started?
             // But we should at least clear the key so clicking "Back" and "Start" again makes a NEW story.
-             await raidenCache.put(CacheStore.DRAFTS, { 
-                id: draftKey, 
-                profile: currentProfile, 
-                selectedWords: finalWords, 
-                storyLengthMinutes: finalStoryLengthMinutes, 
+            await raidenCache.put(CacheStore.DRAFTS, {
+                id: draftKey,
+                profile: currentProfile,
+                selectedWords: finalWords,
+                storyLengthMinutes: finalStoryLengthMinutes,
                 imageSceneCount: finalImageSceneCount,
-                idempotencyKey: undefined 
+                idempotencyKey: undefined
             });
 
             // Post-await session validation
@@ -528,7 +528,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             // Immediate refresh
             refreshUsage();
             setTimeout(() => refreshUsage(), 5000);
-            
+
             setIsStoryGenerating(false);
             state.isGenerating = false;
             processingRef.current = false;
@@ -567,7 +567,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 <div className="h-10 w-full bg-slate-100 rounded-2xl" />
                             </div>
                         ) : (
-                            <motion.div 
+                            <motion.div
                                 initial={{ y: -10, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 className="clay-card py-2.5 px-4 bg-white/90 backdrop-blur-md border-2 border-white shadow-clay-purple flex items-center justify-between gap-2 sm:gap-6"
@@ -585,7 +585,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             </span>
                                         </div>
                                         <div className="w-16 sm:w-24 h-1.5 bg-purple-100/30 rounded-full overflow-hidden p-0.5 shadow-inner">
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${usage.story_generation ? (1 - usage.story_generation.current / usage.story_generation.limit) * 100 : 0}%` }}
                                                 transition={{ type: "spring", damping: 15, stiffness: 100 }}
@@ -610,7 +610,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             </span>
                                         </div>
                                         <div className="w-full h-1.5 bg-amber-100/30 rounded-full overflow-hidden p-0.5 shadow-inner">
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${usage.image_generation ? (1 - usage.image_generation.current / usage.image_generation.limit) * 100 : 0}%` }}
                                                 transition={{ type: "spring", damping: 15, stiffness: 100 }}
@@ -658,13 +658,13 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         </div>
 
                         {error && (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 className={cn(
                                     "mb-8 p-6 rounded-3xl border-4 flex flex-col sm:flex-row items-center gap-6",
-                                    error.type === 'quota' 
-                                        ? "bg-amber-50 border-amber-200 text-amber-900" 
+                                    error.type === 'quota'
+                                        ? "bg-amber-50 border-amber-200 text-amber-900"
                                         : "bg-rose-50 border-rose-200 text-rose-900"
                                 )}
                             >
@@ -679,7 +679,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <p className="text-sm opacity-70 font-bold uppercase tracking-wider">Magic energy is low</p>
                                 </div>
                                 {error.type === 'quota' && (
-                                    <Link 
+                                    <Link
                                         href="/upgrade"
                                         className="whitespace-nowrap bg-gradient-to-br from-amber-400 to-orange-500 text-white px-6 py-3 rounded-2xl font-black font-fredoka shadow-clay-pink hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-wider"
                                     >
@@ -918,39 +918,41 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                     if (file && user) {
                                                         setIsUploading(true);
                                                         try {
-                                                            const compressed = await compressImage(file);
+                                                            // 1. Immediate local preview
+                                                            const localUrl = URL.createObjectURL(file);
 
-                                                            // Convert base64 Data URL to Blob for upload
-                                                            const res = await fetch(compressed);
-                                                            const blob = await res.blob();
+                                                            // 2. Get presigned URL
+                                                            const result = await getAvatarUploadUrl(file.name);
+                                                            if (result.error || !result.data) {
+                                                                throw new Error(result.error || "Failed to get upload URL");
+                                                            }
 
-                                                            const timestamp = Date.now();
-                                                            const randomId = crypto.randomUUID().split('-')[0];
-                                                            const ext = file.name.split('.').pop() || 'jpg';
-                                                            const storagePath = `${user.id}/story-uploads/${timestamp}-${randomId}.${ext}`;
+                                                            const { signedUrl, path } = result.data;
 
-                                                            const { error: uploadError } = await supabase.storage
-                                                                .from('user-assets')
-                                                                .upload(storagePath, blob, {
-                                                                    contentType: file.type,
-                                                                    upsert: true
-                                                                });
+                                                            // 3. Direct upload to storage
+                                                            const response = await fetch(signedUrl, {
+                                                                method: 'PUT',
+                                                                body: file,
+                                                                headers: {
+                                                                    'Content-Type': file.type
+                                                                }
+                                                            });
 
-                                                            if (uploadError) throw uploadError;
+                                                            if (!response.ok) {
+                                                                throw new Error("Upload failed. Please try again.");
+                                                            }
 
-                                                            const { data: { publicUrl } } = supabase.storage
-                                                                .from('user-assets')
-                                                                .getPublicUrl(storagePath);
-
+                                                            // 4. Update profile state with storage path
                                                             setProfile({
                                                                 ...profile,
-                                                                avatarUrl: publicUrl,
-                                                                avatarStoragePath: storagePath,
+                                                                avatarUrl: localUrl,
+                                                                avatarStoragePath: path,
                                                                 updatedAt: Date.now()
                                                             });
-                                                        } catch (err) {
-                                                            console.error("Upload failed:", err);
-                                                            setError({ message: "Failed to process and upload image. Please try another one.", type: 'general' });
+
+                                                        } catch (err: any) {
+                                                            console.error("Upload error:", err);
+                                                            setError({ message: err.message || "Failed to process and upload image. Please try another one.", type: 'general' });
                                                         } finally {
                                                             setIsUploading(false);
                                                         }

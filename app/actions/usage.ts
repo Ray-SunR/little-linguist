@@ -12,86 +12,245 @@ export interface UsageEvent {
     // Enhanced metadata
     bookId?: string;
     coverImageUrl?: string;
+    storagePath?: string;
+    updatedAt?: string;
+    // Grouping support
+    isGrouped?: boolean;
+    storyAmount?: number;
+    imageAmount?: number;
+}
+
+interface TransactionMetadata {
+    book_id?: string;
+    title?: string;
+    book_key?: string;
+    word?: string;
+}
+
+interface RawTransaction {
+    id: string;
+    amount: number;
+    reason: string;
+    created_at: string;
+    metadata: TransactionMetadata | null;
+    owner_user_id: string;
+}
+
+interface TransactionGroup {
+    id: string;
+    isGrouped: boolean;
+    bookId: string;
+    storyAmount: number;
+    imageAmount: number;
+    timestamp: string;
+    metadata: TransactionMetadata | null;
+    reason: string;
+    type: "debit";
+    amount: number;
 }
 
 export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) return [];
+    if (!user) {
+        console.log("[getUsageHistory] No user found");
+        return [];
+    }
+
+    // Increased limit to 10x to ensure we have enough data even with heavy grouping
+    const internalLimit = limit * 10;
 
     const { data: transactions, error } = await supabase
         .from("point_transactions")
-        .select("*")
+        .select("id, amount, reason, created_at, metadata, owner_user_id")
         .eq("owner_user_id", user.id)
         .order("created_at", { ascending: false })
-        // Fetch a few more to account for potentially grouped items if we were grouping, but for now direct limit
-        .limit(limit);
+        .limit(internalLimit);
 
     if (error) {
         console.error("Failed to fetch usage history:", error);
         return [];
     }
 
-    // 1. Collect Book IDs
-    const bookIds = new Set<string>();
-    transactions.forEach(tx => {
-        if (tx.metadata?.book_id) {
-            bookIds.add(tx.metadata.book_id);
+    console.log(`[getUsageHistory] User: ${user.id}, Fetched ${transactions?.length || 0} raw transactions`);
+
+    // 1. Group transactions
+    const processedTransactions: (RawTransaction | TransactionGroup)[] = [];
+    const bookGroups = new Map<string, TransactionGroup>();
+
+    (transactions as any as RawTransaction[]).forEach(tx => {
+        const bookId = tx.metadata?.book_id;
+        const isGeneration = tx.reason === 'story_generation' || tx.reason === 'image_generation';
+
+        if (bookId && isGeneration) {
+            let group = bookGroups.get(bookId);
+            if (!group) {
+                group = {
+                    id: `group-${bookId}`,
+                    isGrouped: true,
+                    bookId,
+                    storyAmount: 0,
+                    imageAmount: 0,
+                    timestamp: tx.created_at,
+                    metadata: tx.metadata,
+                    reason: 'generation_group',
+                    type: 'debit',
+                    amount: 0
+                };
+                bookGroups.set(bookId, group);
+                processedTransactions.push(group);
+            }
+
+            const absAmount = Math.abs(tx.amount);
+            group.amount += absAmount; // Maintain total amount sum
+
+            if (tx.reason === 'story_generation') {
+                group.storyAmount += absAmount;
+            } else if (tx.reason === 'image_generation') {
+                group.imageAmount += absAmount;
+            }
+        } else {
+            // Non-generation or non-book transactions remain separate
+            processedTransactions.push(tx);
         }
     });
 
-    // 2. Fetch Book Details in Batch
-    const bookMap = new Map<string, { title: string, cover_image_url: string | null }>();
+    // Take only the requested limit after grouping
+    const finalTransactions = processedTransactions.slice(0, limit);
+
+    // 2. Collect unique Book IDs for details
+    const bookIds = new Set<string>();
+    finalTransactions.forEach(tx => {
+        const isGroup = 'isGrouped' in tx && tx.isGrouped === true;
+        const bId = isGroup ? (tx as TransactionGroup).bookId : (tx as RawTransaction).metadata?.book_id;
+        if (bId) {
+            bookIds.add(bId);
+        }
+    });
+
+    // 3. Fetch Book Details in Batch
+    const bookMap = new Map<string, { title: string, cover_image_path: string | null, updated_at: string }>();
     if (bookIds.size > 0) {
         const { data: books } = await supabase
             .from("books")
-            .select("id, title, cover_image_url")
+            .select("id, title, cover_image_path, updated_at")
             .in("id", Array.from(bookIds));
-        
+
         books?.forEach(book => {
             bookMap.set(book.id, book);
         });
     }
 
-    return transactions.map((tx) => {
-        const isCredit = tx.amount > 0;
-        
+    // 4. Fallback for missing covers: Check book_media
+    const booksMissingCover = Array.from(bookIds).filter(id => {
+        const book = bookMap.get(id);
+        return !book || !book.cover_image_path;
+    });
+
+    const mediaCoverMap = new Map<string, { path: string, updated_at: string }>();
+    if (booksMissingCover.length > 0) {
+        const { data: mediaData } = await supabase
+            .from('book_media')
+            .select('book_id, path, updated_at')
+            .eq('media_type', 'image')
+            .in('book_id', booksMissingCover)
+            .order('after_word_index')
+            .order('path');
+
+        if (mediaData) {
+            mediaData.forEach((media: any) => {
+                if (!mediaCoverMap.has(media.book_id) && media.path) {
+                    mediaCoverMap.set(media.book_id, { path: media.path, updated_at: media.updated_at });
+                }
+            });
+        }
+    }
+
+    // 5. Batch Sign URLs
+    const pathsToSign = new Set<string>();
+    bookMap.forEach(book => {
+        if (book.cover_image_path && !book.cover_image_path.startsWith('http')) {
+            pathsToSign.add(book.cover_image_path);
+        }
+    });
+    mediaCoverMap.forEach(media => {
+        if (media.path && !media.path.startsWith('http')) {
+            pathsToSign.add(media.path);
+        }
+    });
+
+    const signedUrlMap = new Map<string, string>();
+    if (pathsToSign.size > 0) {
+        const { data: signedData } = await supabase.storage
+            .from('book-assets')
+            .createSignedUrls(Array.from(pathsToSign), 3600);
+
+        signedData?.forEach(item => {
+            if (item.path && item.signedUrl) {
+                signedUrlMap.set(item.path, item.signedUrl);
+            }
+        });
+    }
+
+    const result = finalTransactions.map((tx) => {
         // Format action name nicely
         const formatAction = (reason: string) => {
+            if (reason === 'generation_group') return 'Story Collection';
             return reason
                 .split('_')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
         };
 
+        const isGroup = 'isGrouped' in tx && tx.isGrouped === true;
+        const bId = isGroup ? (tx as TransactionGroup).bookId : (tx as RawTransaction).metadata?.book_id;
+
         let description = tx.metadata?.title || tx.metadata?.book_key || tx.reason;
-        let bookId: string | undefined = tx.metadata?.book_id;
         let coverImageUrl: string | undefined = undefined;
+        let storagePath: string | undefined = undefined;
+        let updatedAt: string | undefined = undefined;
 
         // Enhance description based on type and metadata
         if (tx.reason === 'word_insight' && tx.metadata?.word) {
             description = `${tx.metadata.word.charAt(0).toUpperCase() + tx.metadata.word.slice(1)}`;
-        } else if (bookId && bookMap.has(bookId)) {
-            const book = bookMap.get(bookId)!;
+        } else if (bId && bookMap.has(bId)) {
+            const book = bookMap.get(bId)!;
             description = book.title;
-            coverImageUrl = book.cover_image_url || undefined;
+            storagePath = book.cover_image_path || mediaCoverMap.get(bId)?.path;
+            updatedAt = book.cover_image_path ? book.updated_at : mediaCoverMap.get(bId)?.updated_at;
+
+            if (storagePath) {
+                coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath);
+            }
         } else if (!tx.metadata?.title && !tx.metadata?.book_key) {
-             // Fallbacks for missing metadata
-             if (tx.reason === 'story_generation') description = 'New Story';
-             else if (tx.reason === 'image_generation') description = 'Story Illustration';
-             else if (tx.reason === 'word_insight') description = 'Word Learning';
+            // Fallbacks for missing metadata
+            if (tx.reason === 'story_generation') description = 'New Story';
+            else if (tx.reason === 'image_generation') description = 'Story Illustration';
+            else if (tx.reason === 'word_insight') description = 'Word Learning';
         }
+
+        const timestamp = isGroup ? (tx as TransactionGroup).timestamp : (tx as RawTransaction).created_at;
+        const amount = isGroup ? (tx as TransactionGroup).amount : Math.abs((tx as RawTransaction).amount);
+        const type = (isGroup ? 'debit' : ((tx as RawTransaction).amount > 0 ? "credit" : "debit")) as "credit" | "debit";
 
         return {
             id: tx.id,
             action: formatAction(tx.reason),
             description: description,
-            timestamp: tx.created_at,
-            amount: Math.abs(tx.amount),
-            type: isCredit ? "credit" : "debit",
-            bookId,
-            coverImageUrl
+            timestamp,
+            amount,
+            type,
+            bookId: bId,
+            coverImageUrl,
+            storagePath,
+            updatedAt,
+            isGrouped: isGroup,
+            storyAmount: isGroup ? (tx as TransactionGroup).storyAmount : undefined,
+            imageAmount: isGroup ? (tx as TransactionGroup).imageAmount : undefined
         };
     });
+
+    console.log(`[getUsageHistory] Returning ${result.length} processed events`);
+    return result;
 }

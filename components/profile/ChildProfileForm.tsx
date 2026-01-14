@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createChildProfile, updateChildProfile } from '@/app/actions/profiles';
+import { createChildProfile, updateChildProfile, getAvatarUploadUrl } from '@/app/actions/profiles';
 import { Loader2, User, Camera, Sparkles, Check, ChevronRight, Wand2, Plus, Minus } from 'lucide-react';
 import type { ChildProfilePayload, ChildProfile } from '@/app/actions/profiles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -64,7 +64,7 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
         setLoading(true);
 
         try {
-            const payload = { ...formData, avatar_asset_path: avatarPreview || '' };
+            const payload = { ...formData, avatar_asset_path: avatarStoragePath || formData.avatar_asset_path };
             if (initialData?.id) {
                 const result = await updateChildProfile(initialData.id, payload);
                 if (!result) throw new Error('No response from server. Please try again.');
@@ -245,12 +245,39 @@ export default function ChildProfileForm({ initialData, onSuccess, isFirstTime }
                                         if (file) {
                                             setIsUploading(true);
                                             try {
-                                                const compressed = await compressImage(file);
-                                                setAvatarPreview(compressed);
-                                                setAvatarStoragePath(undefined);
-                                            } catch (err) {
-                                                console.error("Compression failed:", err);
-                                                setErrors("Failed to process image.");
+                                                // 1. Local preview
+                                                const localUrl = URL.createObjectURL(file);
+                                                setAvatarPreview(localUrl);
+
+                                                // 2. Get presigned URL
+                                                const result = await getAvatarUploadUrl(file.name);
+                                                if (result.error || !result.data) {
+                                                    throw new Error(result.error || "Failed to get upload URL");
+                                                }
+
+                                                const { signedUrl, path } = result.data;
+
+                                                // 3. Direct upload
+                                                const response = await fetch(signedUrl, {
+                                                    method: 'PUT',
+                                                    body: file,
+                                                    headers: {
+                                                        'Content-Type': file.type
+                                                    }
+                                                });
+
+                                                if (!response.ok) {
+                                                    throw new Error("Upload failed. Please try again.");
+                                                }
+
+                                                // 4. Update state with storage path
+                                                setAvatarStoragePath(path);
+                                                setFormData(prev => ({ ...prev, avatar_asset_path: path }));
+
+                                            } catch (err: any) {
+                                                console.error("Upload failed:", err);
+                                                setErrors(err.message || "Failed to upload image.");
+                                                setAvatarPreview(undefined);
                                             } finally {
                                                 setIsUploading(false);
                                             }

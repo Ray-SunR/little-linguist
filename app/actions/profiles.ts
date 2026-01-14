@@ -38,79 +38,57 @@ import { BUCKETS } from "@/lib/constants/storage";
 const AVATAR_BUCKET = BUCKETS.USER_ASSETS;
 
 /**
- * Upload a base64 image to the avatar bucket and return the storage path.
- * Returns null if the input is not a base64 data URL.
+ * Generates a presigned upload URL for an avatar.
+ * This allows the client to upload directly to Supabase Storage, bypassing Vercel payload limits.
  */
-async function uploadAvatarToBucket(
-  supabase: ReturnType<typeof createClient>,
-  ownerUserId: string,
-  childId: string,
-  base64DataUrl: string
-): Promise<string | null> {
-  if (!base64DataUrl.startsWith('data:image/')) {
-    // Validate non-data URLs: only allow bucket-relative paths (no external URLs)
-    // Bucket paths should start with a UUID (guardian ID) or be simple alphanumeric paths
-    if (base64DataUrl.startsWith('http') || base64DataUrl.startsWith('javascript:') || base64DataUrl.includes('://')) {
-      console.warn('[profiles:uploadAvatar] Rejected external/dangerous URL:', base64DataUrl.slice(0, 50));
-      return null;
-    }
-    // If it looks like a safe bucket path, return as-is
-    return base64DataUrl;
-  }
-
+export async function getAvatarUploadUrl(fileName: string) {
   try {
-    // 5MB limit for single avatar upload to prevent OOM
-    const MAX_BASE64_SIZE = 5 * 1024 * 1024;
-    if (base64DataUrl.length > MAX_BASE64_SIZE) {
-      console.error('[profiles:uploadAvatar] Rejected: Base64 payload too large');
-      return null;
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { error: 'Not authenticated' };
     }
 
-    const matches = base64DataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
-    if (!matches) return null;
-
-    const mimeType = matches[1].toLowerCase();
-    const validMimes = ['jpeg', 'jpg', 'png', 'webp'];
-    
-    if (!validMimes.includes(mimeType)) {
-        console.warn('[profiles:uploadAvatar] Rejected invalid MIME type:', mimeType);
-        return null;
-    }
-
-    const ext = mimeType === 'jpeg' ? 'jpg' : mimeType;
-    const base64Data = matches[2];
-    const buffer = Buffer.from(base64Data, 'base64');
-
+    const fileExt = fileName.split('.').pop() || 'jpg';
     const timestamp = Date.now();
-    // Use user-assets subfolder strategy: {ownerUserId}/avatars/{childId}/{timestamp}.{ext}
-    const storagePath = `${ownerUserId}/avatars/${childId}/${timestamp}.${ext}`;
+    const storagePath = `${user.id}/avatars/${timestamp}-${crypto.randomUUID()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from(AVATAR_BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: `image/${ext}`,
-        upsert: true
-      });
+      .createSignedUploadUrl(storagePath);
 
-    if (uploadError) {
-      console.error('[profiles:uploadAvatar] Upload error:', uploadError);
-      return null;
+    if (error) {
+      console.error('[profiles:getAvatarUploadUrl] Storage error:', error);
+      return { error: error.message };
     }
 
-    // Audit: Image Uploaded
-    await AuditService.log({
-      action: AuditAction.IMAGE_UPLOADED,
-      entityType: EntityType.IMAGE,
-      entityId: storagePath,
-      userId: ownerUserId,
-      details: { childId, bucket: AVATAR_BUCKET }
-    });
+    return {
+      success: true,
+      data: {
+        signedUrl: data.signedUrl,
+        token: data.token,
+        path: storagePath
+      }
+    };
+  } catch (err: any) {
+    console.error('[profiles:getAvatarUploadUrl] Unexpected error:', err);
+    return { error: err.message || 'Failed to generate upload URL' };
+  }
+}
 
-    return storagePath;
-  } catch (err) {
-    console.error('[profiles:uploadAvatar] Unexpected error:', err);
+/**
+ * Validates a storage path for an avatar.
+ */
+async function validateAvatarPath(
+  path: string
+): Promise<string | null> {
+  // Only allow bucket-relative paths (no external URLs or scripts)
+  if (path.startsWith('http') || path.startsWith('javascript:') || path.includes('://')) {
+    console.warn('[profiles:validateAvatarPath] Rejected external/dangerous URL:', path.slice(0, 50));
     return null;
   }
+  return path;
 }
 
 export async function createChildProfile(data: ChildProfilePayload) {
@@ -128,12 +106,12 @@ export async function createChildProfile(data: ChildProfilePayload) {
     // Generate a temporary ID for the avatar path
     const tempChildId = crypto.randomUUID();
 
-    // Handle avatar upload
+    // Handle avatar assignment
     let avatarPaths: string[] = [];
     if (data.avatar_asset_path) {
-      const uploadedPath = await uploadAvatarToBucket(supabase, user.id, tempChildId, data.avatar_asset_path);
-      if (uploadedPath) {
-        avatarPaths = [uploadedPath];
+      const storagePath = await validateAvatarPath(data.avatar_asset_path);
+      if (storagePath) {
+        avatarPaths = [storagePath];
       }
     }
 
@@ -222,9 +200,9 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
     if (data.gender !== undefined) updatePayload.gender = data.gender;
     if (data.interests !== undefined) updatePayload.interests = data.interests;
 
-    // Handle avatar upload if provided
+    // Handle avatar assignment if provided
     if (data.avatar_asset_path) {
-      const uploadedPath = await uploadAvatarToBucket(supabase, user.id, id, data.avatar_asset_path);
+      const uploadedPath = await validateAvatarPath(data.avatar_asset_path);
       if (uploadedPath) {
         // Get existing avatar_paths and append (with owner_user_id filter for safety)
         const { data: existing } = await supabase
