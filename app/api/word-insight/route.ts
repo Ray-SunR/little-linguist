@@ -91,10 +91,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         const activeChildId = cookies().get('activeChildId')?.value;
 
         // 3. Atomic Increment & Check (Only for cache misses)
-        // Use a unique key per request to ensure that retries after a refund correctly charge the user,
-        // closing the "free retry" loophole for static keys.
-        const idempotencyKey = `word-insight:${word}:${Math.random().toString(36).substring(7)}`;
-        const success = await tryIncrementUsage(identity, feature, 1, activeChildId, { word }, idempotencyKey);
+        const success = await tryIncrementUsage(identity, feature, 1, activeChildId, { word });
 
         if (!success) {
             const status = await checkUsageLimit(identity.identity_key, feature, user?.id);
@@ -110,7 +107,6 @@ export async function POST(req: Request): Promise<NextResponse> {
         try {
             // 4. Generation
             const insight = await getWordAnalysisProvider().analyzeWord(word);
-            // ... [Rest of the syntesis/upload logic remains same] ...
             const polly = new PollyNarrationService();
             const bucket = "word-insights-audio";
 
@@ -181,10 +177,12 @@ export async function POST(req: Request): Promise<NextResponse> {
         } catch (error: any) {
             console.error("[WordInsight] Generation error:", error);
 
-            // Refund on failure using idempotent helper
+            // Refund on failure (same pattern as story generation)
             if (!generationSuccessful) {
                 console.warn(`[WordInsight] Generation failed. Refunding usage for ${identity.identity_key}`);
-                await refundCredits(identity, feature, 1, activeChildId, { word, error: 'generation_failed' }, idempotencyKey);
+                await tryIncrementUsage(identity, feature, -1, activeChildId, { word, is_refund: true }).catch(e =>
+                    console.error("[WordInsight] Refund failed:", e)
+                );
             }
 
             return NextResponse.json({ error: "Failed to generate word insight" }, { status: 500 });
