@@ -88,9 +88,10 @@ export async function POST(req: Request): Promise<NextResponse> {
         // 2. Identity & Limits
         const identity = await getOrCreateIdentity(user);
         const feature = "word_insight";
+        const activeChildId = cookies().get('activeChildId')?.value;
 
         // 3. Atomic Increment & Check (Only for cache misses)
-        const success = await tryIncrementUsage(identity, feature);
+        const success = await tryIncrementUsage(identity, feature, 1, activeChildId, { word });
 
         if (!success) {
             const status = await checkUsageLimit(identity.identity_key, feature, user?.id);
@@ -162,7 +163,6 @@ export async function POST(req: Request): Promise<NextResponse> {
             });
 
             // Audit: Word Insight Generated (Cache Miss)
-            const activeChildId = cookies().get('activeChildId')?.value;
             await AuditService.log({
                 action: AuditAction.WORD_INSIGHT_GENERATED,
                 entityType: EntityType.WORD,
@@ -180,7 +180,7 @@ export async function POST(req: Request): Promise<NextResponse> {
             // Refund on failure (same pattern as story generation)
             if (!generationSuccessful) {
                 console.warn(`[WordInsight] Generation failed. Refunding usage for ${identity.identity_key}`);
-                await tryIncrementUsage(identity, feature, -1).catch(e =>
+                await tryIncrementUsage(identity, feature, -1, activeChildId, { word, is_refund: true }).catch(e =>
                     console.error("[WordInsight] Refund failed:", e)
                 );
             }

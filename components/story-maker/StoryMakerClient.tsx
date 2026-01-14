@@ -67,6 +67,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const { usage, plan, loading: usageLoading, refresh: refreshUsage } = useUsage(["story_generation", "image_generation", "word_insight"]);
     const [storyLengthMinutes, setStoryLengthMinutes] = useState(5); // In Minutes
     const [imageSceneCount, setImageSceneCount] = useState(3);
+    const [currentIdempotencyKey, setCurrentIdempotencyKey] = useState<string | undefined>(undefined);
 
     // Track versions to prevent race conditions
     const saveVersionRef = useRef(0);
@@ -115,7 +116,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 if (!isMountedRef.current) return;
 
                 if (savedDraft) {
-                    const { profile: savedProfile, selectedWords: savedWords, storyLengthMinutes: savedStoryLength, imageSceneCount: savedImageCount } = savedDraft;
+                    const { profile: savedProfile, selectedWords: savedWords, storyLengthMinutes: savedStoryLength, imageSceneCount: savedImageCount, idempotencyKey: savedKey } = savedDraft;
                     if (step === "profile" && (savedProfile || savedWords)) {
                         setProfile((prev: UserProfile) => {
                             if (prev.name && !savedProfile?.name) return prev;
@@ -124,6 +125,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         if (savedWords) setSelectedWords(savedWords);
                         if (savedStoryLength) setStoryLengthMinutes(savedStoryLength);
                         setImageSceneCount(savedImageCount !== undefined ? savedImageCount : (savedStoryLength || 5));
+                        if (savedKey) setCurrentIdempotencyKey(savedKey);
                     }
                 } else if (activeChild && !profile.name) {
                     // Pre-fill from active child if no draft exists
@@ -193,6 +195,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             setSelectedWords(draft.selectedWords);
             if (draft.storyLength) setStoryLengthMinutes(draft.storyLength);
             setImageSceneCount(draft.imageCount !== undefined ? draft.imageCount : (draft.storyLength || 5));
+            if (draft.idempotencyKey) setCurrentIdempotencyKey(draft.idempotencyKey);
 
             if (state.isGenerating) {
                 console.debug("[StoryMakerClient] Resuming: Background generation in progress.");
@@ -212,7 +215,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             // Trigger generation
             processingRef.current = true;
-            generateStory(draft.selectedWords, draft.profile, draft.storyLength, draft.imageCount);
+            generateStory(draft.selectedWords, draft.profile, draft.storyLength, draft.imageCount, draft.idempotencyKey);
         }
 
         resumeDraftIfNeeded();
@@ -244,7 +247,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     const draftKey = user
                         ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`)
                         : "draft:guest";
-                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords, storyLengthMinutes, imageSceneCount });
+                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, profile, selectedWords, storyLengthMinutes, imageSceneCount, idempotencyKey: currentIdempotencyKey });
                     if (isMountedRef.current) setIsSaving(false);
                 }
             } catch (err) {
@@ -254,7 +257,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         }, 1000); // 1s debounce
 
         return () => clearTimeout(timer);
-    }, [profile, selectedWords, user, activeChild, storyLengthMinutes, imageSceneCount]);
+    }, [profile, selectedWords, user, activeChild, storyLengthMinutes, imageSceneCount, currentIdempotencyKey]);
 
     // Subscribe to realtime updates
     useBookMediaSubscription(supabaseBook?.id, useCallback((newImage: any) => {
@@ -313,7 +316,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         );
     }
 
-    async function generateStory(overrideWords?: string[], overrideProfile?: UserProfile, overrideStoryLengthMinutes?: number, overrideImageSceneCount?: number): Promise<void> {
+    async function generateStory(overrideWords?: string[], overrideProfile?: UserProfile, overrideStoryLengthMinutes?: number, overrideImageSceneCount?: number, overrideIdempotencyKey?: string): Promise<void> {
         const finalWords = overrideWords || selectedWords;
         const finalProfile = overrideProfile || profile;
         const finalStoryLengthMinutes = overrideStoryLengthMinutes || storyLengthMinutes;
@@ -336,6 +339,24 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         // Note: imageSceneCount override support avoided for simplicity unless needed, assuming state matches
         if (overrideStoryLengthMinutes) setStoryLengthMinutes(finalStoryLengthMinutes);
         const finalImageSceneCount = overrideImageSceneCount ?? imageSceneCount;
+        
+        // Idempotency: Use override, or current state, or generate new
+        const finalIdempotencyKey = overrideIdempotencyKey || currentIdempotencyKey || crypto.randomUUID();
+        
+        // Persist key immediately to handle reload/resume
+        if (finalIdempotencyKey !== currentIdempotencyKey) {
+            setCurrentIdempotencyKey(finalIdempotencyKey);
+            // Must save to cache immediately
+             const draftKey = (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`);
+             await raidenCache.put(CacheStore.DRAFTS, { 
+                id: draftKey, 
+                profile: finalProfile, 
+                selectedWords: finalWords, 
+                storyLengthMinutes: finalStoryLengthMinutes, 
+                imageSceneCount: finalImageSceneCount,
+                idempotencyKey: finalIdempotencyKey 
+            });
+        }
 
         setStep("generating");
         setError(null);
@@ -410,7 +431,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         profile: currentProfile,
                         selectedWords: finalWords,
                         storyLengthMinutes: finalStoryLengthMinutes,
-                        imageSceneCount: finalImageSceneCount
+                        imageSceneCount: finalImageSceneCount,
+                        idempotencyKey: finalIdempotencyKey
                     });
 
 
@@ -423,7 +445,22 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             }
 
             console.debug("[StoryMakerClient] Generating story content with storyLengthMinutes/imageSceneCount:", finalStoryLengthMinutes, finalImageSceneCount);
-            const content = await service.generateStoryContent(finalWords, currentProfile, finalStoryLengthMinutes, finalImageSceneCount);
+            const content = await service.generateStoryContent(finalWords, currentProfile, finalStoryLengthMinutes, finalImageSceneCount, finalIdempotencyKey);
+            
+            // Clear idempotency key on success (so next story is fresh)
+            setCurrentIdempotencyKey(undefined);
+            const draftKey = (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`);
+            // We only need to clear it from the draft, but we'll overwrite the whole draft or delete it soon anyway?
+            // Actually, we usually don't delete the draft until explicitly reset or new one started?
+            // But we should at least clear the key so clicking "Back" and "Start" again makes a NEW story.
+             await raidenCache.put(CacheStore.DRAFTS, { 
+                id: draftKey, 
+                profile: currentProfile, 
+                selectedWords: finalWords, 
+                storyLengthMinutes: finalStoryLengthMinutes, 
+                imageSceneCount: finalImageSceneCount,
+                idempotencyKey: undefined 
+            });
 
             // Post-await session validation
             const finalSession = await supabase.auth.getSession();

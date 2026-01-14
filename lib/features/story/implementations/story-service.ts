@@ -15,8 +15,8 @@ export class StoryService implements IStoryService {
         this.provider = provider || getAIProvider();
     }
 
-    async generateStoryContent(words: string[], userProfile: UserProfile, storyLengthMinutes?: number, imageSceneCount?: number): Promise<{ title: string, content: string, sections: StorySection[], mainCharacterDescription: string, book_id: string, tokens: any[] }> {
-        const generated = await this.provider.generateStory(words, userProfile, { storyLengthMinutes, imageSceneCount });
+    async generateStoryContent(words: string[], userProfile: UserProfile, storyLengthMinutes?: number, imageSceneCount?: number, idempotencyKey?: string): Promise<{ title: string, content: string, sections: StorySection[], mainCharacterDescription: string, book_id: string, tokens: any[] }> {
+        const generated = await this.provider.generateStory(words, userProfile, { storyLengthMinutes, imageSceneCount, idempotencyKey });
         return {
             title: generated.title,
             content: generated.content,
@@ -57,9 +57,9 @@ export class StoryService implements IStoryService {
         }
     }
 
-    async generateStory(words: string[], userProfile: UserProfile, storyLengthMinutes?: number, imageSceneCount?: number): Promise<Story> {
+    async generateStory(words: string[], userProfile: UserProfile, storyLengthMinutes?: number, imageSceneCount?: number, idempotencyKey?: string): Promise<Story> {
         try {
-            const content = await this.generateStoryContent(words, userProfile, storyLengthMinutes, imageSceneCount);
+            const content = await this.generateStoryContent(words, userProfile, storyLengthMinutes, imageSceneCount, idempotencyKey);
 
             return {
                 id: crypto.randomUUID(),

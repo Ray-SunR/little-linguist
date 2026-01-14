@@ -66,7 +66,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { words, childId, userProfile, storyLengthMinutes: reqStoryLength = 5, imageSceneCount: reqImageCount } = body || {};
+        const { words, childId, userProfile, storyLengthMinutes: reqStoryLength = 5, imageSceneCount: reqImageCount, idempotencyKey } = body || {};
 
         // Coerce and validate story length (Minutes)
         // User requested 1-10 minutes range
@@ -201,8 +201,8 @@ FINAL RECAP:
         const reservationResult = isTestMode
             ? { success: true }
             : await reserveCredits(identity, [
-                { featureName: "story_generation", increment: 1 },
-                { featureName: "image_generation", increment: imageSceneCount }
+                { featureName: "story_generation", increment: 1, childId, metadata: { book_id: bookId }, idempotencyKey },
+                { featureName: "image_generation", increment: imageSceneCount, childId, metadata: { book_id: bookId }, idempotencyKey }
             ]);
 
         if (!reservationResult.success) {
@@ -324,7 +324,7 @@ FINAL RECAP:
                 const refundAmount = imageSceneCount - actualImageCount;
                 if (refundAmount > 0) {
                     console.warn(`[StoryAPI] Model under-generated images (${actualImageCount}/${imageSceneCount}). Refunding ${refundAmount} credits.`);
-                    await refundCredits(identity!, "image_generation", refundAmount);
+                    await refundCredits(identity!, "image_generation", refundAmount, childId, { book_id: bookId });
                     creditsRefunded += refundAmount;
                 }
             }
@@ -513,12 +513,12 @@ FINAL RECAP:
                             }
                         }
 
-                        // Optimization: Filter sections needing images first
                         const sectionsToGenerate = sectionsWithIndices
                             .map((section: any, index: number) => ({ section, index }))
                             .filter(({ section }: { section: any }) => section.image_prompt && section.image_prompt.trim() !== "");
 
                         const successfulIndices: number[] = [];
+                        let hasSetCover = false;
                         const batchSize = 2; // Throttle to avoid rate limits
 
                         for (let i = 0; i < sectionsToGenerate.length; i += batchSize) {
@@ -542,6 +542,17 @@ FINAL RECAP:
 
                                     if (uploadError) {
                                         throw new Error(`Failed to upload image: ${uploadError.message}`);
+                                    }
+
+                                    // Race-condition safe(r) check
+                                    // Even if parallel, the chances of exact simultaneous execution are low enough for this optimization
+                                    // Ideally this would be outside the parallel block or atomic, but this is sufficient to prevent massive spam
+                                    if (!hasSetCover) {
+                                         hasSetCover = true;
+                                         await serviceRoleClient
+                                            .from('books')
+                                            .update({ cover_image_url: imageStoragePath })
+                                            .eq('id', bookId);
                                     }
 
                                     await serviceRoleClient.from('book_media').upsert({
@@ -582,17 +593,19 @@ FINAL RECAP:
                             totalRequested: actualImageCount
                         });
 
-                        // If ALL requested images failed, we treat the story as failed
+                        // Logic Change: If ALL images fail, we do NOT fail the story.
+                        // We just refund the images and keep the text story.
                         if (actualImageCount > 0 && successfulCount === 0) {
-                            throw new Error("All image generations failed. Marking story as failed.");
+                            console.warn("All image generations failed. Proceeding with story but refunding images.");
+                            // Refund will be handled by the general partial refund block below
                         }
 
-                        // P2: Refund credits for partially failed images
+                        // P2: Refund credits for partially (or fully) failed images
                         if (successfulCount < actualImageCount) {
                             const failedCount = actualImageCount - successfulCount;
                             if (failedCount > 0 && identity && !isTestMode) {
                                 console.warn(`[StoryAPI] Failed to generate ${failedCount} images. Refunding credits.`);
-                                await refundCredits(identity, "image_generation", failedCount);
+                                await refundCredits(identity, "image_generation", failedCount, childId, { book_id: bookId });
                             }
                         }
                     }
@@ -618,9 +631,9 @@ FINAL RECAP:
 
                         const remainingImagesCharged = imageSceneCount - creditsRefunded;
 
-                        await refundCredits(identity, "story_generation", 1);
+                        await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId });
                         if (remainingImagesCharged > 0) {
-                            await refundCredits(identity, "image_generation", remainingImagesCharged);
+                            await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId });
                         }
                     }
 
@@ -651,6 +664,7 @@ FINAL RECAP:
                     title: data.sections[0]?.title || "Untitled",
                     sectionCount: data.sections.length,
                     sceneCount: totalSections,
+                    imageCount: actualImageCount,
                     totalTokens: data.total_tokens || 0
                 }
             });
@@ -675,9 +689,9 @@ FINAL RECAP:
                 // Refund everything we haven't already refunded
                 const remainingImagesCharged = imageSceneCount - creditsRefunded;
 
-                await refundCredits(identity, "story_generation", 1);
+                await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId });
                 if (remainingImagesCharged > 0) {
-                    await refundCredits(identity, "image_generation", remainingImagesCharged);
+                    await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId });
                 }
             }
 

@@ -165,47 +165,26 @@ export async function checkUsageLimit(
 export async function tryIncrementUsage(
     identity: UsageIdentity,
     featureName: string,
-    increment: number = 1
+    increment: number = 1,
+    childId?: string,
+    metadata?: Record<string, any>
 ): Promise<boolean> {
-    try {
-        const supabase = getAdminClient();
-        const userId = identity.owner_user_id || null;
-        let limit = await getQuotaForUser(userId, featureName);
+    const result = await reserveCredits(identity, [{
+        featureName,
+        increment,
+        childId,
+        metadata
+    }]);
 
-        // Fetch current stored limit to respect overrides
-        const { data: usage } = await supabase
-            .from("feature_usage")
-            .select("max_limit")
-            .eq("identity_key", identity.identity_key)
-            .eq("feature_name", featureName)
-            .maybeSingle();
-
-        if (usage?.max_limit && usage.max_limit > limit) {
-            limit = usage.max_limit;
-        }
-
-        const { data, error } = await supabase.rpc("increment_feature_usage", {
-            p_identity_key: identity.identity_key,
-            p_feature_name: featureName,
-            p_max_limit: limit,
-            p_owner_user_id: userId,
-            p_increment: increment
-        });
-
-        if (error) throw error;
-
-        // rpc returns a list of rows [ { success, current_count, enforced_limit } ]
-        const result = data?.[0];
-        return !!result?.success;
-    } catch (error) {
-        console.error(`[UsageService] Failed to increment usage for ${featureName}:`, error);
-        return false;
-    }
+    return result.success;
 }
 
 export interface UsageRequest {
     featureName: string;
     increment: number;
+    childId?: string;
+    metadata?: Record<string, any>;
+    idempotencyKey?: string;
 }
 
 export async function reserveCredits(
@@ -236,7 +215,10 @@ export async function reserveCredits(
                 return {
                     feature_name: req.featureName,
                     increment: req.increment,
-                    max_limit
+                    max_limit,
+                    child_id: req.childId || null,
+                    metadata: req.metadata || {},
+                    idempotency_key: req.idempotencyKey || null
                 };
             })
         );
@@ -272,9 +254,11 @@ export async function reserveCredits(
 export async function refundCredits(
     identity: UsageIdentity,
     featureName: string,
-    amount: number
+    amount: number,
+    childId?: string,
+    metadata?: Record<string, any>
 ): Promise<boolean> {
     if (amount <= 0) return true;
     console.log(`[UsageService] Refunding ${amount} credits for ${featureName} to ${identity.identity_key}`);
-    return tryIncrementUsage(identity, featureName, -amount);
+    return tryIncrementUsage(identity, featureName, -amount, childId, { ...metadata, is_refund: true });
 }

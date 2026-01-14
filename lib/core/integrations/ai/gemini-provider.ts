@@ -79,7 +79,7 @@ export class GeminiProvider implements AIProvider {
         }
     }
 
-    async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, storyLengthMinutes?: number, imageSceneCount?: number }): Promise<GeneratedStoryContent> {
+    async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, storyLengthMinutes?: number, imageSceneCount?: number, idempotencyKey?: string }): Promise<GeneratedStoryContent> {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
                 ? "/api/mock/story"
@@ -95,7 +95,8 @@ export class GeminiProvider implements AIProvider {
                     userProfile: profile,
                     childId: profile.id,
                     storyLengthMinutes: options?.storyLengthMinutes,
-                    imageSceneCount: options?.imageSceneCount
+                    imageSceneCount: options?.imageSceneCount,
+                    idempotencyKey: options?.idempotencyKey
                 }),
                 signal: options?.signal,
             });

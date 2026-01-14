@@ -4,6 +4,7 @@ import { useUsage } from "@/lib/hooks/use-usage";
 import { useEffect, useState } from "react";
 import { getUsageHistory, UsageEvent } from "@/app/actions/usage";
 import { Sparkles, Zap, Image as ImageIcon, BookOpen, Clock, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { CachedImage } from "@/components/ui/cached-image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -133,7 +134,7 @@ export default function SubscriptionUI() {
                             <thead className="bg-slate-50">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-black font-fredoka text-slate-400 uppercase tracking-widest">Activity</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black font-fredoka text-slate-400 uppercase tracking-widest">Date</th>
+                                    <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-black font-fredoka text-slate-400 uppercase tracking-widest">Date</th>
                                     <th className="px-6 py-4 text-right text-xs font-black font-fredoka text-slate-400 uppercase tracking-widest">Amount</th>
                                 </tr>
                             </thead>
@@ -142,19 +143,50 @@ export default function SubscriptionUI() {
                                     <tr key={event.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                                                    event.type === 'credit' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                                                {/* Icon or Cover */}
+                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${
+                                                    event.coverImageUrl ? "bg-slate-100" : (event.type === 'credit' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500')
                                                 }`}>
-                                                    {event.type === 'credit' ? <ArrowUpRight className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                                                    {event.coverImageUrl ? (
+                                                        <CachedImage 
+                                                            src={event.coverImageUrl} 
+                                                            alt={event.description} 
+                                                            width={48} 
+                                                            height={48} 
+                                                            className="w-full h-full object-cover"
+                                                            bucket="book-assets"
+                                                        />
+                                                    ) : (
+                                                        event.type === 'credit' ? <ArrowUpRight className="w-5 h-5" /> : <Clock className="w-5 h-5" />
+                                                    )}
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold font-nunito text-ink text-sm">{event.action}</p>
-                                                    <p className="text-xs font-semibold text-slate-400">{event.description}</p>
+                                                
+                                                {/* Details */}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold font-nunito text-ink text-sm truncate">{event.action}</p>
+                                                    
+                                                    {event.bookId ? (
+                                                        <Link href={`/reader/${event.bookId}`} className="text-xs font-semibold text-purple-600 hover:text-purple-700 hover:underline line-clamp-1 block">
+                                                            {event.description}
+                                                        </Link>
+                                                    ) : (
+                                                        <p className="text-xs font-semibold text-slate-400 line-clamp-1">
+                                                            {event.description}
+                                                        </p>
+                                                    )}
+                                                    
+                                                    {/* Mobile Date */}
+                                                    <p className="md:hidden text-[10px] font-bold text-slate-400 mt-0.5" suppressHydrationWarning>
+                                                        {new Date(event.timestamp).toLocaleDateString(undefined, {
+                                                            month: 'short',
+                                                            day: 'numeric'
+                                                        })}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm font-bold text-slate-500 font-nunito">
+                                        <td className="hidden md:table-cell px-6 py-4">
+                                            <p className="text-sm font-bold text-slate-500 font-nunito" suppressHydrationWarning>
                                                 {new Date(event.timestamp).toLocaleDateString(undefined, {
                                                     month: 'short',
                                                     day: 'numeric',
