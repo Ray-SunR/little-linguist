@@ -60,6 +60,12 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json([]);
             }
 
+            // GUEST SECURITY: Guests cannot choose their own limit or offset
+            if (!user?.id) {
+                limit = 6;
+                offset = 0;
+            }
+
             // Return books with cover images and token counts for library view
             const booksWithCovers = await repo.getAvailableBooksWithCovers(
                 user?.id,

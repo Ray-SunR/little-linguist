@@ -529,7 +529,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                     }));
                 }
             }}
-            error={error}
+            isGuest={!user}
             onRetry={() => loadBooks(true)}
         />
     );

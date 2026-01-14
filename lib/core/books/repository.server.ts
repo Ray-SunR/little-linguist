@@ -72,7 +72,7 @@ export class BookRepository {
         if (userId) {
             query = query.or(`owner_user_id.is.null,owner_user_id.eq.${userId}`);
         } else {
-            query = query.is('owner_user_id', null);
+            query = query.is('owner_user_id', null).limit(6);
         }
 
         const { data, error } = await query.order('title').order('id');
@@ -110,6 +110,12 @@ export class BookRepository {
             p_filter_duration: filters.duration || null,
             p_filter_is_nonfiction: filters.is_nonfiction ?? null
         };
+
+        // GUEST LIMIT: Enforce 6 books max for unauthenticated users
+        if (!userId) {
+            rpcParams.p_limit = 6;
+            rpcParams.p_offset = 0;
+        }
 
         const { data, error } = await this.supabase
             .rpc('get_library_books', rpcParams);

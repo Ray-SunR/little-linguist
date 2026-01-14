@@ -33,6 +33,7 @@ interface LibraryViewProps {
         collection?: "discovery" | "my-tales" | "favorites";
     };
     onFiltersChange: (val: any) => void;
+    isGuest?: boolean;
     error?: string | null;
     onRetry?: () => void;
 }
@@ -53,6 +54,7 @@ export default function LibraryView({
     onSortOrderChange,
     filters,
     onFiltersChange,
+    isGuest,
     error,
     onRetry
 }: LibraryViewProps) {
@@ -342,6 +344,40 @@ export default function LibraryView({
                                     }
                                 />
                             ))}
+                            {isGuest && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative group h-[420px] md:h-[460px] w-full rounded-[2.5rem] bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-pink-500/10 border-[5px] border-white shadow-clay p-8 flex flex-col items-center justify-center text-center gap-6 overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 z-0 bg-white/40 backdrop-blur-md" />
+                                    
+                                    <div className="relative z-10 w-24 h-24 rounded-3xl bg-white shadow-clay-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-500">
+                                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-400/20 to-pink-400/20 animate-pulse" />
+                                        <Sparkles className="w-12 h-12 text-purple-600 relative z-10" />
+                                    </div>
+
+                                    <div className="relative z-10 space-y-3">
+                                        <h3 className="font-fredoka text-2xl font-black text-slate-800 leading-tight">
+                                            Unlock 300+ Stories!
+                                        </h3>
+                                        <p className="text-slate-600 font-bold font-nunito leading-relaxed">
+                                            Sign in to explore our ever-growing library of magical adventures and track your progress!
+                                        </p>
+                                    </div>
+
+                                    <Link
+                                        href="/login"
+                                        className="relative z-10 mt-2 px-10 py-4 rounded-2xl bg-purple-600 text-white font-fredoka text-lg font-black shadow-purple-200 shadow-xl hover:bg-purple-700 hover:scale-105 active:scale-95 transition-all"
+                                    >
+                                        Sign In Now ✨
+                                    </Link>
+
+                                    {/* Decorative elements */}
+                                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-200/30 blur-3xl rounded-full" />
+                                    <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-200/30 blur-3xl rounded-full" />
+                                </motion.div>
+                            )}
                         </div>
                     ) : (
                         <motion.div
@@ -389,7 +425,7 @@ export default function LibraryView({
                 </div>
 
                 {/* Load More Section */}
-                {hasMore && (
+                {hasMore && !isGuest && (
                     <div className="flex justify-center mt-8 mb-12">
                         <motion.button
                             whileHover={{ scale: 1.05 }}
