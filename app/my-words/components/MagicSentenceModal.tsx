@@ -158,7 +158,7 @@ export function MagicSentenceModal({
     // We use the timing markers as the source of truth for words
     const sentenceWords = useMemo(() => {
         if (!result) return [];
-        return result.timingMarkers.map((m: TimingMarker) => m.value);
+        return (result.timingMarkers || []).map((m: TimingMarker) => m.value);
     }, [result]);
 
     useEffect(() => {
@@ -322,7 +322,7 @@ export function MagicSentenceModal({
                                         <Sparkles className="absolute bottom-3 right-3 w-5 h-5 text-purple-100" />
                                         
                                         <p className="text-xl md:text-2xl font-nunito font-black text-center leading-[1.6] text-ink relative z-10">
-                                            {result.tokens.map((token: Token, i: number) => (
+                                            {(result.tokens || []).map((token: Token, i: number) => (
                                                 <span
                                                     key={i}
                                                     className={cn(
@@ -345,7 +345,7 @@ export function MagicSentenceModal({
                                             <Wand2 className="w-3.5 h-3.5 text-slate-400" />
                                             <span className="text-[10px] font-black font-fredoka text-slate-400 uppercase tracking-widest leading-none">Used:</span>
                                         </div>
-                                        {result.words.map((w: string, i: number) => (
+                                        {result.words?.map((w: string, i: number) => (
                                             <span key={i} className="px-3 py-1 bg-amber-50/50 text-amber-600/80 rounded-xl text-[11px] font-black font-fredoka border border-amber-100/30">
                                                 {w}
                                             </span>

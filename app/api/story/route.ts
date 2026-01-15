@@ -201,8 +201,8 @@ FINAL RECAP:
         const reservationResult = isTestMode
             ? { success: true }
             : await reserveCredits(identity, [
-                { featureName: "story_generation", increment: 1, childId, metadata: { book_id: bookId }, idempotencyKey },
-                { featureName: "image_generation", increment: imageSceneCount, childId, metadata: { book_id: bookId }, idempotencyKey }
+                { featureName: "story_generation", increment: 1, childId, metadata: { book_id: bookId }, idempotencyKey, entityId: bookId, entityType: 'story' },
+                { featureName: "image_generation", increment: imageSceneCount, childId, metadata: { book_id: bookId }, idempotencyKey, entityId: bookId, entityType: 'story' }
             ]);
 
         if (!reservationResult.success) {
@@ -551,7 +551,7 @@ FINAL RECAP:
                                          hasSetCover = true;
                                          await serviceRoleClient
                                             .from('books')
-                                            .update({ cover_image_url: imageStoragePath })
+                                            .update({ cover_image_path: imageStoragePath })
                                             .eq('id', bookId);
                                     }
 

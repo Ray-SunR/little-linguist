@@ -71,7 +71,9 @@ export class MagicSentenceService {
                 featureName: 'magic_sentence', 
                 increment: 1, 
                 childId: activeChildId, 
-                metadata: { words, magic_sentence_id: sentenceId } 
+                metadata: { words, magic_sentence_id: sentenceId },
+                entityId: sentenceId,
+                entityType: 'magic_sentence'
             }
         ];
         if (generateImage) {
@@ -79,7 +81,9 @@ export class MagicSentenceService {
                 featureName: 'image_generation', 
                 increment: 1, 
                 childId: activeChildId, 
-                metadata: { type: 'magic_sentence', magic_sentence_id: sentenceId } 
+                metadata: { type: 'magic_sentence', magic_sentence_id: sentenceId },
+                entityId: sentenceId,
+                entityType: 'magic_sentence'
             });
         }
 
@@ -231,9 +235,13 @@ export class MagicSentenceService {
             if (timingSigned?.signedUrl) {
                 try {
                     const res = await fetch(timingSigned.signedUrl);
-                    if (res.ok) timingMarkers = await res.json();
+                    if (res.ok) {
+                        timingMarkers = await res.json();
+                    } else {
+                        console.error("[MagicSentenceService] Failed to fetch timing file. Status:", res.status, "for", item.id);
+                    }
                 } catch (e) {
-                    console.error("Failed to fetch timing for", item.id, e);
+                    console.error("[MagicSentenceService] Error fetching timing for", item.id, e);
                 }
             }
         }

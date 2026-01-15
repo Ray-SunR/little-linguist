@@ -187,6 +187,8 @@ export interface UsageRequest {
     childId?: string;
     metadata?: Record<string, any>;
     idempotencyKey?: string;
+    entityId?: string;
+    entityType?: string;
 }
 
 export async function reserveCredits(
@@ -220,7 +222,9 @@ export async function reserveCredits(
                     max_limit,
                     child_id: req.childId || null,
                     metadata: req.metadata || {},
-                    idempotency_key: req.idempotencyKey || null
+                    idempotency_key: req.idempotencyKey || null,
+                    entity_id: req.entityId || null,
+                    entity_type: req.entityType || null
                 };
             })
         );

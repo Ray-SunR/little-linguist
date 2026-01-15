@@ -9,8 +9,10 @@ import { CachedImage } from "@/components/ui/cached-image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { MagicSentenceModal } from "@/app/my-words/components/MagicSentenceModal";
+import { useRouter } from "next/navigation";
 
 export default function SubscriptionUI() {
+    const router = useRouter();
     const { usage, plan, loading: usageLoading } = useUsage();
     const [history, setHistory] = useState<UsageEvent[]>([]);
     const [historyLoading, setHistoryLoading] = useState(true);
@@ -50,6 +52,16 @@ export default function SubscriptionUI() {
             setModalError(err.message || "Something went wrong while fetching the magic!");
         } finally {
             setModalLoading(false);
+        }
+    };
+
+    const handleRowClick = (event: UsageEvent) => {
+        if (event.entityType === 'magic_sentence' && event.entityId) {
+            handleViewSentence(event.entityId);
+        } else if (event.entityType === 'story' && event.entityId) {
+            router.push(`/reader/${event.entityId}`);
+        } else if (event.bookId) {
+            router.push(`/reader/${event.bookId}`);
         }
     };
 
@@ -231,15 +243,15 @@ export default function SubscriptionUI() {
                                     </tr>
                                 )}
                                 {filteredHistory.map((event) => {
-                                    const isMagicSentence = event.action === 'Magic Sentence' && event.magicSentenceId;
+                                    const isClickable = !!(event.entityId || event.bookId);
                                     return (
                                         <tr 
                                             key={event.id} 
                                             className={cn(
                                                 "transition-colors border-b border-slate-50 last:border-0",
-                                                isMagicSentence ? "cursor-pointer hover:bg-purple-50/50" : "hover:bg-slate-50/50"
+                                                isClickable ? "cursor-pointer hover:bg-slate-50" : ""
                                             )}
-                                            onClick={() => isMagicSentence && handleViewSentence(event.magicSentenceId!)}
+                                            onClick={() => isClickable && handleRowClick(event)}
                                         >
                                         <td className="px-6 py-2.5">
                                             <div className="flex items-center gap-3">
@@ -292,16 +304,16 @@ export default function SubscriptionUI() {
                             </li>
                         )}
                         {filteredHistory.map((event) => {
-                            const isMagicSentence = event.action === 'Magic Sentence' && event.magicSentenceId;
+                            const isClickable = !!(event.entityId || event.bookId);
                             return (
                                 <li 
                                     key={event.id} 
                                     className={cn(
                                         "p-4 flex flex-col gap-3 transition-colors",
-                                        isMagicSentence ? "cursor-pointer hover:bg-purple-50/50 active:bg-purple-100/50" : "hover:bg-slate-50/50"
+                                        isClickable ? "cursor-pointer hover:bg-slate-50 active:bg-slate-100" : ""
                                     )}
                                     aria-label={`Activity: ${event.action || event.description}`}
-                                    onClick={() => isMagicSentence && handleViewSentence(event.magicSentenceId!)}
+                                    onClick={() => isClickable && handleRowClick(event)}
                                 >
                                 <div className="flex items-start gap-3">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${event.coverImageUrl ? "bg-slate-100 shadow-sm" : (event.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400')}`}>
@@ -337,9 +349,15 @@ export default function SubscriptionUI() {
                                             month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                                         })}
                                     </p>
-                                    <Link href={event.bookId ? `/reader/${event.bookId}` : "#"} className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-1">
+                                    <button 
+                                        className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-1 hover:underline"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRowClick(event);
+                                        }}
+                                    >
                                         Details <ArrowUpRight className="w-2.5 h-2.5" />
-                                    </Link>
+                                    </button>
                                 </div>
                             </li>
                             );

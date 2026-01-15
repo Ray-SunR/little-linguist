@@ -19,6 +19,8 @@ export interface UsageEvent {
     storyAmount?: number;
     imageAmount?: number;
     magicSentenceId?: string;
+    entityId?: string;
+    entityType?: string;
 }
 
 interface TransactionMetadata {
@@ -35,12 +37,15 @@ interface RawTransaction {
     created_at: string;
     metadata: TransactionMetadata | null;
     owner_user_id: string;
+    entity_id: string | null;
+    entity_type: string | null;
 }
 
 interface TransactionGroup {
     id: string;
     isGrouped: boolean;
-    bookId: string;
+    entityId: string;
+    entityType: string;
     storyAmount: number;
     imageAmount: number;
     timestamp: string;
@@ -64,7 +69,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
 
     const { data: transactions, error } = await supabase
         .from("point_transactions")
-        .select("id, amount, reason, created_at, metadata, owner_user_id")
+        .select("id, amount, reason, created_at, metadata, owner_user_id, entity_id, entity_type")
         .eq("owner_user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(internalLimit);
@@ -78,19 +83,21 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
 
     // 1. Group transactions
     const processedTransactions: (RawTransaction | TransactionGroup)[] = [];
-    const bookGroups = new Map<string, TransactionGroup>();
+    const entityGroups = new Map<string, TransactionGroup>();
 
     (transactions as any as RawTransaction[]).forEach(tx => {
-        const bookId = tx.metadata?.book_id;
-        const isGeneration = tx.reason === 'story_generation' || tx.reason === 'image_generation';
+        const entityId = tx.entity_id;
+        const entityType = tx.entity_type;
+        const isGroupable = entityType === 'story' || entityType === 'magic_sentence';
 
-        if (bookId && isGeneration) {
-            let group = bookGroups.get(bookId);
+        if (entityId && isGroupable) {
+            let group = entityGroups.get(entityId);
             if (!group) {
                 group = {
-                    id: `group-${bookId}`,
+                    id: `group-${entityId}`,
                     isGrouped: true,
-                    bookId,
+                    entityId,
+                    entityType,
                     storyAmount: 0,
                     imageAmount: 0,
                     timestamp: tx.created_at,
@@ -99,68 +106,92 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
                     type: 'debit',
                     amount: 0
                 };
-                bookGroups.set(bookId, group);
+                entityGroups.set(entityId, group);
                 processedTransactions.push(group);
             }
 
             const absAmount = Math.abs(tx.amount);
             group.amount += absAmount; // Maintain total amount sum
 
-            if (tx.reason === 'story_generation') {
+            if (tx.reason === 'story_generation' || tx.reason === 'magic_sentence') {
                 group.storyAmount += absAmount;
             } else if (tx.reason === 'image_generation') {
                 group.imageAmount += absAmount;
             }
         } else {
-            // Non-generation or non-book transactions remain separate
-            processedTransactions.push(tx);
+            // Check for legacy grouping (via metadata)
+            const legacyBookId = tx.metadata?.book_id;
+            if (legacyBookId && (tx.reason === 'story_generation' || tx.reason === 'image_generation')) {
+                 let group = entityGroups.get(legacyBookId);
+                 if (!group) {
+                     group = {
+                         id: `group-${legacyBookId}`,
+                         isGrouped: true,
+                         entityId: legacyBookId,
+                         entityType: 'story',
+                         storyAmount: 0,
+                         imageAmount: 0,
+                         timestamp: tx.created_at,
+                         metadata: tx.metadata,
+                         reason: 'generation_group',
+                         type: 'debit',
+                         amount: 0
+                     };
+                     entityGroups.set(legacyBookId, group);
+                     processedTransactions.push(group);
+                 }
+                 const absAmount = Math.abs(tx.amount);
+                 group.amount += absAmount;
+                 if (tx.reason === 'story_generation') group.storyAmount += absAmount;
+                 else group.imageAmount += absAmount;
+            } else {
+                processedTransactions.push(tx);
+            }
         }
     });
 
     // Take only the requested limit after grouping
     const finalTransactions = processedTransactions.slice(0, limit);
 
-    // 2. Collect unique Book IDs for details
-    const bookIds = new Set<string>();
-    finalTransactions.forEach(tx => {
-        const isGroup = 'isGrouped' in tx && tx.isGrouped === true;
-        const bId = isGroup ? (tx as TransactionGroup).bookId : (tx as RawTransaction).metadata?.book_id;
-        if (bId) {
-            bookIds.add(bId);
-        }
-    });
+    // 3. Fetch Book/Entity Details in Batch
+    const bookMap = new Map<string, { id: string, title: string, cover_image_path: string | null, updated_at: string }>();
+    const bookIds = Array.from(new Set(finalTransactions
+        .map(tx => {
+            if ('isGrouped' in tx && tx.isGrouped) {
+                const group = tx as TransactionGroup;
+                return group.entityType === 'story' ? group.entityId : null;
+            } else {
+                const raw = tx as RawTransaction;
+                return raw.entity_type === 'story' ? raw.entity_id : (raw.metadata?.book_id || null);
+            }
+        })
+        .filter(Boolean) as string[]));
 
-    // 3. Fetch Book Details in Batch
-    const bookMap = new Map<string, { title: string, cover_image_path: string | null, updated_at: string }>();
-    if (bookIds.size > 0) {
+    if (bookIds.length > 0) {
         const { data: books } = await supabase
             .from("books")
             .select("id, title, cover_image_path, updated_at")
-            .in("id", Array.from(bookIds));
+            .in("id", bookIds);
 
         books?.forEach(book => {
             bookMap.set(book.id, book);
         });
     }
 
-    // 4. Fallback for missing covers: Check book_media
-    const booksMissingCover = Array.from(bookIds).filter(id => {
-        const book = bookMap.get(id);
-        return !book || !book.cover_image_path;
-    });
-
+    // 4. Fetch Covers from book_media (User's specific requirement for story type)
     const mediaCoverMap = new Map<string, { path: string, updated_at: string }>();
-    if (booksMissingCover.length > 0) {
+    if (bookIds.length > 0) {
         const { data: mediaData } = await supabase
             .from('book_media')
             .select('book_id, path, updated_at')
             .eq('media_type', 'image')
-            .in('book_id', booksMissingCover)
+            .in('book_id', bookIds)
             .order('after_word_index')
             .order('path');
 
         if (mediaData) {
             mediaData.forEach((media: any) => {
+                // Keep the first image found for each book as the cover
                 if (!mediaCoverMap.has(media.book_id) && media.path) {
                     mediaCoverMap.set(media.book_id, { path: media.path, updated_at: media.updated_at });
                 }
@@ -205,7 +236,9 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         };
 
         const isGroup = 'isGrouped' in tx && tx.isGrouped === true;
-        const bId = isGroup ? (tx as TransactionGroup).bookId : (tx as RawTransaction).metadata?.book_id;
+        const eId = isGroup ? (tx as TransactionGroup).entityId : (tx as RawTransaction).entity_id;
+        const eType = isGroup ? (tx as TransactionGroup).entityType : (tx as RawTransaction).entity_type;
+        const bId = (eType === 'story' ? eId : null) || tx.metadata?.book_id;
 
         let description = tx.metadata?.title || tx.metadata?.book_key || tx.reason;
         let magicSentenceId: string | undefined = undefined;
@@ -226,11 +259,11 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         } else if (bId && bookMap.has(bId)) {
             const book = bookMap.get(bId)!;
             description = book.title;
-            storagePath = book.cover_image_path || mediaCoverMap.get(bId)?.path;
-            updatedAt = book.cover_image_path ? book.updated_at : mediaCoverMap.get(bId)?.updated_at;
+            storagePath = (mediaCoverMap.get(bId)?.path || book.cover_image_path) || undefined; 
+            updatedAt = (mediaCoverMap.get(bId)?.updated_at || book.updated_at) || undefined;
 
             if (storagePath) {
-                coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath);
+                coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath) || undefined;
             }
         } else if (!tx.metadata?.title && !tx.metadata?.book_key) {
             // Fallbacks for missing metadata
@@ -251,6 +284,8 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             timestamp,
             amount,
             type,
+            entityId: eId || undefined,
+            entityType: eType || undefined,
             bookId: bId,
             coverImageUrl,
             storagePath,

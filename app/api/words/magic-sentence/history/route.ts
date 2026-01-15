@@ -22,7 +22,7 @@ export async function GET(req: Request): Promise<NextResponse> {
         if (sentenceId) {
             try {
                 const sentence = await service.getSentenceById(sentenceId);
-                return NextResponse.json([sentence]);
+                return NextResponse.json(sentence);
             } catch (error: any) {
                 console.error("[MagicHistory] Single fetch error:", error);
                 if (error.message.startsWith("NOT_FOUND")) {
