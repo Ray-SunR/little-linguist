@@ -10,6 +10,11 @@ export interface BookImage {
   alt?: string;
   storagePath?: string; // Optional stable path for caching
   isPlaceholder?: boolean;
+  status?: string;
+  retryCount?: number;
+  errorMessage?: string;
+  sectionIndex?: number;
+  prompt?: string;
 }
 
 export interface Book {

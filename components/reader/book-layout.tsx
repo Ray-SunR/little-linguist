@@ -4,6 +4,7 @@ import type { BookImage, ViewMode } from "@/lib/core";
 import BookText from "./book-text";
 
 type BookLayoutProps = {
+  bookId?: string;
   tokens: WordToken[];
   images?: BookImage[];
   currentWordIndex: number | null;
@@ -13,6 +14,7 @@ type BookLayoutProps = {
 };
 
 const BookLayout = React.memo(function BookLayout({
+  bookId,
   tokens,
   images,
   currentWordIndex,
@@ -104,10 +106,11 @@ const BookLayout = React.memo(function BookLayout({
 
         <div className={viewMode === "scroll" ? "" : "book-spread-section"}>
           <BookText
+            bookId={bookId}
             tokens={tokens}
-            images={images}
             currentWordIndex={currentWordIndex}
             onWordClick={onWordClick}
+            images={images}
             onImageLoad={handleImageLoad}
           />
         </div>

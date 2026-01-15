@@ -3,8 +3,11 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import type { BookImage, WordToken } from "@/lib/core";
 import { CachedImage } from "@/components/ui/cached-image";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/core";
 
 type BookTextProps = {
+    bookId?: string;
     tokens: WordToken[];
     currentWordIndex: number | null;
     onWordClick?: (word: string, element: HTMLElement, wordIndex: number) => void;
@@ -19,7 +22,8 @@ const Word = React.memo(({
     onWordClick,
     imagesAtIndex,
     onImageLoad,
-    isTourTarget
+    isTourTarget,
+    bookId
 }: {
     token: WordToken;
     isActive: boolean;
@@ -27,8 +31,30 @@ const Word = React.memo(({
     imagesAtIndex?: BookImage[];
     onImageLoad?: () => void;
     isTourTarget?: boolean;
+    bookId?: string;
 }) => {
     const wordText = token.text;
+    const [isRetrying, setIsRetrying] = useState(false);
+
+    const handleRetry = async (sectionIndex: number) => {
+        if (!bookId || isRetrying) return;
+        setIsRetrying(true);
+        try {
+            const res = await fetch(`/api/books/${bookId}/images/retry`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sectionIndex })
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                console.error("Retry failed:", data.message || data.error);
+            }
+        } catch (err) {
+            console.error("Retry failed:", err);
+        } finally {
+            setIsRetrying(false);
+        }
+    };
 
     return (
         <React.Fragment>
@@ -56,10 +82,49 @@ const Word = React.memo(({
             {imagesAtIndex?.map((image) => (
                 <div key={image.id} className="book-image-block">
                     {image.isPlaceholder ? (
-                        <div className="book-image-skeleton animate-pulse border-accent/30 bg-accent/5">
-                            <div className="flex flex-col items-center justify-center h-full gap-3 text-accent/40">
-                                <div className="h-10 w-10 rounded-full border-4 border-t-accent animate-spin" />
-                                <span className="text-sm font-fredoka font-black uppercase tracking-widest antialiased">Drawing Magic...</span>
+                        <div className={cn(
+                            "book-image-skeleton border-accent/30 bg-accent/5",
+                            image.status === 'failed' ? "opacity-90 grayscale-[0.5]" : "animate-pulse"
+                        )}>
+                            <div className="flex flex-col items-center justify-center h-full gap-3 text-accent/40 p-4">
+                                {image.status === 'failed' ? (
+                                    <div className="flex flex-col items-center gap-4 text-center">
+                                        <AlertCircle className="w-10 h-10 text-red-500/60" />
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="text-sm font-fredoka font-black uppercase tracking-widest text-red-500/70 antialiased">
+                                                Drawing hit a snag
+                                            </span>
+                                            <p className="text-[10px] text-accent/30 font-medium max-w-[200px] line-clamp-1 italic">
+                                                {image.errorMessage || "Unexpected error happened"}
+                                            </p>
+                                        </div>
+
+                                        {(image.retryCount ?? 0) < 3 ? (
+                                            <button
+                                                onClick={() => handleRetry(image.sectionIndex ?? 0)}
+                                                disabled={isRetrying}
+                                                className="group relative flex items-center gap-2 rounded-full bg-white px-5 py-2 shadow-clay border-2 border-accent/20 text-accent font-fredoka font-black text-xs uppercase tracking-wider hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
+                                            >
+                                                <RefreshCw className={cn(
+                                                    "w-3.5 h-3.5",
+                                                    isRetrying ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'
+                                                )} />
+                                                {isRetrying ? "Casting Spell..." : "Try Again"}
+                                            </button>
+                                        ) : (
+                                            <span className="px-3 py-1 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-400 font-bold uppercase tracking-tighter shadow-sm">
+                                                Limit Reached
+                                            </span>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="h-10 w-10 rounded-full border-4 border-t-accent animate-spin" />
+                                        <span className="text-sm font-fredoka font-black uppercase tracking-widest antialiased">
+                                            {image.status === 'generating' ? 'Drawing Magic...' : 'Preparing Canvas...'}
+                                        </span>
+                                    </>
+                                )}
                             </div>
                         </div>
                     ) : (
@@ -85,6 +150,7 @@ const Word = React.memo(({
 Word.displayName = "Word";
 
 export default function BookText({
+    bookId,
     tokens,
     currentWordIndex,
     onWordClick,
@@ -119,6 +185,7 @@ export default function BookText({
             {tokens.map((token) => (
                 <Word
                     key={token.wordIndex}
+                    bookId={bookId}
                     token={token}
                     isActive={token.wordIndex === currentWordIndex}
                     onWordClick={onWordClick}

@@ -392,11 +392,14 @@ export class BookRepository {
                             return {
                                 id: `placeholder-${index}`,
                                 afterWordIndex: Number(section.after_word_index),
-                                caption: "AI is drawing...",
+                                caption: section.image_status === 'failed' ? "Generation failed" : "AI is drawing...",
                                 isPlaceholder: true,
                                 src: "",
                                 prompt: section.image_prompt,
-                                sectionIndex: index
+                                sectionIndex: index,
+                                status: section.image_status || 'pending',
+                                retryCount: section.retry_count || 0,
+                                errorMessage: section.error_message
                             };
                         }
                         return null;

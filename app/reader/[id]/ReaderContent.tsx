@@ -5,7 +5,7 @@ import { RefreshCw } from "lucide-react";
 import LumoLoader from "@/components/ui/lumo-loader";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
-import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
+import { useBookMediaSubscription, useBookAudioSubscription, useBookStatusSubscription } from "@/lib/hooks/use-realtime-subscriptions";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { ErrorView } from "@/components/ui/error-view";
 import { assetCache } from "@/lib/core/asset-cache";
@@ -169,6 +169,46 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
         });
     }, [bookId]));
 
+    useBookStatusSubscription(bookId, useCallback((newMetadata) => {
+        const sections = newMetadata.sections || [];
+        if (!sections.length) return;
+
+        setCurrentBook(prev => {
+            if (!prev || prev.id !== bookId) return prev;
+
+            const updatedImages = [...(prev.images || [])];
+            let hasChanged = false;
+
+            sections.forEach((section: any, index: number) => {
+                const existingImgIndex = updatedImages.findIndex(img =>
+                    img.isPlaceholder && img.sectionIndex === index
+                );
+
+                if (existingImgIndex !== -1) {
+                    const existingImg = updatedImages[existingImgIndex];
+                    const newStatus = section.image_status || 'pending';
+
+                    if (existingImg.status !== newStatus || existingImg.retryCount !== (section.retry_count || 0)) {
+                        updatedImages[existingImgIndex] = {
+                            ...existingImg,
+                            status: newStatus,
+                            retryCount: section.retry_count || 0,
+                            errorMessage: section.error_message,
+                            caption: newStatus === 'failed' ? "Generation failed" :
+                                newStatus === 'generating' ? "Drawing magic..." : "AI is drawing..."
+                        };
+                        hasChanged = true;
+                    }
+                }
+            });
+
+            if (!hasChanged) return prev;
+            const updated = { ...prev, images: updatedImages };
+            raidenCache.put(CacheStore.BOOKS, updated);
+            return updated;
+        });
+    }, [bookId]));
+
     if (isLoading && !currentBook) {
         return <LumoLoader />;
     }
@@ -194,22 +234,15 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
                 childId={activeChildId ?? null}
             />
 
-            {/* Only show AI placeholder if we have a scene that expects an image (image_prompt present) but no image URL yet */}
-            {currentBook?.images?.some(img => img.isPlaceholder && img.prompt && img.prompt.trim() !== "") && (
+            {/* Only show AI placeholder if we have a scene that is still generating or pending */}
+            {currentBook?.images?.some(img => img.isPlaceholder && img.prompt && img.prompt.trim() !== "" && (img.status === 'pending' || img.status === 'generating')) && (
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-[110] animate-slide-up">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-purple-400/30 blur-xl rounded-full animate-pulse" />
-                        <div className="relative animate-bounce-slow">
-                            <LumoCharacter size="xs" className="shadow-2xl" />
-                        </div>
-                    </div>
-
                     <div className="flex items-center gap-3 rounded-full bg-white/90 px-6 py-2.5 shadow-clay border-2 border-purple-100 backdrop-blur-md">
                         <RefreshCw size={16} color="currentColor" className="animate-spin text-purple-600" />
                         <span className="text-sm font-black text-purple-600 font-fredoka uppercase tracking-wide">AI is drawing images...</span>
                     </div>
                 </div>
             )}
-        </main>
+        </main >
     );
 }

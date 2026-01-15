@@ -324,7 +324,7 @@ FINAL RECAP:
                 const refundAmount = imageSceneCount - actualImageCount;
                 if (refundAmount > 0) {
                     console.warn(`[StoryAPI] Model under-generated images (${actualImageCount}/${imageSceneCount}). Refunding ${refundAmount} credits.`);
-                    await refundCredits(identity!, "image_generation", refundAmount, childId, { book_id: bookId });
+                    await refundCredits(identity!, "image_generation", refundAmount, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
                     creditsRefunded += refundAmount;
                 }
             }
@@ -343,7 +343,12 @@ FINAL RECAP:
                     }
                 }
 
-                return { ...section, image_prompt };
+                return {
+                    ...section,
+                    image_prompt,
+                    image_status: image_prompt !== "" ? 'pending' : null,
+                    retry_count: 0
+                };
             });
 
             // Reconstruct full content from sections to ensure indices align perfectly.
@@ -526,6 +531,13 @@ FINAL RECAP:
 
                             await Promise.all(batch.map(async ({ section, index: currentIndex }: { section: any; index: number }) => {
                                 try {
+                                    // Set status to generating
+                                    await serviceRoleClient.rpc('update_section_image_status', {
+                                        p_book_id: bookId,
+                                        p_section_index: currentIndex,
+                                        p_status: 'generating'
+                                    });
+
                                     const result = await provider.generateImage({
                                         prompt: section.image_prompt,
                                         subjectImage: userPhotoBuffer,
@@ -548,8 +560,8 @@ FINAL RECAP:
                                     // Even if parallel, the chances of exact simultaneous execution are low enough for this optimization
                                     // Ideally this would be outside the parallel block or atomic, but this is sufficient to prevent massive spam
                                     if (!hasSetCover) {
-                                         hasSetCover = true;
-                                         await serviceRoleClient
+                                        hasSetCover = true;
+                                        await serviceRoleClient
                                             .from('books')
                                             .update({ cover_image_path: imageStoragePath })
                                             .eq('id', bookId);
@@ -567,6 +579,14 @@ FINAL RECAP:
                                         owner_user_id: ownerUserId
                                     }, { onConflict: 'book_id,path' });
 
+                                    // Set status to success and store path
+                                    await serviceRoleClient.rpc('update_section_image_status', {
+                                        p_book_id: bookId,
+                                        p_section_index: currentIndex,
+                                        p_status: 'success',
+                                        p_storage_path: imageStoragePath
+                                    });
+
                                     await logGenerationStep(`image_generated_${currentIndex}`, {
                                         sectionIndex: currentIndex,
                                         storagePath: imageStoragePath,
@@ -577,6 +597,15 @@ FINAL RECAP:
                                     successfulIndices.push(currentIndex);
                                 } catch (err) {
                                     console.error(`Background task: Failed to generate image for section ${currentIndex}:`, err);
+
+                                    // Set status to failed
+                                    await serviceRoleClient.rpc('update_section_image_status', {
+                                        p_book_id: bookId,
+                                        p_section_index: currentIndex,
+                                        p_status: 'failed',
+                                        p_error_message: String(err)
+                                    });
+
                                     await logGenerationStep(`image_failed_${currentIndex}`, {
                                         sectionIndex: currentIndex,
                                         error: String(err),
@@ -605,7 +634,7 @@ FINAL RECAP:
                             const failedCount = actualImageCount - successfulCount;
                             if (failedCount > 0 && identity && !isTestMode) {
                                 console.warn(`[StoryAPI] Failed to generate ${failedCount} images. Refunding credits.`);
-                                await refundCredits(identity, "image_generation", failedCount, childId, { book_id: bookId });
+                                await refundCredits(identity, "image_generation", failedCount, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
                             }
                         }
                     }
@@ -631,9 +660,9 @@ FINAL RECAP:
 
                         const remainingImagesCharged = imageSceneCount - creditsRefunded;
 
-                        await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId });
+                        await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
                         if (remainingImagesCharged > 0) {
-                            await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId });
+                            await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
                         }
                     }
 
@@ -689,9 +718,9 @@ FINAL RECAP:
                 // Refund everything we haven't already refunded
                 const remainingImagesCharged = imageSceneCount - creditsRefunded;
 
-                await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId });
+                await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
                 if (remainingImagesCharged > 0) {
-                    await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId });
+                    await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
                 }
             }
 

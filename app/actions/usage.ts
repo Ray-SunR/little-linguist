@@ -14,6 +14,7 @@ export interface UsageEvent {
     coverImageUrl?: string;
     storagePath?: string;
     updatedAt?: string;
+    bucket?: string; // bucket name for storage
     // Grouping support
     isGrouped?: boolean;
     storyAmount?: number;
@@ -28,6 +29,8 @@ interface TransactionMetadata {
     title?: string;
     book_key?: string;
     word?: string;
+    magic_sentence_id?: string;
+    words?: string[];
 }
 
 interface RawTransaction {
@@ -51,8 +54,9 @@ interface TransactionGroup {
     timestamp: string;
     metadata: TransactionMetadata | null;
     reason: string;
-    type: "debit";
+    type: "debit" | "credit";
     amount: number;
+    bucket?: string;
 }
 
 export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]> {
@@ -64,7 +68,6 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         return [];
     }
 
-    // Increased limit to 10x to ensure we have enough data even with heavy grouping
     const internalLimit = limit * 10;
 
     const { data: transactions, error } = await supabase
@@ -78,8 +81,6 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         console.error("Failed to fetch usage history:", error);
         return [];
     }
-
-    console.log(`[getUsageHistory] User: ${user.id}, Fetched ${transactions?.length || 0} raw transactions`);
 
     // 1. Group transactions
     const processedTransactions: (RawTransaction | TransactionGroup)[] = [];
@@ -110,176 +111,187 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
                 processedTransactions.push(group);
             }
 
-            const absAmount = Math.abs(tx.amount);
-            group.amount += absAmount; // Maintain total amount sum
-
+            group.amount += tx.amount;
             if (tx.reason === 'story_generation' || tx.reason === 'magic_sentence') {
-                group.storyAmount += absAmount;
+                group.storyAmount += tx.amount;
             } else if (tx.reason === 'image_generation') {
-                group.imageAmount += absAmount;
+                group.imageAmount += tx.amount;
             }
+            group.type = group.amount < 0 ? 'debit' : 'credit';
         } else {
-            // Check for legacy grouping (via metadata)
+            // Legacy grouping checks
             const legacyBookId = tx.metadata?.book_id;
+            const legacyMagicId = tx.metadata?.magic_sentence_id;
+
             if (legacyBookId && (tx.reason === 'story_generation' || tx.reason === 'image_generation')) {
-                 let group = entityGroups.get(legacyBookId);
-                 if (!group) {
-                     group = {
-                         id: `group-${legacyBookId}`,
-                         isGrouped: true,
-                         entityId: legacyBookId,
-                         entityType: 'story',
-                         storyAmount: 0,
-                         imageAmount: 0,
-                         timestamp: tx.created_at,
-                         metadata: tx.metadata,
-                         reason: 'generation_group',
-                         type: 'debit',
-                         amount: 0
-                     };
-                     entityGroups.set(legacyBookId, group);
-                     processedTransactions.push(group);
-                 }
-                 const absAmount = Math.abs(tx.amount);
-                 group.amount += absAmount;
-                 if (tx.reason === 'story_generation') group.storyAmount += absAmount;
-                 else group.imageAmount += absAmount;
+                let group = entityGroups.get(legacyBookId);
+                if (!group) {
+                    group = {
+                        id: `group-${legacyBookId}`,
+                        isGrouped: true,
+                        entityId: legacyBookId,
+                        entityType: 'story',
+                        storyAmount: 0,
+                        imageAmount: 0,
+                        timestamp: tx.created_at,
+                        metadata: tx.metadata,
+                        reason: 'generation_group',
+                        type: 'debit',
+                        amount: 0
+                    };
+                    entityGroups.set(legacyBookId, group);
+                    processedTransactions.push(group);
+                }
+                group.amount += tx.amount;
+                if (tx.reason === 'story_generation') group.storyAmount += tx.amount;
+                else group.imageAmount += tx.amount;
+                group.type = group.amount < 0 ? 'debit' : 'credit';
+            } else if (legacyMagicId && (tx.reason === 'magic_sentence' || tx.reason === 'image_generation')) {
+                let group = entityGroups.get(legacyMagicId);
+                if (!group) {
+                    group = {
+                        id: `group-${legacyMagicId}`,
+                        isGrouped: true,
+                        entityId: legacyMagicId,
+                        entityType: 'magic_sentence',
+                        storyAmount: 0,
+                        imageAmount: 0,
+                        timestamp: tx.created_at,
+                        metadata: tx.metadata,
+                        reason: 'generation_group',
+                        type: 'debit',
+                        amount: 0
+                    };
+                    entityGroups.set(legacyMagicId, group);
+                    processedTransactions.push(group);
+                }
+                group.amount += tx.amount;
+                if (tx.reason === 'magic_sentence') group.storyAmount += tx.amount;
+                else group.imageAmount += tx.amount;
+                group.type = group.amount < 0 ? 'debit' : 'credit';
             } else {
                 processedTransactions.push(tx);
             }
         }
     });
 
-    // Take only the requested limit after grouping
     const finalTransactions = processedTransactions.slice(0, limit);
 
-    // 3. Fetch Book/Entity Details in Batch
+    // 2. Fetch Entity Details
     const bookMap = new Map<string, { id: string, title: string, cover_image_path: string | null, updated_at: string }>();
-    const bookIds = Array.from(new Set(finalTransactions
-        .map(tx => {
-            if ('isGrouped' in tx && tx.isGrouped) {
-                const group = tx as TransactionGroup;
-                return group.entityType === 'story' ? group.entityId : null;
-            } else {
-                const raw = tx as RawTransaction;
-                return raw.entity_type === 'story' ? raw.entity_id : (raw.metadata?.book_id || null);
-            }
-        })
-        .filter(Boolean) as string[]));
+    const magicSentenceMap = new Map<string, { id: string, image_path: string | null, created_at: string }>();
+    const bookIds = new Set<string>();
+    const magicSentenceIds = new Set<string>();
 
-    if (bookIds.length > 0) {
-        const { data: books } = await supabase
-            .from("books")
-            .select("id, title, cover_image_path, updated_at")
-            .in("id", bookIds);
+    finalTransactions.forEach(tx => {
+        const isGroup = 'isGrouped' in tx && tx.isGrouped;
+        const eId = isGroup ? (tx as TransactionGroup).entityId : (tx as RawTransaction).entity_id;
+        const eType = isGroup ? (tx as TransactionGroup).entityType : (tx as RawTransaction).entity_type;
+        if (eId) {
+            if (eType === 'story') bookIds.add(eId);
+            else if (eType === 'magic_sentence') magicSentenceIds.add(eId);
+        }
+        const legacyBookId = (tx as any).metadata?.book_id;
+        if (legacyBookId) bookIds.add(legacyBookId);
+    });
 
-        books?.forEach(book => {
-            bookMap.set(book.id, book);
-        });
+    if (bookIds.size > 0) {
+        const { data: books } = await supabase.from("books").select("id, title, cover_image_path, updated_at").in("id", Array.from(bookIds));
+        books?.forEach(book => bookMap.set(book.id, book));
+    }
+    if (magicSentenceIds.size > 0) {
+        const { data: magicSentences } = await supabase.from("child_magic_sentences").select("id, image_path, created_at").in("id", Array.from(magicSentenceIds));
+        magicSentences?.forEach(ms => magicSentenceMap.set(ms.id, ms));
     }
 
-    // 4. Fetch Covers from book_media (User's specific requirement for story type)
     const mediaCoverMap = new Map<string, { path: string, updated_at: string }>();
-    if (bookIds.length > 0) {
-        const { data: mediaData } = await supabase
-            .from('book_media')
-            .select('book_id, path, updated_at')
-            .eq('media_type', 'image')
-            .in('book_id', bookIds)
-            .order('after_word_index')
-            .order('path');
-
-        if (mediaData) {
-            mediaData.forEach((media: any) => {
-                // Keep the first image found for each book as the cover
-                if (!mediaCoverMap.has(media.book_id) && media.path) {
-                    mediaCoverMap.set(media.book_id, { path: media.path, updated_at: media.updated_at });
-                }
-            });
-        }
+    if (bookIds.size > 0) {
+        const { data: mediaData } = await supabase.from('book_media').select('book_id, path, updated_at').eq('media_type', 'image').in('book_id', Array.from(bookIds)).order('after_word_index').order('path');
+        mediaData?.forEach((media: any) => { if (!mediaCoverMap.has(media.book_id) && media.path) mediaCoverMap.set(media.book_id, { path: media.path, updated_at: media.updated_at }); });
     }
 
-    // 5. Batch Sign URLs
-    const pathsToSign = new Set<string>();
-    bookMap.forEach(book => {
-        if (book.cover_image_path && !book.cover_image_path.startsWith('http')) {
-            pathsToSign.add(book.cover_image_path);
-        }
-    });
-    mediaCoverMap.forEach(media => {
-        if (media.path && !media.path.startsWith('http')) {
-            pathsToSign.add(media.path);
-        }
-    });
+    // 3. Batch Sign URLs
+    const bookPathsToSign = new Set<string>();
+    const userPathsToSign = new Set<string>();
+    bookMap.forEach(book => { if (book.cover_image_path && !book.cover_image_path.startsWith('http')) bookPathsToSign.add(book.cover_image_path); });
+    mediaCoverMap.forEach(media => { if (media.path && !media.path.startsWith('http')) bookPathsToSign.add(media.path); });
+    magicSentenceMap.forEach(ms => { if (ms.image_path && !ms.image_path.startsWith('http')) userPathsToSign.add(ms.image_path); });
 
     const signedUrlMap = new Map<string, string>();
-    if (pathsToSign.size > 0) {
-        const { data: signedData } = await supabase.storage
-            .from('book-assets')
-            .createSignedUrls(Array.from(pathsToSign), 3600);
-
-        signedData?.forEach(item => {
-            if (item.path && item.signedUrl) {
-                signedUrlMap.set(item.path, item.signedUrl);
-            }
-        });
+    if (bookPathsToSign.size > 0) {
+        const { data: signedData } = await supabase.storage.from('book-assets').createSignedUrls(Array.from(bookPathsToSign), 3600);
+        signedData?.forEach(item => { if (item.path && item.signedUrl) signedUrlMap.set(item.path, item.signedUrl); });
+    }
+    if (userPathsToSign.size > 0) {
+        const { data: signedData } = await supabase.storage.from('user-assets').createSignedUrls(Array.from(userPathsToSign), 3600);
+        signedData?.forEach(item => { if (item.path && item.signedUrl) signedUrlMap.set(item.path, item.signedUrl); });
     }
 
-    const result = finalTransactions.map((tx) => {
-        // Format action name nicely
-        const formatAction = (reason: string) => {
-            if (reason === 'generation_group') return 'Story Collection';
-            return reason
-                .split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
-        };
-
+    // 4. Map to UsageEvent
+    return finalTransactions.map((tx) => {
         const isGroup = 'isGrouped' in tx && tx.isGrouped === true;
         const eId = isGroup ? (tx as TransactionGroup).entityId : (tx as RawTransaction).entity_id;
         const eType = isGroup ? (tx as TransactionGroup).entityType : (tx as RawTransaction).entity_type;
-        const bId = (eType === 'story' ? eId : null) || tx.metadata?.book_id;
+        const bId = (eType === 'story' ? eId : null) || (tx as any).metadata?.book_id;
 
-        let description = tx.metadata?.title || tx.metadata?.book_key || tx.reason;
+        const formatAction = (reason: string) => {
+            if (reason === 'generation_group') {
+                return eType === 'magic_sentence' ? 'Magic Sentence' : 'Story Collection';
+            }
+            if (reason === 'magic_sentence') return 'Magic Sentence';
+            return reason.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        };
+
+        let description = (tx as any).metadata?.title || (tx as any).metadata?.book_key;
         let magicSentenceId: string | undefined = undefined;
         let coverImageUrl: string | undefined = undefined;
         let storagePath: string | undefined = undefined;
         let updatedAt: string | undefined = undefined;
+        let bucket: string | undefined = undefined;
 
-        // Enhance description based on type and metadata
-        if (tx.reason === 'word_insight' && tx.metadata?.word) {
-            description = `${tx.metadata.word.charAt(0).toUpperCase() + tx.metadata.word.slice(1)}`;
-        } else if (tx.reason === 'magic_sentence' && (tx.metadata as any)?.words) {
-            const m = tx.metadata as any;
-            const words = m.words;
-            description = words.length > 2 
-                ? `${words.slice(0, 2).join(", ")} + ${words.length - 2} more`
-                : words.join(", ");
-            magicSentenceId = m.magic_sentence_id;
+        if ((tx as any).reason === 'word_insight' && (tx as any).metadata?.word) {
+            description = (tx as any).metadata.word.charAt(0).toUpperCase() + (tx as any).metadata.word.slice(1);
+        } else if (eType === 'magic_sentence' || (tx as any).reason === 'magic_sentence') {
+            const m = (tx as any).metadata as any;
+            if (m?.words) {
+                description = m.words.length > 2 ? `${m.words.slice(0, 2).join(", ")} + ${m.words.length - 2} more` : m.words.join(", ");
+            } else {
+                description = 'Magic Sentence';
+            }
+            magicSentenceId = m?.magic_sentence_id || (eType === 'magic_sentence' ? eId : undefined);
+
+            if (eId && magicSentenceMap.has(eId)) {
+                const ms = magicSentenceMap.get(eId)!;
+                storagePath = ms.image_path || undefined;
+                updatedAt = ms.created_at;
+                bucket = 'user-assets';
+                if (storagePath) coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath);
+            }
         } else if (bId && bookMap.has(bId)) {
             const book = bookMap.get(bId)!;
             description = book.title;
-            storagePath = (mediaCoverMap.get(bId)?.path || book.cover_image_path) || undefined; 
-            updatedAt = (mediaCoverMap.get(bId)?.updated_at || book.updated_at) || undefined;
+            storagePath = mediaCoverMap.get(bId)?.path || book.cover_image_path || undefined;
+            updatedAt = mediaCoverMap.get(bId)?.updated_at || book.updated_at || undefined;
+            bucket = 'book-assets';
+            if (storagePath) coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath);
+        }
 
-            if (storagePath) {
-                coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath) || undefined;
-            }
-        } else if (!tx.metadata?.title && !tx.metadata?.book_key) {
-            // Fallbacks for missing metadata
-            if (tx.reason === 'story_generation') description = 'New Story';
-            else if (tx.reason === 'image_generation') description = 'Story Illustration';
-            else if (tx.reason === 'word_insight') description = 'Word Learning';
-            else if (tx.reason === 'magic_sentence') description = 'Magic Sentence';
+        // Final fallback for description if still empty or generic
+        if (!description || description === 'generation_group' || description === tx.reason) {
+            if ((tx as any).reason === 'story_generation') description = 'New Story';
+            else if ((tx as any).reason === 'image_generation') description = 'Story Illustration';
+            else if ((tx as any).reason === 'word_insight') description = 'Word Learning';
+            else if ((tx as any).reason === 'magic_sentence') description = 'Magic Sentence';
+            else description = formatAction((tx as any).reason);
         }
 
         const timestamp = isGroup ? (tx as TransactionGroup).timestamp : (tx as RawTransaction).created_at;
-        const amount = isGroup ? (tx as TransactionGroup).amount : Math.abs((tx as RawTransaction).amount);
-        const type = (isGroup ? 'debit' : ((tx as RawTransaction).amount > 0 ? "credit" : "debit")) as "credit" | "debit";
+        const amount = Math.abs((tx as any).amount);
+        const type = (isGroup ? (tx as TransactionGroup).type : (((tx as RawTransaction).amount || 0) > 0 ? "credit" : "debit")) as "credit" | "debit";
 
         return {
-            id: tx.id,
-            action: formatAction(tx.reason),
+            id: (tx as any).id,
+            action: formatAction((tx as any).reason),
             description: description,
             timestamp,
             amount,
@@ -290,13 +302,11 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             coverImageUrl,
             storagePath,
             updatedAt,
+            bucket,
             isGrouped: isGroup,
             storyAmount: isGroup ? (tx as TransactionGroup).storyAmount : undefined,
             imageAmount: isGroup ? (tx as TransactionGroup).imageAmount : undefined,
             magicSentenceId
         };
     });
-
-    console.log(`[getUsageHistory] Returning ${result.length} processed events`);
-    return result;
 }

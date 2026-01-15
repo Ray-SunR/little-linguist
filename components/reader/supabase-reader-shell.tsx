@@ -450,6 +450,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                 <div ref={scrollContainerRef} className="flex-1 min-h-0 flex flex-col pt-1">
                     <div id="reader-text-content" data-tour-target="reader-text-content" className="relative h-full overflow-hidden rounded-[1.8rem] bg-card/60 dark:bg-card/40 shadow-soft">
                         <BookLayout
+                            bookId={selectedBookId}
                             tokens={wordTokens}
                             images={selectedBook?.images}
                             currentWordIndex={currentWordIndex}

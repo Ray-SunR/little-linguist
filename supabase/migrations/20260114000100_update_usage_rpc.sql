@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION public.increment_batch_feature_usage(
     p_identity_key TEXT,
-    p_updates JSONB, -- Array of { feature_name, increment, max_limit, child_id?, metadata? }
+    p_updates JSONB, -- Array of { feature_name, increment, max_limit, child_id?, metadata?, entity_id?, entity_type?, idempotency_key? }
     p_owner_user_id UUID DEFAULT NULL
 )
 RETURNS TABLE (
@@ -20,6 +20,9 @@ DECLARE
     v_limit INTEGER;
     v_child_id UUID;
     v_metadata JSONB;
+    v_entity_id TEXT;
+    v_entity_type TEXT;
+    v_idempotency_key TEXT;
 BEGIN
     -- 1. Lock all relevant rows in a consistent order to prevent deadlocks
     PERFORM 1 
@@ -66,6 +69,9 @@ BEGIN
         -- Extract optional connection info
         v_child_id := (v_update->>'child_id')::UUID;
         v_metadata := (v_update->>'metadata')::JSONB;
+        v_entity_id := v_update->>'entity_id';
+        v_entity_type := v_update->>'entity_type';
+        v_idempotency_key := v_update->>'idempotency_key';
         
         -- A. Update Usage
         INSERT INTO public.feature_usage (
@@ -92,9 +98,6 @@ BEGIN
         -- B. Log Point Transaction (Ledger)
         -- Only log if there's a meaningful change (increment != 0)
         -- Also, ensure we have an owner_user_id (transactions are tied to users, though guest usage might exist but table has user_id FK?)
-        -- If p_owner_user_id is NULL (guest), we currently CANNOT insert into point_transactions because of FK constraint to auth.users?
-        -- Checking schema: "owner_user_id uuid references auth.users(id)" -> Yes, strict FK.
-        -- So we skip ledger for guests or untracked users.
         
         IF v_increment != 0 AND p_owner_user_id IS NOT NULL THEN
             INSERT INTO public.point_transactions (
@@ -102,13 +105,19 @@ BEGIN
                 child_id,
                 amount,
                 reason, -- activity_type
-                metadata
+                metadata,
+                entity_id,
+                entity_type,
+                idempotency_key
             ) VALUES (
                 p_owner_user_id,
                 v_child_id,
                 -1 * v_increment, -- Positive usage = Negative balance effect
                 v_feature_name,
-                COALESCE(v_metadata, '{}'::jsonb)
+                COALESCE(v_metadata, '{}'::jsonb),
+                v_entity_id,
+                v_entity_type,
+                v_idempotency_key
             );
         END IF;
         

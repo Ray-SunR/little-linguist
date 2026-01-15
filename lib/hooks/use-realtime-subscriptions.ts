@@ -149,3 +149,37 @@ export function useBookAudioSubscription(bookId: string | undefined, onNewShard:
         };
     }, [bookId, onNewShard]);
 }
+
+/**
+ * Hook to subscribe to book metadata updates (for image status tracking).
+ */
+export function useBookStatusSubscription(bookId: string | undefined, onUpdate: (metadata: any) => void) {
+    useEffect(() => {
+        if (!bookId) return;
+
+        const supabase = createClient();
+
+        const channel = supabase
+            .channel(`book_status:${bookId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'books',
+                    filter: `id=eq.${bookId}`,
+                },
+                (payload) => {
+                    console.log('Realtime book update detected:', payload);
+                    if (payload.new && (payload.new as any).metadata) {
+                        onUpdate((payload.new as any).metadata);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [bookId, onUpdate]);
+}

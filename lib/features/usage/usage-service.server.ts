@@ -169,13 +169,19 @@ export async function tryIncrementUsage(
     featureName: string,
     increment: number = 1,
     childId?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    idempotencyKey?: string,
+    entityId?: string,
+    entityType?: string
 ): Promise<boolean> {
     const result = await reserveCredits(identity, [{
         featureName,
         increment,
         childId,
-        metadata
+        metadata,
+        idempotencyKey,
+        entityId,
+        entityType
     }]);
 
     return result.success;
@@ -262,9 +268,25 @@ export async function refundCredits(
     featureName: string,
     amount: number,
     childId?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    idempotencyKey?: string,
+    entityId?: string,
+    entityType?: string
 ): Promise<boolean> {
     if (amount <= 0) return true;
+
+    // Ensure uniqueness for the refund transaction while linking it to the original
+    const refundIdempotencyKey = idempotencyKey ? `${idempotencyKey}:refund` : undefined;
+
     console.log(`[UsageService] Refunding ${amount} credits for ${featureName} to ${identity.identity_key}`);
-    return tryIncrementUsage(identity, featureName, -amount, childId, { ...metadata, is_refund: true });
+    return tryIncrementUsage(
+        identity,
+        featureName,
+        -amount,
+        childId,
+        { ...metadata, is_refund: true },
+        refundIdempotencyKey,
+        entityId,
+        entityType
+    );
 }

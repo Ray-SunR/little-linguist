@@ -3,11 +3,11 @@
 import { useUsage } from "@/lib/hooks/use-usage";
 import { useEffect, useState } from "react";
 import { getUsageHistory, UsageEvent } from "@/app/actions/usage";
-import { Sparkles, Zap, Image as ImageIcon, BookOpen, Clock, ArrowUpRight, CheckCircle2, Search, X, Filter } from "lucide-react";
+import { Sparkles, Zap, Image as ImageIcon, BookOpen, Clock, ArrowUpRight, CheckCircle2, Search, X } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
 import { CachedImage } from "@/components/ui/cached-image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { MagicSentenceModal } from "@/app/my-words/components/MagicSentenceModal";
 import { useRouter } from "next/navigation";
 
@@ -25,7 +25,7 @@ export default function SubscriptionUI() {
         });
     }, []);
 
-    const filteredHistory = history.filter(event => 
+    const filteredHistory = history.filter(event =>
         event.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -245,51 +245,55 @@ export default function SubscriptionUI() {
                                 {filteredHistory.map((event) => {
                                     const isClickable = !!(event.entityId || event.bookId);
                                     return (
-                                        <tr 
-                                            key={event.id} 
+                                        <tr
+                                            key={event.id}
                                             className={cn(
                                                 "transition-colors border-b border-slate-50 last:border-0",
                                                 isClickable ? "cursor-pointer hover:bg-slate-50" : ""
                                             )}
                                             onClick={() => isClickable && handleRowClick(event)}
                                         >
-                                        <td className="px-6 py-2.5">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm ${event.coverImageUrl ? "bg-slate-100" : (event.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400')}`}>
-                                                    {event.coverImageUrl ? (
-                                                        <CachedImage src={event.coverImageUrl} storagePath={event.storagePath} updatedAt={event.updatedAt} alt={event.description} width={40} height={40} className="w-full h-full object-cover" bucket="book-assets" />
-                                                    ) : (
-                                                        event.type === 'credit' ? <ArrowUpRight className="w-4 h-4" /> : <Clock className="w-4 h-4" />
-                                                    )}
+                                            <td className="px-6 py-2.5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm ${event.coverImageUrl ? "bg-slate-100" : (event.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400')}`}>
+                                                        {event.coverImageUrl ? (
+                                                            <CachedImage src={event.coverImageUrl} storagePath={event.storagePath} updatedAt={event.updatedAt} alt={event.description} width={40} height={40} className="w-full h-full object-cover" bucket={(event.bucket as any) || "book-assets"} />
+                                                        ) : (
+                                                            event.type === 'credit' ? <ArrowUpRight className="w-4 h-4" /> :
+                                                                (event.action.toLowerCase().includes('insight') ? <Zap className="w-4 h-4 text-amber-500" /> :
+                                                                    event.action.toLowerCase().includes('magic') ? <Sparkles className="w-4 h-4 text-purple-500" /> :
+                                                                        event.action.toLowerCase().includes('story') ? <BookOpen className="w-4 h-4 text-pink-500" /> :
+                                                                            <Clock className="w-4 h-4" />)
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        {event.bookId ? (
+                                                            <>
+                                                                <Link href={`/reader/${event.bookId}`} className="font-bold font-nunito text-ink text-sm truncate hover:text-purple-600 hover:underline block leading-tight">
+                                                                    {event.description}
+                                                                </Link>
+                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight leading-tight">{event.action}</p>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <p className="font-bold font-nunito text-ink text-sm truncate leading-tight">{event.action}</p>
+                                                                <p className="text-[10px] font-semibold text-slate-400 line-clamp-1 leading-tight">{event.description}</p>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    {event.bookId ? (
-                                                        <>
-                                                            <Link href={`/reader/${event.bookId}`} className="font-bold font-nunito text-ink text-sm truncate hover:text-purple-600 hover:underline block leading-tight">
-                                                                {event.description}
-                                                            </Link>
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight leading-tight">{event.action}</p>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <p className="font-bold font-nunito text-ink text-sm truncate leading-tight">{event.action}</p>
-                                                            <p className="text-[10px] font-semibold text-slate-400 line-clamp-1 leading-tight">{event.description}</p>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-2.5">
-                                            <p className="text-[10px] font-bold text-slate-500 font-nunito leading-tight" suppressHydrationWarning>
-                                                {new Date(event.timestamp).toLocaleString(undefined, {
-                                                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                                })}
-                                            </p>
-                                        </td>
-                                        <td className="px-6 py-2.5 text-right">
-                                            <AmountDisplay event={event} />
-                                        </td>
-                                    </tr>
+                                            </td>
+                                            <td className="px-6 py-2.5">
+                                                <p className="text-[10px] font-bold text-slate-500 font-nunito leading-tight" suppressHydrationWarning>
+                                                    {new Date(event.timestamp).toLocaleString(undefined, {
+                                                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                                    })}
+                                                </p>
+                                            </td>
+                                            <td className="px-6 py-2.5 text-right">
+                                                <AmountDisplay event={event} />
+                                            </td>
+                                        </tr>
                                     );
                                 })}
                             </tbody>
@@ -306,8 +310,8 @@ export default function SubscriptionUI() {
                         {filteredHistory.map((event) => {
                             const isClickable = !!(event.entityId || event.bookId);
                             return (
-                                <li 
-                                    key={event.id} 
+                                <li
+                                    key={event.id}
                                     className={cn(
                                         "p-4 flex flex-col gap-3 transition-colors",
                                         isClickable ? "cursor-pointer hover:bg-slate-50 active:bg-slate-100" : ""
@@ -315,58 +319,62 @@ export default function SubscriptionUI() {
                                     aria-label={`Activity: ${event.action || event.description}`}
                                     onClick={() => isClickable && handleRowClick(event)}
                                 >
-                                <div className="flex items-start gap-3">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${event.coverImageUrl ? "bg-slate-100 shadow-sm" : (event.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400')}`}>
-                                        {event.coverImageUrl ? (
-                                            <CachedImage src={event.coverImageUrl} storagePath={event.storagePath} updatedAt={event.updatedAt} alt={event.description} width={48} height={48} className="w-full h-full object-cover" bucket="book-assets" />
-                                        ) : (
-                                            event.type === 'credit' ? <ArrowUpRight className="w-5 h-5" /> : <Clock className="w-5 h-5" />
-                                        )}
+                                    <div className="flex items-start gap-3">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${event.coverImageUrl ? "bg-slate-100 shadow-sm" : (event.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400')}`}>
+                                            {event.coverImageUrl ? (
+                                                <CachedImage src={event.coverImageUrl} storagePath={event.storagePath} updatedAt={event.updatedAt} alt={event.description} width={48} height={48} className="w-full h-full object-cover" bucket={(event.bucket as any) || "book-assets"} />
+                                            ) : (
+                                                event.type === 'credit' ? <ArrowUpRight className="w-5 h-5" /> :
+                                                    (event.action.toLowerCase().includes('insight') ? <Zap className="w-5 h-5 text-amber-500" /> :
+                                                        event.action.toLowerCase().includes('magic') ? <Sparkles className="w-5 h-5 text-purple-500" /> :
+                                                            event.action.toLowerCase().includes('story') ? <BookOpen className="w-5 h-5 text-pink-500" /> :
+                                                                <Clock className="w-5 h-5" />)
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            {event.bookId ? (
+                                                <>
+                                                    <Link href={`/reader/${event.bookId}`} className="font-bold font-nunito text-ink text-sm line-clamp-1 hover:text-purple-600 active:text-purple-700">
+                                                        {event.description}
+                                                    </Link>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">{event.action}</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="font-bold font-nunito text-ink text-sm line-clamp-1">{event.action}</p>
+                                                    <p className="text-[10px] font-semibold text-slate-400 line-clamp-2 mt-0.5">{event.description}</p>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="text-right">
+                                            <AmountDisplay event={event} mobile />
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        {event.bookId ? (
-                                            <>
-                                                <Link href={`/reader/${event.bookId}`} className="font-bold font-nunito text-ink text-sm line-clamp-1 hover:text-purple-600 active:text-purple-700">
-                                                    {event.description}
-                                                </Link>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">{event.action}</p>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <p className="font-bold font-nunito text-ink text-sm line-clamp-1">{event.action}</p>
-                                                <p className="text-[10px] font-semibold text-slate-400 line-clamp-2 mt-0.5">{event.description}</p>
-                                            </>
-                                        )}
-                                    </div>
-                                    <div className="text-right">
-                                        <AmountDisplay event={event} mobile />
-                                    </div>
-                                </div>
 
-                                <div className="flex items-center justify-between border-t border-slate-50 pt-1.5 mt-0.5">
-                                    <p className="text-[10px] font-bold text-slate-400 font-nunito" suppressHydrationWarning>
-                                        {new Date(event.timestamp).toLocaleString(undefined, {
-                                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                        })}
-                                    </p>
-                                    <button 
-                                        className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-1 hover:underline"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRowClick(event);
-                                        }}
-                                    >
-                                        Details <ArrowUpRight className="w-2.5 h-2.5" />
-                                    </button>
-                                </div>
-                            </li>
+                                    <div className="flex items-center justify-between border-t border-slate-50 pt-1.5 mt-0.5">
+                                        <p className="text-[10px] font-bold text-slate-400 font-nunito" suppressHydrationWarning>
+                                            {new Date(event.timestamp).toLocaleString(undefined, {
+                                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                            })}
+                                        </p>
+                                        <button
+                                            className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-1 hover:underline"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRowClick(event);
+                                            }}
+                                        >
+                                            Details <ArrowUpRight className="w-2.5 h-2.5" />
+                                        </button>
+                                    </div>
+                                </li>
                             );
                         })}
                     </ul>
                 </div>
             </section>
 
-            <MagicSentenceModal 
+            <MagicSentenceModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 isLoading={modalLoading}
@@ -378,34 +386,74 @@ export default function SubscriptionUI() {
 }
 
 function AmountDisplay({ event, mobile = false }: { event: UsageEvent, mobile?: boolean }) {
+    // Determine individual label for non-grouped transactions
+    let individualLabel = null;
+    if (!event.isGrouped) {
+        const actionLower = event.action.toLowerCase();
+        if (actionLower.includes("word insight")) {
+            individualLabel = "INSIGHT";
+        } else if (actionLower.includes("story generation")) {
+            individualLabel = "STORY";
+        } else if (actionLower.includes("image generation")) {
+            individualLabel = "IMAGE";
+        } else if (actionLower.includes("magic sentence")) {
+            individualLabel = "MAGIC";
+        }
+    }
+
     return (
         <div className="flex flex-col items-end gap-1">
             {event.isGrouped ? (
                 <div className={`flex ${mobile ? 'flex-row gap-3' : 'flex-col items-end gap-1'}`}>
-                    {event.storyAmount !== undefined && event.storyAmount > 0 && (
+                    {event.storyAmount !== undefined && (
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">Story</span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black font-fredoka bg-red-50 text-red-600 border border-red-100">
-                                -{event.storyAmount}
+                            <span className="text-[10px] font-black text-slate-400 uppercase">
+                                {event.entityType === 'magic_sentence' ? 'Magic' : 'Story'}
+                            </span>
+                            <span className={cn(
+                                "inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black font-fredoka border",
+                                event.storyAmount < 0
+                                    ? "bg-red-50 text-red-600 border-red-100"
+                                    : (event.storyAmount > 0
+                                        ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                        : "bg-slate-50 text-slate-500 border-slate-100")
+                            )}>
+                                {event.storyAmount < 0 ? '-' : (event.storyAmount > 0 ? '+' : '')}{Math.abs(event.storyAmount)}
                             </span>
                         </div>
                     )}
-                    {event.imageAmount !== undefined && event.imageAmount > 0 && (
+                    {event.imageAmount !== undefined && (
                         <div className="flex items-center gap-1.5">
                             <span className="text-[10px] font-black text-slate-400 uppercase">Image</span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black font-fredoka bg-red-50 text-red-600 border border-red-100">
-                                -{event.imageAmount}
+                            <span className={cn(
+                                "inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black font-fredoka border",
+                                event.imageAmount < 0
+                                    ? "bg-red-50 text-red-600 border-red-100"
+                                    : (event.imageAmount > 0
+                                        ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                        : "bg-slate-50 text-slate-500 border-slate-100")
+                            )}>
+                                {event.imageAmount < 0 ? '-' : (event.imageAmount > 0 ? '+' : '')}{Math.abs(event.imageAmount)}
                             </span>
                         </div>
                     )}
                 </div>
             ) : (
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black font-fredoka ${event.type === 'credit'
-                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                    : 'bg-red-50 text-red-600 border border-red-100'
-                    }`}>
-                    {event.type === 'credit' ? '+' : '-'}{event.amount}
-                </span>
+                <div className="flex items-center gap-1.5">
+                    {individualLabel && (
+                        <span className="text-[10px] font-black text-slate-400 uppercase">
+                            {individualLabel}
+                        </span>
+                    )}
+                    <span className={cn(
+                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black font-fredoka border",
+                        event.type === 'credit'
+                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                            : 'bg-red-50 text-red-600 border-red-100'
+                    )}>
+                        {event.type === 'credit' ? '+' : '-'}{event.amount}
+                    </span>
+                </div>
             )}
         </div>
     );
