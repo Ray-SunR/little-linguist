@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from "react"; // Re-importing
 import type { WordInsight } from "./types";
+import { normalizeWord } from "@/lib/core";
 import { DatabaseWordService } from "./implementations/database-word-service";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -22,12 +23,19 @@ export interface SavedWord extends WordInsight {
     coverImageUrl?: string;
 }
 
+import type { WordServiceOptions } from "./types";
+
 type WordListContextType = {
     words: SavedWord[];
+    totalWords: number;
+    hasMore: boolean;
+    isLoading: boolean;
+    loadWords: (options?: WordServiceOptions) => Promise<void>;
+    loadMore: () => Promise<void>;
     addWord: (word: WordInsight, bookId?: string) => Promise<void>;
     removeWord: (word: string, bookId?: string) => Promise<void>;
+    removeWords: (words: string[]) => Promise<void>;
     hasWord: (word: string, bookId?: string) => boolean;
-    isLoading: boolean;
 };
 
 const dbService = new DatabaseWordService();
@@ -41,7 +49,7 @@ const hydrateAudio = async (url?: string, storagePath?: string) => {
     if (!storagePath) {
         const isStableUrl = url.startsWith("/") || url.startsWith("blob:") || url.startsWith("data:");
         if (!isStableUrl) {
-            console.error(`[WordList] CRITICAL: Missing storagePath for potentially unstable audio URL. Caching skipped. URL: ${url}`);
+            console.warn(`[WordList] WARNING: Missing storagePath for potentially unstable audio URL. Caching skipped. URL: ${url}`);
         }
         return url;
     }
@@ -63,7 +71,7 @@ const hydrateImage = async (url?: string, storagePath?: string) => {
     if (!storagePath) {
         const isStableUrl = url.startsWith("/") || url.startsWith("blob:") || url.startsWith("data:");
         if (!isStableUrl) {
-            console.error(`[WordList] CRITICAL: Missing storagePath for potentially unstable image URL. Caching skipped. URL: ${url}`);
+            console.warn(`[WordList] WARNING: Missing storagePath for potentially unstable image URL. Caching skipped. URL: ${url}`);
         }
         return url;
     }
@@ -92,7 +100,13 @@ async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
     if (!cachedList || cachedList.length === 0) return [];
 
     const prefix = userId ? `u:${userId}:` : 'guest:';
-    const filteredList = cachedList.filter((w: SavedWord) => w.id.startsWith(prefix));
+    const filteredList = cachedList
+        .filter((w: SavedWord) => w.id.startsWith(prefix))
+        .sort((a: SavedWord, b: SavedWord) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA; // Descending
+        });
 
     return await Promise.all(filteredList.map(async (w: LegacySavedWord) => {
         // Migration: Map old snake_case fields to camelCase if present
@@ -127,117 +141,82 @@ async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
 
 export function WordListProvider({ children, fetchOnMount = true }: { children: React.ReactNode; fetchOnMount?: boolean }) {
     const [words, setWords] = useState<SavedWord[]>([]);
-    const [isLoading, setIsLoading] = useState(() => {
-        if (typeof window !== "undefined") {
-            return !window.localStorage.getItem("raiden:has_words_cache");
-        }
-        return true;
-    });
+    const [totalWords, setTotalWords] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoading, setIsLoading] = useState(fetchOnMount);
+    
     const isFetchingRef = useRef(false);
     const wordsRef = useRef(words);
+    const lastOptionsRef = useRef<WordServiceOptions>({});
     const { user, isLoading: authLoading, activeChild } = useAuth();
     const pathname = usePathname();
 
     const isMyWordsRoute = useMemo(() => pathname?.startsWith("/my-words") ?? false, [pathname]);
 
-    const loadWords = useCallback(async () => {
-        if (isFetchingRef.current) return; // Prevent multiple concurrent fetches
+    const loadWords = useCallback(async (options: WordServiceOptions = {}) => {
+        if (isFetchingRef.current) return;
         isFetchingRef.current = true;
+        
+        const isInitialLoad = !options.offset || options.offset === 0;
+        lastOptionsRef.current = options;
 
         try {
-            // Only set loading if we don't have words yet (visual speedup)
-            if (wordsRef.current.length === 0) setIsLoading(true);
-
-            // On identity change, we might want to clear non-guest cache to avoid leakage
-            // but for now we just rely on robust filtering.
-
-            // 1. Try cache first (hydrated)
-            const cachedWords = await getHydratedWords(user?.id);
-            const isGuest = !user;
-
-            if (cachedWords.length > 0) {
-                setWords((prev: SavedWord[]) => {
-                    const wordMap = new Map(prev.map((w: SavedWord) => [w.word, w]));
-                    cachedWords.forEach((w: SavedWord) => {
-                        if (!wordMap.has(w.word)) {
-                            wordMap.set(w.word, w);
-                        }
-                    });
-                    return Array.from(wordMap.values());
-                });
-                if (typeof window !== "undefined") {
-                    window.localStorage.setItem("raiden:has_words_cache", "true");
+            if (isInitialLoad) {
+                setIsLoading(true);
+                // Only try cache for the "default" view (no filters/search)
+                if (!options.status && !options.search && (!options.sortBy || options.sortBy === 'createdAt')) {
+                    const cachedWords = await getHydratedWords(user?.id);
+                    if (cachedWords.length > 0) {
+                        setWords(cachedWords);
+                        setTotalWords(cachedWords.length);
+                        // We still fetch from DB to get total and fresh data
+                    }
                 }
-                setIsLoading(false);
             }
 
-            // 2. Fetch fresh from DB if authenticated
             if (user && activeChild?.id) {
-                const list = await dbService.getWords(activeChild?.id);
+                const result = await dbService.getWords(activeChild.id, options);
+                const list = result.words || [];
+                const total = result.total || 0;
 
-                // Batch audio hydration to avoid overloading network/memory
-                const BATCH_SIZE = 5;
-                const listForCache: SavedWord[] = [];
+                setTotalWords(total);
+                setHasMore(list.length === (options.limit || 50));
 
-                for (let i = 0; i < list.length; i += BATCH_SIZE) {
-                    const batch = list.slice(i, i + BATCH_SIZE);
-                    const processedBatch = await Promise.all(batch.map(async (w: any) => {
-                        const baseId = `${w.word.toLowerCase()}:${w.bookId || 'global'}`;
-                        const id = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+                const processedList = await Promise.all(list.map(async (w: any) => {
+                    const baseId = `${w.word.toLowerCase()}:${w.bookId || 'global'}`;
+                    const id = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+                    
+                    // Basic hydration
+                    const audioUrl = await hydrateAudio(w.audioUrl, w.audioPath);
+                    const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
 
-                        // Use specific paths to avoid collisions
-                        const audioUrl = await hydrateAudio(w.audioUrl, w.audioPath);
-                        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.wordAudioPath);
-                        const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
+                    return { ...w, id, audioUrl, coverImageUrl } as SavedWord;
+                }));
 
-                        const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
-                            ? await Promise.all(w.exampleAudioUrls.slice(0, 2).map((u: string, idx: number) =>
-                                hydrateAudio(u, w.exampleAudioPaths?.[idx] || u)
-                            ))
-                            : undefined;
+                setWords(prev => isInitialLoad ? processedList : [...prev, ...processedList]);
 
-                        return {
-                            ...w,
-                            id,
-                            audioUrl,
-                            wordAudioUrl,
-                            exampleAudioUrls,
-                            coverImagePath: w.coverImagePath,
-                            coverImageUrl,
-                        } as SavedWord;
-                    }));
-                    listForCache.push(...processedBatch);
+                // Update cache if it's the initial load of default view
+                if (isInitialLoad && !options.status && !options.search) {
+                    await raidenCache.putAll(CacheStore.USER_WORDS, processedList);
+                    if (typeof window !== "undefined") {
+                        window.localStorage.setItem("raiden:has_words_cache", "true");
+                    }
                 }
-
-                setWords((prev: SavedWord[]) => {
-                    const wordMap = new Map(prev.map((w: SavedWord) => [w.id, w])); // Use w.id for map key
-                    listForCache.forEach((w: SavedWord) => {
-                        wordMap.set(w.id, w); // Overwrite with fresh data using w.id
-                    });
-                    return Array.from(wordMap.values());
-                });
-
-                // 3. Update cache using batched putAll (preserving guest words)
-                const currentCache = await raidenCache.getAll<SavedWord>(CacheStore.USER_WORDS);
-                const guestWords = currentCache.filter((w: SavedWord) => w.id.startsWith("guest:"));
-
-                await raidenCache.clear(CacheStore.USER_WORDS);
-                const finalCache = [...listForCache, ...guestWords];
-                if (finalCache.length > 0) {
-                    await raidenCache.putAll(CacheStore.USER_WORDS, finalCache);
-                }
-            } else if (!user) {
-                // Guest mode: words are already set from cache filtered in step 1
-                setIsLoading(false);
             }
         } catch (error) {
             console.error("Failed to load words", error);
-            if (wordsRef.current.length === 0) setWords([]);
         } finally {
             setIsLoading(false);
             isFetchingRef.current = false;
         }
-    }, [user, activeChild]); // Stable dependencies
+    }, [user, activeChild]);
+
+    const loadMore = useCallback(async () => {
+        if (!hasMore || isLoading) return;
+        const nextOffset = words.length;
+        await loadWords({ ...lastOptionsRef.current, offset: nextOffset });
+    }, [hasMore, isLoading, words.length, loadWords]);
+ // Stable dependencies
 
     // Keep ref in sync
     useEffect(() => {
@@ -246,9 +225,12 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
 
     // Load initial words and refresh on auth change
     useEffect(() => {
-        setWords([]); // Clear UI state immediately on user change
+        setWords([]); 
+        setTotalWords(0); // Reset total count too!
         if (fetchOnMount) {
             loadWords();
+        } else {
+            setIsLoading(false); // Make sure we're not stuck in loading if no fetch
         }
     }, [user?.id, activeChild?.id, authLoading, isMyWordsRoute, fetchOnMount, loadWords]);
 
@@ -309,6 +291,52 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         }
     };
 
+    const removeWords = async (wordsToRemove: string[]) => {
+        if (wordsToRemove.length === 0) return;
+
+        const normalizedToRemove = wordsToRemove.map(w => normalizeWord(w).replace(/[^a-z0-9-]/g, ""));
+        const wordIdsToRemove = wordsToRemove.map(wStr => {
+            const baseId = `${wStr.toLowerCase()}:global`; // Best effort for ID matching
+            return user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+        });
+
+        const wordsToRestore = words.filter((w: SavedWord) => wordsToRemove.includes(w.word));
+
+        // Optimistic update
+        setWords((prev: SavedWord[]) => prev.filter((w: SavedWord) => !wordsToRemove.includes(w.word)));
+        setTotalWords(prev => Math.max(0, prev - wordsToRemove.length));
+
+        try {
+            if (user && activeChild?.id) {
+                const response = await fetch('/api/words', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ words: wordsToRemove, childId: activeChild.id })
+                });
+                if (!response.ok) throw new Error('Failed to remove words');
+            }
+            
+            // Sync cache
+            for (const wordStr of wordsToRemove) {
+                // Look up the exact ID from our local state to ensure we delete the correct cache entry
+                // (which might be tied to a specific bookId)
+                const wordObj = words.find(w => w.word === wordStr);
+                if (wordObj && wordObj.id) {
+                    await raidenCache.delete(CacheStore.USER_WORDS, wordObj.id);
+                } else {
+                    // Fallback to best-effort text-based ID if state lookup fails
+                    const baseId = `${wordStr.toLowerCase()}:global`;
+                    const wordId = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+                    await raidenCache.delete(CacheStore.USER_WORDS, wordId);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to remove words, rolling back:", err);
+            setWords((prev: SavedWord[]) => [...wordsToRestore, ...prev]);
+            setTotalWords(prev => prev + wordsToRestore.length);
+        }
+    };
+
     const hasWord = (wordStr: string, bookId?: string) => {
         return words.some((w: SavedWord) => {
             const wordMatch = w.word.toLowerCase() === wordStr.toLowerCase();
@@ -320,7 +348,18 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
     };
 
     return (
-        <WordListContext.Provider value={{ words, addWord, removeWord, hasWord, isLoading }}>
+        <WordListContext.Provider value={{ 
+            words, 
+            totalWords, 
+            hasMore, 
+            isLoading, 
+            loadWords, 
+            loadMore, 
+            addWord, 
+            removeWord, 
+            removeWords,
+            hasWord 
+        }}>
             {children}
         </WordListContext.Provider>
     );

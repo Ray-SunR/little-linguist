@@ -135,137 +135,146 @@ export const WordListItemV2 = memo(function WordListItemV2({
     }, [audioProvider, polyState, playPoly]);
 
     return (
-        <div className="group relative p-2 md:p-4 mb-2 md:mb-6">
-            <motion.div 
+        <div className="group relative p-2 md:p-3 mb-2 md:mb-4">
+            <div
                 className={cn(
-                    "relative flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-3xl md:rounded-[2.5rem] bg-white border-[3px] md:border-4 transition-all duration-300",
-                    isSelected ? "border-purple-500 shadow-clay-purple ring-4 ring-purple-100" : "border-slate-100",
-                    "hover:shadow-2xl hover:-translate-y-1",
-                    !isSelected && theme.shadow
+                    "w-full rounded-[2rem] bg-white transition-all duration-300 relative overflow-hidden",
+                    "border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]",
+                    "hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1",
+                    isSelected && "ring-4 ring-violet-500/20 border-violet-500/50 shadow-[0_20px_40px_rgba(124,58,237,0.1)]"
                 )}
                 onClick={onToggleSelection}
             >
-                {/* Selection Indicator */}
-                <div className="absolute top-4 left-4 z-20">
-                    <div className={cn(
-                        "w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all",
-                        isSelected 
-                            ? "bg-purple-500 border-purple-500 text-white" 
-                            : "bg-white border-slate-200 text-transparent"
-                    )}>
-                        <Sparkles className="w-4 h-4" />
-                    </div>
-                </div>
-
-                {/* Left: Word Info */}
-                <div className="flex-1 space-y-3 md:space-y-4 pl-8 md:pl-0">
-                    <div className="flex items-center gap-3 md:gap-4">
-                        <h3 className={cn("text-2xl md:text-3xl font-black font-fredoka", theme.accent)}>
-                            {word}
-                        </h3>
-                        <button 
-                            onClick={handlePronounce}
-                            className={cn(
-                                "p-2 md:p-3 rounded-xl md:rounded-2xl transition-all duration-200 active:scale-95",
-                                theme.light, theme.accent, "hover:bg-white hover:shadow-md"
-                            )}
-                        >
-                            <Volume2 className="w-5 h-5 md:w-6 md:h-6" />
-                        </button>
-                    </div>
-
-                    {bookTitle && (
-                        <div className="flex items-center gap-1.5 md:gap-2 text-slate-400 font-bold text-xs md:text-sm bg-slate-50 w-fit px-2.5 py-1 rounded-full">
-                            <BookOpen className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                            {bookTitle}
+                {/* Visual Depth/Glass Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+                
+                <div className="relative p-6 md:p-8 flex flex-col md:flex-row gap-6">
+                    {/* Selection Indicator Overlay */}
+                    <div className="absolute top-4 left-4 z-20">
+                        <div className={cn(
+                            "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
+                            isSelected 
+                                ? "bg-violet-600 border-violet-600 text-white shadow-lg scale-110" 
+                                : "bg-white/80 border-slate-200 text-transparent hover:border-violet-300"
+                        )}>
+                            <Sparkles className="w-3.5 h-3.5" />
                         </div>
-                    )}
+                    </div>
 
-                    <div className="space-y-3 md:space-y-4 pt-1 md:pt-2">
-                        {/* Definition Section */}
-                        <div className="space-y-1.5 md:space-y-2">
-                            <div className="flex items-center gap-2">
-                                <button 
-                                    onClick={() => handlePlayNarration("definition")}
-                                    disabled={!audioUrls.definition}
-                                    className={cn(
-                                        "p-1.5 md:p-2 rounded-xl transition-all active:scale-95 disabled:opacity-30",
-                                        activeNarrationType === "definition" && polyState === "PLAYING" 
-                                            ? "bg-purple-500 text-white shadow-clay-purple" 
-                                            : "bg-purple-50 text-purple-500"
-                                    )}
-                                >
-                                    {activeNarrationType === "definition" && polyState === "PLAYING" 
-                                        ? <Pause className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
-                                        : <Play className="w-3.5 h-3.5 md:w-4 md:h-4" />}
-                                </button>
-                                <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-wider">Definition</span>
+                    {/* Left Content: Word Title & Labels */}
+                    <div className="flex-1 space-y-4 pt-2 md:pt-0 pl-4 md:pl-0">
+                        <div className="flex flex-wrap items-center gap-4">
+                            <h3 className={cn(
+                                "text-3xl md:text-4xl font-black font-fredoka tracking-tight transition-colors duration-300",
+                                isSelected ? "text-violet-600" : "text-slate-800"
+                            )}>
+                                {word}
+                            </h3>
+                            <button 
+                                onClick={handlePronounce}
+                                className={cn(
+                                    "p-2.5 rounded-xl transition-all duration-300 active:scale-95 group/btn",
+                                    "bg-slate-50 text-slate-400 hover:bg-violet-600 hover:text-white hover:shadow-lg"
+                                )}
+                            >
+                                <Volume2 className="w-5 h-5 md:w-6 md:h-6" />
+                            </button>
+                        </div>
+
+                        {bookTitle && (
+                            <div className="flex items-center gap-2 text-slate-400 font-black text-[10px] md:text-xs uppercase tracking-widest bg-slate-50/80 w-fit px-3 py-1.5 rounded-full border border-slate-100/50">
+                                <BookOpen className="w-3.5 h-3.5 text-violet-400" />
+                                <span className="line-clamp-1">{bookTitle}</span>
                             </div>
-                            <p className="text-base md:text-lg font-medium text-ink leading-relaxed">
-                                {insight?.definition?.split(" ").map((token: string, i: number) => (
-                                    <span 
-                                        key={i} 
-                                        className={cn(
-                                            "transition-colors duration-200",
-                                            activeNarrationType === "definition" && highlightedIndex === i 
-                                                ? "bg-purple-200 text-purple-900 px-1 rounded mx-[-4px]" 
-                                                : ""
-                                        )}
-                                    >
-                                        {token}{" "}
-                                    </span>
-                                ))}
-                            </p>
-                        </div>
+                        )}
 
-                        {/* Example Section */}
-                        {insight?.examples?.[0] && (
-                            <div className="space-y-1.5 md:space-y-2">
+                        <div className="space-y-5 pt-2">
+                            {/* Definition Section */}
+                            <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <button 
-                                        onClick={() => handlePlayNarration("example")}
-                                        disabled={!audioUrls.example}
+                                        onClick={(e) => { e.stopPropagation(); handlePlayNarration("definition"); }}
+                                        disabled={!audioUrls.definition}
                                         className={cn(
-                                            "p-1.5 md:p-2 rounded-xl transition-all active:scale-95 disabled:opacity-30",
-                                            activeNarrationType === "example" && polyState === "PLAYING" 
-                                                ? "bg-blue-500 text-white shadow-clay-blue" 
-                                                : "bg-blue-50 text-blue-500"
+                                            "p-2 rounded-xl transition-all active:scale-95 disabled:opacity-30",
+                                            activeNarrationType === "definition" && polyState === "PLAYING" 
+                                                ? "bg-violet-600 text-white shadow-lg" 
+                                                : "bg-violet-50 text-violet-600 hover:bg-violet-100"
                                         )}
                                     >
-                                        {activeNarrationType === "example" && polyState === "PLAYING" 
-                                            ? <Pause className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
-                                            : <Play className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+                                        {activeNarrationType === "definition" && polyState === "PLAYING" 
+                                            ? <Pause className="w-4 h-4" /> 
+                                            : <Play className="w-4 h-4" />}
                                     </button>
-                                    <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-wider">Example</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Meaning</span>
                                 </div>
-                                <p className="text-base md:text-lg font-medium text-slate-600 italic leading-relaxed">
-                                    &quot;{insight.examples[0].split(" ").map((token: string, i: number) => (
+                                <p className="text-lg md:text-xl font-medium text-slate-700 leading-relaxed font-nunito">
+                                    {insight?.definition?.split(" ").map((token: string, i: number) => (
                                         <span 
                                             key={i} 
                                             className={cn(
-                                                "transition-colors duration-200",
-                                                activeNarrationType === "example" && highlightedIndex === i 
-                                                    ? "bg-blue-200 text-blue-900 px-1 rounded mx-[-4px]" 
+                                                "transition-colors duration-200 rounded",
+                                                activeNarrationType === "definition" && highlightedIndex === i 
+                                                    ? "bg-violet-100 text-violet-900 px-0.5" 
                                                     : ""
                                             )}
                                         >
                                             {token}{" "}
                                         </span>
-                                    ))}&quot;
+                                    ))}
                                 </p>
                             </div>
-                        )}
-                    </div>
-                </div>
 
-                {/* Right/Top Actions: Trash Button */}
-                <div className="absolute top-4 right-4 md:static md:flex md:items-center">
-                    <button 
-                        onClick={onRemove}
-                        className="p-3 md:p-4 rounded-2xl md:rounded-[1.5rem] bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white hover:shadow-clay-rose transition-all duration-300 active:scale-90 shadow-sm md:shadow-none"
-                    >
-                        <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
-                    </button>
+                            {/* Example Section */}
+                            {insight?.examples?.[0] && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handlePlayNarration("example"); }}
+                                            disabled={!audioUrls.example}
+                                            className={cn(
+                                                "p-2 rounded-xl transition-all active:scale-95 disabled:opacity-30",
+                                                activeNarrationType === "example" && polyState === "PLAYING" 
+                                                    ? "bg-indigo-600 text-white shadow-lg" 
+                                                    : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                                            )}
+                                        >
+                                            {activeNarrationType === "example" && polyState === "PLAYING" 
+                                                ? <Pause className="w-4 h-4" /> 
+                                                : <Play className="w-4 h-4" />}
+                                        </button>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Example</span>
+                                    </div>
+                                    <p className="text-lg md:text-xl font-bold text-slate-500 italic leading-relaxed font-nunito pl-1 border-l-4 border-indigo-100">
+                                        &quot;{insight.examples[0].split(" ").map((token: string, i: number) => (
+                                            <span 
+                                                key={i} 
+                                                className={cn(
+                                                    "transition-colors duration-200 rounded",
+                                                    activeNarrationType === "example" && highlightedIndex === i 
+                                                        ? "bg-indigo-100 text-indigo-900 px-0.5" 
+                                                        : ""
+                                                )}
+                                            >
+                                                {token}{" "}
+                                            </span>
+                                        ))}&quot;
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right Actions: Trash Button */}
+                    <div className="flex flex-row md:flex-col items-center justify-end md:justify-start gap-4 pt-4 md:pt-0">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                            className="p-4 rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all duration-300 active:scale-90"
+                            title="Remove from treasury"
+                        >
+                            <Trash2 className="w-6 h-6" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Loading Overlay */}
@@ -275,17 +284,20 @@ export const WordListItemV2 = memo(function WordListItemV2({
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[2.5rem] flex items-center justify-center z-10"
+                            className="absolute inset-0 bg-white/80 backdrop-blur-[4px] flex items-center justify-center z-50"
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-                                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                            <div className="flex items-center gap-2">
+                                <motion.div 
+                                    animate={{ rotate: 360 }}
+                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                    className="w-8 h-8 border-4 border-violet-100 border-t-violet-600 rounded-full"
+                                />
+                                <span className="text-sm font-black text-violet-600 font-fredoka uppercase tracking-widest">Brewing Insight...</span>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </motion.div>
+            </div>
         </div>
     );
 });

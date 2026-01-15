@@ -27,11 +27,23 @@ export interface WordInsightService extends WordInsightProvider { }
  * Service interface for word list persistence
  * Implementations: DatabaseWordService
  */
+export interface WordServiceOptions {
+  limit?: number;
+  offset?: number;
+  light?: boolean;
+  status?: string;
+  search?: string;
+  sortBy?: 'createdAt' | 'word' | 'reps';
+  sortOrder?: 'asc' | 'desc';
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface IWordService {
-  getWords(): Promise<WordInsight[]>;
-  addWord(word: WordInsight, bookId?: string): Promise<void>;
-  removeWord(wordStr: string, bookId?: string): Promise<void>;
-  hasWord(wordStr: string, bookId?: string): Promise<boolean>;
+  getWords(childId?: string, options?: WordServiceOptions): Promise<any>;
+  addWord(word: WordInsight, bookId?: string, childId?: string): Promise<void>;
+  removeWord(wordStr: string, bookId?: string, childId?: string): Promise<void>;
+  hasWord(wordStr: string, bookId?: string, childId?: string): Promise<boolean>;
 }
 
 // Alias for clarity in new code

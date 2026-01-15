@@ -1,15 +1,31 @@
-import type { IWordService, WordInsight } from "../types";
+import type { IWordService, WordServiceOptions } from "../types";
+import type { SavedWord } from "../provider";
+import type { WordInsight } from "../types";
 
 export class DatabaseWordService implements IWordService {
-    async getWords(childId?: string): Promise<WordInsight[]> {
+    async getWords(childId?: string, options: WordServiceOptions = {}): Promise<{ words: SavedWord[], total: number }> {
         try {
-            const url = childId ? `/api/words?childId=${childId}` : '/api/words';
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch words');
-            return await response.json();
+            const url = new URL('/api/words', window.location.origin);
+            if (childId) url.searchParams.append('childId', childId);
+            if (options.limit !== undefined) url.searchParams.append('limit', options.limit.toString());
+            if (options.offset !== undefined) url.searchParams.append('offset', options.offset.toString());
+            if (options.light !== undefined) url.searchParams.append('light', options.light.toString());
+            if (options.status) url.searchParams.append('status', options.status);
+            if (options.search) url.searchParams.append('search', options.search);
+            if (options.sortBy) url.searchParams.append('sortBy', options.sortBy);
+            if (options.sortOrder) url.searchParams.append('sortOrder', options.sortOrder);
+            if (options.startDate) url.searchParams.append('startDate', options.startDate);
+            if (options.endDate) url.searchParams.append('endDate', options.endDate);
+
+            const response = await fetch(url.toString());
+            const data = await response.json();
+            return {
+                words: data.words || [],
+                total: data.pagination?.total ?? data.total ?? 0
+            };
         } catch (e) {
-            console.error("DatabaseWordService details fetch failed:", e);
-            return [];
+            console.error("DatabaseWordService getWords failed:", e);
+            return { words: [], total: 0 };
         }
     }
 
@@ -46,15 +62,13 @@ export class DatabaseWordService implements IWordService {
         }
     }
 
-    async hasWord(wordStr: string, bookId?: string): Promise<boolean> {
-        // This is a bit inefficient as it fetches all words. 
-        // In a real app, we might want a specific API for this or local caching.
-        // For now, we'll keep it simple to match IWordService expectations.
-        const words = await this.getWords();
-        return words.some(w => {
+    async hasWord(wordStr: string, bookId?: string, childId?: string): Promise<boolean> {
+        const result = await this.getWords(childId, { light: true, limit: 1000 });
+        const words = result.words || [];
+        return words.some((w: any) => {
             const wordMatch = w.word.toLowerCase() === wordStr.toLowerCase();
             if (bookId) {
-                return wordMatch && (w as any).bookId === bookId;
+                return wordMatch && w.bookId === bookId;
             }
             return wordMatch;
         });

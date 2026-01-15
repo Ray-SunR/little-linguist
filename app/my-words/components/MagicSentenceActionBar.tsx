@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Wand2, X, Image as ImageIcon, Lock, LogIn } from "lucide-react";
+import { Sparkles, Wand2, X, Image as ImageIcon, Lock, LogIn, Trash2 } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
 import Link from "next/link";
+import { ConfirmationModal } from "./ConfirmationModal";
 
 interface UsageStatus {
     current: number;
@@ -21,6 +22,7 @@ interface MagicSentenceActionBarProps {
     imageUsage?: UsageStatus;
     isLoggedIn: boolean;
     activeChild: any | null;
+    onDelete?: () => void;
 }
 
 export function MagicSentenceActionBar({
@@ -31,165 +33,198 @@ export function MagicSentenceActionBar({
     usage,
     imageUsage,
     isLoggedIn,
-    activeChild
+    activeChild,
+    onDelete
 }: MagicSentenceActionBarProps) {
-    const [withImage, setWithImage] = useState(false);
+    const [withImage, setWithImage] = useState(true);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     if (selectedCount === 0) return null;
 
     const isMagicLimitReached = usage?.isLimitReached || false;
     const isImageLimitReached = imageUsage?.isLimitReached || false;
+    const isSelectionLimitExceeded = selectedCount > 10;
     const canGenerateImage = isLoggedIn && activeChild && !isImageLimitReached;
-    const canGenerate = isLoggedIn && activeChild && !isMagicLimitReached;
+    const canGenerate = isLoggedIn && activeChild && !isMagicLimitReached && !isSelectionLimitExceeded;
 
     return (
         <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-6 inset-x-4 md:left-1/2 md:right-auto md:-translate-x-1/2 z-[80] md:w-full md:max-w-2xl"
+            initial={{ y: 150, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 150, opacity: 0, scale: 0.9 }}
+            className="fixed bottom-6 inset-x-4 md:left-1/2 md:right-auto md:-translate-x-1/2 z-[80] md:w-full md:max-w-md pointer-events-none"
         >
-            <div className="clay-card bg-white/90 backdrop-blur-md rounded-[2.5rem] p-4 md:p-6 border-4 border-purple-100/50 shadow-2xl flex flex-col md:flex-row items-center gap-4 md:gap-6">
+            <div className="pointer-events-auto bg-white/80 backdrop-blur-xl rounded-[2rem] p-5 shadow-[0_20px_40px_-10px_rgba(124,58,237,0.3)] border-[3px] border-white ring-1 ring-white/50 flex flex-col gap-4 relative overflow-hidden">
                 
-                {/* Info & Close */}
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                    <button 
-                        onClick={onClear}
-                        className="p-3 rounded-2xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-                        title="Clear Selection"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                    
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-black font-fredoka text-purple-600">
-                                {selectedCount}
+                {/* Background Decor */}
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-200/30 rounded-full blur-2xl" />
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-200/30 rounded-full blur-2xl" />
+
+                {/* Header: Count & Controls */}
+                <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-violet-100 w-10 h-10 rounded-2xl flex items-center justify-center border border-violet-200 shadow-inner">
+                             <span className="text-xl font-black font-fredoka text-violet-600">{selectedCount}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-fredoka font-black text-slate-700 text-sm uppercase tracking-wide leading-none">
+                                {selectedCount === 1 ? "Word Picked" : "Words Picked"}
                             </span>
-                            <span className="font-fredoka font-bold text-ink text-sm uppercase tracking-wide">
-                                {selectedCount === 1 ? "Word picked" : "Words picked"}
+                            <span className={cn(
+                                "text-[10px] font-bold uppercase tracking-widest mt-1",
+                                isSelectionLimitExceeded ? "text-rose-500 animate-pulse" : "text-slate-400"
+                            )}>
+                                {isSelectionLimitExceeded ? "Max 10 Allowed!" : "Max limit: 10"}
                             </span>
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                            Max 5 words for best magic
-                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        {onDelete && isLoggedIn && (
+                            <button 
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-100"
+                                title="Delete Selected"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        )}
+                        <button 
+                            onClick={onClear}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-400 hover:bg-slate-200 transition-colors border border-slate-200"
+                            title="Close"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
 
-                {/* Options & Action */}
-                <div className="flex items-center gap-3 w-full md:flex-1 justify-end">
-                    
-                    {/* Image Toggle */}
+                {/* Credit Status (New) */}
+                {isLoggedIn && (
+                    <div className="flex items-center gap-2 px-1 flex-wrap">
+                        <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-100">
+                            <Sparkles className="w-3 h-3 text-purple-500" />
+                            <span className="text-[10px] font-black text-purple-700 uppercase tracking-wide">
+                                Magic Sentences: {usage?.current ?? 0}/{usage?.limit ?? 0}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                            <ImageIcon className="w-3 h-3 text-blue-500" />
+                            <span className="text-[10px] font-black text-blue-700 uppercase tracking-wide">
+                                Images: {imageUsage?.current ?? 0}/{imageUsage?.limit ?? 0}
+                            </span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Actions Row */}
+                <div className="flex items-stretch gap-3 h-14 relative z-10">
+                    {/* Image Toggle Button */}
                     <button
                         onClick={() => isLoggedIn && !isImageLimitReached && setWithImage(!withImage)}
                         disabled={!isLoggedIn || isImageLimitReached}
                         className={cn(
-                            "relative flex items-center gap-3 px-4 py-3 rounded-2xl transition-all border-2 select-none active:scale-95",
-                            !isLoggedIn || isImageLimitReached
-                                ? "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed"
+                            "relative w-1/3 rounded-2xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all duration-300 group",
+                            !isLoggedIn || isImageLimitReached 
+                                ? "bg-slate-50 border-slate-100 text-slate-300 opacity-80"
                                 : withImage 
-                                    ? "bg-blue-500 border-blue-600 text-white shadow-clay-blue" 
-                                    : "bg-white border-slate-200 text-slate-400 hover:border-blue-200 hover:bg-blue-50/50"
+                                    ? "bg-blue-500 border-blue-400 text-white shadow-clay-blue -translate-y-1"
+                                    : "bg-white border-slate-200 text-slate-400 hover:border-blue-300 hover:bg-blue-50"
                         )}
                     >
+                         {withImage && (
+                            <div className="absolute -top-2 -right-2 bg-amber-400 text-amber-900 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-sm border border-white z-20">
+                                -1
+                            </div>
+                        )}
+                        
                         {isLoggedIn ? (
                             <>
-                                <div className="relative">
-                                    {withImage ? (
-                                        <ImageIcon className="w-5 h-5 animate-in zoom-in-50 duration-300" />
-                                    ) : (
-                                        <div className="relative">
-                                            <ImageIcon className="w-5 h-5 opacity-40" />
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-full h-[2px] bg-slate-400 rotate-45 transform" />
-                                            </div>
-                                        </div>
-                                    )}
-                                    <AnimatePresence>
-                                        {withImage && (
-                                            <motion.div 
-                                                initial={{ scale: 0, opacity: 0 }}
-                                                animate={{ scale: 1, opacity: 1 }}
-                                                exit={{ scale: 0, opacity: 0 }}
-                                                className="absolute -top-3 -right-3 bg-amber-400 text-amber-950 text-[9px] font-black px-1.5 py-0.5 rounded-full border-2 border-white shadow-sm flex items-center justify-center shrink-0"
-                                            >
-                                                -1
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                                <div className="flex flex-col items-start text-left min-w-[80px]">
-                                    <span className="font-fredoka font-black text-[10px] uppercase tracking-wider block">
-                                        {withImage ? "Include Art" : "No Picture"}
-                                    </span>
-                                    <span className={cn(
-                                        "text-[9px] font-bold block",
-                                        withImage ? "text-blue-100" : "text-slate-400"
-                                    )}>
-                                        {isImageLimitReached ? "Limit Reached" : withImage ? "Costs 1 Credit" : "Saves Credit"}
-                                    </span>
-                                </div>
+                                <ImageIcon className={cn("w-5 h-5 transition-transform", withImage && "scale-110")} />
+                                <span className="text-[9px] font-black uppercase tracking-wide">
+                                    {withImage ? "Included" : "No Image"}
+                                </span>
                             </>
                         ) : (
-                            <div className="flex items-center gap-2">
-                                <Lock className="w-5 h-5 text-slate-300" />
-                                <span className="font-fredoka font-black text-[10px] uppercase text-slate-300">Image Locked</span>
-                            </div>
+                             <>
+                                <Lock className="w-4 h-4" />
+                                <span className="text-[9px] font-bold uppercase">Locked</span>
+                            </>
                         )}
                     </button>
 
-                    {/* Main Action */}
+                    {/* Main Magic Button */}
                     {isLoggedIn ? (
                         <button
                             onClick={() => onGenerate(withImage)}
                             disabled={isGenerating || !canGenerate}
                             className={cn(
-                                "flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-3 rounded-2xl transition-all shadow-lg active:scale-95",
-                                canGenerate 
-                                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-200" 
-                                    : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
+                                "flex-1 rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 shadow-xl border-t border-white/20 relative overflow-hidden",
+                                isGenerating || !canGenerate
+                                    ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                                    : "bg-gradient-to-br from-violet-500 to-indigo-600 text-white hover:shadow-violet-300/50 hover:-translate-y-1 active:scale-95 active:translate-y-0"
                             )}
                         >
+                             {isGenerating && (
+                                <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                            )}
+                            
                             {isGenerating ? (
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
-                                <Wand2 className="w-5 h-5" />
+                                <Wand2 className={cn("w-5 h-5", !canGenerate && "opacity-50")} />
                             )}
-                            <span className="font-fredoka font-black uppercase tracking-wider">
-                                {isGenerating 
-                                    ? "Casting..." 
-                                    : !activeChild 
-                                        ? "Pick a Profile" 
-                                        : isMagicLimitReached 
-                                            ? "Out of Magic" 
-                                            : "Make Magic!"}
-                            </span>
+                            
+                            <div className="flex flex-col items-start leading-none">
+                                <span className="font-fredoka font-black text-sm uppercase tracking-wider">
+                                    {isGenerating ? "Casting..." : isSelectionLimitExceeded ? "Too Many!" : "Make Magic"}
+                                </span>
+                                {!isGenerating && canGenerate && (
+                                    <span className="text-[9px] font-bold opacity-80 uppercase tracking-widest">
+                                        Create Sentence
+                                    </span>
+                                )}
+                            </div>
                         </button>
                     ) : (
-                        <Link
+                         <Link
                             href="/login"
-                            className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-3 rounded-2xl bg-emerald-500 text-white shadow-lg active:scale-95"
+                            className="flex-1 rounded-2xl flex items-center justify-center gap-2 bg-emerald-500 text-white hover:bg-emerald-600 transition-all font-fredoka font-black uppercase tracking-wider text-sm shadow-emerald-200 shadow-lg"
                         >
-                            <LogIn className="w-5 h-5" />
-                            <span className="font-fredoka font-black uppercase tracking-wider">Sign in for Magic</span>
+                            <LogIn className="w-4 h-4" />
+                            Sign In
                         </Link>
                     )}
                 </div>
 
-                {/* Quota Hints (Desktop) */}
-                {isLoggedIn && (
-                    <div className="hidden lg:flex flex-col gap-1 border-l border-slate-100 pl-6 shrink-0">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-purple-500" />
-                            <span className="text-[10px] font-black text-slate-400 uppercase">Magic: {usage?.current ?? 0}/{usage?.limit ?? 0}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span className="text-[10px] font-black text-slate-400 uppercase">Image: {imageUsage?.current ?? 0}/{imageUsage?.limit ?? 0}</span>
-                        </div>
-                    </div>
-                )}
+                {/* Limit Warning Overlay (If exceeded) */}
+                <AnimatePresence>
+                    {isSelectionLimitExceeded && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="bg-rose-50 text-rose-600 text-xs font-bold text-center py-2 rounded-xl border border-rose-100 flex items-center justify-center gap-2">
+                                <Sparkles className="w-3 h-3" />
+                                Please remove {selectedCount - 10} word{selectedCount - 10 > 1 ? 's' : ''} to proceed
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
+
+             <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={() => onDelete?.()}
+                title="Remove Words?"
+                message={`Are you sure you want to remove these ${selectedCount} words?`}
+                confirmLabel="Yes, Remove"
+                cancelLabel="Cancel"
+                variant="danger"
+            />
         </motion.div>
     );
 }

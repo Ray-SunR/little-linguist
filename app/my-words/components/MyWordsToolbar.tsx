@@ -1,14 +1,15 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, History, Search, Filter, X, LayoutGrid, Heart, Wand2 } from "lucide-react";
-import { cn } from "@/lib/core/utils/cn";
+import { Wand2, Sparkles, Filter, LayoutGrid, ArrowUpDown, Search, X, ChevronDown, History, Heart, Calendar } from "lucide-react";
+import { cn } from "@/lib/core";
 import { useState, useRef, useEffect } from "react";
-import { CachedImage } from "@/components/ui/cached-image";
+import { type ChildProfile } from "@/app/actions/profiles";
 import { WordCategory, GroupBy } from "../hooks/useMyWordsV2ViewModel";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface MyWordsToolbarProps {
-    activeChild?: any;
+    activeChild: ChildProfile | null;
     viewType: "words" | "history";
     setViewType: (v: "words" | "history") => void;
     searchQuery: string;
@@ -17,6 +18,18 @@ interface MyWordsToolbarProps {
     setCategory: (c: WordCategory) => void;
     groupBy: GroupBy;
     setGroupBy: (g: GroupBy) => void;
+    sortBy: 'createdAt' | 'word' | 'reps';
+    setSortBy: (s: 'createdAt' | 'word' | 'reps') => void;
+    sortOrder: 'asc' | 'desc';
+    setSortOrder: (o: 'asc' | 'desc') => void;
+    startDate?: string;
+    setStartDate: (d: string | undefined) => void;
+    endDate?: string;
+    setEndDate: (d: string | undefined) => void;
+    totalWords?: number;
+    isSelectionMode?: boolean;
+    onToggleSelectionMode?: () => void;
+    className?: string;
 }
 
 export function MyWordsToolbar({
@@ -28,11 +41,32 @@ export function MyWordsToolbar({
     activeCategory,
     setCategory,
     groupBy,
-    setGroupBy
+    setGroupBy,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    totalWords = 0,
+    isSelectionMode = false,
+    onToggleSelectionMode,
+    className
 }: MyWordsToolbarProps) {
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-    const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+    const [isAdvancedDateOpen, setIsAdvancedDateOpen] = useState(false);
     const searchInputRef = useRef<HTMLInputElement>(null);
+
+    const categories: { id: WordCategory; label: string; icon: any }[] = [
+        { id: "all", label: "All Words", icon: Sparkles },
+        { id: "learning", label: "Learning", icon: Sparkles },
+        { id: "reviewing", label: "Reviewing", icon: Sparkles },
+        { id: "mastered", label: "Mastered", icon: Heart },
+    ];
+
+    const currentCategory = categories.find(c => c.id === activeCategory) || categories[0];
 
     useEffect(() => {
         if (isSearchExpanded && searchInputRef.current) {
@@ -41,122 +75,414 @@ export function MyWordsToolbar({
     }, [isSearchExpanded]);
 
     return (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4">
-            <div className="backdrop-blur-xl bg-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.04)] border border-white/80 ring-1 ring-slate-200/30 rounded-full px-2 py-2 flex items-center justify-between gap-2 overflow-hidden transition-all duration-500">
-                
-                {/* Child Avatar */}
-                <div className="shrink-0 ml-1">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm bg-slate-100">
-                        {activeChild?.avatar_url ? (
-                            <CachedImage
-                                src={activeChild.avatar_url}
-                                storagePath={activeChild.storage_path}
-                                alt={activeChild.name}
-                                width={40}
-                                height={40}
-                                bucket="user-assets"
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                👶
-                            </div>
-                        )}
+        <div
+            className={cn(
+                "mx-auto w-full max-w-7xl transition-all duration-300 relative z-[100]",
+                className
+            )}
+        >
+            {/* Glass Container */}
+            <div className={cn(
+                "backdrop-blur-xl bg-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)]",
+                "border border-white/80 ring-1 ring-slate-200/30",
+                "rounded-2xl px-2.5 py-2 md:px-4 md:py-3",
+                "flex items-center gap-2 md:gap-4",
+                "transition-all duration-500"
+            )}>
+                {/* Profile / Avatar */}
+                <div className="flex-shrink-0">
+                    <div className="relative group cursor-pointer">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-violet-400 to-indigo-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                        <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white shadow-clay-sm overflow-hidden bg-slate-100">
+                            {activeChild?.avatar_asset_path ? (
+                                <img
+                                    src={activeChild.avatar_asset_path}
+                                    alt={activeChild.first_name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-violet-100 text-violet-600 font-fredoka font-bold">
+                                    {activeChild?.first_name?.[0] || "?"}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Main Controls Wrapper */}
-                <div className="flex-1 flex items-center justify-center gap-1 min-w-0">
+                {/* Tabs & Controls Wrapper */}
+                <div className="flex items-center min-w-0 gap-1.5 md:gap-2 flex-1">
                     <AnimatePresence mode="wait">
-                        {isSearchExpanded ? (
+                        {!isSearchExpanded ? (
                             <motion.div
-                                key="search-area"
-                                initial={{ width: 0, opacity: 0 }}
-                                animate={{ width: "100%", opacity: 1 }}
-                                exit={{ width: 0, opacity: 0 }}
-                                className="flex items-center gap-2 px-2 w-full"
+                                key="controls"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                className="flex items-center gap-1.5 md:gap-2 flex-1 min-w-0"
                             >
-                                <Search className="w-4 h-4 text-slate-400" />
-                                <input
-                                    ref={searchInputRef}
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Search words..."
-                                    className="bg-transparent border-none outline-none font-nunito font-bold text-sm text-ink placeholder:text-slate-400 w-full"
-                                />
-                                <button 
-                                    onClick={() => {
-                                        setIsSearchExpanded(false);
-                                        setSearchQuery("");
-                                    }}
-                                    className="p-1 hover:bg-slate-100 rounded-full transition-colors"
-                                >
-                                    <X className="w-4 h-4 text-slate-400" />
-                                </button>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="tools-area"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="flex items-center gap-1 sm:gap-4"
-                            >
-                                {/* Find Button (Words View) */}
-                                <button
-                                    onClick={() => setViewType("words")}
-                                    className={cn(
-                                        "flex items-center gap-2 px-6 py-2.5 rounded-full font-fredoka font-bold transition-all duration-300",
-                                        viewType === "words"
-                                            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-200"
-                                            : "hover:bg-slate-50 text-slate-400"
+                                {/* Compact tabs */}
+                                <div className="flex items-center gap-0.5 md:gap-1 pl-1 md:pl-0">
+                                    <button
+                                        onClick={() => setViewType("words")}
+                                        className={cn(
+                                            "relative px-3 py-2 md:px-5 md:py-2.5 rounded-xl font-fredoka text-sm font-black transition-all duration-300 flex items-center gap-2 outline-none group",
+                                            viewType === "words"
+                                                ? "text-violet-600 bg-violet-50/50"
+                                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                                        )}
+                                    >
+                                        <Sparkles className={cn("w-4 h-4 md:w-5 md:h-5", viewType === "words" ? "text-violet-600" : "text-slate-300 group-hover:text-slate-400")} />
+                                        <span className="hidden sm:inline">Words</span>
+                                        {viewType === "words" && (
+                                            <motion.div
+                                                layoutId="activeTab"
+                                                className="absolute inset-0 rounded-xl border-2 border-violet-200/50 pointer-events-none"
+                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                            />
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={() => setViewType("history")}
+                                        className={cn(
+                                            "relative px-3 py-2 md:px-5 md:py-2.5 rounded-xl font-fredoka text-sm font-black transition-all duration-300 flex items-center gap-2 outline-none group",
+                                            viewType === "history"
+                                                ? "text-indigo-600 bg-indigo-50/50"
+                                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                                        )}
+                                    >
+                                        <History className={cn("w-4 h-4 md:w-5 md:h-5", viewType === "history" ? "text-indigo-600" : "text-slate-300 group-hover:text-slate-400")} />
+                                        <span className="hidden sm:inline">History</span>
+                                        {viewType === "history" && (
+                                            <motion.div
+                                                layoutId="activeTab"
+                                                className="absolute inset-0 rounded-xl border-2 border-indigo-200/50 pointer-events-none"
+                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                            />
+                                        )}
+                                    </button>
+                                </div>
+
+                                <div className="ml-auto flex items-center gap-1 md:gap-2">
+                                    {/* Selection Mode Toggle */}
+                                    {viewType === "words" && (
+                                        <button
+                                            onClick={onToggleSelectionMode}
+                                            className={cn(
+                                                "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl border transition-all outline-none text-xs font-black font-fredoka",
+                                                isSelectionMode 
+                                                    ? "bg-violet-600 text-white border-violet-500 shadow-clay-violet" 
+                                                    : "bg-violet-50/80 border-violet-100 text-violet-600 hover:bg-violet-100"
+                                            )}
+                                        >
+                                            <Wand2 className={cn("w-3.5 h-3.5", isSelectionMode ? "text-white" : "text-violet-600")} />
+                                            <span className="hidden md:inline">{isSelectionMode ? "Finish Selecting" : "Magic Select"}</span>
+                                        </button>
                                     )}
-                                >
-                                    <Sparkles className={cn("w-5 h-5", viewType === "words" ? "text-white" : "text-slate-400")} />
-                                    <span className="hidden sm:inline">Find</span>
-                                </button>
 
-                                {/* Magic History Toggle */}
-                                <button
-                                    onClick={() => setViewType("history")}
-                                    className={cn(
-                                        "p-2.5 rounded-full transition-all duration-300",
-                                        viewType === "history"
-                                            ? "bg-purple-50 text-purple-600"
-                                            : "text-slate-400 hover:bg-slate-50"
-                                    )}
-                                    title="Magic History"
-                                >
-                                    <Wand2 className="w-5 h-5" />
-                                </button>
-
-                                {/* Favorites? (Placeholer for now as per screenshot layout) */}
-                                <button className="p-2.5 rounded-full text-slate-300 hover:bg-slate-50 cursor-not-allowed hidden sm:block">
-                                    <Heart className="w-5 h-5" />
-                                </button>
-
-                                <div className="hidden sm:block w-px h-6 bg-slate-100 mx-1" />
-
-                                {/* Grouping Toggle */}
-                                <div className="flex items-center gap-0.5 sm:gap-1">
-                                    <button 
+                                    {/* Desktop-like search trigger */}
+                                    <button
                                         onClick={() => setIsSearchExpanded(true)}
-                                        className="p-2.5 rounded-full text-slate-400 hover:bg-slate-50 transition-all"
-                                        title="Search"
+                                        className="p-2 md:p-2.5 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
                                     >
                                         <Search className="w-5 h-5" />
                                     </button>
 
-                                    <button 
-                                        onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-                                        className={cn(
-                                            "p-2.5 rounded-full transition-all",
-                                            isFilterExpanded ? "bg-purple-50 text-purple-600" : "text-slate-400 hover:bg-slate-50"
-                                        )}
-                                        title="Filter & Group"
+                                    {/* Category Dropdown (Filter) */}
+                                    {viewType === "words" && (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    className="flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl bg-slate-50/80 hover:bg-white text-slate-600 text-xs font-black font-fredoka border border-slate-100 shadow-sm transition-all outline-none"
+                                                >
+                                                    <Filter className="w-3.5 h-3.5 text-violet-500" />
+                                                    <span className="hidden md:inline">Filter: {currentCategory.label}</span>
+                                                    <ChevronDown className="w-3 h-3 opacity-50" />
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-48 p-2 rounded-2xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]">
+                                                <div className="grid gap-1">
+                                                    {categories.map((cat) => (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => setCategory(cat.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-3 w-full px-3 py-2 rounded-xl text-xs font-black font-fredoka transition-all outline-none",
+                                                                activeCategory === cat.id
+                                                                    ? "bg-violet-50 text-violet-600"
+                                                                    : "text-slate-600 hover:bg-slate-50"
+                                                            )}
+                                                        >
+                                                            <cat.icon className={cn("w-3.5 h-3.5", activeCategory === cat.id ? "text-violet-600" : "text-slate-400")} />
+                                                            {cat.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    )}
+
+                                    {/* GroupBy Dropdown with Integrated Date Filter */}
+                                    {viewType === "words" && (
+                                        <Popover onOpenChange={(open) => {
+                                            if (!open) setIsAdvancedDateOpen(false);
+                                        }}>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    className={cn(
+                                                        "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl border transition-all outline-none text-xs font-black font-fredoka",
+                                                        groupBy !== "none" || startDate || endDate
+                                                            ? "bg-amber-50 border-amber-100 text-amber-600" 
+                                                            : "bg-slate-50/80 border-slate-100 text-slate-600 hover:bg-white"
+                                                    )}
+                                                >
+                                                    <LayoutGrid className="w-3.5 h-3.5" />
+                                                    <span className="hidden md:inline">
+                                                        {startDate || endDate ? "Custom Date Range" : `Group: ${groupBy === 'none' ? 'None' : groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}`}
+                                                    </span>
+                                                    <ChevronDown className="w-3 h-3 opacity-50" />
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent 
+                                                className="w-64 p-2 rounded-3xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110] overflow-hidden"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <AnimatePresence>
+                                                    {!isAdvancedDateOpen ? (
+                                                        <motion.div 
+                                                            key="group-list"
+                                                            initial={{ opacity: 0, x: -10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            exit={{ opacity: 0, x: -10 }}
+                                                            className="grid gap-1"
+                                                        >
+                                                            {[
+                                                                { id: 'none', label: 'No Grouping', icon: X },
+                                                                { id: 'date', label: 'By Date', icon: History, hasAdvanced: true },
+                                                                { id: 'book', label: 'By Book', icon: Wand2 },
+                                                                { id: 'proficiency', label: 'By Level', icon: Sparkles }
+                                                            ].map((g) => (
+                                                                <div key={g.id} className="flex flex-col gap-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setGroupBy(g.id as any);
+                                                                            if (g.id !== 'date') {
+                                                                                setStartDate(undefined);
+                                                                                setEndDate(undefined);
+                                                                            }
+                                                                        }}
+                                                                        className={cn(
+                                                                            "flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-xs font-black font-fredoka transition-all outline-none group",
+                                                                            groupBy === g.id
+                                                                                ? "bg-amber-50 text-amber-600"
+                                                                                : "text-slate-600 hover:bg-slate-50"
+                                                                        )}
+                                                                    >
+                                                                        <g.icon className={cn("w-3.5 h-3.5", groupBy === g.id ? "text-amber-600" : "text-slate-400 group-hover:text-slate-500")} />
+                                                                        <span className="flex-1 text-left">{g.label}</span>
+                                                                        {groupBy === g.id && g.id === 'date' && (
+                                                                            <Calendar className="w-3 h-3 opacity-50" />
+                                                                        )}
+                                                                    </button>
+                                                                    {groupBy === 'date' && g.id === 'date' && (
+                                                                        <button 
+                                                                            type="button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setIsAdvancedDateOpen(true);
+                                                                            }}
+                                                                            className="mx-2 mb-1 py-1.5 px-3 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-emerald-100 transition-colors"
+                                                                        >
+                                                                            <Calendar className="w-3 h-3" />
+                                                                            {(startDate || endDate) ? "Edit Custom Range" : "Advanced: Custom Range"}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </motion.div>
+                                                    ) : (
+                                                        <motion.div 
+                                                            key="date-range"
+                                                            initial={{ opacity: 0, x: 10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            exit={{ opacity: 0, x: 10 }}
+                                                            className="p-2 space-y-4"
+                                                        >
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setIsAdvancedDateOpen(false);
+                                                                    }}
+                                                                    className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                                                                >
+                                                                    <X className="w-4 h-4 text-slate-400" />
+                                                                </button>
+                                                                <span className="text-xs font-black font-fredoka text-slate-600">Custom Date Range</span>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                <div className="flex flex-col gap-1.5">
+                                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">From</label>
+                                                                    <div className="relative">
+                                                                        <input 
+                                                                            type="date" 
+                                                                            value={startDate || ""}
+                                                                            onPointerDown={(e) => e.stopPropagation()}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                            onChange={(e) => setStartDate(e.target.value || undefined)}
+                                                                            className="w-full bg-slate-100/50 border-2 border-transparent focus:border-emerald-200 rounded-xl px-3 py-2 text-sm font-bold font-nunito outline-none transition-all"
+                                                                        />
+                                                                        {startDate && (
+                                                                            <button 
+                                                                                type="button"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    setStartDate(undefined);
+                                                                                }} 
+                                                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500"
+                                                                            >
+                                                                                <X className="w-4 h-4" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex flex-col gap-1.5">
+                                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Until</label>
+                                                                    <div className="relative">
+                                                                        <input 
+                                                                            type="date" 
+                                                                            value={endDate || ""}
+                                                                            onPointerDown={(e) => e.stopPropagation()}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                            onChange={(e) => setEndDate(e.target.value || undefined)}
+                                                                            className="w-full bg-slate-100/50 border-2 border-transparent focus:border-emerald-200 rounded-xl px-3 py-2 text-sm font-bold font-nunito outline-none transition-all"
+                                                                        />
+                                                                        {endDate && (
+                                                                            <button 
+                                                                                type="button"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    setEndDate(undefined);
+                                                                                }} 
+                                                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500"
+                                                                            >
+                                                                                <X className="w-4 h-4" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2 pt-2">
+                                                                {(startDate || endDate) && (
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={(e) => { 
+                                                                            e.stopPropagation();
+                                                                            setStartDate(undefined); 
+                                                                            setEndDate(undefined); 
+                                                                            setIsAdvancedDateOpen(false); 
+                                                                        }}
+                                                                        className="flex-1 py-2 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black font-fredoka uppercase tracking-wider hover:bg-slate-200 transition-colors"
+                                                                    >
+                                                                        Reset
+                                                                    </button>
+                                                                )}
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setIsAdvancedDateOpen(false);
+                                                                    }}
+                                                                    className="flex-1 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black font-fredoka uppercase tracking-wider shadow-clay-sm hover:translate-y-[1px] transition-all"
+                                                                >
+                                                                    Done
+                                                                </button>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </PopoverContent>
+                                        </Popover>
+                                    )}
+
+                                    {/* Sort Dropdown */}
+
+                                    {/* Sort Dropdown */}
+                                    {viewType === "words" && (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    className="flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl bg-slate-50/80 hover:bg-white text-slate-600 text-xs font-black font-fredoka border border-slate-100 shadow-sm transition-all outline-none"
+                                                >
+                                                    <ArrowUpDown className="w-3.5 h-3.5 text-indigo-500" />
+                                                    <span className="hidden md:inline">Sort</span>
+                                                    <ChevronDown className="w-3 h-3 opacity-50" />
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-48 p-2 rounded-2xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]">
+                                                <div className="grid gap-1">
+                                                    {[
+                                                        { id: 'createdAt', label: 'Recent First' },
+                                                        { id: 'word', label: 'Alphabetical' },
+                                                        { id: 'reps', label: 'Proficiency' }
+                                                    ].map((s) => (
+                                                        <button
+                                                            key={s.id}
+                                                            onClick={() => setSortBy(s.id as any)}
+                                                            className={cn(
+                                                                "flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs font-black font-fredoka transition-all outline-none",
+                                                                sortBy === s.id ? "bg-indigo-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50"
+                                                            )}
+                                                        >
+                                                            <span>{s.label}</span>
+                                                            {sortBy === s.id && (
+                                                                <button 
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                                                                    }}
+                                                                    className="p-1 hover:bg-indigo-100 rounded-md transition-colors"
+                                                                >
+                                                                    <ChevronDown className={cn("w-3 h-3 transition-transform", sortOrder === 'asc' && "rotate-180")} />
+                                                                </button>
+                                                            )}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="search"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="flex-1 flex items-center"
+                            >
+                                <div className="relative w-full group">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-violet-500 transition-colors" />
+                                    <input
+                                        ref={searchInputRef}
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Search your treasury..."
+                                        className="w-full bg-slate-100/50 border-none rounded-xl py-2.5 pl-10 pr-10 text-sm font-black font-nunito focus:ring-2 focus:ring-violet-200 transition-all outline-none"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            setIsSearchExpanded(false);
+                                            setSearchQuery("");
+                                        }}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
                                     >
-                                        <Filter className="w-5 h-5" />
+                                        <X className="w-4 h-4" />
                                     </button>
                                 </div>
                             </motion.div>
@@ -164,80 +490,6 @@ export function MyWordsToolbar({
                     </AnimatePresence>
                 </div>
             </div>
-
-            {/* Expanded Filters Popover */}
-            <AnimatePresence>
-                {isFilterExpanded && (
-                    <motion.div
-                        initial={{ y: -20, opacity: 0, scale: 0.95 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        exit={{ y: -20, opacity: 0, scale: 0.95 }}
-                        className="absolute top-20 left-4 right-4 bg-white/95 backdrop-blur-xl border border-white shadow-2xl rounded-[2rem] p-6 z-40"
-                    >
-                        <div className="space-y-6">
-                            {/* Category Selection */}
-                            <div>
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Categories</h4>
-                                <div className="flex gap-2 flex-wrap">
-                                    {[
-                                        { id: "all", label: "All Words", icon: "🌈" },
-                                        { id: "new", label: "New", icon: "✨" },
-                                        { id: "review", label: "Ready", icon: "⭐" },
-                                    ].map((cat) => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() => setCategory(cat.id as WordCategory)}
-                                            className={cn(
-                                                "px-4 py-2 rounded-xl text-sm font-bold transition-all",
-                                                activeCategory === cat.id
-                                                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-100"
-                                                    : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                                            )}
-                                        >
-                                            <span className="mr-2">{cat.icon}</span>
-                                            {cat.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Grouping Selection */}
-                            <div>
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Group By</h4>
-                                <div className="flex gap-2 flex-wrap">
-                                    {[
-                                        { id: "none", label: "List", icon: "📦" },
-                                        { id: "date", label: "Date", icon: "📅" },
-                                        { id: "book", label: "Book", icon: "📖" },
-                                        { id: "proficiency", label: "Skill", icon: "🏆" },
-                                    ].map((g) => (
-                                        <button
-                                            key={g.id}
-                                            onClick={() => setGroupBy(g.id as GroupBy)}
-                                            className={cn(
-                                                "px-4 py-2 rounded-xl text-sm font-bold transition-all",
-                                                groupBy === g.id
-                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-100"
-                                                    : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                                            )}
-                                        >
-                                            <span className="mr-2">{g.icon}</span>
-                                            {g.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <button 
-                            onClick={() => setIsFilterExpanded(false)}
-                            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }

@@ -56,8 +56,10 @@ export async function POST(req: Request): Promise<NextResponse> {
             const pathsToSign = new Set<string>();
             cachedList?.forEach(cached => {
                 if (cached.audio_path) pathsToSign.add(cached.audio_path);
-                pathsToSign.add(`${cached.word}/word.mp3`);
-                pathsToSign.add(`${cached.word}/example_0.mp3`);
+                if (cached.word_audio_path) pathsToSign.add(cached.word_audio_path);
+                if (Array.isArray(cached.example_audio_paths)) {
+                    cached.example_audio_paths.forEach((p: string) => pathsToSign.add(p));
+                }
             });
 
             const allPaths = Array.from(pathsToSign);
@@ -77,13 +79,13 @@ export async function POST(req: Request): Promise<NextResponse> {
                     pronunciation: cached.pronunciation,
                     examples: cached.examples,
                     audioUrl: signedMap.get(cached.audio_path) || "",
-                    wordAudioUrl: signedMap.get(`${cached.word}/word.mp3`) || "",
-                    exampleAudioUrls: [signedMap.get(`${cached.word}/example_0.mp3`) || ""].filter(Boolean),
+                    wordAudioUrl: signedMap.get(cached.word_audio_path) || "",
+                    exampleAudioUrls: cached.example_audio_paths?.map((p: string) => signedMap.get(p)).filter(Boolean) || [],
                     audioPath: cached.audio_path,
-                    wordAudioPath: `${cached.word}/word.mp3`,
-                    exampleAudioPaths: [`${cached.word}/example_0.mp3`],
+                    wordAudioPath: cached.word_audio_path,
+                    exampleAudioPaths: cached.example_audio_paths || [],
                     wordTimings: cached.timing_markers,
-                    exampleTimings: [],
+                    exampleTimings: cached.example_timing_markers || [],
                 };
             });
 
@@ -115,10 +117,11 @@ export async function POST(req: Request): Promise<NextResponse> {
                 return data?.signedUrl || "";
             }
 
-            const [audioUrl, wordAudioUrl, exampleAudioUrl] = await Promise.all([
+            const examplePaths = cached.example_audio_paths || [];
+            const [audioUrl, wordAudioUrl, ...exampleUrls] = await Promise.all([
                 sign(cached.audio_path),
-                sign(`${word}/word.mp3`),
-                sign(`${word}/example_0.mp3`)
+                sign(cached.word_audio_path),
+                ...examplePaths.map((p: string) => sign(p))
             ]);
 
             const response = NextResponse.json({
@@ -128,12 +131,12 @@ export async function POST(req: Request): Promise<NextResponse> {
                 examples: cached.examples,
                 audioUrl,
                 wordAudioUrl,
-                exampleAudioUrls: exampleAudioUrl ? [exampleAudioUrl] : [],
+                exampleAudioUrls: exampleUrls.filter(Boolean),
                 audioPath: cached.audio_path,
-                wordAudioPath: `${word}/word.mp3`,
-                exampleAudioPaths: [`${word}/example_0.mp3`],
+                wordAudioPath: cached.word_audio_path,
+                exampleAudioPaths: examplePaths,
                 wordTimings: cached.timing_markers,
-                exampleTimings: [],
+                exampleTimings: cached.example_timing_markers || [],
             });
 
             // Audit: Word Insight Viewed (Cache Hit)
@@ -197,11 +200,18 @@ export async function POST(req: Request): Promise<NextResponse> {
                 }
             }
 
-            const [wordAudio, defAudio, exAudio] = await Promise.all([
+            const exampleAudioPromises = (insight.examples || []).map((ex: string, i: number) => 
+                synthesizeAndUpload(ex, `${word}/example_${i}.mp3`)
+            );
+
+            const [wordAudio, defAudio, ...exAudios] = await Promise.all([
                 synthesizeAndUpload(word, `${word}/word.mp3`),
                 synthesizeAndUpload(insight.definition, `${word}/definition.mp3`),
-                insight.examples?.[0] ? synthesizeAndUpload(insight.examples[0], `${word}/example_0.mp3`) : Promise.resolve(null)
+                ...exampleAudioPromises
             ]);
+
+            // Filter out failed syntheses
+            const validExAudios = exAudios.filter((a): a is NonNullable<typeof a> => a !== null);
 
             // 5. Persistence
             await adminSupabase.from("word_insights").upsert({
@@ -210,7 +220,10 @@ export async function POST(req: Request): Promise<NextResponse> {
                 pronunciation: insight.pronunciation,
                 examples: insight.examples,
                 audio_path: defAudio?.path || "",
+                word_audio_path: wordAudio?.path || "",
+                example_audio_paths: validExAudios.map(a => a.path),
                 timing_markers: defAudio?.timings || [],
+                example_timing_markers: validExAudios.map(a => a.timings),
             }, { onConflict: "word" });
 
             generationSuccessful = true;
@@ -219,12 +232,12 @@ export async function POST(req: Request): Promise<NextResponse> {
                 ...insight,
                 wordAudioUrl: wordAudio?.url || "",
                 audioUrl: defAudio?.url || "",
-                exampleAudioUrls: exAudio ? [exAudio.url] : [],
+                exampleAudioUrls: validExAudios.map(a => a.url),
                 audioPath: defAudio?.path || "",
                 wordAudioPath: wordAudio?.path || "",
-                exampleAudioPaths: exAudio ? [exAudio.path] : [],
+                exampleAudioPaths: validExAudios.map(a => a.path),
                 wordTimings: defAudio?.timings || [],
-                exampleTimings: exAudio ? [exAudio.timings] : [],
+                exampleTimings: validExAudios.map(a => a.timings),
             });
 
             // Audit: Word Insight Generated (Cache Miss)

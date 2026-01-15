@@ -2,15 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { normalizeWord } from "@/lib/core";
+import { sanitizeWord } from "@/lib/core/text-utils";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 
-/**
- * Sanitizes a word for consistent storage and lookup across all APIs.
- * Must match the logic in app/api/word-insight/route.ts
- */
-function sanitizeWord(word: string): string {
-    return normalizeWord(word).replace(/[^a-z0-9-]/g, "");
-}
 
 export async function GET(request: NextRequest) {
     try {
@@ -23,120 +17,145 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const childId = searchParams.get('childId');
+        const limit = parseInt(searchParams.get('limit') || '50');
+        const offset = parseInt(searchParams.get('offset') || '0');
+        const light = searchParams.get('light') === 'true';
+        const status = searchParams.get('status');
+        const search = searchParams.get('search');
+        const sortBy = searchParams.get('sortBy') || 'createdAt';
+        const sortOrder = searchParams.get('sortOrder') || 'desc';
+        const startDate = searchParams.get('startDate');
+        const endDate = searchParams.get('endDate');
 
         if (!childId) {
             return NextResponse.json({ error: 'childId is required' }, { status: 400 });
         }
 
-        const { data, error } = await supabase
+        // 1. Build query
+        const selectFields = `
+            status,
+            origin_book_id,
+            created_at,
+            source_type,
+            reps,
+            next_review_at,
+            books: origin_book_id(
+                title,
+                cover_image_path
+            ),
+            word_insights!inner(
+                word
+                ${light ? '' : `,
+                definition,
+                pronunciation,
+                examples,
+                audio_path,
+                word_audio_path,
+                example_audio_paths,
+                timing_markers,
+                example_timing_markers`}
+            )
+        `;
+
+        let query = supabase
             .from('child_vocab')
-            .select(`
-status,
-    origin_book_id,
-    created_at,
-    source_type,
-    reps,
-    next_review_at,
-    books: origin_book_id(
-        title,
-        cover_image_path
-    ),
-        word_insights(
-            word,
-            definition,
-            pronunciation,
-            examples,
-            audio_path,
-            timing_markers
-        )
-            `)
-            .eq('child_id', childId)
-            .order('created_at', { ascending: false });
+            .select(selectFields, { count: 'exact' })
+            .eq('child_id', childId);
+
+        // Filter by status
+        if (status && status !== 'all') {
+            query = query.eq('status', status);
+        }
+
+        // Filter by search
+        if (search) {
+            query = query.ilike('word_insights.word', `%${search.toLowerCase()}%`);
+        }
+
+        // Filter by Date Range
+        if (startDate) {
+            query = query.gte('created_at', startDate);
+        }
+        if (endDate) {
+            query = query.lte('created_at', endDate);
+        }
+
+        // Sort mapping
+        const dbSortField = sortBy === 'word' ? 'word' : (sortBy === 'reps' ? 'reps' : 'created_at');
+        const ascending = sortOrder === 'asc';
+
+        const { data, error, count } = await query
+            .order(dbSortField, { ascending })
+            .range(offset, offset + limit - 1);
 
         if (error) throw error;
 
-        // Collect paths for batch signing, separated by bucket
-        const audioBucket = "word-insights-audio";
+        // 2. Asset Signing
+        const signedMap = new Map<string, string>();
         const imageBucket = "book-assets";
-
-        const audioPaths = new Set<string>();
+        const audioBucket = "word-insights-audio";
+        
         const imagePaths = new Set<string>();
+        const audioPaths = new Set<string>();
 
-        (data || []).forEach((item) => {
-            const b = item.books as any;
+        (data || []).forEach((item: any) => {
+            const b = item.books;
             if (b?.cover_image_path && !b.cover_image_path.startsWith('http')) {
                 imagePaths.add(b.cover_image_path);
             }
 
-            const wi = item.word_insights as any;
-            if (wi && wi.word) {
-                // Determine paths by convention from normalized word
-                // 1. Stored path (likely definition audio)
-                if (wi.audio_path) audioPaths.add(wi.audio_path);
-
-                // 2. Convention paths (constructed from normalized word)
-                const normalized = normalizeWord(wi.word).replace(/[^a-z0-9-]/g, "");
-
-                audioPaths.add(`${normalized}/word.mp3`);
-                audioPaths.add(`${normalized}/definition.mp3`);
-                audioPaths.add(`${normalized}/example_0.mp3`);
+            if (!light) {
+                const wi = item.word_insights;
+                if (wi) {
+                    if (wi.audio_path) audioPaths.add(wi.audio_path);
+                    if (wi.word_audio_path) audioPaths.add(wi.word_audio_path);
+                    if (wi.example_audio_paths) {
+                        wi.example_audio_paths.forEach((p: string) => audioPaths.add(p));
+                    }
+                }
             }
         });
 
-        // Batch sign
-        let signedMap = new Map<string, string>();
+        const allImagePaths = Array.from(imagePaths);
+        if (allImagePaths.length > 0) {
+            const { data: signs } = await supabase.storage
+                .from(imageBucket)
+                .createSignedUrls(allImagePaths, 3600);
+            signs?.forEach(s => {
+                if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
+            });
+        }
 
-        // Sign audio paths
         const allAudioPaths = Array.from(audioPaths);
-        if (allAudioPaths.length > 0) {
+        if (!light && allAudioPaths.length > 0) {
             const CHUNK_SIZE = 100;
             for (let i = 0; i < allAudioPaths.length; i += CHUNK_SIZE) {
                 const chunk = allAudioPaths.slice(i, i + CHUNK_SIZE);
-                const { data: signs, error: signError } = await supabase.storage
+                const { data: signs } = await supabase.storage
                     .from(audioBucket)
                     .createSignedUrls(chunk, 3600);
-
-                if (!signError && signs) {
-                    signs.forEach(s => {
-                        if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
-                    });
-                }
+                signs?.forEach(s => {
+                    if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
+                });
             }
         }
 
-        // Sign image paths
-        const allImagePaths = Array.from(imagePaths);
-        if (allImagePaths.length > 0) {
-            const CHUNK_SIZE = 100;
-            for (let i = 0; i < allImagePaths.length; i += CHUNK_SIZE) {
-                const chunk = allImagePaths.slice(i, i + CHUNK_SIZE);
-                const { data: signs, error: signError } = await supabase.storage
-                    .from(imageBucket)
-                    .createSignedUrls(chunk, 3600);
-
-                if (!signError && signs) {
-                    signs.forEach(s => {
-                        if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
-                    });
-                }
-            }
-        }
-
-        const words = (data || []).map((item) => {
-            const wi = item.word_insights as any;
+        // 3. Transform
+        const words = (data || []).map((item: any) => {
+            const wi = item.word_insights;
             if (!wi) return null;
 
-            const normalized = normalizeWord(wi.word).replace(/[^a-z0-9-]/g, "");
+            const normalized = sanitizeWord(wi.word);
 
             return {
-                word: wi.word, // Map 'word' directly as display
+                word: wi.word, 
                 bookId: item.origin_book_id,
-                bookTitle: (item.books as any)?.title,
-                coverImagePath: (item.books as any)?.cover_image_path,
-                coverImageUrl: (item.books as any)?.cover_image_path
-                    ? ((item.books as any).cover_image_path.startsWith('http')
-                        ? (item.books as any).cover_image_path
-                        : signedMap.get((item.books as any).cover_image_path))
+                bookTitle: item.books?.title,
+                coverImagePath: item.books?.cover_image_path,
+                coverImageUrl: item.books?.cover_image_path
+                    ? (item.books.cover_image_path.startsWith('http')
+                        ? item.books.cover_image_path
+                        : signedMap.get(item.books.cover_image_path))
                     : undefined,
                 createdAt: item.created_at,
                 status: item.status,
@@ -146,19 +165,27 @@ status,
                 definition: wi.definition,
                 pronunciation: wi.pronunciation,
                 examples: wi.examples,
-                // audioUrl logic: Prefer explicit audio_path, fallback to definition.mp3 convention
-                audioUrl: signedMap.get(wi.audio_path) || signedMap.get(`${normalized}/definition.mp3`) || "",
-                audioPath: wi.audio_path || `${normalized}/definition.mp3`,
-                wordAudioUrl: signedMap.get(`${normalized}/word.mp3`) || "",
-                wordAudioPath: `${normalized}/word.mp3`,
-                exampleAudioUrls: [signedMap.get(`${normalized}/example_0.mp3`) || ""],
-                exampleAudioPaths: [`${normalized}/example_0.mp3`],
+                audioUrl: signedMap.get(wi.audio_path) || "",
+                audioPath: wi.audio_path || "",
+                wordAudioUrl: signedMap.get(wi.word_audio_path) || "",
+                wordAudioPath: wi.word_audio_path || "",
+                exampleAudioUrls: wi.example_audio_paths?.map((p: string) => signedMap.get(p) || "") || [],
+                exampleAudioPaths: wi.example_audio_paths || [],
                 wordTimings: wi.timing_markers,
-                exampleTimings: [],
+                exampleTimings: wi.example_timing_markers || [],
+                isLight: light
             };
         }).filter(Boolean);
 
-        return NextResponse.json(words);
+        return NextResponse.json({
+            words,
+            pagination: {
+                total: count,
+                limit,
+                offset,
+                hasMore: (offset + words.length) < (count || 0)
+            }
+        });
     } catch (error: any) {
         console.error("GET /api/words error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -179,7 +206,7 @@ export async function POST(request: NextRequest) {
         }
 
         const validWord = rawWord; // Use rawWord directly or normalized slightly but lookup against 'word'
-        const normalized = normalizeWord(rawWord).replace(/[^a-z0-9-]/g, "");
+        const normalized = sanitizeWord(rawWord);
 
         // 1. Ensure vocab_term exists
         let termId: string;
@@ -216,6 +243,7 @@ export async function POST(request: NextRequest) {
             .upsert({
                 child_id: childId,
                 word_id: termId,
+                word: normalized,
                 origin_book_id: bookId || null,
                 source_type: 'clicked'
             }, { onConflict: 'child_id,word_id' })
@@ -255,42 +283,62 @@ export async function DELETE(request: NextRequest) {
         const rawWord = searchParams.get('word');
         const childId = searchParams.get('childId');
 
-        if (!rawWord || !childId) {
-            return NextResponse.json({ error: 'Word and childId are required' }, { status: 400 });
+        // Check for batch deletion in body
+        let wordsToDelete: string[] = [];
+        let targetChildId = childId;
+
+        try {
+            const body = await request.json();
+            if (body.words && Array.isArray(body.words)) {
+                wordsToDelete = body.words;
+            }
+            if (body.childId) {
+                targetChildId = body.childId;
+            }
+        } catch (e) {
+            // No body or not JSON, fallback to query param
+            if (rawWord) wordsToDelete = [rawWord];
         }
 
-        const normalized = normalizeWord(rawWord).replace(/[^a-z0-9-]/g, "");
+        if (wordsToDelete.length === 0 || !targetChildId) {
+            return NextResponse.json({ error: 'Words and childId are required' }, { status: 400 });
+        }
 
-        // Find word_id
-        const { data: term } = await supabase
+        const normalizedWords = wordsToDelete.map(w => sanitizeWord(w));
+
+        // Find word_ids for these normalized words
+        const { data: terms } = await supabase
             .from('word_insights')
-            .select('id')
-            .eq('word', normalized) // Use 'word' column
-            .maybeSingle();
+            .select('id, word')
+            .in('word', normalizedWords);
 
-        if (!term) return NextResponse.json({ success: true });
+        if (!terms || terms.length === 0) return NextResponse.json({ success: true });
+
+        const termIds = terms.map(t => t.id);
 
         const { error } = await supabase
             .from('child_vocab')
             .delete()
-            .eq('child_id', childId)
-            .eq('word_id', term.id);
+            .eq('child_id', targetChildId)
+            .in('word_id', termIds);
 
         if (error) throw error;
 
-        // Audit: Word Removed
-        await AuditService.log({
-            action: AuditAction.WORD_REMOVED,
-            entityType: EntityType.WORD,
-            entityId: normalized, // Use normalized word as entityId
-            userId: user.id,
-            childId: childId,
-            details: {
-                word: rawWord, // Use rawWord for details
-            }
-        });
+        // Audit: Words Removed
+        await Promise.all(normalizedWords.map(normalized => 
+            AuditService.log({
+                action: AuditAction.WORD_REMOVED,
+                entityType: EntityType.WORD,
+                entityId: normalized,
+                userId: user.id,
+                childId: targetChildId!,
+                details: {
+                    word: normalized, // Best effort since we might not have raw words for all in batch body
+                }
+            })
+        ));
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, count: normalizedWords.length });
     } catch (error: any) {
         console.error("DELETE /api/words error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });

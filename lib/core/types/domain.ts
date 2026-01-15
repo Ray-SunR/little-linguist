@@ -3,6 +3,12 @@
  * These types are used by multiple features and should not depend on any feature-specific code
  */
 
+export interface WordTiming {
+    wordIndex: number;
+    startMs: number;
+    endMs: number;
+}
+
 /**
  * Word insight data structure returned by AI provider
  */
@@ -17,16 +23,8 @@ export interface WordInsight {
     audioPath?: string; // Definition audio storage path
     wordAudioPath?: string; // Word audio storage path
     exampleAudioPaths?: string[]; // Example audio storage paths
-    wordTimings?: { // Timings for the definition
-        wordIndex: number;
-        startMs: number;
-        endMs: number;
-    }[];
-    exampleTimings?: { // Timings for examples (array of arrays)
-        wordIndex: number;
-        startMs: number;
-        endMs: number;
-    }[][];
+    wordTimings?: WordTiming[];
+    exampleTimings?: WordTiming[][];
 }
 
 /**

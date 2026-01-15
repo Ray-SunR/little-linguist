@@ -20,8 +20,8 @@ export async function POST(req: Request): Promise<NextResponse> {
             return NextResponse.json({ error: "Words array is required" }, { status: 400 });
         }
 
-        if (words.length > 5) {
-            return NextResponse.json({ error: "MAX_WORDS_EXCEEDED", message: "Select up to 5 words at a time." }, { status: 400 });
+        if (words.length > 10) {
+            return NextResponse.json({ error: "MAX_WORDS_EXCEEDED", message: "Select up to 10 words at a time." }, { status: 400 });
         }
 
         const activeChildId = cookies().get('activeChildId')?.value;

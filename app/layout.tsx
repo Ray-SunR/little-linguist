@@ -55,7 +55,7 @@ export default function RootLayout({
                 <ChildGate />
                 <div className="relative flex flex-col lg:flex-row min-h-screen">
                   <ClayNav />
-                  <div className="flex-1 w-full overflow-y-auto">
+                  <div className="flex-1 w-full">
                     <GuestBanner />
                     {children}
                   </div>

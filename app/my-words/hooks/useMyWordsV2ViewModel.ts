@@ -1,20 +1,36 @@
 "use client";
 
+import { normalizeWord } from "@/lib/core";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useWordList, type SavedWord } from "@/lib/features/word-insight/provider";
 import { useUsage } from "@/lib/hooks/use-usage";
 import { useAuth } from "@/components/auth/auth-provider";
 import Image from "next/image"; // Added Image import
 
-export type WordCategory = "all" | "new" | "review";
+export type WordCategory = "all" | "learning" | "mastered" | "reviewing";
 export type GroupBy = "none" | "date" | "book" | "proficiency";
 
 export function useMyWordsV2ViewModel() {
-    const { words, removeWord, isLoading } = useWordList();
+    const { 
+        words, 
+        totalWords, 
+        hasMore, 
+        isLoading, 
+        loadWords, 
+        loadMore, 
+        removeWord,
+        removeWords
+    } = useWordList();
+    
     const [activeCategory, setActiveCategory] = useState<WordCategory>("all");
-    const [groupBy, setGroupBy] = useState<GroupBy>("none");
+    const [groupBy, setGroupBy] = useState<GroupBy>("date");
+    const [sortBy, setSortBy] = useState<'createdAt' | 'word' | 'reps'>('createdAt');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedWords, setSelectedWords] = useState<string[]>([]);
+    const [startDate, setStartDate] = useState<string | undefined>(undefined);
+    const [endDate, setEndDate] = useState<string | undefined>(undefined);
+    
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
     const [magicResult, setMagicResult] = useState<any | null>(null);
@@ -22,34 +38,31 @@ export function useMyWordsV2ViewModel() {
     const [viewType, setViewType] = useState<"words" | "history">("words");
     const [magicHistory, setMagicHistory] = useState<any[]>([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
 
     const { user, activeChild } = useAuth();
     const { usage, loading: usageLoading } = useUsage(['magic_sentence', 'image_generation']);
 
-    const filteredAndSortedWords = useMemo(() => {
-        let list = [...words];
+    // Trigger backend fetch when filters change
+    useEffect(() => {
+        if (!activeChild) return;
+        
+        const debounce = setTimeout(() => {
+            loadWords({
+                status: activeCategory === 'all' ? undefined : activeCategory,
+                search: searchQuery.trim() || undefined,
+                sortBy: sortBy,
+                sortOrder: sortOrder,
+                startDate: startDate,
+                endDate: endDate,
+                limit: 50
+            });
+        }, 300);
 
-        // 1. Category Filtering
-        if (activeCategory === "new") {
-            list = list.filter(w => w.status === 'new');
-        } else if (activeCategory === "review") {
-            list = list.filter(w => w.nextReviewAt ? new Date(w.nextReviewAt) <= new Date() : false);
-        }
+        return () => clearTimeout(debounce);
+    }, [activeCategory, searchQuery, sortBy, sortOrder, activeChild, loadWords, startDate, endDate]);
 
-        // 2. Search Filtering
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            list = list.filter((w: SavedWord) => w.word.toLowerCase().includes(query));
-        }
-
-        // 3. Stable Sorting (Always by createdAt desc)
-        return list.sort((a: SavedWord, b: SavedWord) => {
-            const dateA = new Date(a.createdAt || 0).getTime();
-            const dateB = new Date(b.createdAt || 0).getTime();
-            if (dateB !== dateA) return dateB - dateA;
-            return (a.word || "").localeCompare(b.word || "");
-        });
-    }, [words, activeCategory, searchQuery]);
+    const filteredAndSortedWords = words;
 
     const groups = useMemo(() => {
         if (groupBy === "none") return [{ name: "All Sparkles", words: filteredAndSortedWords }];
@@ -71,15 +84,15 @@ export function useMyWordsV2ViewModel() {
 
                 if (diffDays === 0) key = "Today";
                 else if (diffDays === 1) key = "Yesterday";
-                else if (diffDays < 7) key = "This Week";
+                else if (diffDays < 7) key = "Earlier this week";
                 else key = "Older";
             } else if (groupBy === "book") {
                 key = word.bookTitle || "Found while exploring";
             } else if (groupBy === "proficiency") {
-                const reps = word.reps || 0;
-                if (reps === 0) key = "New Sparkles";
-                else if (reps < 5) key = "Learning";
-                else key = "Mastered";
+                const status = word.status || 'learning';
+                if (status === 'learning') key = "Learning";
+                else if (status === 'mastered') key = "Mastered";
+                else key = "Reviewing";
             }
 
             if (!groupMap[key]) groupMap[key] = [];
@@ -88,11 +101,11 @@ export function useMyWordsV2ViewModel() {
 
         const sortedKeys = Object.keys(groupMap).sort((a, b) => {
             if (groupBy === "date") {
-                const order = ["Today", "Yesterday", "This Week", "Older", "Other"];
+                const order = ["Today", "Yesterday", "Earlier this week", "Older", "Other"];
                 return order.indexOf(a) - order.indexOf(b);
             }
             if (groupBy === "proficiency") {
-                const order = ["New Sparkles", "Learning", "Mastered"];
+                const order = ["Learning", "Reviewing", "Mastered"];
                 return order.indexOf(a) - order.indexOf(b);
             }
             return a.localeCompare(b);
@@ -123,14 +136,52 @@ export function useMyWordsV2ViewModel() {
             if (prev.includes(word)) {
                 return prev.filter(w => w !== word);
             }
-            if (prev.length >= 5) return prev;
+            if (prev.length >= 10) return prev; // Increased limit slightly for bulk actions
             return [...prev, word];
         });
     }, []);
 
+    const toggleGroupSelection = useCallback((groupWords: SavedWord[]) => {
+        const groupWordStrings = groupWords.map(w => w.word);
+        setSelectedWords(prev => {
+            const allSelected = groupWordStrings.every(w => prev.includes(w));
+            if (allSelected) {
+                return prev.filter(w => !groupWordStrings.includes(w));
+            } else {
+                setIsSelectionMode(true);
+                const newSelection = [...new Set([...prev, ...groupWordStrings])];
+                return newSelection;
+            }
+        });
+    }, [setIsSelectionMode]);
+
     const clearSelection = useCallback(() => {
         setSelectedWords([]);
     }, []);
+
+    const toggleSelectionMode = useCallback(() => {
+        setIsSelectionMode(prev => !prev);
+        if (isSelectionMode) {
+            setSelectedWords([]);
+        }
+    }, [isSelectionMode]);
+
+    const groupSelectionState = useMemo(() => {
+        const state: Record<string, boolean> = {};
+        groups.forEach(group => {
+            if (group.words.length === 0) {
+                state[group.name] = false;
+            } else {
+                state[group.name] = group.words.every(w => selectedWords.includes(w.word));
+            }
+        });
+        return state;
+    }, [groups, selectedWords]);
+
+    const handleRemoveWords = useCallback(async (wordsToRemove: string[]) => {
+        await removeWords(wordsToRemove);
+        clearSelection();
+    }, [removeWords, clearSelection]);
 
     const generateMagicSentence = useCallback(async (generateImage: boolean = false) => {
         if (selectedWords.length === 0) return;
@@ -196,11 +247,15 @@ export function useMyWordsV2ViewModel() {
     useEffect(() => {
         if (viewType === "history") {
             fetchMagicHistory();
+            setIsSelectionMode(false);
         }
     }, [viewType, fetchMagicHistory]);
 
     return {
         words,
+        totalWords,
+        hasMore,
+        loadMore,
         groups,
         flatList,
         filters: {
@@ -208,15 +263,26 @@ export function useMyWordsV2ViewModel() {
             setCategory: setActiveCategory,
             groupBy,
             setGroupBy,
+            sortBy,
+            setSortBy,
+            sortOrder,
+            setSortOrder,
             searchQuery,
             setSearchQuery,
             viewType,
             setViewType,
+            startDate,
+            setStartDate,
+            endDate,
+            setEndDate,
         },
         actions: {
             removeWord,
+            removeWords: handleRemoveWords,
             toggleSelection,
+            toggleGroupSelection,
             clearSelection,
+            toggleSelectionMode,
             generateMagicSentence,
             setIsMagicModalOpen,
             fetchMagicHistory,
@@ -233,6 +299,8 @@ export function useMyWordsV2ViewModel() {
             activeChild,
             magicHistory,
             isHistoryLoading,
+            isSelectionMode,
+            groupSelectionState,
         }
     };
 }
