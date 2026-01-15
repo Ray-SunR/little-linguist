@@ -1,7 +1,10 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useWordList, type SavedWord } from "@/lib/features/word-insight/provider";
+import { useUsage } from "@/lib/hooks/use-usage";
+import { useAuth } from "@/components/auth/auth-provider";
+import Image from "next/image"; // Added Image import
 
 export type WordCategory = "all" | "new" | "review";
 export type GroupBy = "none" | "date" | "book" | "proficiency";
@@ -11,6 +14,17 @@ export function useMyWordsV2ViewModel() {
     const [activeCategory, setActiveCategory] = useState<WordCategory>("all");
     const [groupBy, setGroupBy] = useState<GroupBy>("none");
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedWords, setSelectedWords] = useState<string[]>([]);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [generationError, setGenerationError] = useState<string | null>(null);
+    const [magicResult, setMagicResult] = useState<any | null>(null);
+    const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
+    const [viewType, setViewType] = useState<"words" | "history">("words");
+    const [magicHistory, setMagicHistory] = useState<any[]>([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+    const { user, activeChild } = useAuth();
+    const { usage, loading: usageLoading } = useUsage(['magic_sentence', 'image_generation']);
 
     const filteredAndSortedWords = useMemo(() => {
         let list = [...words];
@@ -104,6 +118,87 @@ export function useMyWordsV2ViewModel() {
         return flat;
     }, [groups, groupBy]);
 
+    const toggleSelection = useCallback((word: string) => {
+        setSelectedWords(prev => {
+            if (prev.includes(word)) {
+                return prev.filter(w => w !== word);
+            }
+            if (prev.length >= 5) return prev;
+            return [...prev, word];
+        });
+    }, []);
+
+    const clearSelection = useCallback(() => {
+        setSelectedWords([]);
+    }, []);
+
+    const generateMagicSentence = useCallback(async (generateImage: boolean = false) => {
+        if (selectedWords.length === 0) return;
+        
+        if (!activeChild) {
+            setGenerationError("Please select a child profile first!");
+            return;
+        }
+
+        setIsGenerating(true);
+        setGenerationError(null);
+        setMagicResult(null);
+        setIsMagicModalOpen(true);
+        
+        try {
+            const res = await fetch('/api/words/magic-sentence', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    words: selectedWords,
+                    generateImage
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                if (data.error === 'AUTH_REQUIRED') {
+                    throw new Error('Please sign in to use Magic Sentences!');
+                }
+                if (data.error === 'LIMIT_REACHED') {
+                    throw new Error(data.message || "You've reached your limit!");
+                }
+                throw new Error(data.message || "The magic wand flickered! Please try again.");
+            }
+
+            setMagicResult(data);
+            setIsMagicModalOpen(true);
+            setSelectedWords([]); // Clear selection on success
+        } catch (err: any) {
+            setGenerationError(err.message);
+        } finally {
+            setIsGenerating(false);
+        }
+    }, [selectedWords, activeChild]);
+    
+    const fetchMagicHistory = useCallback(async () => {
+        if (!activeChild) return;
+        setIsHistoryLoading(true);
+        try {
+            const res = await fetch('/api/words/magic-sentence/history');
+            if (res.ok) {
+                const data = await res.json();
+                setMagicHistory(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch history:", err);
+        } finally {
+            setIsHistoryLoading(false);
+        }
+    }, [activeChild]);
+
+    useEffect(() => {
+        if (viewType === "history") {
+            fetchMagicHistory();
+        }
+    }, [viewType, fetchMagicHistory]);
+
     return {
         words,
         groups,
@@ -115,12 +210,29 @@ export function useMyWordsV2ViewModel() {
             setGroupBy,
             searchQuery,
             setSearchQuery,
+            viewType,
+            setViewType,
         },
         actions: {
             removeWord,
+            toggleSelection,
+            clearSelection,
+            generateMagicSentence,
+            setIsMagicModalOpen,
+            fetchMagicHistory,
         },
         state: {
-            isLoading,
+            isLoading: isLoading || usageLoading,
+            selectedWords,
+            isGenerating,
+            generationError,
+            magicResult,
+            isMagicModalOpen,
+            usage,
+            user,
+            activeChild,
+            magicHistory,
+            isHistoryLoading,
         }
     };
 }

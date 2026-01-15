@@ -44,7 +44,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
   const profilesRef = useRef<ChildProfile[]>(profiles);
-  const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
+  const [activeChild, setInternalActiveChild] = useState<ChildProfile | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [isStoryGenerating, setIsStoryGenerating] = useState(false);
   const [librarySettings, setLibrarySettings] = useState<any>({});
@@ -107,8 +107,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (cached?.profiles && Array.isArray(cached.profiles) && cached.profiles.length > 0) {
           setProfiles(cached.profiles);
           const activeId = getCookie("activeChildId");
-           const found = activeId ? cached.profiles.find((c) => c.id === activeId) : null;
-          setActiveChild(found ?? cached.profiles[0]);
+          const found = activeId ? cached.profiles.find((c) => c.id === activeId) : null;
+          handleSetActiveChild(found ?? cached.profiles[0]);
           if (uid) setStatus('ready');
           return cached.profiles;
         }
@@ -181,7 +181,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const activeId = getCookie("activeChildId");
         const found = activeId ? data.find((c) => c.id === activeId) : null;
         const finalActive = found ?? (data[0] ?? null);
-        setActiveChild(finalActive);
+        handleSetActiveChild(finalActive);
         if (finalActive?.library_settings) {
           setLibrarySettings(finalActive.library_settings);
         }
@@ -314,9 +314,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else if (!newUser) {
         setUser(null);
         setProfiles([]);
-        setActiveChild(null);
+        handleSetActiveChild(null);
         setLibrarySettings({});
-        deleteCookie("activeChildId");
 
         // Clear Story Maker Globals and Drafts here
         const { clearStoryMakerGlobals } = await import("@/components/story-maker/StoryMakerClient");
@@ -361,7 +360,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [supabase, hydrateFromCache, fetchProfiles, refreshProfiles]);
 
   function handleSetActiveChild(child: ChildProfile | null): void {
-    setActiveChild(child);
+    setInternalActiveChild(child);
     if (child) {
       const expires = new Date();
       expires.setFullYear(expires.getFullYear() + 1);
@@ -371,6 +370,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production'
       });
+    } else {
+      deleteCookie('activeChildId');
     }
   }
 
@@ -397,7 +398,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           p.id === activeChild.id ? { ...p, library_settings: settings } : p
         ));
         if (activeChild) {
-          setActiveChild({ ...activeChild, library_settings: settings });
+          handleSetActiveChild({ ...activeChild, library_settings: settings });
         }
 
         if (user?.id) {
@@ -406,7 +407,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // Rollback on error
             setLibrarySettings(prevSettings);
             setProfiles(prevProfiles);
-            setActiveChild(prevActiveChild);
+            handleSetActiveChild(prevActiveChild);
             return { error: result.error };
           }
           return { success: true };

@@ -14,6 +14,10 @@ export enum AuditAction {
     STORY_GENERATED = 'story.generated',
     STORY_FAILED = 'story.failed',
 
+    // Magic Sentence
+    MAGIC_SENTENCE_GENERATED = 'magic_sentence.generated',
+    MAGIC_SENTENCE_FAILED = 'magic_sentence.failed',
+
     // Word Insights
     WORD_INSIGHT_GENERATED = 'word_insight.generated',
     WORD_INSIGHT_VIEWED = 'word_insight.viewed',
@@ -44,7 +48,8 @@ export enum EntityType {
     BOOK = 'book',
     WORD = 'word',
     CHILD_PROFILE = 'child_profile',
-    IMAGE = 'image'
+    IMAGE = 'image',
+    MAGIC_SENTENCE = 'magic_sentence'
 }
 
 // --- Types ---

@@ -25,9 +25,74 @@ export async function POST(req: Request): Promise<NextResponse> {
         const { data: { user } } = await authClient.auth.getUser();
         const adminSupabase = getAdminSupabase();
 
-        const { word: rawWord } = await req.json();
+        const body = await req.json();
+        const { word: rawWord, words: rawWords } = body;
+
+        // BATCH MODE: Only returns cached insights to avoid unexpected generation costs
+        if (Array.isArray(rawWords)) {
+            const normalizedWords = rawWords
+                .map(w => normalizeWord(w).replace(/[^a-z0-9-]/g, ""))
+                .filter(w => w.length > 0 && w.length <= 50);
+
+            if (normalizedWords.length === 0) {
+                return NextResponse.json({ results: {} });
+            }
+
+            const { data: cachedList } = await adminSupabase
+                .from("word_insights")
+                .select("*")
+                .in("word", normalizedWords);
+
+            const bucket = "word-insights-audio";
+            async function sign(path: string) {
+                if (!path) return "";
+                const { data } = await adminSupabase.storage.from(bucket).createSignedUrl(path, 3600);
+                return data?.signedUrl || "";
+            }
+
+            const results: Record<string, any> = {};
+            
+            // Collect all unique paths to sign in bulk
+            const pathsToSign = new Set<string>();
+            cachedList?.forEach(cached => {
+                if (cached.audio_path) pathsToSign.add(cached.audio_path);
+                pathsToSign.add(`${cached.word}/word.mp3`);
+                pathsToSign.add(`${cached.word}/example_0.mp3`);
+            });
+
+            const allPaths = Array.from(pathsToSign);
+            const signedMap = new Map<string, string>();
+            
+            if (allPaths.length > 0) {
+                const { data: signs } = await adminSupabase.storage.from(bucket).createSignedUrls(allPaths, 3600);
+                signs?.forEach(s => {
+                    if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
+                });
+            }
+
+            cachedList?.forEach(cached => {
+                results[cached.word] = {
+                    word: cached.word,
+                    definition: cached.definition,
+                    pronunciation: cached.pronunciation,
+                    examples: cached.examples,
+                    audioUrl: signedMap.get(cached.audio_path) || "",
+                    wordAudioUrl: signedMap.get(`${cached.word}/word.mp3`) || "",
+                    exampleAudioUrls: [signedMap.get(`${cached.word}/example_0.mp3`) || ""].filter(Boolean),
+                    audioPath: cached.audio_path,
+                    wordAudioPath: `${cached.word}/word.mp3`,
+                    exampleAudioPaths: [`${cached.word}/example_0.mp3`],
+                    wordTimings: cached.timing_markers,
+                    exampleTimings: [],
+                };
+            });
+
+            return NextResponse.json({ results });
+        }
+
+        // SINGLE MODE: Existing logic (supports generation)
         if (typeof rawWord !== 'string') {
-            return NextResponse.json({ error: "Word must be a string" }, { status: 400 });
+            return NextResponse.json({ error: "Word must be a string or words array" }, { status: 400 });
         }
 
         const word = normalizeWord(rawWord).replace(/[^a-z0-9-]/g, "");

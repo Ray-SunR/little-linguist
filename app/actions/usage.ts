@@ -18,6 +18,7 @@ export interface UsageEvent {
     isGrouped?: boolean;
     storyAmount?: number;
     imageAmount?: number;
+    magicSentenceId?: string;
 }
 
 interface TransactionMetadata {
@@ -207,6 +208,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         const bId = isGroup ? (tx as TransactionGroup).bookId : (tx as RawTransaction).metadata?.book_id;
 
         let description = tx.metadata?.title || tx.metadata?.book_key || tx.reason;
+        let magicSentenceId: string | undefined = undefined;
         let coverImageUrl: string | undefined = undefined;
         let storagePath: string | undefined = undefined;
         let updatedAt: string | undefined = undefined;
@@ -214,6 +216,13 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         // Enhance description based on type and metadata
         if (tx.reason === 'word_insight' && tx.metadata?.word) {
             description = `${tx.metadata.word.charAt(0).toUpperCase() + tx.metadata.word.slice(1)}`;
+        } else if (tx.reason === 'magic_sentence' && (tx.metadata as any)?.words) {
+            const m = tx.metadata as any;
+            const words = m.words;
+            description = words.length > 2 
+                ? `${words.slice(0, 2).join(", ")} + ${words.length - 2} more`
+                : words.join(", ");
+            magicSentenceId = m.magic_sentence_id;
         } else if (bId && bookMap.has(bId)) {
             const book = bookMap.get(bId)!;
             description = book.title;
@@ -228,6 +237,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             if (tx.reason === 'story_generation') description = 'New Story';
             else if (tx.reason === 'image_generation') description = 'Story Illustration';
             else if (tx.reason === 'word_insight') description = 'Word Learning';
+            else if (tx.reason === 'magic_sentence') description = 'Magic Sentence';
         }
 
         const timestamp = isGroup ? (tx as TransactionGroup).timestamp : (tx as RawTransaction).created_at;
@@ -247,7 +257,8 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             updatedAt,
             isGrouped: isGroup,
             storyAmount: isGroup ? (tx as TransactionGroup).storyAmount : undefined,
-            imageAmount: isGroup ? (tx as TransactionGroup).imageAmount : undefined
+            imageAmount: isGroup ? (tx as TransactionGroup).imageAmount : undefined,
+            magicSentenceId
         };
     });
 

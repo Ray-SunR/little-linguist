@@ -15,7 +15,7 @@ export interface UseUsageResult {
     refresh: () => Promise<void>;
 }
 
-export function useUsage(features: string[] = ['story_generation', 'image_generation', 'word_insight']): UseUsageResult {
+export function useUsage(features: string[] = ['story_generation', 'image_generation', 'word_insight', 'magic_sentence']): UseUsageResult {
     const [usage, setUsage] = useState<Record<string, UsageStatus>>({});
     const [plan, setPlan] = useState<string>('free');
     const [identityKey, setIdentityKey] = useState<string | null>(null);

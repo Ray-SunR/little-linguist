@@ -2,7 +2,7 @@
 
 import React, { memo, useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Trash2, Headphones, MessageSquare, BookOpen, Volume2 } from "lucide-react";
+import { Play, Pause, Trash2, Headphones, MessageSquare, BookOpen, Volume2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
 import { useWordCache } from "@/lib/features/word-insight/hooks/use-word-cache";
 import { useAudioNarration } from "@/hooks/use-audio-narration";
@@ -14,8 +14,11 @@ interface WordListItemV2Props {
     word: string;
     bookId?: string;
     bookTitle?: string;
+    initialData?: any; // The SavedWord object
     onRemove: () => void;
     index: number;
+    isSelected?: boolean;
+    onToggleSelection?: () => void;
 }
 
 const colorSets = [
@@ -26,9 +29,18 @@ const colorSets = [
     { bg: "bg-rose-500", shadow: "shadow-clay-rose", accent: "text-rose-500", light: "bg-rose-50" },
 ];
 
-export const WordListItemV2 = memo(function WordListItemV2({ word, bookId, bookTitle, onRemove, index }: WordListItemV2Props) {
+export const WordListItemV2 = memo(function WordListItemV2({ 
+    word, 
+    bookId, 
+    bookTitle, 
+    initialData,
+    onRemove, 
+    index,
+    isSelected = false,
+    onToggleSelection
+}: WordListItemV2Props) {
     const theme = useMemo(() => colorSets[index % colorSets.length], [index]);
-    const { insight, audioUrls, isLoading, error } = useWordCache(word);
+    const { insight, audioUrls, isLoading, error } = useWordCache(word, initialData);
     const [activeNarrationType, setActiveNarrationType] = useState<"definition" | "example" | "word" | "none">("none");
 
     const ttsProvider = useMemo(() => new WebSpeechNarrationProvider(), []);
@@ -126,13 +138,27 @@ export const WordListItemV2 = memo(function WordListItemV2({ word, bookId, bookT
         <div className="group relative p-2 md:p-4 mb-2 md:mb-6">
             <motion.div 
                 className={cn(
-                    "relative flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-3xl md:rounded-[2.5rem] bg-white border-[3px] md:border-4 border-slate-100 transition-all duration-300",
+                    "relative flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-3xl md:rounded-[2.5rem] bg-white border-[3px] md:border-4 transition-all duration-300",
+                    isSelected ? "border-purple-500 shadow-clay-purple ring-4 ring-purple-100" : "border-slate-100",
                     "hover:shadow-2xl hover:-translate-y-1",
-                    theme.shadow
+                    !isSelected && theme.shadow
                 )}
+                onClick={onToggleSelection}
             >
+                {/* Selection Indicator */}
+                <div className="absolute top-4 left-4 z-20">
+                    <div className={cn(
+                        "w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all",
+                        isSelected 
+                            ? "bg-purple-500 border-purple-500 text-white" 
+                            : "bg-white border-slate-200 text-transparent"
+                    )}>
+                        <Sparkles className="w-4 h-4" />
+                    </div>
+                </div>
+
                 {/* Left: Word Info */}
-                <div className="flex-1 space-y-3 md:space-y-4">
+                <div className="flex-1 space-y-3 md:space-y-4 pl-8 md:pl-0">
                     <div className="flex items-center gap-3 md:gap-4">
                         <h3 className={cn("text-2xl md:text-3xl font-black font-fredoka", theme.accent)}>
                             {word}

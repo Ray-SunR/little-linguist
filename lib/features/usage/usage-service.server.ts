@@ -26,13 +26,15 @@ export async function getQuotaForUser(
     const DEFAULT_GUEST_LIMITS: Record<string, number> = {
         word_insight: 5,
         story_generation: 0,
-        image_generation: 0
+        image_generation: 0,
+        magic_sentence: 0
     };
 
     const DEFAULT_FREE_LIMITS: Record<string, number> = {
         word_insight: 100,
         story_generation: 3,
-        image_generation: 10
+        image_generation: 10,
+        magic_sentence: 5
     };
 
     if (!userId) {

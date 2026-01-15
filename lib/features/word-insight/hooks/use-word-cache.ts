@@ -23,15 +23,29 @@ export interface WordCacheState {
  * 3. Fetch blobs from signed URLs and store them in assetCache.
  * 4. Provide local blob URLs that are revoked on unmount.
  */
-export function useWordCache(word: string) {
-    const [state, setState] = useState<WordCacheState>({
-        insight: null,
-        audioUrls: {},
-        isLoading: false,
-        error: null,
+export function useWordCache(word: string, initialData?: WordInsight | any) {
+    const [state, setState] = useState<WordCacheState>(() => {
+        if (initialData) {
+            return {
+                insight: initialData,
+                audioUrls: {
+                    definition: (initialData as any).audioUrl,
+                    word: (initialData as any).wordAudioUrl,
+                    example: (initialData as any).exampleAudioUrls?.[0],
+                },
+                isLoading: false,
+                error: null,
+            };
+        }
+        return {
+            insight: null,
+            audioUrls: {},
+            isLoading: false,
+            error: null,
+        };
     });
 
-    const isInitializedRef = useRef(false);
+    const isInitializedRef = useRef(!!initialData);
     const activeObjectKeysRef = useRef<string[]>([]);
 
     const releaseAssets = useCallback(() => {
