@@ -171,7 +171,7 @@ export default function LibraryView({
     }, [virtualItems, columns]);
 
     return (
-        <div className="relative min-h-screen w-full overflow-x-hidden page-story-maker bg-[#f0f4f8] text-slate-800">
+        <div className="relative min-h-screen w-full page-story-maker bg-[#f0f4f8] text-slate-800">
             {/* Background Magic Blobs - Softer Clay colors */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
                 <div
@@ -185,21 +185,19 @@ export default function LibraryView({
             <div className="relative w-full pb-32 flex flex-col gap-0 md:gap-4">
 
                 {/* Sticky Toolbar */}
-                <div className="sticky top-4 z-40 px-3 md:px-6 lg:px-8 mb-8 pt-6 md:pt-10">
-                    <BookshelfToolbar
-                        searchQuery={searchQuery}
-                        onSearchChange={setSearchQuery}
-                        filters={filters}
-                        onFilterChange={handleFilterChange}
-                        sortBy={sortBy}
-                        sortOrder={sortOrder}
-                        onSortChange={onSortChange}
-                        onSortOrderChange={onSortOrderChange}
-                        currentUserId={currentUserId}
-                        activeChild={activeChild}
-                        totalStories={books.length}
-                    />
-                </div>
+                <BookshelfToolbar
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSortChange={onSortChange}
+                    onSortOrderChange={onSortOrderChange}
+                    currentUserId={currentUserId}
+                    activeChild={activeChild}
+                    totalStories={books.length}
+                />
 
                 {/* 3. Book Grid Area */}
                 <div id="library-book-list" data-tour-target="library-book-list" className="flex flex-col gap-6 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative min-h-[400px]">

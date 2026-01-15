@@ -40,35 +40,28 @@ export default function MyWordsContent() {
             </div>
 
             <div className="relative w-full flex flex-col z-10">
-                {/* Sticky Toolbar - Improved Wrapper */}
-                <div className="sticky top-0 z-[40] w-full isolate">
-                    <div className="backdrop-blur-xl bg-slate-50/90 border-b border-slate-200/50 shadow-sm px-3 md:px-6 lg:px-8 py-3 md:py-4">
-                        <div className="max-w-7xl mx-auto">
-                            <MyWordsToolbar
-                                activeChild={state.activeChild}
-                                viewType={filters.viewType}
-                                setViewType={filters.setViewType}
-                                searchQuery={filters.searchQuery}
-                                setSearchQuery={filters.setSearchQuery}
-                                isSelectionMode={state.isSelectionMode}
-                                onToggleSelectionMode={actions.toggleSelectionMode}
-                                activeCategory={filters.category}
-                                setCategory={filters.setCategory}
-                                groupBy={filters.groupBy}
-                                setGroupBy={filters.setGroupBy}
-                                sortBy={filters.sortBy}
-                                setSortBy={filters.setSortBy}
-                                sortOrder={filters.sortOrder}
-                                setSortOrder={filters.setSortOrder}
-                                startDate={filters.startDate}
-                                setStartDate={filters.setStartDate}
-                                endDate={filters.endDate}
-                                setEndDate={filters.setEndDate}
-                                totalWords={totalWords}
-                            />
-                        </div>
-                    </div>
-                </div>
+                <MyWordsToolbar
+                    activeChild={state.activeChild}
+                    viewType={filters.viewType}
+                    setViewType={filters.setViewType}
+                    searchQuery={filters.searchQuery}
+                    setSearchQuery={filters.setSearchQuery}
+                    isSelectionMode={state.isSelectionMode}
+                    onToggleSelectionMode={actions.toggleSelectionMode}
+                    activeCategory={filters.category}
+                    setCategory={filters.setCategory}
+                    groupBy={filters.groupBy}
+                    setGroupBy={filters.setGroupBy}
+                    sortBy={filters.sortBy}
+                    setSortBy={filters.setSortBy}
+                    sortOrder={filters.sortOrder}
+                    setSortOrder={filters.setSortOrder}
+                    startDate={filters.startDate}
+                    setStartDate={filters.setStartDate}
+                    endDate={filters.endDate}
+                    setEndDate={filters.setEndDate}
+                    totalWords={totalWords}
+                />
 
 
                 {/* Selection Mode Banner */}
