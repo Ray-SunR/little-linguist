@@ -4,14 +4,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { BookOpen, Sparkles, Brain, ArrowRight, Library, PenTool, Volume2, Music, Cloud, Star } from "lucide-react";
 
-import SocialProof from "@/components/landing-page/SocialProof";
-import { ReaderDemo, StoryDemo } from "@/components/landing-page/demos";
-import { StickyTrialCTA } from "@/components/landing-page/StickyTrialCTA";
 import { ScrollProgressBar } from "@/components/landing-page/ScrollProgressBar";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
 import { CachedImage } from "@/components/ui/cached-image";
+import dynamic from "next/dynamic";
+
+// Dynamic Imports for Below-the-Fold components
+const SocialProof = dynamic(() => import("@/components/landing-page/SocialProof"), { ssr: true });
+const ReaderDemo = dynamic(() => import("@/components/landing-page/demos").then(mod => mod.ReaderDemo), { ssr: false });
+const StoryDemo = dynamic(() => import("@/components/landing-page/demos").then(mod => mod.StoryDemo), { ssr: false });
+const StickyTrialCTA = dynamic(() => import("@/components/landing-page/StickyTrialCTA").then(mod => mod.StickyTrialCTA), { ssr: false });
 
 const HERO_MESSAGES = [
     "Hi! I'm Lumo! 👋",
@@ -310,6 +314,7 @@ export default function LandingPageContent() {
                                     alt="Magical flying book emitting stories"
                                     fill
                                     className="object-contain drop-shadow-2xl"
+                                    priority={true}
                                 />
                             </div>
                         </motion.div>

@@ -59,12 +59,32 @@ const config: Config = {
 					'3': 'hsl(var(--chart-3))',
 					'4': 'hsl(var(--chart-4))',
 					'5': 'hsl(var(--chart-5))'
+				},
+				mint: {
+					400: '#a7f3d0',
+					500: '#10b981',
+				},
+				sky: {
+					400: '#7dd3fc',
+					500: '#0ea5e9',
+				},
+				peach: {
+					400: '#fdba74',
+					500: '#f97316',
+				},
+				rose: {
+					400: '#fb7185',
+					500: '#f43f5e',
 				}
 			},
 			boxShadow: {
 				soft: 'var(--shadow)',
 				clay: "0 12px 36px rgba(139, 75, 255, 0.15), 0 2px 4px rgba(139, 75, 255, 0.2)",
 				"clay-inset": "inset 0 -12px 20px rgba(139, 75, 255, 0.15), inset 0 2px 6px rgba(255, 255, 255, 0.9)",
+				"clay-blue": "0 12px 24px rgba(10, 163, 255, 0.15), inset 0 -4px 8px rgba(10, 163, 255, 0.1)",
+				"clay-pink": "0 12px 24px rgba(255, 75, 185, 0.15), inset 0 -4px 8px rgba(255, 75, 185, 0.1)",
+				"clay-amber": "0 12px 24px rgba(255, 186, 73, 0.15), inset 0 -4px 8px rgba(255, 186, 73, 0.1)",
+				"clay-purple": "0 12px 24px rgba(139, 75, 255, 0.15), inset 0 -4px 8px rgba(139, 75, 255, 0.1)",
 				"magic-glow": "0 0 50px rgba(139, 75, 255, 0.15)",
 			},
 			borderRadius: {

@@ -6,15 +6,19 @@ import { BookOpen, Sparkles, Wand2, Star, TrendingUp, Clock, ChevronRight, User 
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import type { ChildProfile } from "@/app/actions/profiles";
 import { CachedImage } from "@/components/ui/cached-image";
+import type { DashboardStats } from "@/app/actions/dashboard";
 
 interface Props {
     activeChild: ChildProfile | null;
+    stats: DashboardStats | null;
 }
 
-export default function DashboardUI({ activeChild }: Props) {
+export default function DashboardUI({ activeChild, stats }: Props) {
     const childName = activeChild?.first_name || "Captain";
-    const childAvatar = activeChild?.avatar_asset_path;
-    const age = activeChild?.birth_year ? new Date().getFullYear() - activeChild.birth_year : null;
+    const level = stats?.level || activeChild?.level || 1;
+    const xp = stats?.totalXp || activeChild?.total_xp || 0;
+    const nextLevelXp = level * 1000;
+    const xpProgress = Math.min((xp / nextLevelXp) * 100, 100);
 
     return (
         <main className="min-h-screen page-story-maker flex flex-col items-center px-6 py-10 pb-32">
@@ -133,18 +137,25 @@ export default function DashboardUI({ activeChild }: Props) {
                         </div>
 
                         {/* XP Bar */}
-                        <div className="w-full h-4 bg-purple-50 rounded-full overflow-hidden mb-1 border border-purple-100 relative">
+                        <div className="w-full h-6 bg-purple-50 rounded-full overflow-hidden mb-2 border-2 border-purple-100 relative shadow-inner">
                             {activeChild ? (
-                                <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 w-[75%]" />
+                                <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${xpProgress}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                    className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 relative overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:2rem_2rem] animate-[move-bg_3s_linear_infinite]" />
+                                </motion.div>
                             ) : (
                                 <div className="absolute inset-0 bg-slate-200/50 backdrop-blur-[2px] flex items-center justify-center">
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Locked</span>
                                 </div>
                             )}
                         </div>
-                        <div className="flex justify-between text-xs font-bold text-ink-muted">
-                            <span>{activeChild ? "750 XP" : "0 XP"}</span>
-                            <span>1000 XP</span>
+                        <div className="flex justify-between text-xs font-black text-purple-700/70 uppercase tracking-wider">
+                            <span>{activeChild ? `${xp} XP` : "0 XP"}</span>
+                            <span>{nextLevelXp} XP</span>
                         </div>
                     </div>
 
@@ -186,39 +197,147 @@ export default function DashboardUI({ activeChild }: Props) {
                     Ship Modules
                 </h3>
 
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-4">
+                    {/* Words Module */}
+                    <Link href="/my-words" className="block group">
+                        <div className="clay-card p-6 h-full bg-amber-50 border-2 border-amber-100 hover:border-amber-300 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center mb-4 shadow-clay-amber group-hover:scale-110 transition-transform">
+                                <Sparkles className="w-6 h-6" />
+                            </div>
+                            <div className="text-2xl font-black text-amber-600 font-fredoka">{stats?.masteredWords || 0}</div>
+                            <h4 className="text-lg font-black text-ink font-fredoka mb-1">Words Mastered</h4>
+                            <p className="text-sm text-ink-muted font-bold">Data Bank</p>
+                        </div>
+                    </Link>
+
                     {/* Library Module */}
                     <Link href="/library" className="block group">
                         <div className="clay-card p-6 h-full bg-blue-50 border-2 border-blue-100 hover:border-blue-300 transition-colors">
-                            <div className="w-12 h-12 rounded-2xl bg-blue-500 text-white flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-500 text-white flex items-center justify-center mb-4 shadow-clay-blue group-hover:scale-110 transition-transform">
                                 <BookOpen className="w-6 h-6" />
                             </div>
-                            <h4 className="text-lg font-black text-ink font-fredoka mb-1">Story Archive</h4>
-                            <p className="text-sm text-ink-muted font-bold">Access full library</p>
+                            <div className="text-2xl font-black text-blue-600 font-fredoka">{stats?.completedBooks || 0}</div>
+                            <h4 className="text-lg font-black text-ink font-fredoka mb-1">Books Read</h4>
+                            <p className="text-sm text-ink-muted font-bold">Story Archive</p>
                         </div>
                     </Link>
 
                     {/* Story Maker Module */}
                     <Link href="/story-maker" className="block group">
                         <div className="clay-card p-6 h-full bg-pink-50 border-2 border-pink-100 hover:border-pink-300 transition-colors">
-                            <div className="w-12 h-12 rounded-2xl bg-pink-500 text-white flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 rounded-2xl bg-pink-500 text-white flex items-center justify-center mb-4 shadow-clay-pink group-hover:scale-110 transition-transform">
                                 <Wand2 className="w-6 h-6" />
                             </div>
-                            <h4 className="text-lg font-black text-ink font-fredoka mb-1">The Lab</h4>
-                            <p className="text-sm text-ink-muted font-bold">Create new stories</p>
+                            <div className="text-2xl font-black text-pink-600 font-fredoka">{stats?.storiesCreated || 0}</div>
+                            <h4 className="text-lg font-black text-ink font-fredoka mb-1">Stories Created</h4>
+                            <p className="text-sm text-ink-muted font-bold">The Lab</p>
                         </div>
                     </Link>
 
-                    {/* Words Module */}
-                    <Link href="/my-words" className="block group">
-                        <div className="clay-card p-6 h-full bg-amber-50 border-2 border-amber-100 hover:border-amber-300 transition-colors">
-                            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform">
+                    {/* Sentences Module */}
+                    <Link href="/my-words?tab=sentences" className="block group">
+                        <div className="clay-card p-6 h-full bg-purple-50 border-2 border-purple-100 hover:border-purple-300 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-purple-500 text-white flex items-center justify-center mb-4 shadow-clay-purple group-hover:scale-110 transition-transform">
                                 <Sparkles className="w-6 h-6" />
                             </div>
-                            <h4 className="text-lg font-black text-ink font-fredoka mb-1">Data Bank</h4>
-                            <p className="text-sm text-ink-muted font-bold">Review vocabulary</p>
+                            <div className="text-2xl font-black text-purple-600 font-fredoka">{stats?.magicSentencesCreated || 0}</div>
+                            <h4 className="text-lg font-black text-ink font-fredoka mb-1">Magic Sentences</h4>
+                            <p className="text-sm text-ink-muted font-bold">Magic Room</p>
                         </div>
                     </Link>
+                </div>
+            </motion.div>
+
+            {/* BADGE SHOWCASE */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="w-full max-w-4xl mt-12"
+            >
+                <div className="flex items-center justify-between mb-6 px-2">
+                    <h3 className="text-xl font-black font-fredoka text-ink-muted">
+                        Earned Badges
+                    </h3>
+                    <span className="text-sm font-black text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
+                        {stats?.badges?.length || 0} Unlocked
+                    </span>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-2">
+                    {stats?.badges && stats.badges.length > 0 ? (
+                        stats.badges.map((badgeEntry: any) => {
+                            const badge = badgeEntry.badges;
+                            return (
+                                <motion.div
+                                    key={badge.id}
+                                    whileHover={{ scale: 1.05 }}
+                                    className="flex-shrink-0 w-32 h-40 clay-card bg-white border-2 border-purple-50 p-4 flex flex-col items-center justify-center text-center group cursor-help relative"
+                                >
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-sm
+                                        ${badge.rarity === 'legendary' ? 'bg-amber-100 text-amber-600 shadow-amber-200' : 
+                                          badge.rarity === 'epic' ? 'bg-purple-100 text-purple-600 shadow-purple-200' : 
+                                          badge.rarity === 'rare' ? 'bg-blue-100 text-blue-600 shadow-blue-200' : 
+                                          'bg-slate-100 text-slate-600 shadow-slate-200'}`}
+                                    >
+                                        <Star className={`w-8 h-8 ${badge.rarity !== 'basic' ? 'fill-current' : ''}`} />
+                                    </div>
+                                    <div className="text-xs font-black text-ink font-fredoka leading-tight">{badge.name}</div>
+                                    
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 p-3 bg-ink text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                                        <div className="font-black mb-1">{badge.description}</div>
+                                        <div className="text-ink-muted-light font-bold">Earned: {new Date(badgeEntry.earned_at).toLocaleDateString()}</div>
+                                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-ink"></div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })
+                    ) : (
+                        <div className="w-full py-8 text-center bg-purple-50/50 rounded-3xl border-2 border-dashed border-purple-100">
+                            <p className="text-purple-400 font-bold">No badges yet. Start your first mission to earn one!</p>
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+
+            {/* WEEKLY PROGRESS */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="w-full max-w-4xl mt-12 mb-12"
+            >
+                <div className="clay-card p-8 bg-white border-2 border-purple-100">
+                    <h3 className="text-xl font-black font-fredoka text-ink mb-6 flex items-center gap-2">
+                        <TrendingUp className="w-6 h-6 text-green-500" />
+                        Weekly Reading Activity
+                    </h3>
+
+                    <div className="flex items-end justify-between h-48 gap-2 mt-4 px-2">
+                        {stats?.weeklyActivity?.map((day, idx) => {
+                            const maxMins = Math.max(...(stats?.weeklyActivity?.map(d => d.minutes) || [30]));
+                            const height = Math.max((day.minutes / (maxMins || 1)) * 100, 10);
+                            const dayName = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' });
+                            const colors = ['bg-mint-400', 'bg-sky-400', 'bg-peach-400', 'bg-purple-400', 'bg-amber-400', 'bg-rose-400', 'bg-indigo-400'];
+                            
+                            return (
+                                <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+                                    <motion.div 
+                                        initial={{ height: 0 }}
+                                        animate={{ height: `${height}%` }}
+                                        transition={{ delay: 0.7 + idx * 0.1, duration: 0.5 }}
+                                        className={`w-full max-w-[40px] rounded-t-xl shadow-inner ${colors[idx % colors.length]} relative group-hover:brightness-110 transition-all`}
+                                    >
+                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-ink text-white text-[10px] font-black px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {day.minutes}m
+                                        </div>
+                                    </motion.div>
+                                    <div className="mt-4 text-xs font-black text-ink-muted uppercase tracking-tighter">{dayName}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </motion.div>
         </main>

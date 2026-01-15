@@ -9,6 +9,7 @@ import { cn } from "@/lib/core";
 import Link from "next/link";
 import { BookshelfToolbar } from "@/components/library/BookshelfToolbar";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
+import { WindowVirtualizer } from "virtua";
 
 interface LibraryViewProps {
     books: LibraryBookCard[];
@@ -74,6 +75,25 @@ export default function LibraryView({
         return result;
     }, [books, searchQuery]);
 
+    // Normalize items for virtualization
+    const virtualItems = useMemo(() => {
+        const items: ({ type: 'book'; data: LibraryBookCard } | { type: 'create-card' } | { type: 'signin-card' })[] = [];
+
+        if (!currentUserId) {
+            items.push({ type: 'create-card' });
+        }
+
+        filteredBooks.forEach(book => {
+            items.push({ type: 'book', data: book });
+        });
+
+        if (isGuest) {
+            items.push({ type: 'signin-card' });
+        }
+
+        return items;
+    }, [filteredBooks, currentUserId, isGuest]);
+
     // Lumo greeting messages
     const GREETINGS = [
         "Let's read! 📚",
@@ -125,6 +145,30 @@ export default function LibraryView({
 
         onFiltersChange(newFilters);
     };
+
+    // Responsive Column Calculation
+    const [columns, setColumns] = useState(1);
+    useEffect(() => {
+        const calcColumns = () => {
+            if (window.innerWidth >= 1280) return 4;
+            if (window.innerWidth >= 1024) return 3;
+            if (window.innerWidth >= 640) return 2;
+            return 1;
+        };
+        setColumns(calcColumns());
+        const handleResize = () => setColumns(calcColumns());
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const rowCount = Math.ceil(virtualItems.length / columns);
+    const rows = useMemo(() => {
+        const r = [];
+        for (let i = 0; i < virtualItems.length; i += columns) {
+            r.push(virtualItems.slice(i, i + columns));
+        }
+        return r;
+    }, [virtualItems, columns]);
 
     return (
         <div className="relative min-h-screen w-full overflow-x-hidden page-story-maker bg-[#f0f4f8] text-slate-800">
@@ -308,77 +352,97 @@ export default function LibraryView({
                             ))}
                         </div>
                     ) : (!currentUserId || filteredBooks.length > 0) ? (
-                        <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {!currentUserId && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="relative group p-6 rounded-[2.5rem] bg-purple-50 border-4 border-dashed border-purple-200 flex flex-col items-center justify-center text-center gap-4 hover:border-purple-400 transition-colors shadow-clay-inset"
-                                >
-                                    <div className="w-16 h-16 rounded-2xl bg-white shadow-clay-md flex items-center justify-center">
-                                        <Wand2 className="w-8 h-8 text-purple-600 animate-pulse" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-fredoka text-lg font-black text-purple-900 leading-tight">Create Your Own Story</h3>
-                                        <p className="text-xs font-bold text-purple-600/80 font-nunito mt-1">Make a story about anything you can imagine!</p>
-                                    </div>
-                                    <Link
-                                        href="/story-maker"
-                                        className="px-6 py-2.5 rounded-2xl bg-purple-600 text-white font-fredoka text-sm font-black shadow-lg hover:scale-105 active:scale-95 transition-transform"
-                                    >
-                                        Try Wizard
-                                    </Link>
-                                </motion.div>
-                            )}
-                            {filteredBooks.map((book, index) => (
-                                <LibraryBookCardComponent
-                                    key={book.id}
-                                    book={book}
-                                    index={index}
-                                    isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
-                                    activeChildId={activeChildId}
-                                    onDelete={onDeleteBook}
-                                    dataTourTarget={
-                                        book.title.includes("Alex's Blocky World Adventure") ? "first-book" :
-                                            (!filteredBooks.some(b => b.title.includes("Alex's Blocky World Adventure")) && index === 0) ? "first-book" : undefined
-                                    }
-                                />
-                            ))}
-                            {isGuest && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="relative group h-[420px] md:h-[460px] w-full rounded-[2.5rem] bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-pink-500/10 border-[5px] border-white shadow-clay p-8 flex flex-col items-center justify-center text-center gap-6 overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 z-0 bg-white/40 backdrop-blur-md" />
-                                    
-                                    <div className="relative z-10 w-24 h-24 rounded-3xl bg-white shadow-clay-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-500">
-                                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-400/20 to-pink-400/20 animate-pulse" />
-                                        <Sparkles className="w-12 h-12 text-purple-600 relative z-10" />
-                                    </div>
+                        <WindowVirtualizer
+                            data={rows}
+                            bufferSize={400}
+                        >
+                            {(rowItems: any[], rowIndex: number) => {
+                                return (
+                                    <div className="grid grid-cols-1 gap-x-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full mb-16">
+                                        {rowItems.map((item, colIndex) => {
+                                            const index = rowIndex * columns + colIndex;
 
-                                    <div className="relative z-10 space-y-3">
-                                        <h3 className="font-fredoka text-2xl font-black text-slate-800 leading-tight">
-                                            Unlock 300+ Stories!
-                                        </h3>
-                                        <p className="text-slate-600 font-bold font-nunito leading-relaxed">
-                                            Sign in to explore our ever-growing library of magical adventures and track your progress!
-                                        </p>
+                                            if (item.type === 'create-card') {
+                                                return (
+                                                    <motion.div
+                                                        key="create-card"
+                                                        initial={{ opacity: 0, scale: 0.9 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="relative group p-6 rounded-[2.5rem] bg-purple-50 border-4 border-dashed border-purple-200 flex flex-col items-center justify-center text-center gap-4 hover:border-purple-400 transition-colors shadow-clay-inset h-[420px] md:h-[460px]"
+                                                    >
+                                                        <div className="w-16 h-16 rounded-2xl bg-white shadow-clay-md flex items-center justify-center">
+                                                            <Wand2 className="w-8 h-8 text-purple-600 animate-pulse" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="font-fredoka text-lg font-black text-purple-900 leading-tight">Create Your Own Story</h3>
+                                                            <p className="text-xs font-bold text-purple-600/80 font-nunito mt-1">Make a story about anything you can imagine!</p>
+                                                        </div>
+                                                        <Link
+                                                            href="/story-maker"
+                                                            className="px-6 py-2.5 rounded-2xl bg-purple-600 text-white font-fredoka text-sm font-black shadow-lg hover:scale-105 active:scale-95 transition-transform"
+                                                        >
+                                                            Try Wizard
+                                                        </Link>
+                                                    </motion.div>
+                                                );
+                                            }
+                                            if (item.type === 'signin-card') {
+                                                return (
+                                                    <motion.div
+                                                        key="signin-card"
+                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="relative group h-[420px] md:h-[460px] w-full rounded-[2.5rem] bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-pink-500/10 border-[5px] border-white shadow-clay p-8 flex flex-col items-center justify-center text-center gap-6 overflow-hidden"
+                                                    >
+                                                        <div className="absolute inset-0 z-0 bg-white/40 backdrop-blur-md" />
+
+                                                        <div className="relative z-10 w-24 h-24 rounded-3xl bg-white shadow-clay-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-500">
+                                                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-400/20 to-pink-400/20 animate-pulse" />
+                                                            <Sparkles className="w-12 h-12 text-purple-600 relative z-10" />
+                                                        </div>
+
+                                                        <div className="relative z-10 space-y-3">
+                                                            <h3 className="font-fredoka text-2xl font-black text-slate-800 leading-tight">
+                                                                Unlock 300+ Stories!
+                                                            </h3>
+                                                            <p className="text-slate-600 font-bold font-nunito leading-relaxed">
+                                                                Sign in to explore our ever-growing library of magical adventures and track your progress!
+                                                            </p>
+                                                        </div>
+
+                                                        <Link
+                                                            href="/login"
+                                                            className="relative z-10 mt-2 px-10 py-4 rounded-2xl bg-purple-600 text-white font-fredoka text-lg font-black shadow-purple-200 shadow-xl hover:bg-purple-700 hover:scale-105 active:scale-95 transition-all"
+                                                        >
+                                                            Sign In Now ✨
+                                                        </Link>
+
+                                                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-200/30 blur-3xl rounded-full" />
+                                                        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-200/30 blur-3xl rounded-full" />
+                                                    </motion.div>
+                                                );
+                                            }
+
+                                            const book = item.data;
+                                            return (
+                                                <LibraryBookCardComponent
+                                                    key={book.id}
+                                                    book={book}
+                                                    index={index}
+                                                    isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
+                                                    activeChildId={activeChildId}
+                                                    onDelete={onDeleteBook}
+                                                    dataTourTarget={
+                                                        book.title.includes("Alex's Blocky World Adventure") ? "first-book" :
+                                                            (!filteredBooks.some(b => b.title.includes("Alex's Blocky World Adventure")) && index === 0) ? "first-book" : undefined
+                                                    }
+                                                />
+                                            );
+                                        })}
                                     </div>
-
-                                    <Link
-                                        href="/login"
-                                        className="relative z-10 mt-2 px-10 py-4 rounded-2xl bg-purple-600 text-white font-fredoka text-lg font-black shadow-purple-200 shadow-xl hover:bg-purple-700 hover:scale-105 active:scale-95 transition-all"
-                                    >
-                                        Sign In Now ✨
-                                    </Link>
-
-                                    {/* Decorative elements */}
-                                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-200/30 blur-3xl rounded-full" />
-                                    <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-200/30 blur-3xl rounded-full" />
-                                </motion.div>
-                            )}
-                        </div>
+                                );
+                            }}
+                        </WindowVirtualizer>
                     ) : (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}

@@ -4,6 +4,8 @@ import { ProfileHydrator } from "@/components/auth/profile-hydrator";
 import { Suspense } from "react";
 import LumoLoader from "@/components/ui/lumo-loader";
 import dynamic from "next/dynamic";
+import { getDashboardStats } from "@/app/actions/dashboard";
+import DashboardGuestPrompt from "@/components/dashboard/DashboardGuestPrompt";
 
 const DashboardContent = dynamic(() => import("./DashboardContent"), {
   ssr: false,
@@ -32,18 +34,23 @@ export default async function DashboardPage() {
     }
   }
 
+  const statsResponse = user ? await getDashboardStats() : null;
+  const stats = statsResponse?.success ? statsResponse.data : null;
+
+  if (!user) {
+    return <DashboardGuestPrompt />;
+  }
+
   return (
     <>
-      {user && (
-        <ProfileHydrator
-          key={user.id}
-          initialProfiles={initialProfiles}
-          userId={user.id}
-          serverError={fetchError}
-        />
-      )}
+      <ProfileHydrator
+        key={user.id}
+        initialProfiles={initialProfiles}
+        userId={user.id}
+        serverError={fetchError}
+      />
       <Suspense fallback={<LumoLoader />}>
-        <DashboardContent serverProfiles={initialProfiles} />
+        <DashboardContent serverProfiles={initialProfiles} stats={stats} />
       </Suspense>
     </>
   );

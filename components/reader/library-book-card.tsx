@@ -3,7 +3,7 @@
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { Play, BookOpen, Rocket, Star, Clock, Trash2, AlertTriangle, Compass, Heart, Hash, Sparkles, Check } from "lucide-react";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
-import React, { MouseEvent, useRef, useState, memo, useCallback } from "react";
+import React, { MouseEvent, useRef, useState, memo, useCallback, useMemo } from "react";
 import { CachedImage } from "@/components/ui/cached-image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,8 +48,9 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId, d
     const spotX = useTransform(mouseX, [-0.5, 0.5], ["0%", "100%"]);
     const spotY = useTransform(mouseY, [-0.5, 0.5], ["0%", "100%"]);
 
-    // Deterministic palette generation
-    const getCoverStyle = (str: string) => {
+    // Deterministic palette generation - Move outside or use memo
+    const style = useMemo(() => {
+        const str = book.title;
         const hash = str.split("").reduce((acc, char) => char.charCodeAt(0) + acc, 0);
 
         const palettes = [
@@ -62,12 +63,10 @@ const LibraryBookCard = memo(({ book, index, isOwned, onDelete, activeChildId, d
         ];
 
         return palettes[hash % palettes.length];
-    };
-
-    const style = getCoverStyle(book.title);
+    }, [book.title]);
 
     const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
-        if (!ref.current) return;
+        if (!ref.current || window.innerWidth < 768) return;
         const rect = ref.current.getBoundingClientRect();
         const mouseXRel = e.clientX - rect.left;
         const mouseYRel = e.clientY - rect.top;

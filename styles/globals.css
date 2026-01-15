@@ -432,6 +432,16 @@ h6 {
   }
 }
 
+@keyframes move-bg {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 2rem 2rem;
+  }
+}
+
 @keyframes glass-flow {
   0% {
     transform: scale(1) translate(0, 0);

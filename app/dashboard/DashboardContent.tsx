@@ -5,12 +5,14 @@ import DashboardUI from "@/components/dashboard/DashboardUI";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useRouter } from "next/navigation";
 import { ChildProfile } from "@/app/actions/profiles";
+import type { DashboardStats } from "@/app/actions/dashboard";
 
 interface DashboardContentProps {
   serverProfiles?: ChildProfile[];
+  stats?: DashboardStats | null;
 }
 
-export default function DashboardContent({ serverProfiles = [] }: DashboardContentProps) {
+export default function DashboardContent({ serverProfiles = [], stats = null }: DashboardContentProps) {
   const { user, profiles, activeChild, isLoading, status } = useAuth();
   const router = useRouter();
 
@@ -19,6 +21,6 @@ export default function DashboardContent({ serverProfiles = [] }: DashboardConte
 
   // DashboardUI handles its own empty states, we just pass activeChild
   return (
-    <DashboardUI activeChild={activeChild} />
+    <DashboardUI activeChild={activeChild} stats={stats} />
   );
 }

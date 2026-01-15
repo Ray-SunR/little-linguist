@@ -32,6 +32,8 @@ export interface ChildProfile extends ChildProfilePayload {
   avatar_paths?: string[];
   primary_avatar_index?: number;
   library_settings?: LibrarySettings;
+  total_xp?: number;
+  level?: number;
 }
 
 import { BUCKETS } from "@/lib/constants/storage";

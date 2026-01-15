@@ -39,7 +39,8 @@
     "react-dom": "18.3.1",
     "sharp": "^0.34.5",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "virtua": "^0.48.3"
   },
   "devDependencies": {
     "@swc/core": "^1.15.8",
@@ -47,6 +48,7 @@
     "@types/node": "20.19.27",
     "@types/react": "18.3.27",
     "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "axios": "^1.13.2",
     "eslint": "^8.57.0",
@@ -58,7 +60,6 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "5.9.3",
-    "vitest": "^1.6.0",
-    "@vitejs/plugin-react": "^4.3.1"
+    "vitest": "^1.6.0"
   }
 }
