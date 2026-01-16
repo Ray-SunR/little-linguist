@@ -4,6 +4,7 @@ import React from "react";
 import { cn } from "@/lib/core";
 import Link from "next/link";
 import { User } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { CachedImage } from "@/components/ui/cached-image";
 
 export interface ToolbarChild {
@@ -20,6 +21,7 @@ interface PageToolbarProps {
     id?: string;
     "data-tour-target"?: string;
     themeColor?: "violet" | "indigo" | "rose" | "emerald" | "amber" | "slate";
+    isSearchExpanded?: boolean;
 }
 
 /**
@@ -33,7 +35,8 @@ export function PageToolbar({
     containerClassName,
     id,
     "data-tour-target": dataTourTarget,
-    themeColor = "violet"
+    themeColor = "violet",
+    isSearchExpanded = false
 }: PageToolbarProps) {
     const themes = {
         violet: {
@@ -90,7 +93,7 @@ export function PageToolbar({
         >
             <div className={cn(
                 "backdrop-blur-2xl transition-colors duration-500",
-                "border-b shadow-sm px-3 md:px-6 lg:px-8 py-3 md:py-4",
+                "border-b shadow-sm px-1.5 md:px-6 lg:px-8 py-3 md:py-4",
                 theme.ribbon
             )}>
                 <div className="max-w-7xl mx-auto">
@@ -104,12 +107,19 @@ export function PageToolbar({
                             "shadow-[0_8px_32px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02),0_16px_48px_-12px_rgba(0,0,0,0.08)]",
                             "border border-white/80 ring-1",
                             theme.glassRing,
-                            "rounded-2xl px-2.5 py-2 md:px-4 md:py-3",
-                            "flex items-center gap-2 md:gap-4",
+                            "rounded-2xl px-1.5 py-1.5 md:px-4 md:py-3",
+                            "flex items-center gap-0.5 md:gap-4",
                             "transition-all duration-500"
                         )}>
-                            {/* Profile / Avatar */}
-                            <div className="flex-shrink-0">
+                            {/* Profile / Avatar - Hide on mobile when search is expanded */}
+                            <AnimatePresence>
+                                {!isSearchExpanded && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.8, width: 0 }}
+                                        animate={{ opacity: 1, scale: 1, width: "auto" }}
+                                        exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                                        className="flex-shrink-0"
+                                    >
                                 {activeChild ? (
                                     <Link href="/dashboard" className="block relative group">
                                         <div className={cn(
@@ -146,10 +156,12 @@ export function PageToolbar({
                                         </div>
                                     </Link>
                                 )}
-                            </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             {/* Content Slot (Tabs, Search, Filters, etc.) */}
-                            <div className="flex items-center min-w-0 gap-1.5 md:gap-2 flex-1">
+                            <div className="flex items-center justify-between min-w-0 gap-0.5 md:gap-2 flex-1">
                                 {children}
                             </div>
                         </div>

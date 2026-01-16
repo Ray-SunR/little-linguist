@@ -188,6 +188,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 if (currentFilters.duration) filterParams.set('duration', currentFilters.duration);
                 if (currentFilters.collection === 'favorites') filterParams.set('isFavorite', 'true');
                 if (currentFilters.collection === 'my-tales') filterParams.set('onlyPersonal', 'true');
+                if (currentFilters.collection === 'discovery') filterParams.set('onlyPublic', 'true');
 
                 const booksUrl = `/api/books?${filterParams.toString()}`;
 

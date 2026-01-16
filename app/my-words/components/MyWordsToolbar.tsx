@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Wand2, Sparkles, Filter, LayoutGrid, ArrowUpDown, Search, X, ChevronDown, History, Heart, Calendar } from "lucide-react";
+import { Wand2, Sparkles, Filter, LayoutGrid, ArrowUpDown, Search, X, ChevronDown, History, Heart, Calendar, MessageSquareText } from "lucide-react";
 import { cn } from "@/lib/core";
 import { useState, useRef, useEffect } from "react";
 import { type ChildProfile } from "@/app/actions/profiles";
@@ -85,6 +85,7 @@ export function MyWordsToolbar({
             } : null}
             themeColor="violet"
             className={className}
+            isSearchExpanded={isSearchExpanded}
         >
             <AnimatePresence mode="wait">
                 {!isSearchExpanded ? (
@@ -93,21 +94,21 @@ export function MyWordsToolbar({
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
-                        className="flex items-center gap-1.5 md:gap-2 flex-1 min-w-0"
+                        className="flex items-center gap-0.5 md:gap-2 min-w-0 flex-1"
                     >
                         {/* Compact tabs */}
-                        <div className="flex items-center gap-0.5 md:gap-1 pl-1 md:pl-0">
+                        <div className="flex items-center gap-0.5 md:gap-1">
                             <button
                                 onClick={() => setViewType("words")}
                                 className={cn(
                                     "relative px-3 py-2 md:px-5 md:py-2.5 rounded-xl font-fredoka text-sm font-black transition-all duration-300 flex items-center gap-2 outline-none group",
                                     viewType === "words"
                                         ? "text-violet-600 bg-violet-50/50"
-                                        : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                                        : "text-violet-400 bg-violet-50/30 hover:text-violet-600 hover:bg-violet-50/80"
                                 )}
                             >
-                                <Sparkles className={cn("w-4 h-4 md:w-5 md:h-5", viewType === "words" ? "text-violet-600" : "text-slate-300 group-hover:text-slate-400")} />
-                                <span className="hidden sm:inline">Words</span>
+                                <Sparkles className={cn("w-4 h-4 md:w-5 md:h-5", viewType === "words" ? "text-violet-600" : "text-violet-400 group-hover:text-violet-600")} />
+                                <span className="hidden md:inline">Words</span>
                                 {viewType === "words" && (
                                     <motion.div
                                         layoutId="activeTab"
@@ -123,11 +124,11 @@ export function MyWordsToolbar({
                                     "relative px-3 py-2 md:px-5 md:py-2.5 rounded-xl font-fredoka text-sm font-black transition-all duration-300 flex items-center gap-2 outline-none group",
                                     viewType === "history"
                                         ? "text-indigo-600 bg-indigo-50/50"
-                                        : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                                        : "text-indigo-400 bg-indigo-50/30 hover:text-indigo-600 hover:bg-indigo-50/80"
                                 )}
                             >
-                                <History className={cn("w-4 h-4 md:w-5 md:h-5", viewType === "history" ? "text-indigo-600" : "text-slate-300 group-hover:text-slate-400")} />
-                                <span className="hidden sm:inline">History</span>
+                                <MessageSquareText className={cn("w-4 h-4 md:w-5 md:h-5", viewType === "history" ? "text-indigo-600" : "text-indigo-400 group-hover:text-indigo-600")} />
+                                <span className="hidden md:inline">History</span>
                                 {viewType === "history" && (
                                     <motion.div
                                         layoutId="activeTab"
@@ -136,43 +137,36 @@ export function MyWordsToolbar({
                                     />
                                 )}
                             </button>
-                        </div>
 
-                        <div className="ml-auto flex items-center gap-1 md:gap-2">
-                            {/* Selection Mode Toggle */}
+                            {/* Selection Mode Toggle (Moved to Left Group) */}
                             {viewType === "words" && (
                                 <button
                                     onClick={onToggleSelectionMode}
                                     className={cn(
-                                        "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl border transition-all outline-none text-xs font-black font-fredoka",
+                                        "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl border transition-all outline-none text-xs font-black font-fredoka ml-1",
                                         isSelectionMode 
                                             ? "bg-violet-600 text-white border-violet-500 shadow-clay-violet" 
                                             : "bg-violet-50/80 border-violet-100 text-violet-600 hover:bg-violet-100"
                                     )}
                                 >
                                     <Wand2 className={cn("w-3.5 h-3.5", isSelectionMode ? "text-white" : "text-violet-600")} />
-                                    <span className="hidden md:inline">{isSelectionMode ? "Finish Selecting" : "Magic Select"}</span>
+                                    <span className="hidden sm:inline">{isSelectionMode ? "Finish Selecting" : "Magic Select"}</span>
                                 </button>
                             )}
+                        </div>
 
-                            {/* Desktop-like search trigger */}
-                            <button
-                                onClick={() => setIsSearchExpanded(true)}
-                                className="p-2 md:p-2.5 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
-                            >
-                                <Search className="w-5 h-5" />
-                            </button>
+                        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 flex-shrink-0">
+
 
                             {/* Category Dropdown (Filter) */}
                             {viewType === "words" && (
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <button
-                                            className="flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl bg-slate-50/80 hover:bg-white text-slate-600 text-xs font-black font-fredoka border border-slate-100 shadow-sm transition-all outline-none"
+                                            className="flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl bg-violet-50/50 hover:bg-violet-100/80 text-violet-600 text-xs font-black font-fredoka border border-violet-100 shadow-sm transition-all outline-none flex-shrink-0 active:scale-95"
                                         >
-                                            <Filter className="w-3.5 h-3.5 text-violet-500" />
-                                            <span className="hidden md:inline">Filter: {currentCategory.label}</span>
-                                            <ChevronDown className="w-3 h-3 opacity-50" />
+                                            <Filter className="w-3.5 h-3.5" />
+                                            <span className="hidden sm:inline">Filter: {currentCategory.label}</span>
                                         </button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-48 p-2 rounded-2xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]">
@@ -184,8 +178,8 @@ export function MyWordsToolbar({
                                                     className={cn(
                                                         "flex items-center gap-3 w-full px-3 py-2 rounded-xl text-xs font-black font-fredoka transition-all outline-none",
                                                         activeCategory === cat.id
-                                                            ? "bg-violet-50 text-violet-600"
-                                                            : "text-slate-600 hover:bg-slate-50"
+                                                            ? "bg-violet-100/80 text-violet-700 font-black"
+                                                            : "text-slate-600 hover:bg-violet-50 hover:text-violet-600"
                                                     )}
                                                 >
                                                     <cat.icon className={cn("w-3.5 h-3.5", activeCategory === cat.id ? "text-violet-600" : "text-slate-400")} />
@@ -205,17 +199,16 @@ export function MyWordsToolbar({
                                     <PopoverTrigger asChild>
                                         <button
                                             className={cn(
-                                                "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl border transition-all outline-none text-xs font-black font-fredoka",
+                                                "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl border transition-all outline-none text-xs font-black font-fredoka flex-shrink-0 active:scale-95",
                                                 groupBy !== "none" || startDate || endDate
-                                                    ? "bg-amber-50 border-amber-100 text-amber-600" 
-                                                    : "bg-slate-50/80 border-slate-100 text-slate-600 hover:bg-white"
+                                                    ? "bg-amber-100 border-amber-200 text-amber-700 shadow-sm" 
+                                                    : "bg-amber-50/50 border-amber-100 text-amber-600 hover:bg-amber-100/80 shadow-sm"
                                             )}
                                         >
                                             <LayoutGrid className="w-3.5 h-3.5" />
-                                            <span className="hidden md:inline">
+                                            <span className="hidden sm:inline">
                                                 {startDate || endDate ? "Custom Date Range" : `Group: ${groupBy === 'none' ? 'None' : groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}`}
                                             </span>
-                                            <ChevronDown className="w-3 h-3 opacity-50" />
                                         </button>
                                     </PopoverTrigger>
                                     <PopoverContent 
@@ -384,17 +377,19 @@ export function MyWordsToolbar({
                             )}
 
                             {/* Sort Dropdown */}
-
-                            {/* Sort Dropdown */}
                             {viewType === "words" && (
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <button
-                                            className="flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl bg-slate-50/80 hover:bg-white text-slate-600 text-xs font-black font-fredoka border border-slate-100 shadow-sm transition-all outline-none"
+                                            className={cn(
+                                                "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl border transition-all outline-none text-xs font-black font-fredoka flex-shrink-0 active:scale-95",
+                                                sortBy !== "createdAt"
+                                                    ? "bg-indigo-100 border-indigo-200 text-indigo-700 shadow-sm"
+                                                    : "bg-indigo-50/50 border-indigo-100 text-indigo-600 hover:bg-indigo-100/80 shadow-sm"
+                                            )}
                                         >
-                                            <ArrowUpDown className="w-3.5 h-3.5 text-indigo-500" />
-                                            <span className="hidden md:inline">Sort</span>
-                                            <ChevronDown className="w-3 h-3 opacity-50" />
+                                            <ArrowUpDown className="w-3.5 h-3.5" />
+                                            <span className="hidden sm:inline">Sort</span>
                                         </button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-48 p-2 rounded-2xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]">
@@ -404,17 +399,17 @@ export function MyWordsToolbar({
                                                 { id: 'word', label: 'Alphabetical' },
                                                 { id: 'reps', label: 'Proficiency' }
                                             ].map((s) => (
-                                                <button
+                                                <div
                                                     key={s.id}
                                                     onClick={() => setSortBy(s.id as any)}
                                                     className={cn(
-                                                        "flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs font-black font-fredoka transition-all outline-none",
+                                                        "flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-xs font-black font-fredoka transition-all outline-none cursor-pointer",
                                                         sortBy === s.id ? "bg-indigo-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50"
                                                     )}
                                                 >
                                                     <span>{s.label}</span>
                                                     {sortBy === s.id && (
-                                                        <button 
+                                                        <div 
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -422,14 +417,23 @@ export function MyWordsToolbar({
                                                             className="p-1 hover:bg-indigo-100 rounded-md transition-colors"
                                                         >
                                                             <ChevronDown className={cn("w-3 h-3 transition-transform", sortOrder === 'asc' && "rotate-180")} />
-                                                        </button>
+                                                        </div>
                                                     )}
-                                                </button>
+                                                </div>
                                             ))}
                                         </div>
                                     </PopoverContent>
                                 </Popover>
                             )}
+
+                            {/* Reordered Search Button */}
+                            <button
+                                onClick={() => setIsSearchExpanded(true)}
+                                className="p-2 md:p-2.5 rounded-xl bg-violet-50/50 hover:bg-violet-100 text-violet-600 hover:text-violet-700 border border-violet-100/50 transition-all flex-shrink-0 active:scale-95"
+                                title="Search words"
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
                         </div>
                     </motion.div>
                 ) : (

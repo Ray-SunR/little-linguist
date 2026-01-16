@@ -95,6 +95,107 @@ export class ClaudeStoryService {
         return responseBody.content[0].text.trim();
     }
 
+    async generateKeywordsAndDescription(storyText: string, category?: string, theme?: string): Promise<{ keywords: string[], description: string }> {
+        const prompt = `Based on the children's story text below, generate:
+        1. A list of 8-12 descriptive theme keywords.
+           - EACH keyword MUST be a SINGLE word.
+           - Focus on simple, searchable terms (e.g., "moon", "space", "hero", "magic", "dinosaur").
+           - Include terms related to the category "${category || 'unknown'}" and theme "${theme || 'unknown'}".
+        2. A concise, engaging 2-3 sentence description of the story for a library catalog.
+        
+        Story Text:
+        ${storyText.slice(0, 4000)}
+
+        Output format: JSON
+        {
+            "keywords": ["word1", "word2", ...],
+            "description": "Engaging description here..."
+        }`;
+
+        const body = {
+            anthropic_version: "bedrock-2023-05-31",
+            max_tokens: 500,
+            temperature: 0.5,
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: prompt
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const command = new InvokeModelCommand({
+            modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            contentType: "application/json",
+            accept: "application/json",
+            body: JSON.stringify(body),
+        });
+
+        const response = await this.client.send(command);
+        const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+        const content = responseBody.content[0].text.trim();
+        
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("Failed to parse keywords JSON");
+        
+        return JSON.parse(jsonMatch[0]);
+    }
+
+    async sanitizeImagePrompt(originalPrompt: string): Promise<string> {
+        const prompt = `Rewrite the following image prompt for a children's book illustration, removing ALL trademarked character names, specific brand series, and identifiable character-specific titles/names (e.g., remove "Thomas the Tank Engine", "Sir Topham Hatt", "Disney", "Marvel", "Iron Man", "Thor", "Hulk", "Avengers", "Paw Patrol", "Ryder", "Chase", "Dog Man", "Cat Kid", "Minecraft", "Steve", "Alex"). 
+        Replace them with generic but highly descriptive equivalents that capture the same visual essence.
+        
+        Examples of good replacements:
+        - "Thomas" -> "a cheerful small blue tank engine with a friendly face"
+        - "Sir Topham Hatt" -> "a friendly portly gentleman in a formal black suit and top hat"
+        - "Iron Man" -> "a futuristic superhero in sleek red and gold high-tech armor"
+        - "Hulk" -> "a friendly and strong big green giant with a playful smile"
+        - "Thor" -> "a heroic warrior with a red cape holding a magical heavy hammer"
+        - "Ryder" -> "a helpful young boy leading a team"
+        - "Chase" -> "a brave German Shepherd puppy in a blue police uniform"
+        
+        Original Prompt:
+        ${originalPrompt}
+        
+        Constraints:
+        - Preserve all other descriptive details (colors, setting, action).
+        - Keep the output under 800 characters.
+        - Return ONLY the rewritten prompt text. No introduction or quotes.`;
+
+        const body = {
+            anthropic_version: "bedrock-2023-05-31",
+            max_tokens: 500,
+            temperature: 0.3, // Lower temperature for more direct replacement
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: prompt
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const command = new InvokeModelCommand({
+            modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            contentType: "application/json",
+            accept: "application/json",
+            body: JSON.stringify(body),
+        });
+
+        const response = await this.client.send(command);
+        const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+        return responseBody.content[0].text.trim().replace(/^"|"$/g, '');
+    }
+
     async generateBookTitle(storyText: string): Promise<string> {
         const prompt = `You are a professional children's book editor. Based on the story text below, generate a catchy, concise, and engaging title.
         

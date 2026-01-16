@@ -245,7 +245,7 @@ export function ClayNav() {
                         transition={prefersReducedMotion ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 30 }}
                         style={{ transform: "translateZ(0)" }}
                         className={cn(
-                            "fixed z-50 w-[calc(100%-3rem)] max-w-2xl gap-1 flex items-center justify-between p-2 rounded-[3.5rem] bg-white/70 backdrop-blur-xl border-2 border-white/80 shadow-xl pointer-events-auto bottom-6 left-0 right-0 mx-auto transition-shadow duration-200",
+                            "fixed z-50 w-[calc(100%-1.5rem)] sm:w-[calc(100%-3rem)] max-w-2xl gap-1 flex items-center justify-between p-2 rounded-[3.5rem] bg-white/70 backdrop-blur-xl border-2 border-white/80 shadow-xl pointer-events-auto bottom-[env(safe-area-inset-bottom,24px)] left-0 right-0 mx-auto transition-shadow duration-200",
                             isExpanded && "shadow-clay-purple"
                         )}
                     >
@@ -387,7 +387,7 @@ export function ClayNav() {
                         initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
                         animate={prefersReducedMotion ? { scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
                         exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0, opacity: 0 }}
-                        className="fixed bottom-6 left-0 right-0 mx-auto w-max z-50 pointer-events-auto"
+                        className="fixed bottom-[env(safe-area-inset-bottom,24px)] left-0 right-0 mx-auto w-max z-50 pointer-events-auto"
                     >
                         <button
                             onClick={() => {

@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
             const duration = searchParams.get('duration') || undefined;
             const isFavorite = searchParams.get('isFavorite') === 'true' || undefined;
             const onlyPersonal = searchParams.get('onlyPersonal') === 'true' || undefined;
+            const onlyPublic = searchParams.get('onlyPublic') === 'true' || undefined;
 
             // SECURITY: only_personal requires an authenticated user
             if (onlyPersonal && !user?.id) {
@@ -81,6 +82,7 @@ export async function GET(request: NextRequest) {
                     category,
                     is_favorite: isFavorite,
                     only_personal: onlyPersonal,
+                    only_public: onlyPublic,
                     duration
                 }
             );

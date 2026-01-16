@@ -54,11 +54,11 @@ export default function RootLayout({
                 <GlobalStoryListener />
                 <ChildGate />
                 <div className="relative flex flex-col lg:flex-row min-h-screen">
-                  <ClayNav />
                   <div className="flex-1 w-full">
                     <GuestBanner />
                     {children}
                   </div>
+                  <ClayNav />
                 </div>
               </NarrationGate>
             </WordListGate>

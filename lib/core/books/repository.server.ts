@@ -18,6 +18,7 @@ interface BookFilters {
     category?: string;
     is_favorite?: boolean;
     only_personal?: boolean;
+    only_public?: boolean;
     duration?: string;
 }
 
@@ -38,6 +39,8 @@ interface BookWithCover {
     level?: string;
     isNonFiction?: boolean;
     origin?: string;
+    description?: string;
+    keywords?: string[];
     progress?: {
         last_token_index?: number;
         is_completed?: boolean;
@@ -108,7 +111,8 @@ export class BookRepository {
             p_filter_is_favorite: filters.is_favorite || null,
             p_filter_category: filters.category && filters.category !== 'all' ? filters.category : null,
             p_filter_duration: filters.duration || null,
-            p_filter_is_nonfiction: filters.is_nonfiction ?? null
+            p_filter_is_nonfiction: filters.is_nonfiction ?? null,
+            p_only_public: !!filters.only_public
         };
 
         // GUEST LIMIT: Enforce 6 books max for unauthenticated users
@@ -236,6 +240,8 @@ export class BookRepository {
                 level: book.level,
                 isNonFiction: book.is_nonfiction,
                 origin: book.origin,
+                description: book.description,
+                keywords: book.keywords,
                 progress: progress ? {
                     last_token_index: progress.last_token_index,
                     is_completed: progress.is_completed,
@@ -257,7 +263,7 @@ export class BookRepository {
         const isUuid = BookRepository.isValidUuid(idOrSlug);
 
         // Fetch Metadata first (NO TOKENS)
-        const fields = ['id', 'book_key', 'title', 'origin', 'updated_at', 'voice_id', 'owner_user_id', 'child_id', 'metadata', 'total_tokens', 'cover_image_path'];
+        const fields = ['id', 'book_key', 'title', 'origin', 'updated_at', 'voice_id', 'owner_user_id', 'child_id', 'metadata', 'total_tokens', 'cover_image_path', 'description', 'keywords'];
         let query = this.supabase.from('books').select(fields.join(','));
 
         if (isUuid) {
