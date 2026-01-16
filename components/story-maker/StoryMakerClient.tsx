@@ -19,6 +19,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { createChildProfile, switchActiveChild, getAvatarUploadUrl } from "@/app/actions/profiles";
 import { createClient } from "@/lib/supabase/client";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
+import { PageToolbar } from "@/components/layout/page-toolbar";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -41,9 +42,119 @@ function getGenerationState(userId: string): GenerationState {
     return generations[userId];
 }
 
+const containerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.6,
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+};
+
 export function clearStoryMakerGlobals(): void {
     // Clear all session states (e.g. on logout)
     Object.keys(generations).forEach(key => delete generations[key]);
+}
+
+interface UsageModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    usage: any;
+    plan: string;
+}
+
+function UsageModal({ isOpen, onClose, usage, plan }: UsageModalProps) {
+    if (!isOpen) return null;
+
+    return (
+        <AnimatePresence>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 overflow-hidden">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-ink/40 backdrop-blur-md"
+                    onClick={onClose}
+                />
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border-4 border-white overflow-hidden"
+                >
+                    <div className="p-8 md:p-10 flex flex-col items-center text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center mb-6 shadow-inner">
+                            <Sparkles className="w-8 h-8 text-purple-600 animate-pulse" />
+                        </div>
+
+                        <h2 className="text-3xl font-black font-fredoka text-ink uppercase tracking-tight mb-2">Magic Energy</h2>
+                        <p className="text-ink-muted font-bold font-nunito mb-8">How to use your magical powers</p>
+
+                        <div className="grid gap-4 w-full text-left">
+                            <div className="bg-purple-50 p-5 rounded-3xl border-2 border-purple-100/50 flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm">
+                                    <Wand2 className="w-6 h-6 text-purple-600" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <h3 className="font-black font-fredoka text-purple-700 uppercase text-lg">Stories</h3>
+                                        <span className="font-black text-purple-900 bg-white px-3 py-1 rounded-full text-sm">
+                                            {usage.story_generation?.limit - usage.story_generation?.current} Left
+                                        </span>
+                                    </div>
+                                    <p className="text-sm font-bold text-purple-600/70 font-nunito leading-tight">
+                                        Used to weave the text of your magical adventure. Uses 1 per story.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-amber-50 p-5 rounded-3xl border-2 border-amber-100/50 flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm">
+                                    <Sparkles className="w-6 h-6 text-amber-500" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <h3 className="font-black font-fredoka text-amber-700 uppercase text-lg">Images</h3>
+                                        <span className="font-black text-amber-900 bg-white px-3 py-1 rounded-full text-sm">
+                                            {usage.image_generation?.limit - usage.image_generation?.current} Left
+                                        </span>
+                                    </div>
+                                    <p className="text-sm font-bold text-amber-600/70 font-nunito leading-tight">
+                                        Used to draw beautiful AI illustrations for your story.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {plan === 'free' && (
+                            <Link href="/pricing" className="mt-8 w-full" onClick={onClose}>
+                                <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black font-fredoka uppercase text-lg shadow-clay-purple hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">
+                                    <Zap className="w-5 h-5 fill-white" />
+                                    Get Unlimited Magic
+                                </button>
+                            </Link>
+                        )}
+
+                        <button
+                            onClick={onClose}
+                            className="mt-6 text-slate-400 font-bold font-fredoka uppercase text-sm tracking-widest hover:text-slate-600 transition-colors"
+                        >
+                            Got it, thanks!
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        </AnimatePresence>
+    );
 }
 
 export default function StoryMakerClient({ initialProfile }: StoryMakerClientProps) {
@@ -68,6 +179,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [storyLengthMinutes, setStoryLengthMinutes] = useState(5); // In Minutes
     const [imageSceneCount, setImageSceneCount] = useState(3);
     const [currentIdempotencyKey, setCurrentIdempotencyKey] = useState<string | undefined>(undefined);
+    const [showUsageModal, setShowUsageModal] = useState(false);
 
     // Track versions to prevent race conditions
     const saveVersionRef = useRef(0);
@@ -134,7 +246,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         id: activeChild.id,
                         name: activeChild.first_name,
                         age: age,
-                        gender: (activeChild.gender as any) || 'neutral',
+                        gender: (activeChild.gender as UserProfile['gender']) || 'neutral',
                         avatarUrl: activeChild.avatar_asset_path || undefined,
                         avatarStoragePath: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
                         updatedAt: activeChild.updated_at,
@@ -206,9 +318,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             if (state.result) {
                 console.debug("[StoryMakerClient] Resuming: Story result found.");
-                setStory(state.result);
-                setStep("reading");
+                const result = state.result;
                 state.result = null; // Consume
+                router.push(`/reader/${result.book_id}`);
                 processingRef.current = true;
                 return;
             }
@@ -228,9 +340,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             const state = getGenerationState(user.id);
             if (state.result) {
                 console.debug("[StoryMakerClient] Applying caught-up story result.");
-                setStory(state.result);
-                setStep("reading");
+                const result = state.result;
                 state.result = null;
+                router.push(`/reader/${result.book_id}`);
             }
         }
     }, [step, user]);
@@ -513,18 +625,19 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             router.push(`/reader/${content.book_id}`);
             // service.generateImagesForBook is now called automatically on backend
 
-        } catch (err: any) {
-            console.error(err);
-            if (err.name === 'AIError' && (err.message === 'LIMIT_REACHED' || err.message === 'IMAGE_LIMIT_REACHED')) {
-                const msg = err.message === 'IMAGE_LIMIT_REACHED'
-                    ? "You don't have enough energy crystals for that many sections!"
-                    : "You've reached your story generation limit for today! Upgrade to Pro for more stories.";
-                setError({ message: msg, type: 'quota' });
-                setStep("profile"); // Drop back to profile step so they can see the error
-            } else {
-                setError({ message: "Oops! Something went wrong while making your story. Please try again.", type: 'general' });
-            }
-        } finally {
+            } catch (err: unknown) {
+                console.error(err);
+                if (err instanceof Error && err.name === 'AIError' && (err.message === 'LIMIT_REACHED' || err.message === 'IMAGE_LIMIT_REACHED')) {
+                    const msg = err.message === 'IMAGE_LIMIT_REACHED'
+                        ? "You don't have enough energy crystals for that many sections!"
+                        : "You've reached your story generation limit for today! Upgrade to Pro for more stories.";
+                    setError({ message: msg, type: 'quota' });
+                    setStep("profile"); // Drop back to profile step so they can see the error
+                } else {
+                    const errorMessage = err instanceof Error ? err.message : "Oops! Something went wrong while making your story. Please try again.";
+                    setError({ message: errorMessage, type: 'general' });
+                }
+            } finally {
             // Immediate refresh
             refreshUsage();
             setTimeout(() => refreshUsage(), 5000);
@@ -543,115 +656,127 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     }
 
     return (
-        <div className="min-h-screen page-story-maker p-6 md:p-10 pb-32">
-            <header className="flex items-center justify-between mb-4 relative z-10">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.back()}
-                        className="w-10 h-10 rounded-full bg-white/80 border-2 border-white shadow-clay-sm flex items-center justify-center hover:scale-110 active:scale-95 transition-all text-slate-400 hover:text-indigo-500"
-                        title="Go Back"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <h1 className="text-3xl font-black text-ink font-fredoka tracking-tight">Story Maker</h1>
-                </div>
-            </header>
+        <div className="min-h-screen page-story-maker pb-32 relative">
+            {/* Background Decorative Blobs */}
+            <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-200/20 blur-[120px] rounded-full animate-blob-slow z-0" />
+            <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/20 blur-[120px] rounded-full animate-blob-reverse z-0" />
+            <div className="fixed top-[20%] right-[10%] w-[30%] h-[30%] bg-pink-200/10 blur-[100px] rounded-full animate-blob-pulse z-0" />
 
-            <main className="mx-auto max-w-3xl relative">
-                {/* Sticky Magic Energy Hub */}
-                {user && (
-                    <div className="sticky top-2 z-40 mb-6 mx-auto w-full max-w-lg px-2">
-                        {usageLoading ? (
-                            <div className="clay-card py-3 px-5 bg-white/60 backdrop-blur-md border-2 border-white shadow-clay-purple flex items-center justify-between gap-4 opacity-60 animate-pulse">
-                                <div className="h-10 w-full bg-slate-100 rounded-2xl" />
-                                <div className="h-10 w-full bg-slate-100 rounded-2xl" />
-                            </div>
-                        ) : (
-                            <motion.div
-                                initial={{ y: -10, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                className="clay-card py-2.5 px-4 bg-white/90 backdrop-blur-md border-2 border-white shadow-clay-purple flex items-center justify-between gap-2 sm:gap-6"
-                            >
-                                {/* Stories Section */}
-                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-50 flex items-center justify-center shadow-clay-sm shrink-0 border border-purple-100">
-                                        <Wand2 className="w-4 sm:w-5 h-4 sm:h-5 text-purple-600 drop-shadow-sm" />
-                                    </div>
-                                    <div className="flex flex-col min-w-0">
-                                        <div className="flex justify-between items-baseline mb-0.5 gap-2">
-                                            <span className="text-[10px] sm:text-[11px] font-black text-purple-600 uppercase tracking-tighter sm:tracking-widest font-fredoka">Stories</span>
-                                            <span className="text-[10px] font-black text-ink-muted/60 font-nunito whitespace-nowrap">
-                                                {usage.story_generation ? Math.max(0, usage.story_generation.limit - usage.story_generation.current) : 0}
-                                            </span>
-                                        </div>
-                                        <div className="w-16 sm:w-24 h-1.5 bg-purple-100/30 rounded-full overflow-hidden p-0.5 shadow-inner">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${usage.story_generation ? (1 - usage.story_generation.current / usage.story_generation.limit) * 100 : 0}%` }}
-                                                transition={{ type: "spring", damping: 15, stiffness: 100 }}
-                                                className="h-full bg-gradient-to-r from-purple-400 to-indigo-500 rounded-full shadow-md"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+            <PageToolbar
+                activeChild={activeChild ? {
+                    id: activeChild.id,
+                    name: activeChild.first_name,
+                    avatar_url: activeChild.avatar_asset_path
+                } : null}
+                themeColor="violet"
+                containerClassName="mb-1"
+            >
+                <div className="flex items-center justify-between w-full gap-2">
+                    <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+                        <motion.button
+                            whileHover={{ scale: 1.1, x: -2 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => {
+                                if (step === 'words') setStep('profile');
+                                else router.back();
+                            }}
+                            className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-indigo-500 transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </motion.button>
+                        <div className="flex flex-col min-w-0">
+                            <h1 className="text-base md:text-lg font-black text-ink font-fredoka leading-none truncate">Story Maker</h1>
+                            <span className="text-[10px] font-bold text-ink-muted/50 uppercase tracking-widest hidden md:block">
+                                {step === 'profile' ? 'Step 1: Profile' : 'Step 2: Words'}
+                            </span>
+                        </div>
+                    </div>
 
-                                <div className="w-px h-6 bg-slate-100 shrink-0" />
-
-                                {/* Images Section */}
-                                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-50 flex items-center justify-center shadow-clay-sm shrink-0 border border-amber-100">
-                                        <Sparkles className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500 drop-shadow-sm" />
+                    <div className="flex items-center gap-1.5 md:gap-3">
+                        {!usageLoading && user && (
+                            <>
+                                <motion.button
+                                    whileHover={{ scale: 1.05, y: -2 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setShowUsageModal(true)}
+                                    className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 rounded-xl bg-purple-50/80 border border-purple-100 shadow-sm hover:bg-purple-100 transition-colors"
+                                >
+                                    <Wand2 className="w-3.5 h-3.5 text-purple-600" />
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-sm font-black text-purple-700 font-fredoka">
+                                            {usage.story_generation ? Math.max(0, usage.story_generation.limit - usage.story_generation.current) : 0}
+                                        </span>
+                                        <span className="text-[10px] font-black text-purple-600/50 uppercase truncate hidden sm:inline">Stories</span>
                                     </div>
-                                    <div className="flex flex-col min-w-0 flex-1">
-                                        <div className="flex justify-between items-baseline mb-0.5 gap-2">
-                                            <span className="text-[10px] sm:text-[11px] font-black text-amber-500 uppercase tracking-tighter sm:tracking-widest font-fredoka">Images</span>
-                                            <span className="text-[10px] font-black text-ink-muted/60 font-nunito whitespace-nowrap">
-                                                {usage.image_generation ? Math.max(0, usage.image_generation.limit - usage.image_generation.current) : 0}
-                                            </span>
-                                        </div>
-                                        <div className="w-full h-1.5 bg-amber-100/30 rounded-full overflow-hidden p-0.5 shadow-inner">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${usage.image_generation ? (1 - usage.image_generation.current / usage.image_generation.limit) * 100 : 0}%` }}
-                                                transition={{ type: "spring", damping: 15, stiffness: 100 }}
-                                                className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full shadow-md"
-                                            />
-                                        </div>
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.05, y: -2 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setShowUsageModal(true)}
+                                    className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 rounded-xl bg-amber-50/80 border border-amber-100 shadow-sm hover:bg-amber-100 transition-colors"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-sm font-black text-amber-600 font-fredoka">
+                                            {usage.image_generation ? Math.max(0, usage.image_generation.limit - usage.image_generation.current) : 0}
+                                        </span>
+                                        <span className="text-[10px] font-black text-amber-600/50 uppercase truncate hidden sm:inline">Images</span>
                                     </div>
-                                </div>
-
-                                {/* Upgrade Shortcut */}
-                                {plan === 'free' && (
-                                    <Link href="/pricing" className="ml-1 shrink-0 group">
-                                        <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 px-3 py-1.5 rounded-2xl shadow-clay-purple hover:scale-105 active:scale-95 transition-all">
-                                            <Zap className="w-3.5 h-3.5 text-white fill-white" />
-                                            <span className="text-[10px] font-black text-white font-fredoka uppercase tracking-wider">Go Pro</span>
-                                        </div>
-                                    </Link>
-                                )}
-                            </motion.div>
+                                </motion.button>
+                            </>
                         )}
+                        {plan === 'free' && user && (
+                            <Link href="/pricing" className="shrink-0 hidden lg:block">
+                                <motion.div 
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="bg-gradient-to-r from-purple-500 to-indigo-600 px-3 py-1.5 rounded-xl shadow-clay-purple flex items-center gap-2"
+                                >
+                                    <Zap className="w-3 h-3 text-white fill-white" />
+                                    <span className="text-[10px] font-black text-white font-fredoka uppercase tracking-wider">Pro</span>
+                                </motion.div>
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            </PageToolbar>
+
+            <main className="mx-auto max-w-5xl relative px-4">
+                {step === 'profile' && (
+                    <div className="pt-6 pb-2 text-left mb-6">
+                        <motion.h2 
+                            initial={{ opacity: 0, y: -10 }} 
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-3xl md:text-4xl font-black font-fredoka text-ink uppercase tracking-tight mb-2"
+                        >
+                            Story Maker
+                        </motion.h2>
+                        <motion.p 
+                            initial={{ opacity: 0, y: -5 }} 
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="text-base md:text-lg font-bold font-nunito text-ink-muted/80 leading-tight"
+                        >
+                            Create original stories and illustrations about your hero.
+                        </motion.p>
                     </div>
                 )}
                 {step === "profile" && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="clay-card p-10 md:p-12 relative overflow-hidden"
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-10 border border-white shadow-clay-lg relative z-10"
                     >
-                        {/* Decorative background blobs */}
-                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-pink-500/5 rounded-full blur-3xl" />
-                        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl" />
-
-                        <div className="flex items-center gap-4 mb-10 relative">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 shadow-clay-pink flex items-center justify-center">
-                                <Wand2 className="h-8 w-8 text-white animate-bounce-subtle" />
+                        <div className="flex items-center gap-4 mb-8 relative">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 shadow-clay-pink flex items-center justify-center shrink-0">
+                                <Wand2 className="h-7 w-7 text-white animate-bounce-subtle" />
                             </div>
-                            <div>
-                                <h2 className="text-3xl font-black text-ink font-fredoka uppercase tracking-tight">
+                            <div className="flex flex-col">
+                                <h2 className="text-lg md:text-2xl font-black font-fredoka text-ink uppercase tracking-tight leading-none mb-1" id="hero-section-title">
                                     {isGuestOneOffFlow ? "Welcome Back! ✨" : "About the Hero"}
                                 </h2>
-                                <p className="text-ink-muted font-medium font-nunito leading-relaxed">
+                                <p className="text-xs md:text-sm font-bold text-ink-muted/70 font-nunito leading-tight">
                                     {isGuestOneOffFlow ? "Pick a child for this adventure." : "Tell us who's going on this adventure!"}
                                 </p>
                             </div>
@@ -674,7 +799,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 )}>
                                     {error.type === 'quota' ? "✨" : "⚠️"}
                                 </div>
-                                <div className="flex-1 text-center sm:text-left">
+                                <div className="flex-1 text-left">
                                     <p className="font-fredoka font-bold text-lg leading-tight mb-1">{error.message}</p>
                                     <p className="text-sm opacity-70 font-bold uppercase tracking-wider">Magic energy is low</p>
                                 </div>
@@ -690,12 +815,12 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         )}
 
                         {isGuestOneOffFlow ? (
-                            <div className="max-w-4xl mx-auto mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="max-w-4xl mx-auto mb-10">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                     {profiles.map((p) => (
                                         <motion.button
                                             key={p.id}
-                                            type="button"
+                                            variants={itemVariants}
                                             whileHover={{ scale: 1.05, y: -4 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={async () => {
@@ -704,24 +829,24 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                     id: p.id,
                                                     name: p.first_name,
                                                     age: new Date().getFullYear() - birthYear,
-                                                    gender: (p.gender as any) || 'neutral',
+                                                    gender: (p.gender as UserProfile['gender']) || 'neutral',
                                                     avatarUrl: p.avatar_asset_path || '',
                                                     avatarStoragePath: (p.avatar_paths && p.avatar_paths.length > 0) ? p.avatar_paths[0] : undefined,
                                                     updatedAt: p.updated_at,
                                                     interests: p.interests || []
                                                 };
                                                 setProfile(selectedProfile);
-                                                const draftKey = user ? `draft:${user.id}` : "draft:guest";
-                                                const draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
+                                                const draftKey = user ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`) : "draft:guest";
+                                                const draft = await raidenCache.get<{ selectedWords: string[]; storyLength: number }>(CacheStore.DRAFTS, draftKey);
                                                 if (draft) {
                                                     generateStory(draft.selectedWords, selectedProfile, draft.storyLength);
                                                 }
                                             }}
-                                            className="p-6 rounded-[2.5rem] bg-white border-4 border-purple-50 hover:border-purple-200 transition-all shadow-lg flex flex-col items-center gap-4 group"
+                                            className="p-6 rounded-[2.5rem] bg-white/60 border-2 border-white shadow-soft hover:shadow-clay-purple transition-all flex flex-col items-center gap-4 group"
                                         >
                                             <div className="relative w-24 h-24">
-                                                <div className="absolute inset-0 bg-purple-100 rounded-full scale-110 group-hover:scale-125 transition-transform duration-500" />
-                                                <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md">
+                                                <div className="absolute inset-0 bg-purple-100 rounded-full scale-110 group-hover:scale-125 transition-transform duration-500 blur-md opacity-50" />
+                                                <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white shadow-clay-sm">
                                                     {(p.avatar_paths && p.avatar_paths.length > 0) ? (
                                                         <CachedImage
                                                             src={p.avatar_asset_path || ''}
@@ -733,444 +858,277 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                             bucket="user-assets"
                                                         />
                                                     ) : (
-                                                        <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                                                        <div className="w-full h-full bg-slate-50 flex items-center justify-center">
                                                             <User className="w-10 h-10 text-slate-300" />
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
                                             <div className="text-center">
-                                                <div className="text-xl font-black font-fredoka text-ink uppercase">{p.first_name}</div>
-                                                <div className="text-xs font-bold text-ink-muted font-nunito uppercase tracking-widest">{new Date().getFullYear() - (p.birth_year || new Date().getFullYear())} Years Old</div>
+                                                <div className="text-xl font-black font-fredoka text-ink uppercase leading-none">{p.first_name}</div>
+                                                <div className="text-[10px] font-bold text-ink-muted/60 font-nunito uppercase tracking-widest mt-1">{new Date().getFullYear() - (p.birth_year || new Date().getFullYear())} Years Old</div>
                                             </div>
                                         </motion.button>
                                     ))}
                                     <motion.button
+                                        variants={itemVariants}
                                         whileHover={{ scale: 1.05, y: -4 }}
                                         whileTap={{ scale: 0.95 }}
                                         type="button"
                                         onClick={() => setIsGuestOneOffFlow(false)}
-                                        className="p-6 rounded-[2.5rem] bg-purple-50 border-4 border-dashed border-purple-200 hover:border-purple-400 transition-all flex flex-col items-center justify-center gap-4 text-purple-600 group"
+                                        className="p-6 rounded-[2.5rem] bg-purple-50/50 border-4 border-dashed border-purple-100 hover:border-purple-300 transition-all flex flex-col items-center justify-center gap-4 text-purple-600 group"
                                     >
-                                        <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                                        <div className="w-16 h-16 rounded-full bg-white shadow-clay-sm flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-all">
                                             <Plus className="w-8 h-8" />
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-lg font-black font-fredoka uppercase leading-tight">Create New Hero</div>
-                                            <div className="text-[10px] font-bold opacity-60 font-nunito max-w-[120px]">If this story is for someone new.</div>
+                                            <div className="text-lg font-black font-fredoka uppercase leading-tight">New Hero</div>
+                                            <div className="text-[10px] font-bold opacity-60 font-nunito max-w-[120px] mt-1">Add a new adventurer</div>
                                         </div>
                                     </motion.button>
                                 </div>
                             </div>
                         ) : (
-                            <form onSubmit={handleProfileSubmit} className="relative">
-                                <div className="grid md:grid-cols-2 gap-10 mb-10">
-                                    <div data-tour-target="story-hero-section" className="space-y-10">
-                                        <div>
-                                            <label className="mb-4 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Hero&apos;s Name</label>
-                                            <input
-                                                id="child-profile-input"
-                                                type="text"
-                                                value={profile.name}
-                                                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                                                className="w-full h-16 px-6 rounded-[1.5rem] border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-fredoka text-xl font-bold text-ink placeholder:text-slate-300 shadow-inner"
-                                                placeholder="e.g., Leo, Mia"
-                                                autoFocus
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="mb-4 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Age Explorer</label>
-                                            <div className="flex items-center justify-between p-2 rounded-[2rem] bg-purple-50 shadow-inner border-2 border-white/50">
-                                                <motion.button
-                                                    whileHover={{ scale: 1.1 }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                    type="button"
-                                                    className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
-                                                    onClick={() => setProfile({ ...profile, age: Math.max(3, profile.age - 1) })}
-                                                    disabled={profile.age <= 3}
-                                                >
-                                                    −
-                                                </motion.button>
-                                                <div className="flex flex-col items-center">
-                                                    <span className="text-3xl font-black text-purple-600 font-fredoka">{profile.age}</span>
-                                                    <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">years old</span>
-                                                </div>
-                                                <motion.button
-                                                    whileHover={{ scale: 1.1 }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                    type="button"
-                                                    className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-purple-100 disabled:opacity-50"
-                                                    onClick={() => setProfile({ ...profile, age: Math.min(10, profile.age + 1) })}
-                                                    disabled={profile.age >= 10}
-                                                >
-                                                    +
-                                                </motion.button>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Gender Choice</label>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <motion.button
-                                                    whileHover={{ y: -2 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    type="button"
-                                                    className={cn(
-                                                        "flex items-center justify-center gap-3 p-4 rounded-2xl border-4 transition-all font-fredoka font-bold text-lg",
-                                                        profile.gender === "boy"
-                                                            ? "bg-blue-500 text-white border-blue-400 shadow-clay-purple"
-                                                            : "bg-white text-ink-muted border-slate-50 hover:border-blue-100 shadow-sm"
+                            <form onSubmit={handleProfileSubmit} className="space-y-8">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                    {/* Column 1: Hero Identity */}
+                                    <motion.div variants={itemVariants} className="lg:col-span-4 space-y-6">
+                                        <div className="flex flex-col items-start">
+                                            <label className="mb-3 block text-[10px] font-black text-slate-400 uppercase tracking-widest font-fredoka text-left pl-1">Hero Photo</label>
+                                            <div className="relative group w-48 h-48">
+                                                <div className="absolute inset-[-8px] bg-gradient-to-br from-purple-400 to-indigo-500 rounded-[2.5rem] opacity-20 blur-lg group-hover:opacity-40 transition-opacity" />
+                                                <label className={cn(
+                                                    "w-full h-full rounded-[2.25rem] border-4 border-white transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center shadow-clay-md",
+                                                    profile.avatarUrl ? "bg-white" : "bg-purple-50/50 hover:bg-purple-50"
+                                                )}>
+                                                    {profile.avatarUrl ? (
+                                                        <>
+                                                            <CachedImage
+                                                                src={profile.avatarUrl || ''}
+                                                                storagePath={profile.avatarStoragePath}
+                                                                updatedAt={profile.updatedAt}
+                                                                alt="Hero"
+                                                                fill
+                                                                className="object-cover"
+                                                                bucket="user-assets"
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                                                                <RefreshCw className="w-10 h-10 text-white" />
+                                                            </div>
+                                                            <motion.button
+                                                                whileHover={{ scale: 1.1 }}
+                                                                whileTap={{ scale: 0.9 }}
+                                                                type="button"
+                                                                onClick={(e: React.MouseEvent) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    setProfile({ ...profile, avatarUrl: undefined, avatarStoragePath: undefined });
+                                                                }}
+                                                                className="absolute top-2 right-2 w-10 h-10 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-2xl border-4 border-white z-20"
+                                                            >
+                                                                ×
+                                                            </motion.button>
+                                                        </>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            {isUploading ? (
+                                                                <RefreshCw className="h-10 w-10 text-purple-400 animate-spin" />
+                                                            ) : (
+                                                                <>
+                                                                    <div className="w-16 h-16 rounded-full bg-white shadow-soft flex items-center justify-center mb-1">
+                                                                        <User className="h-8 w-8 text-purple-300" />
+                                                                    </div>
+                                                                    <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Upload Photo</span>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     )}
-                                                    onClick={() => setProfile({ ...profile, gender: "boy" })}
-                                                >
-                                                    <span className="text-2xl">👦</span>
-                                                    Boy
-                                                </motion.button>
-                                                <motion.button
-                                                    whileHover={{ y: -2 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    type="button"
-                                                    className={cn(
-                                                        "flex items-center justify-center gap-3 p-4 rounded-2xl border-4 transition-all font-fredoka font-bold text-lg",
-                                                        profile.gender === "girl"
-                                                            ? "bg-pink-500 text-white border-pink-400 shadow-clay-pink"
-                                                            : "bg-white text-ink-muted border-slate-50 hover:border-pink-100 shadow-sm"
-                                                    )}
-                                                    onClick={() => setProfile({ ...profile, gender: "girl" })}
-                                                >
-                                                    <span className="text-2xl">👧</span>
-                                                    Girl
-                                                </motion.button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-center">
-                                        <label className={cn(
-                                            "w-full aspect-square rounded-[2.5rem] border-4 border-dashed transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group",
-                                            profile.avatarUrl
-                                                ? "border-emerald-200 bg-emerald-50/30"
-                                                : "border-purple-200 bg-purple-50/30 hover:bg-purple-50 hover:border-purple-300"
-                                        )}>
-                                            {profile.avatarUrl ? (
-                                                <div className="relative w-full h-full p-4">
-                                                    <CachedImage
-                                                        src={profile.avatarUrl || ''}
-                                                        storagePath={profile.avatarStoragePath}
-                                                        updatedAt={profile.updatedAt}
-                                                        alt="Preview"
-                                                        fill
-                                                        className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
-                                                        bucket="user-assets"
-                                                    />
-
-                                                    {/* Change Photo Overlay */}
-                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[2rem] z-10">
-                                                        <span className="text-white font-bold font-fredoka flex items-center gap-2">
-                                                            <RefreshCw className="w-5 h-5" />
-                                                            Change
-                                                        </span>
-                                                    </div>
-
-                                                    <motion.button
-                                                        whileHover={{ scale: 1.1, rotate: 90 }}
-                                                        whileTap={{ scale: 0.9 }}
-                                                        type="button"
-                                                        onClick={(e: React.MouseEvent) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            setProfile({ ...profile, avatarUrl: undefined, avatarStoragePath: undefined });
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        disabled={isUploading}
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file && user) {
+                                                                setIsUploading(true);
+                                                                try {
+                                                                    const localUrl = URL.createObjectURL(file);
+                                                                    const result = await getAvatarUploadUrl(file.name);
+                                                                    if (result.error || !result.data) throw new Error(result.error);
+                                                                    const { signedUrl, path } = result.data;
+                                                                    await fetch(signedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+                                                                    setProfile({ ...profile, avatarUrl: localUrl, avatarStoragePath: path, updatedAt: Date.now() });
+                                                                } catch (err: unknown) {
+                                                                    const errorMessage = err instanceof Error ? err.message : "Failed to upload.";
+                                                                    setError({ message: errorMessage, type: 'general' });
+                                                                } finally { setIsUploading(false); }
+                                                            }
                                                         }}
-                                                        className="absolute top-6 right-6 w-10 h-10 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-xl border-2 border-white z-20"
-                                                    >
-                                                        ×
-                                                    </motion.button>
-                                                </div>
-                                            ) : (
-                                                <div className="text-center p-8">
-                                                    <motion.div
-                                                        animate={{ y: [0, -5, 0] }}
-                                                        transition={{ duration: 3, repeat: Infinity }}
-                                                        className="w-20 h-20 rounded-[1.5rem] bg-white shadow-clay flex items-center justify-center mx-auto mb-6 border-2 border-purple-100"
-                                                    >
-                                                        {isUploading ? (
-                                                            <RefreshCw className="h-10 w-10 text-purple-400 animate-spin" />
-                                                        ) : (
-                                                            <Sparkles className="h-10 w-10 text-purple-400" />
-                                                        )}
-                                                    </motion.div>
-                                                    <span className="text-xl font-black text-purple-600 font-fredoka block mb-1">
-                                                        {isUploading ? "Magical Pixels..." : "Hero Photo"}
-                                                    </span>
-                                                    <p className="text-sm font-medium text-purple-400 font-nunito">Tap to upload your picture!</p>
-                                                </div>
-                                            )}
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                disabled={isUploading}
-                                                onClick={(e) => { (e.target as HTMLInputElement).value = '' }}
-                                                onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file && user) {
-                                                        setIsUploading(true);
-                                                        try {
-                                                            // 1. Immediate local preview
-                                                            const localUrl = URL.createObjectURL(file);
-
-                                                            // 2. Get presigned URL
-                                                            const result = await getAvatarUploadUrl(file.name);
-                                                            if (result.error || !result.data) {
-                                                                throw new Error(result.error || "Failed to get upload URL");
-                                                            }
-
-                                                            const { signedUrl, path } = result.data;
-
-                                                            // 3. Direct upload to storage
-                                                            const response = await fetch(signedUrl, {
-                                                                method: 'PUT',
-                                                                body: file,
-                                                                headers: {
-                                                                    'Content-Type': file.type
-                                                                }
-                                                            });
-
-                                                            if (!response.ok) {
-                                                                throw new Error("Upload failed. Please try again.");
-                                                            }
-
-                                                            // 4. Update profile state with storage path
-                                                            setProfile({
-                                                                ...profile,
-                                                                avatarUrl: localUrl,
-                                                                avatarStoragePath: path,
-                                                                updatedAt: Date.now()
-                                                            });
-
-                                                        } catch (err: any) {
-                                                            console.error("Upload error:", err);
-                                                            setError({ message: err.message || "Failed to process and upload image. Please try another one.", type: 'general' });
-                                                        } finally {
-                                                            setIsUploading(false);
-                                                        }
-                                                    } else if (!user) {
-                                                        setError({ message: "Please log in to upload photos.", type: 'general' });
-                                                    }
-                                                }}
-                                            />
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* Adventure Details: Topic and Setting */}
-                                <div className="grid md:grid-cols-2 gap-8 mb-10 pt-8 border-t-2 border-purple-50">
-                                    <div>
-                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">What&apos;s the Story About?</label>
-                                        <input
-                                            type="text"
-                                            value={profile.topic || ''}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, topic: e.target.value })}
-                                            className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
-                                            placeholder="e.g., A trip to Mars, A talking kitten"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="mb-3 block text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka">Where Does it Happen?</label>
-                                        <input
-                                            type="text"
-                                            value={profile.setting || ''}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, setting: e.target.value })}
-                                            className="w-full h-14 px-6 rounded-2xl border-4 border-purple-50 bg-white/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-nunito text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
-                                            placeholder="e.g., Space, Enchanted Forest, Underwater"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* New: Story Length Control */}
-                                <div className="mb-10 pt-8 border-t-2 border-purple-50">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <label className="text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka flex items-center gap-2">
-                                            <BookOpen className="w-4 h-4 text-purple-400" />
-                                            Story Length
-                                        </label>
-                                        <span className={cn(
-                                            "px-3 py-1 rounded-full text-xs font-black font-fredoka uppercase tracking-wider",
-                                            storyLengthMinutes <= 4 ? "bg-blue-50 text-blue-500" :
-                                                storyLengthMinutes <= 7 ? "bg-purple-50 text-purple-500" : "bg-pink-50 text-pink-500"
-                                        )}>
-                                            {storyLengthMinutes === 3 ? "Quick Adventure" :
-                                                storyLengthMinutes <= 5 ? "Normal Tale" :
-                                                    storyLengthMinutes <= 8 ? "Epic Journey" : "Gran Saga"}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-6 p-4 rounded-[2rem] bg-purple-50 shadow-inner border-2 border-white/50">
-                                        <div className="flex-1 px-4">
-                                            <div className="flex justify-between mb-3 px-1 items-center">
-                                                <label className="text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka flex items-center gap-2">
-                                                    <BookOpen className="w-4 h-4 text-purple-400" />
-                                                    Reading Time
-                                                </label>
-                                                <span className="text-[10px] font-bold text-purple-400 bg-purple-100 px-2 py-0.5 rounded-full">
-                                                    {storyLengthMinutes === 1 ? "Quick" : storyLengthMinutes <= 5 ? "Normal" : "Long"}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between mb-2 px-1">
-                                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
-                                                    <div
-                                                        key={val}
-                                                        className={cn(
-                                                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                                                            val <= storyLengthMinutes ? "bg-purple-400 scale-125" : "bg-purple-200"
-                                                        )}
                                                     />
-                                                ))}
-                                            </div>
-                                            <input
-                                                type="range"
-                                                min="1"
-                                                max="10"
-                                                step="1"
-                                                value={storyLengthMinutes}
-                                                onChange={(e) => {
-                                                    const newVal = parseInt(e.target.value);
-                                                    setStoryLengthMinutes(newVal);
-                                                    if (imageSceneCount > newVal) setImageSceneCount(newVal);
-                                                }}
-                                                className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
-                                            />
-                                            <div className="mt-1 flex justify-between text-[10px] font-black text-purple-300 font-fredoka uppercase">
-                                                <span>1 min</span>
-                                                <span>10 mins</span>
+                                                </label>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-center min-w-[70px]">
-                                            <span className="text-3xl font-black text-purple-600 font-fredoka leading-none">{storyLengthMinutes}</span>
-                                            <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">mins</span>
-                                        </div>
-                                    </div>
 
-                                    <div className="mt-4 flex items-center gap-6 p-4 rounded-[2rem] bg-amber-50 shadow-inner border-2 border-white/50">
-                                        <div className="flex-1 px-4">
-                                            <div className="flex justify-between mb-3 px-1 items-center">
-                                                <label className="text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka flex items-center gap-2">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="mb-2 block text-[10px] font-black text-slate-400 uppercase tracking-widest font-fredoka pl-1">Hero&apos;s Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={profile.name}
+                                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                                                    className="w-full h-14 px-6 rounded-2xl border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-purple-300 outline-none transition-all font-fredoka text-lg font-bold text-ink placeholder:text-slate-300 shadow-inner"
+                                                    placeholder="Hero Name..."
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="mb-2 block text-[10px] font-black text-slate-400 uppercase tracking-widest font-fredoka pl-1">Age</label>
+                                                    <div className="flex items-center justify-between p-1.5 rounded-2xl bg-slate-50 border-2 border-slate-100 h-14 shadow-inner">
+                                                        <button
+                                                            type="button"
+                                                            className="w-10 h-10 rounded-xl bg-white shadow-soft flex items-center justify-center text-xl font-black text-purple-600 disabled:opacity-30"
+                                                            onClick={() => setProfile({ ...profile, age: Math.max(3, profile.age - 1) })}
+                                                            disabled={profile.age <= 3}
+                                                        >
+                                                            −
+                                                        </button>
+                                                        <span className="text-xl font-black text-ink font-fredoka">{profile.age}</span>
+                                                        <button
+                                                            type="button"
+                                                            className="w-10 h-10 rounded-xl bg-white shadow-soft flex items-center justify-center text-xl font-black text-purple-600 disabled:opacity-30"
+                                                            onClick={() => setProfile({ ...profile, age: Math.min(12, profile.age + 1) })}
+                                                            disabled={profile.age >= 12}
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="mb-2 block text-[10px] font-black text-slate-400 uppercase tracking-widest font-fredoka pl-1">Gender</label>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setProfile({ ...profile, gender: "boy" })}
+                                                            className={cn(
+                                                                "h-14 rounded-2xl border-2 transition-all flex items-center justify-center text-xl shadow-soft",
+                                                                profile.gender === "boy" ? "bg-blue-500 border-blue-400 text-white shadow-clay-blue" : "bg-white border-slate-100 text-slate-400 hover:border-blue-200"
+                                                            )}
+                                                        >
+                                                            👦
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setProfile({ ...profile, gender: "girl" })}
+                                                            className={cn(
+                                                                "h-14 rounded-2xl border-2 transition-all flex items-center justify-center text-xl shadow-soft",
+                                                                profile.gender === "girl" ? "bg-pink-500 border-pink-400 text-white shadow-clay-pink" : "bg-white border-slate-100 text-slate-400 hover:border-pink-200"
+                                                            )}
+                                                        >
+                                                            👧
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Column 2: Adventure Context */}
+                                    <div className="lg:col-span-8 space-y-8">
+                                        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-white/60 p-6 rounded-3xl border border-white shadow-soft">
+                                                <label className="mb-3 block text-[10px] font-black text-slate-400 uppercase tracking-widest font-fredoka flex items-center gap-2">
                                                     <Sparkles className="w-4 h-4 text-amber-500" />
-                                                    Illustrations
+                                                    Adventure Topic
                                                 </label>
+                                                <input
+                                                    type="text"
+                                                    value={profile.topic || ''}
+                                                    onChange={(e) => setProfile({ ...profile, topic: e.target.value })}
+                                                    className="w-full h-14 px-6 rounded-2xl border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-300 outline-none transition-all font-nunito font-bold text-ink placeholder:text-slate-300 shadow-inner"
+                                                    placeholder="e.g. A Dinosaur Space Race..."
+                                                />
                                             </div>
-                                            <div className="flex justify-between mb-2 px-1">
-                                                {Array.from({ length: Math.min(storyLengthMinutes + 1, 11) }).map((_, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className={cn(
-                                                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                                                            idx <= imageSceneCount ? "bg-amber-400 scale-125" : "bg-amber-200"
-                                                        )}
-                                                    />
-                                                ))}
+                                            <div className="bg-white/60 p-6 rounded-3xl border border-white shadow-soft">
+                                                <label className="mb-3 block text-[10px] font-black text-slate-400 uppercase tracking-widest font-fredoka flex items-center gap-2">
+                                                    <Wand2 className="w-4 h-4 text-purple-500" />
+                                                    Where does it happen?
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={profile.setting || ''}
+                                                    onChange={(e) => setProfile({ ...profile, setting: e.target.value })}
+                                                    className="w-full h-14 px-6 rounded-2xl border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-300 outline-none transition-all font-nunito font-bold text-ink placeholder:text-slate-300 shadow-inner"
+                                                    placeholder="e.g. Underwater Kingdom..."
+                                                />
                                             </div>
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max={storyLengthMinutes}
-                                                step="1"
-                                                value={imageSceneCount}
-                                                onChange={(e) => setImageSceneCount(parseInt(e.target.value))}
-                                                className="w-full h-2 bg-amber-100 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                            />
-                                            <div className="mt-1 flex justify-between text-[10px] font-black text-amber-300 font-fredoka uppercase">
-                                                <span>None</span>
-                                                <span>Max</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col items-center min-w-[70px]">
-                                            <span className="text-3xl font-black text-amber-500 font-fredoka leading-none">{imageSceneCount}</span>
-                                            <span className="text-[10px] font-black text-amber-400 uppercase tracking-tighter">images</span>
-                                        </div>
-                                    </div>
-                                    {error?.type === 'quota' && (
-                                        <p className="text-rose-500 font-bold text-center mb-6 bg-rose-50 p-4 rounded-2xl border-2 border-rose-100 animate-in fade-in slide-in-from-top-2">
-                                            {error.message}
-                                        </p>
-                                    )}
+                                        </motion.div>
 
-                                    <p className="mt-3 text-[10px] font-bold text-ink-muted font-nunito flex items-center gap-1.5 px-2">
-                                        <Sparkles className="w-3 h-3 text-amber-400" />
-                                        <span>This adventure will use <strong>{imageSceneCount}</strong> images.</span>
-                                        {usage["image_generation"] && (
-                                            <span className={cn(
-                                                "ml-2 px-2 py-0.5 rounded-full text-[10px] border",
-                                                usage["image_generation"].current + imageSceneCount > usage["image_generation"].limit
-                                                    ? "bg-rose-50 text-rose-500 border-rose-100"
-                                                    : "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                            )}>
-                                                ({usage["image_generation"].limit - usage["image_generation"].current} remaining)
-                                            </span>
-                                        )}
-                                    </p>
-                                    {usage["image_generation"] && usage["image_generation"].current + imageSceneCount > usage["image_generation"].limit && (
-                                        <p className="mt-1 text-[10px] font-bold text-rose-500 font-nunito px-2 flex items-center gap-1">
-                                            <span>⚠️ Not enough image credits. Reduce illustrations or upgrade.</span>
-                                        </p>
-                                    )}
+                                        {/* Adventure Calibration */}
+                                        <motion.div variants={itemVariants} className="bg-indigo-50/30 p-8 rounded-[2.5rem] border border-white shadow-inner space-y-8">
+                                            <div>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest font-fredoka flex items-center gap-2">
+                                                        <BookOpen className="w-4 h-4" />
+                                                        Reading Time
+                                                    </label>
+                                                    <span className="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                        {storyLengthMinutes} MINS • {storyLengthMinutes <= 4 ? "Quick" : storyLengthMinutes <= 7 ? "Normal" : "Epic"}
+                                                    </span>
+                                                </div>
+                                                <input
+                                                    type="range" min="1" max="10" step="1"
+                                                    value={storyLengthMinutes}
+                                                    onChange={(e) => {
+                                                        const newVal = parseInt(e.target.value);
+                                                        setStoryLengthMinutes(newVal);
+                                                        if (imageSceneCount > newVal) setImageSceneCount(newVal);
+                                                    }}
+                                                    className="w-full h-3 bg-indigo-100 rounded-full appearance-none cursor-pointer accent-indigo-500"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <label className="text-[10px] font-black text-amber-500 uppercase tracking-widest font-fredoka flex items-center gap-2">
+                                                        <Sparkles className="w-4 h-4" />
+                                                        Illustrations
+                                                    </label>
+                                                    <span className="px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                        {imageSceneCount} IMAGES
+                                                    </span>
+                                                </div>
+                                                <input
+                                                    type="range" min="0" max={storyLengthMinutes} step="1"
+                                                    value={imageSceneCount}
+                                                    onChange={(e) => setImageSceneCount(parseInt(e.target.value))}
+                                                    className="w-full h-3 bg-amber-100 rounded-full appearance-none cursor-pointer accent-amber-500"
+                                                />
+                                            </div>
+
+
+                                        </motion.div>
+
+                                        <motion.button
+                                            variants={itemVariants}
+                                            whileHover={{ scale: 1.02, y: -4 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => {
+                                                if (profile.name) {
+                                                    completeStep('story-profile');
+                                                    setStep("words");
+                                                }
+                                            }}
+                                            disabled={!profile.name || (usage.image_generation ? usage.image_generation.current + imageSceneCount > usage.image_generation.limit : false)}
+                                            className="w-full h-20 rounded-3xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/20 flex items-center justify-center gap-4 text-2xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 transition-all"
+                                        >
+                                            Next Step
+                                            <ChevronRight className="h-8 w-8" />
+                                        </motion.button>
+                                    </div>
                                 </div>
-
-                                <motion.button
-                                    id="story-next-step"
-                                    data-tour-target="story-next-step"
-                                    whileHover={{ scale: 1.02, y: -4 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    type="submit"
-                                    onClick={() => {
-                                        // handleProfileSubmit(e) is handled by form submission if this is a type="submit"
-                                        // But if it's just a button click, we should ensure it's gated.
-                                        if (profile.name) {
-                                            completeStep('story-profile');
-                                        }
-                                    }}
-                                    disabled={!profile.name || (usage["image_generation"] ? usage["image_generation"].current + imageSceneCount > usage["image_generation"].limit : false)}
-                                    className="w-full h-20 rounded-[2rem] bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-clay-purple border-2 border-white/30 flex items-center justify-center gap-3 text-2xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 transition-all"
-                                >
-                                    <span>Next Step</span>
-                                    <ChevronRight className="h-8 w-8" />
-                                </motion.button>
-
-                                {usage["story_generation"] && (
-                                    <div className="mt-6 flex flex-col items-center justify-center gap-3">
-                                        <div className={cn(
-                                            "px-4 py-2 rounded-full border text-xs font-black font-fredoka uppercase tracking-wider flex items-center gap-2",
-                                            usage["story_generation"].isLimitReached ? "bg-rose-50 border-rose-100 text-rose-500" : "bg-purple-50 border-purple-100 text-purple-400"
-                                        )}>
-                                            {usage["story_generation"].isLimitReached ? (
-                                                <>
-                                                    <span className="text-base">⚠️</span>
-                                                    Daily Story Limit Reached
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Wand2 className="w-3.5 h-3.5" />
-                                                    {usage["story_generation"].current} / {usage["story_generation"].limit} Stories Used Today
-                                                </>
-                                            )}
-                                        </div>
-
-                                        {usage["story_generation"].isLimitReached && (
-                                            <Link href="/pricing" className="group">
-                                                <motion.div
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-fredoka font-black text-sm uppercase tracking-wider shadow-lg flex items-center gap-2"
-                                                >
-                                                    <Sparkles className="w-4 h-4" />
-                                                    Upgrade for Unlimited Stories
-                                                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                </motion.div>
-                                            </Link>
-                                        )}
-                                    </div>
-                                )}
                             </form>
                         )}
                     </motion.div>
@@ -1180,7 +1138,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="clay-card p-10 md:p-12 relative overflow-hidden"
+                        className="clay-card p-6 md:p-12 relative overflow-hidden"
                     >
                         {/* Step Progress Bubble */}
                         <div className="flex items-center gap-3 mb-10 px-6 py-3 rounded-full bg-white/50 border-2 border-white w-fit shadow-sm">
@@ -1192,13 +1150,13 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                             <span className="font-fredoka font-black text-purple-600 text-sm uppercase tracking-wider ml-2">Choose Words</span>
                         </div>
 
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-indigo-500 shadow-clay-purple flex items-center justify-center">
-                                <Sparkles className="h-8 w-8 text-white animate-pulse" />
+                        <div className="flex items-center gap-4 mb-6 md:mb-8">
+                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-indigo-500 shadow-clay-purple flex items-center justify-center shrink-0">
+                                <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-white animate-pulse" />
                             </div>
                             <div>
-                                <h2 className="text-3xl font-black text-ink font-fredoka uppercase tracking-tight">Pick Magic Words</h2>
-                                <p className="text-ink-muted font-medium font-nunito">Choose up to 5 words to include in your story</p>
+                                <h2 className="text-lg md:text-2xl font-black text-ink font-fredoka uppercase tracking-tight leading-tight">Pick Magic Words</h2>
+                                <p className="text-sm md:text-base text-ink-muted font-medium font-nunito leading-tight">Choose up to 5 words to include in your story</p>
                             </div>
                         </div>
 
@@ -1230,7 +1188,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 </div>
                             </div>
                         ) : (
-                            <div data-tour-target="story-word-grid" className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <div data-tour-target="story-word-grid" className="mb-10 grid gap-3 md:gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-3">
                                 {words.map((w) => {
                                     const isSelected = selectedWords.includes(w.word);
                                     return (
@@ -1240,7 +1198,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => toggleWord(w.word)}
                                             className={cn(
-                                                "relative h-20 px-6 rounded-2xl border-4 transition-all font-fredoka font-black text-xl flex items-center justify-between group overflow-hidden",
+                                                "relative h-16 md:h-20 px-5 md:px-6 rounded-xl md:rounded-2xl border-4 transition-all font-fredoka font-black text-lg md:text-xl flex items-center justify-between group overflow-hidden",
                                                 isSelected
                                                     ? "bg-purple-500 text-white border-purple-400 shadow-clay-purple"
                                                     : "bg-white text-ink border-white hover:border-purple-100 shadow-sm"
@@ -1248,9 +1206,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                         >
                                             <span className="relative z-10">{w.word}</span>
                                             {isSelected ? (
-                                                <Check className="h-6 w-6 text-white relative z-10 animate-bounce-subtle" />
+                                                <Check className="h-5 w-5 md:h-6 md:w-6 text-white relative z-10 animate-bounce-subtle" />
                                             ) : (
-                                                <Plus className="h-6 w-6 text-purple-200 group-hover:text-purple-400 transition-colors" />
+                                                <Plus className="h-5 w-5 md:h-6 md:w-6 text-purple-200 group-hover:text-purple-400 transition-colors" />
                                             )}
                                             {isSelected && (
                                                 <motion.div
@@ -1264,20 +1222,21 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between pt-8 border-t-2 border-purple-50">
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 pt-8 border-t-2 border-purple-50">
                             <motion.button
-                                whileHover={{ x: -4 }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                                 onClick={() => setStep("profile")}
-                                className="flex items-center gap-3 font-black text-ink-muted hover:text-ink transition-colors font-fredoka uppercase tracking-wider"
+                                className="w-full sm:w-auto h-14 md:h-16 px-8 rounded-xl md:rounded-[1.5rem] bg-white text-ink-muted border-4 border-slate-50 font-fredoka font-black uppercase tracking-widest shadow-sm flex items-center justify-center"
                             >
-                                <ArrowLeft className="h-5 w-5" />
+                                <ArrowLeft className="h-5 w-5 mr-2" />
                                 Back
                             </motion.button>
 
-                            <div className="flex items-center gap-6">
-                                <div className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white shadow-inner border border-purple-100">
-                                    <span className="text-2xl font-black text-purple-600 font-fredoka">{selectedWords.length}</span>
-                                    <span className="text-[10px] uppercase font-black tracking-widest text-purple-400 font-fredoka">/ 5 Words</span>
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                <div className="flex-1 sm:flex-initial flex items-center gap-2 md:gap-3 px-4 md:px-5 py-2.5 rounded-xl md:rounded-2xl bg-white shadow-inner border border-purple-100">
+                                    <span className="text-xl md:text-2xl font-black text-purple-600 font-fredoka">{selectedWords.length}</span>
+                                    <span className="text-[9px] md:text-[10px] uppercase font-black tracking-widest text-purple-400 font-fredoka">/ 5 Words</span>
                                 </div>
 
                                 {usage["story_generation"] && (
@@ -1299,29 +1258,29 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                         </span>
                                     </div>
                                 )}
-
-                                <motion.button
-                                    id="story-create-btn"
-                                    data-tour-target="story-create-btn"
-                                    whileHover={usage["story_generation"]?.isLimitReached ? {} : { scale: 1.02, y: -4 }}
-                                    whileTap={usage["story_generation"]?.isLimitReached ? {} : { scale: 0.98 }}
-                                    onClick={() => {
-                                        if (!usage["story_generation"]?.isLimitReached) {
-                                            generateStory();
-                                        }
-                                    }}
-                                    disabled={usage["story_generation"]?.isLimitReached}
-                                    className={cn(
-                                        "h-16 px-10 rounded-[1.5rem] text-white border-2 border-white/30 flex items-center gap-3 text-xl font-black font-fredoka uppercase tracking-widest transition-all",
-                                        usage["story_generation"]?.isLimitReached
-                                            ? "bg-slate-300 shadow-none cursor-not-allowed opacity-70"
-                                            : "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-clay-purple"
-                                    )}
-                                >
-                                    <span>{usage["story_generation"]?.isLimitReached ? "Limit Reached" : "Cast Spell"}</span>
-                                    <Wand2 className="h-6 w-6" />
-                                </motion.button>
                             </div>
+
+                            <motion.button
+                                id="story-create-btn"
+                                data-tour-target="story-create-btn"
+                                whileHover={usage["story_generation"]?.isLimitReached ? {} : { scale: 1.02, y: -4 }}
+                                whileTap={usage["story_generation"]?.isLimitReached ? {} : { scale: 0.98 }}
+                                onClick={() => {
+                                    if (!usage["story_generation"]?.isLimitReached) {
+                                        generateStory();
+                                    }
+                                }}
+                                disabled={usage["story_generation"]?.isLimitReached}
+                                className={cn(
+                                    "w-full sm:w-auto h-14 md:h-16 px-8 md:px-10 rounded-xl md:rounded-[1.5rem] text-white border-2 border-white/30 flex items-center justify-center gap-2 md:gap-3 text-lg md:text-xl font-black font-fredoka uppercase tracking-widest transition-all",
+                                    usage["story_generation"]?.isLimitReached
+                                        ? "bg-slate-300 shadow-none cursor-not-allowed opacity-70"
+                                        : "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-clay-purple"
+                                )}
+                            >
+                                <span>{usage["story_generation"]?.isLimitReached ? "Limit Reached" : "Cast Spell"}</span>
+                                <Wand2 className="h-5 w-5 md:h-6 md:w-6" />
+                            </motion.button>
                         </div>
                     </motion.div>
                 )}
@@ -1330,7 +1289,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="clay-card p-16 flex flex-col items-center justify-center text-center min-h-[500px] relative overflow-hidden"
+                        className="clay-card p-8 md:p-16 flex flex-col items-center justify-center text-center min-h-[400px] md:min-h-[500px] relative overflow-hidden"
                     >
                         {/* Cinematic Background Elements */}
                         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5" />
@@ -1338,12 +1297,12 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
                         {error ? (
                             <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
-                                <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center border-4 border-red-100 mb-2">
-                                    <span className="text-4xl">😅</span>
+                                <div className="w-20 h-20 md:w-24 md:h-24 bg-red-50 rounded-full flex items-center justify-center border-4 border-red-100 mb-2">
+                                    <span className="text-3xl md:text-4xl">😅</span>
                                 </div>
                                 <div className="text-center space-y-2">
-                                    <h2 className="text-3xl font-black font-fredoka text-ink uppercase">Oh no!</h2>
-                                    <p className="text-lg font-bold text-ink-muted font-nunito max-w-sm mx-auto">{error.message}</p>
+                                    <h2 className="text-2xl md:text-3xl font-black font-fredoka text-ink uppercase">Oh no!</h2>
+                                    <p className="text-base md:text-lg font-bold text-ink-muted font-nunito max-w-sm mx-auto leading-tight md:leading-normal">{error.message}</p>
                                 </div>
                                 <div className="flex gap-4 mt-4">
                                     <button
@@ -1388,7 +1347,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     <div
                                         id="story-generating-status"
                                         data-tour-target="story-generating-status"
-                                        className="relative w-32 h-32 rounded-[2.5rem] bg-white shadow-clay-purple flex items-center justify-center border-4 border-purple-100 ring-8 ring-purple-50/50"
+                                        className="relative w-28 h-28 md:w-32 md:h-32 rounded-[2rem] md:rounded-[2.5rem] bg-white shadow-clay-purple flex items-center justify-center border-4 border-purple-100 ring-4 md:ring-8 ring-purple-50/50"
                                     >
                                         <motion.div
                                             animate={{
@@ -1397,7 +1356,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             }}
                                             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                         >
-                                            <Wand2 className="h-14 w-14 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
+                                            <Wand2 className="h-10 w-10 md:h-14 md:w-14 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
                                         </motion.div>
 
                                         {/* Floating Sparkles */}
@@ -1421,14 +1380,14 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     </div>
                                 </div>
 
-                                <h2 className="text-4xl font-black font-fredoka text-ink uppercase tracking-tight mb-4 relative">
+                                <h2 className="text-3xl md:text-4xl font-black font-fredoka text-ink uppercase tracking-tight mb-4 relative">
                                     Making Magic...
                                 </h2>
                                 <motion.p
                                     key={profile.name}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="text-xl text-ink-muted font-bold font-nunito mb-2"
+                                    className="text-lg md:text-xl text-ink-muted font-bold font-nunito mb-2 px-4"
                                 >
                                     Writing a special adventure for <span className="text-purple-600">{profile.name}</span>
                                 </motion.p>
@@ -1458,6 +1417,13 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     </motion.div>
                 )}
             </main>
+
+            <UsageModal 
+                isOpen={showUsageModal} 
+                onClose={() => setShowUsageModal(false)} 
+                usage={usage} 
+                plan={plan as string} 
+            />
         </div>
     );
 }
