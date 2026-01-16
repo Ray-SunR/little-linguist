@@ -96,7 +96,7 @@ export function ClayNav() {
     const pathname = usePathname();
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
-    const { user, isStoryGenerating, activeChild } = useAuth();
+    const { user, isStoryGenerating, activeChild, logout } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
     const { usage, plan, loading } = useUsage(["story_generation", "word_insight", "image_generation"]);
@@ -138,35 +138,7 @@ export function ClayNav() {
 
     const handleLogout = async () => {
         setIsHubOpen(false);
-        try {
-            const { createClient } = await import("@/lib/supabase/client");
-            const supabase = createClient();
-            await supabase.auth.signOut();
-        } catch (error) {
-            console.error("Sign out failed:", error);
-            // Fallback: manually clear local session to ensure user is "logged out" locally
-            try {
-                // Clear all Raiden/Lumo keys
-                if (typeof window !== "undefined") {
-                    Object.keys(window.localStorage).forEach(key => {
-                        if (key.includes('raiden:') || key.includes('sb-')) {
-                            window.localStorage.removeItem(key);
-                        }
-                    });
-                    // Force clear cookies via document (simple attempt)
-                    document.cookie.split(";").forEach((c) => {
-                        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                    });
-                }
-            } catch (cleanupErr) {
-                console.warn("Manual cleanup failed:", cleanupErr);
-            }
-        } finally {
-            // Always redirect to home, even if Supabase/Cache throws
-            router.push("/");
-            // Force reload to clear any lingering memory/cache state
-            setTimeout(() => window.location.href = "/", 100);
-        }
+        await logout();
     };
 
     // Hide nav on landing and login - these pages have their own layouts
@@ -620,7 +592,7 @@ export function ClayNav() {
 
                                         {/* Primary CTA */}
                                         <Link
-                                            href="/signup"
+                                            href="/login"
                                             className="w-full py-4 rounded-2xl bg-[#FFAA00] hover:bg-[#FFB700] text-white font-fredoka font-black text-center text-lg shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                                             onClick={() => setIsHubOpen(false)}
                                         >

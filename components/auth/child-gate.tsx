@@ -11,7 +11,13 @@ export function ChildGate() {
   const { user, profiles, status, profileError } = useAuth();
 
   useEffect(() => {
-    // Only redirect if we are strictly in 'ready' state and authenticated.
+    // Proactively redirect if we detect an auth error, even if not in 'ready' state
+    if (profileError === 'Not authenticated' && pathname !== '/login') {
+      router.push('/login');
+      return;
+    }
+
+    // Only proceed with onboarding check if we are strictly in 'ready' state and authenticated.
     if (status !== 'ready' || !user) return;
 
     // If already on onboarding or login, don't redirect loop.
@@ -19,7 +25,7 @@ export function ChildGate() {
       return;
     }
 
-    // Never redirect if there was an error fetching profiles.
+    // Never redirect for onboarding if there was a generic error fetching profiles.
     if (profileError) {
       console.warn('[ChildGate] Skipping onboarding check due to profile fetch error:', profileError);
       return;

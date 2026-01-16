@@ -9,7 +9,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { cn } from "@/lib/core/utils/cn";
 
 // Pages where the banner should NOT appear
-const EXCLUDED_PATHS = ["/", "/login", "/signup", "/onboarding"];
+const EXCLUDED_PATHS = ["/", "/login", "/onboarding"];
 
 export function GuestBanner() {
     const { user, isLoading } = useAuth();
@@ -69,7 +69,7 @@ export function GuestBanner() {
 
                         <div className="flex items-center gap-3 shrink-0">
                             <Link
-                                href="/signup"
+                                href="/login"
                                 className="px-4 py-1.5 rounded-full bg-[#FFAA00] hover:bg-[#FFB700] text-white text-xs sm:text-sm font-fredoka font-black uppercase tracking-wide shadow-sm hover:shadow-md hover:scale-105 transition-all active:scale-95 whitespace-nowrap"
                             >
                                 Keep My Progress

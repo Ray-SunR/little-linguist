@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const PUBLIC_ROUTES = [
+    '/',
     '/login',
     '/library',
     '/reader',
@@ -76,13 +77,18 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
         return createRedirectWithCookies('/dashboard')
     }
 
-    // Require authentication for protected routes
-    const isPublic = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'))
-    const isDashboardOrTool = ['/dashboard', '/my-words', '/story-maker'].some(route => pathname === route || pathname.startsWith(route + '/'))
-    const isAlwaysAllowed = pathname === '/'
+    // If no user, handle protection and cleanup
+    if (!user) {
+        // Clear activeChildId cookie if it exists but no user session exists
+        if (request.cookies.has('activeChildId')) {
+            supabaseResponse.cookies.set('activeChildId', '', { maxAge: -1, path: '/' })
+        }
 
-    if (!user && !isPublic && !isDashboardOrTool && !isAlwaysAllowed) {
-        return createRedirectWithCookies('/login')
+        const isPublic = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'))
+        
+        if (!isPublic) {
+            return createRedirectWithCookies('/login')
+        }
     }
 
     return supabaseResponse

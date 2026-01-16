@@ -36,6 +36,7 @@ interface AuthContextType {
   setProfiles: (profiles: ChildProfile[]) => void;
   setStatus: (status: AuthStatus) => void;
   profileError: string | null;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [librarySettings, setLibrarySettings] = useState<any>({});
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeFetchIdRef = useRef<number>(0);
+  const isLoggingOutRef = useRef(false);
   const userRef = useRef<User | null>(user);
   const eventRef = useRef<string>("INITIAL");
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -141,6 +143,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  const logout = useCallback(async () => {
+    if (isLoggingOutRef.current) return;
+    isLoggingOutRef.current = true;
+    
+    Log.info("Logout initiated...");
+    
+    // Immediate in-memory cleanup to avoid stale UI flashes
+    setUser(null);
+    setProfiles([]);
+    handleSetActiveChild(null);
+    setStatus('loading');
+
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      Log.error("Sign out error:", err);
+    } finally {
+      // Comprehensive local cleanup
+      if (typeof window !== "undefined") {
+        try {
+          Object.keys(window.localStorage).forEach(key => {
+            if (key.includes('raiden:') || key.includes('sb-')) {
+              window.localStorage.removeItem(key);
+            }
+          });
+          // Clear common cookies
+          document.cookie.split(";").forEach((c) => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+          // Clear specific cookies managed by cookies-next if possible
+          deleteCookie('activeChildId', { path: '/' });
+        } catch (cleanupErr) {
+          Log.warn("Manual cleanup had issues:", cleanupErr);
+        }
+        // Force a clean state via reload
+        window.location.href = "/login";
+      }
+    }
+  }, []);
+
   const fetchProfiles = useCallback(async (uid: string, silent = false, retryCount = 0): Promise<void> => {
     const requestId = ++activeFetchIdRef.current;
     if (!silent && retryCount === 0) setStatus('loading');
@@ -156,10 +198,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      if (error === 'Not authenticated' && retryCount < 2) {
-        Log.warn(`fetchProfiles (req ${requestId}): Not authenticated on server. Retrying in 500ms... (attempt ${retryCount + 1})`);
-        await new Promise(r => setTimeout(r, 500));
-        return fetchProfiles(uid, silent, retryCount + 1);
+      if (error === 'Not authenticated') {
+        if (retryCount < 2) {
+          Log.warn(`fetchProfiles (req ${requestId}): Not authenticated on server. Retrying in 500ms... (attempt ${retryCount + 1})`);
+          await new Promise(r => setTimeout(r, 500));
+          return fetchProfiles(uid, silent, retryCount + 1);
+        } else {
+          Log.error(`fetchProfiles (req ${requestId}): Persistent 'Not authenticated' error. Redirecting to login.`);
+          await logout();
+          return;
+        }
       }
 
       if (error) {
@@ -191,7 +239,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setProfileError('Unexpected error');
       setStatus('error');
     } finally {
-      if (requestId === activeFetchIdRef.current) {
+      if (requestId === activeFetchIdRef.current && !isLoggingOutRef.current) {
         setStatus('ready');
         Log.info(`fetchProfiles finished, cleared loading for req ${requestId}`);
       }
@@ -218,6 +266,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let mounted = true;
 
     async function init() {
+      if (isLoggingOutRef.current) return;
       console.info("[RAIDEN_DIAG][Auth] User initialization starting...");
 
       // Cleanup any previous controller
@@ -271,7 +320,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (mounted) setStatus('error');
       } finally {
         clearTimeout(timeoutId);
-        if (mounted && statusRef.current === 'loading' && !controller.signal.aborted) {
+        if (mounted && statusRef.current === 'loading' && !controller.signal.aborted && !isLoggingOutRef.current) {
           Log.info("Initialization finished (silent success or catch-all)");
           setStatus('ready');
         }
@@ -281,7 +330,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      if (!mounted) return;
+      if (!mounted || isLoggingOutRef.current) return;
       authListenerFiredRef.current = true;
       const newUser = session?.user ?? null;
       const prevUser = userRef.current;
@@ -418,7 +467,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setActiveChild: handleSetActiveChild,
       setProfiles,
       setStatus,
-      profileError
+      profileError,
+      logout
     }}>
       {children}
     </AuthContext.Provider>
