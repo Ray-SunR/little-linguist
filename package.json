@@ -13,6 +13,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock": "^3.971.0",
     "@aws-sdk/client-bedrock-runtime": "^3.962.0",
     "@aws-sdk/client-polly": "^3.958.0",
     "@google-cloud/vertexai": "^1.10.0",

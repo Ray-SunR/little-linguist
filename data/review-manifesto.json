@@ -1,0 +1,18 @@
+[
+    {
+        "id": "superman-g35-review",
+        "title": "Superman: The Man of Tomorrow",
+        "category": "superheroes",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Superman"
+    },
+    {
+        "id": "batman-g35-review",
+        "title": "Batman: The Night Guardian",
+        "category": "superheroes",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Batman"
+    }
+]

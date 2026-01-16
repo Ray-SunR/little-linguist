@@ -35,7 +35,7 @@ export class ClaudeStoryService {
         };
 
         const command = new InvokeModelCommand({
-            modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            modelId: "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
             contentType: "application/json",
             accept: "application/json",
             body: JSON.stringify(body),
@@ -84,7 +84,7 @@ export class ClaudeStoryService {
         };
 
         const command = new InvokeModelCommand({
-            modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            modelId: "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
             contentType: "application/json",
             accept: "application/json",
             body: JSON.stringify(body),
@@ -130,7 +130,7 @@ export class ClaudeStoryService {
         };
 
         const command = new InvokeModelCommand({
-            modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            modelId: "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
             contentType: "application/json",
             accept: "application/json",
             body: JSON.stringify(body),
@@ -185,7 +185,7 @@ export class ClaudeStoryService {
         };
 
         const command = new InvokeModelCommand({
-            modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            modelId: "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
             contentType: "application/json",
             accept: "application/json",
             body: JSON.stringify(body),
@@ -226,7 +226,52 @@ export class ClaudeStoryService {
         };
 
         const command = new InvokeModelCommand({
-            modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            modelId: "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            contentType: "application/json",
+            accept: "application/json",
+            body: JSON.stringify(body),
+        });
+
+        const response = await this.client.send(command);
+        const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+        return responseBody.content[0].text.trim().replace(/^"|"$/g, '');
+    }
+
+    async generateCharacterAnchor(storyText: string, theme: string): Promise<string> {
+        const prompt = `Based on the following children's story details, create a hyper-specific physical description of the main character (or main object for vehicle-based themes) to be used as a "Character Anchor" for AI image generation.
+        The description must be rigid and detailed to ensure visual consistency across many scenes.
+
+        Theme: ${theme}
+        Story Snippet: ${storyText.slice(0, 1000)}
+
+        Requirements:
+        - Specify EXACT colors for clothing/features (e.g., "sky blue suit", "crimson cape").
+        - Mention specific physical markers (e.g., "chestnut messy hair", "silver emblem", "round freckled face").
+        - For brands like Superman or Batman, use descriptive "lookalike" terms but keep the iconic colors and shapes (e.g., "hero in a blue suit with a red cape and golden shield").
+        - Keep it to 1-2 concise but highly descriptive sentences.
+        - Return ONLY the description text. No introduction.
+
+        Example output: A 10-year-old boy with messy chestnut hair, wearing a bright red hoodie with a white zipper, blue denim jeans, and white sneakers.`;
+
+        const body = {
+            anthropic_version: "bedrock-2023-05-31",
+            max_tokens: 500,
+            temperature: 0.3, // Low temperature for rigidity
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: prompt
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const command = new InvokeModelCommand({
+            modelId: "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
             contentType: "application/json",
             accept: "application/json",
             body: JSON.stringify(body),
