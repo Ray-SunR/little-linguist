@@ -143,14 +143,14 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                 initial={{ opacity: 0, scale: 0.9, y: 40 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 40 }}
-                className="relative w-full max-w-lg bg-[#f8fafc] overflow-visible rounded-[4rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] z-10 border-4 border-white flex flex-col"
+                className="relative w-full max-w-lg max-h-[90vh] bg-[#f8fafc] overflow-visible rounded-[2.5rem] sm:rounded-[4rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] z-10 border-4 border-white flex flex-col"
             >
                 {/* Visual Anchor - Overlapping Thumbnail */}
                 <div 
-                    className="absolute -top-10 left-10 z-20 cursor-pointer"
+                    className="absolute -top-8 sm:-top-10 left-6 sm:left-10 z-20 cursor-pointer"
                     onClick={navigateToBook}
                 >
-                    <div className="w-24 h-24 rounded-[2.5rem] bg-white shadow-clay-lg border-4 border-white overflow-hidden -rotate-6 hover:rotate-0 transition-transform duration-500">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[2rem] sm:rounded-[2.5rem] bg-white shadow-clay-lg border-4 border-white overflow-hidden -rotate-6 hover:rotate-0 transition-transform duration-500">
                         {word.coverImageUrl ? (
                             <img src={word.coverImageUrl} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -164,16 +164,16 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                 {/* Close Button - More Subtle */}
                 <button 
                     onClick={onClose}
-                    className="absolute top-6 right-8 p-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-all z-20"
+                    className="absolute top-4 sm:top-6 right-4 sm:right-8 p-3 rounded-2xl bg-slate-100/80 backdrop-blur-sm hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-all z-20"
                 >
                     <X className="w-5 h-5" />
                 </button>
 
                 {/* Header Section */}
-                <div className="pt-20 px-10 pb-4">
+                <div className="pt-16 sm:pt-20 px-6 sm:px-10 pb-4">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-4">
-                            <h2 className="text-4xl md:text-5xl font-fredoka font-black text-slate-800 leading-tight">
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl font-fredoka font-black text-slate-800 leading-tight">
                                 {word.word}
                             </h2>
                             {word.wordAudioUrl && (
@@ -222,7 +222,7 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                     </div>
                 </div>
 
-                <div className="flex-1 px-8 pb-8 space-y-6 overflow-y-auto scrollbar-hide">
+                <div className="flex-1 px-4 sm:px-8 pb-8 space-y-6 overflow-y-auto scrollbar-hide">
                     {/* Meaning Bubble */}
                     <div className="relative group">
                         <div className="flex items-center justify-between mb-3 px-2">
@@ -234,7 +234,7 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                                 <button
                                     onClick={() => handlePlayNarration("definition")}
                                     className={cn(
-                                        "flex items-center gap-2 px-4 py-2 rounded-2xl font-bold font-fredoka text-[11px] transition-all",
+                                        "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-2xl font-bold font-fredoka text-[10px] sm:text-[11px] transition-all",
                                         activeNarrationType === "definition" && nState === "PLAYING" 
                                             ? "bg-[#ffd93b] text-slate-900 shadow-clay-sm scale-105" 
                                             : "bg-white text-violet-500 border-2 border-violet-100 hover:border-violet-200 shadow-sm"
@@ -247,11 +247,11 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                                 </button>
                             )}
                         </div>
-                        <div className="bg-white p-7 rounded-[3rem] shadow-[inset_0_2px_8px_rgba(0,0,0,0.02)] border-2 border-slate-100/80 relative overflow-hidden">
+                        <div className="bg-white p-5 sm:p-7 rounded-[2rem] sm:rounded-[3rem] shadow-[inset_0_2px_8px_rgba(0,0,0,0.02)] border-2 border-slate-100/80 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
                                 <SparklesIcon className="w-16 h-16 text-violet-500" />
                             </div>
-                            <p className="text-xl md:text-2xl font-nunito font-bold text-slate-700 leading-relaxed relative z-10">
+                            <p className="text-lg sm:text-xl md:text-2xl font-nunito font-bold text-slate-700 leading-relaxed relative z-10">
                                 {word.definition.split(" ").map((token, i) => (
                                     <span 
                                         key={i}
@@ -283,7 +283,7 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: i * 0.1 }}
-                                        className="p-6 bg-indigo-50/40 border-2 border-white rounded-[2.5rem] shadow-clay-sm text-slate-600 font-nunito font-bold italic relative overflow-hidden"
+                                        className="p-4 sm:p-6 bg-indigo-50/40 border-2 border-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-clay-sm text-slate-600 font-nunito font-bold italic relative overflow-hidden"
                                     >
                                         <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-200/50" />
                                         <div className="flex items-start gap-4">
@@ -327,8 +327,8 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                 </div>
                 
                 {/* Refined Footer - Breath Spacing */}
-                <div className="px-8 pb-10">
-                    <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] opacity-50">
+                <div className="px-8 pb-6 sm:pb-10">
+                    <p className="text-center text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] opacity-50">
                         Continue your adventure
                     </p>
                 </div>

@@ -153,6 +153,8 @@ export function MagicSentenceModal({
     const [currentWordIndex, setCurrentWordIndex] = useState<number | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const activeWordRef = useRef<HTMLSpanElement>(null);
 
     // Split sentence into words for highlighting
     // We use the timing markers as the source of truth for words
@@ -199,6 +201,16 @@ export function MagicSentenceModal({
             audio.removeEventListener("ended", handleEnded);
         };
     }, [isPlaying, result]);
+    
+    // Auto-scroll to active word
+    useEffect(() => {
+        if (currentWordIndex !== null && activeWordRef.current && scrollContainerRef.current) {
+            activeWordRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
+        }
+    }, [currentWordIndex]);
 
     const playAudio = () => {
         if (!result?.audioUrl) return;
@@ -233,12 +245,12 @@ export function MagicSentenceModal({
                     className="relative w-full max-w-xl bg-white rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] flex flex-col max-h-[92vh] border-4 border-white"
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-4 shrink-0">
+                    <div className="flex items-center justify-between px-5 py-3 md:px-6 md:py-4 shrink-0">
                         <div className="flex items-center gap-2">
                             <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shadow-inner">
                                 <Sparkles className="w-5 h-5 text-purple-600" />
                             </div>
-                            <h2 className="text-xl font-black font-fredoka text-ink uppercase tracking-tight">Magic Spark</h2>
+                            <h2 className="text-lg md:text-xl font-black font-fredoka text-ink uppercase tracking-tight">Magic Spark</h2>
                         </div>
                         <div className="flex items-center gap-1">
                             {!isLoading && result && (
@@ -263,7 +275,10 @@ export function MagicSentenceModal({
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-6 pb-6 md:px-8 space-y-4 scrollbar-hide">
+                    <div 
+                        ref={scrollContainerRef}
+                        className="flex-1 overflow-y-auto px-5 pb-5 md:px-8 md:pb-8 space-y-3 md:space-y-6 scrollbar-hide"
+                    >
                         <AnimatePresence mode="wait">
                             {isLoading ? (
                                 <motion.div
@@ -302,7 +317,7 @@ export function MagicSentenceModal({
                                 >
                                     {/* Illustration */}
                                     {result.imageUrl && (
-                                        <div className="relative aspect-video rounded-[2rem] overflow-hidden shadow-lg shadow-purple-900/5 border-[4px] border-slate-50 group">
+                                        <div className="relative aspect-square w-full max-w-[260px] md:max-w-none mx-auto rounded-[2rem] overflow-hidden shadow-2xl shadow-purple-900/10 border-[4px] border-slate-50/50 group">
                                             <CachedImage
                                                 src={result.imageUrl}
                                                 alt={result.sentence}
@@ -311,20 +326,21 @@ export function MagicSentenceModal({
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                                 bucket="user-assets"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-60" />
                                         </div>
                                     )}
 
                                     {/* Sentence Display */}
-                                    <div className="bg-slate-50 border-2 border-slate-100/50 p-6 md:p-8 rounded-[2.5rem] shadow-inner relative overflow-hidden">
+                                    <div className="bg-slate-50/50 border-2 border-slate-100/30 p-4 md:p-8 rounded-[2.5rem] shadow-inner relative overflow-hidden">
                                         {/* Decorative Sparkles */}
-                                        <Sparkles className="absolute top-3 left-3 w-5 h-5 text-purple-100" />
-                                        <Sparkles className="absolute bottom-3 right-3 w-5 h-5 text-purple-100" />
+                                        <Sparkles className="absolute top-4 left-4 w-5 h-5 text-purple-200/50" />
+                                        <Sparkles className="absolute bottom-4 right-4 w-5 h-5 text-purple-200/50" />
                                         
-                                        <p className="text-xl md:text-2xl font-nunito font-black text-center leading-[1.6] text-ink relative z-10">
+                                        <p className="text-lg md:text-2xl font-nunito font-black text-center leading-[1.6] text-ink relative z-10">
                                             {(result.tokens || []).map((token: Token, i: number) => (
                                                 <span
                                                     key={i}
+                                                    ref={token.type === 'w' && currentWordIndex === token.i ? activeWordRef : null}
                                                     className={cn(
                                                         "transition-all duration-200 rounded-xl whitespace-pre py-1",
                                                         token.type === 'w' ? "inline-block px-1" : "inline",
@@ -357,7 +373,7 @@ export function MagicSentenceModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="px-8 py-5 bg-slate-50 rounded-b-[3rem] border-t border-slate-100 flex justify-center shrink-0">
+                    <div className="px-6 py-4 md:px-8 md:py-5 bg-slate-50/80 rounded-b-[3rem] border-t border-slate-100/50 flex justify-center shrink-0">
                         <button
                             onClick={onClose}
                             className="w-full text-slate-400 font-fredoka font-black text-sm uppercase tracking-[0.15em] py-3 hover:text-ink transition-colors flex items-center justify-center gap-2"

@@ -7,6 +7,7 @@ import { alignSpeechMarksToTokens, getWordTokensForChunk } from "../lib/core/boo
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import sharp from "sharp";
 
 dotenv.config({ path: ".env.local" });
 
@@ -41,6 +42,13 @@ function getSeed(id: string): number {
         hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash) % 858993459; // Nova Canvas seed limit
+}
+
+async function saveOptimizedImage(base64Data: string, outputPath: string) {
+    const buffer = Buffer.from(base64Data, 'base64');
+    await sharp(buffer)
+        .webp({ quality: 85 })
+        .toFile(outputPath);
 }
 
 async function main() {
@@ -141,6 +149,18 @@ async function main() {
                 throw new Error(`Failed to generate story of sufficient length for ${entry.id} after ${maxAttempts} attempts.`);
             }
 
+
+            const aiTitle = await claude.generateBookTitle(fullText);
+            console.log(`  ✨ AI Title: ${aiTitle}`);
+
+            console.log(`  🔍 Generating keywords and description for ${entry.id}...`);
+            const { keywords, description } = await claude.generateKeywordsAndDescription(
+                fullText, 
+                entry.category, 
+                entry.brand_theme || entry.title
+            );
+            console.log(`  🏷️ Keywords: ${keywords.join(', ')}`);
+
             const tokens = Tokenizer.tokenize(fullText);
             const charCount = fullText.length;
 
@@ -166,7 +186,8 @@ async function main() {
                     throw coverErr;
                 }
             }
-            fs.writeFileSync(path.join(bookDir, 'cover.png'), Buffer.from(base64Cover, 'base64'));
+            // Optimize and save as WebP
+            await saveOptimizedImage(base64Cover, path.join(bookDir, 'cover.webp'));
 
             let currentWordIndex = 0;
             const scenes = [];
@@ -184,8 +205,8 @@ async function main() {
                         throw imgErr;
                     }
                 }
-                const imageFilename = `scene_${i}.png`;
-                fs.writeFileSync(path.join(bookDir, 'scenes', imageFilename), Buffer.from(base64Image, 'base64'));
+                const imageFilename = `scene_${i}.webp`;
+                await saveOptimizedImage(base64Image, path.join(bookDir, 'scenes', imageFilename));
 
                 const sceneTokens = Tokenizer.tokenize(pages[i].text);
                 const sceneWordCount = Tokenizer.getWords(sceneTokens).length;
@@ -227,13 +248,15 @@ async function main() {
             // Save Metadata
             const metadata = {
                 id: entry.id,
-                title: entry.title,
+                title: aiTitle,
                 category: entry.category,
                 level: entry.level,
                 is_nonfiction: entry.is_nonfiction,
+                description: description,
+                keywords: keywords,
                 brand_theme: entry.brand_theme,
                 series_id: entry.series_id,
-                cover_image_path: 'cover.png',
+                cover_image_path: 'cover.webp',
                 cover_prompt: smartCoverPrompt,
                 stats: {
                     word_count: wordCount,

@@ -13,14 +13,18 @@ This workflow defines the process for safely committing changes to the repositor
    - Run the build command to ensure no compilation errors.
    - Command: `npm run build`
 
-2. **Stage Changes**:
-   - Run: `git add .`
+2. **Check for Staged Changes**:
+   - Check for existing staged changes: `git diff --cached --quiet`
+   - If there are staged changes (exit code 1), skip to step 4 and only commit the staged files.
 
-3. **Generate Commit Message**:
-   - Analyze the changes and generate a concise, conventional message.
+3. **Stage Changes**:
+   - If no changes are staged, stage everything: `git add .`
 
-4. **Execute Commit**:
+4. **Generate Commit Message**:
+   - Analyze the currently staged changes and generate a concise, conventional message.
+
+5. **Execute Commit**:
    - Run: `git commit -m "[Generated Message]"`
 
-5. **Completion**:
+6. **Completion**:
    - Notify the user of the successful commit.

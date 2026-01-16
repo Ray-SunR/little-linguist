@@ -208,34 +208,31 @@ export async function POST(request: NextRequest) {
         const validWord = rawWord; // Use rawWord directly or normalized slightly but lookup against 'word'
         const normalized = sanitizeWord(rawWord);
 
-        // 1. Ensure vocab_term exists
+        // 1. Ensure vocab_term exists and is enriched
         let termId: string;
-        let newTerm = null; // Initialize newTerm to null
-        const { data: existingTerm } = await adminClient
-            .from('word_insights')
-            .select('id')
-            .eq('word', normalized) // Use 'word' column, assumed normalized in storage
-            .maybeSingle();
+        let finalTerm = null;
 
-        if (existingTerm) {
-            termId = existingTerm.id;
-        } else {
-            // 'word' column serves as both display and unique key
-            const { data: createdTerm, error: termError } = await adminClient
-                .from('word_insights')
-                .insert({
-                    language: 'en',
-                    word: normalized, // store normalized as 'word'
-                    definition: insight?.definition,
-                    pronunciation: insight?.pronunciation,
-                    examples: insight?.examples,
-                })
-                .select('id')
-                .single();
-            if (termError) throw termError;
-            termId = createdTerm.id;
-            newTerm = createdTerm; // Assign to newTerm if created
-        }
+        // Use upsert on 'word' column to either insert new or update existing with fresh audio/timing paths
+        const { data: upsertedTerm, error: termError } = await adminClient
+            .from('word_insights')
+            .upsert({
+                word: normalized,
+                definition: insight?.definition,
+                pronunciation: insight?.pronunciation,
+                examples: insight?.examples,
+                audio_path: insight?.audioPath,
+                word_audio_path: insight?.wordAudioPath,
+                example_audio_paths: insight?.exampleAudioPaths,
+                timing_markers: insight?.wordTimings,
+                example_timing_markers: insight?.exampleTimings,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'word' })
+            .select('id')
+            .single();
+
+        if (termError) throw termError;
+        termId = upsertedTerm.id;
+        finalTerm = upsertedTerm;
 
         // 2. Insert into child_vocab
         const { data, error } = await adminClient
@@ -266,7 +263,7 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        return NextResponse.json({ success: true, word: normalized, entry: newTerm });
+        return NextResponse.json({ success: true, word: normalized, entry: finalTerm });
     } catch (error: any) {
         console.error("POST /api/words error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });

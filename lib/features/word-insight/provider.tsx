@@ -86,20 +86,15 @@ const hydrateImage = async (url?: string, storagePath?: string) => {
 
 const WordListContext = createContext<WordListContextType | undefined>(undefined);
 
-interface LegacySavedWord extends Partial<SavedWord> {
-    audio_path?: string;
-    word_audio_path?: string;
-    example_audio_paths?: string[];
-}
-
 /**
  * Common logic to read words from cache and hydrate their audio URLs from assetCache.
  */
-async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
+async function getHydratedWords(userId?: string, childId?: string): Promise<SavedWord[]> {
     const cachedList = await raidenCache.getAll<SavedWord>(CacheStore.USER_WORDS);
     if (!cachedList || cachedList.length === 0) return [];
 
-    const prefix = userId ? `u:${userId}:` : 'guest:';
+    const prefix = userId ? `u:${userId}:c:${childId || 'none'}:` : 'guest:';
+    
     const filteredList = cachedList
         .filter((w: SavedWord) => w.id.startsWith(prefix))
         .sort((a: SavedWord, b: SavedWord) => {
@@ -108,29 +103,20 @@ async function getHydratedWords(userId?: string): Promise<SavedWord[]> {
             return dateB - dateA; // Descending
         });
 
-    return await Promise.all(filteredList.map(async (w: LegacySavedWord) => {
-        // Migration: Map old snake_case fields to camelCase if present
-        const audioPath = w.audioPath || w.audio_path;
-        const wordAudioPath = w.wordAudioPath || w.word_audio_path;
-        const exampleAudioPaths = w.exampleAudioPaths || w.example_audio_paths;
-
+    return await Promise.all(filteredList.map(async (w: SavedWord) => {
         // Blob URLs don't survive reloads, signed URLs expire. Always try to resolve from assetCache.
-        const audioUrl = await hydrateAudio(w.audioUrl, audioPath);
-        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, wordAudioPath);
+        const audioUrl = await hydrateAudio(w.audioUrl, w.audioPath);
+        const wordAudioUrl = await hydrateAudio(w.wordAudioUrl, w.wordAudioPath);
         const coverImageUrl = await hydrateImage(w.coverImageUrl, w.coverImagePath);
 
         const exampleAudioUrls = Array.isArray(w.exampleAudioUrls)
             ? await Promise.all(w.exampleAudioUrls.map((u: string, idx: number) =>
-                hydrateAudio(u, exampleAudioPaths?.[idx] || u)
+                hydrateAudio(u, w.exampleAudioPaths?.[idx] || u)
             ))
             : undefined;
 
-        // Ensure we return the migrated and hydrated word
         return { 
             ...w, 
-            audioPath, 
-            wordAudioPath, 
-            exampleAudioPaths, 
             audioUrl, 
             wordAudioUrl, 
             exampleAudioUrls, 
@@ -165,7 +151,7 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
                 setIsLoading(true);
                 // Only try cache for the "default" view (no filters/search)
                 if (!options.status && !options.search && (!options.sortBy || options.sortBy === 'createdAt')) {
-                    const cachedWords = await getHydratedWords(user?.id);
+                    const cachedWords = await getHydratedWords(user?.id, activeChild?.id);
                     if (cachedWords.length > 0) {
                         setWords(cachedWords);
                         setTotalWords(cachedWords.length);
@@ -184,7 +170,8 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
 
                 const processedList = await Promise.all(list.map(async (w: any) => {
                     const baseId = `${w.word.toLowerCase()}:${w.bookId || 'global'}`;
-                    const id = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+                    const childPart = activeChild?.id ? `c:${activeChild.id}:` : 'c:none:';
+                    const id = user ? `u:${user.id}:${childPart}${baseId}` : `guest:${baseId}`;
                     
                     // Basic hydration
                     const audioUrl = await hydrateAudio(w.audioUrl, w.audioPath);
@@ -236,7 +223,8 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
 
     const addWord = async (word: WordInsight, bookId?: string) => {
         const baseId = `${word.word.toLowerCase()}:${bookId || 'global'}`;
-        const wordId = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+        const childPart = activeChild?.id ? `c:${activeChild.id}:` : 'c:none:';
+        const wordId = user ? `u:${user.id}:${childPart}${baseId}` : `guest:${baseId}`;
 
         const enrichedWord: SavedWord = {
             ...word,
@@ -271,7 +259,8 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
 
     const removeWord = async (wordStr: string, bookId?: string) => {
         const baseId = `${wordStr.toLowerCase()}:${bookId || 'global'}`;
-        const wordId = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+        const childPart = activeChild?.id ? `c:${activeChild.id}:` : 'c:none:';
+        const wordId = user ? `u:${user.id}:${childPart}${baseId}` : `guest:${baseId}`;
         const wordToRestore = words.find((w: SavedWord) => w.id === wordId);
 
         // Optimistic update
@@ -297,7 +286,8 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         const normalizedToRemove = wordsToRemove.map(w => normalizeWord(w).replace(/[^a-z0-9-]/g, ""));
         const wordIdsToRemove = wordsToRemove.map(wStr => {
             const baseId = `${wStr.toLowerCase()}:global`; // Best effort for ID matching
-            return user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+            const childPart = activeChild?.id ? `c:${activeChild.id}:` : 'c:none:';
+            return user ? `u:${user.id}:${childPart}${baseId}` : `guest:${baseId}`;
         });
 
         const wordsToRestore = words.filter((w: SavedWord) => wordsToRemove.includes(w.word));
@@ -326,7 +316,8 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
                 } else {
                     // Fallback to best-effort text-based ID if state lookup fails
                     const baseId = `${wordStr.toLowerCase()}:global`;
-                    const wordId = user ? `u:${user.id}:${baseId}` : `guest:${baseId}`;
+                    const childPart = activeChild?.id ? `c:${activeChild.id}:` : 'c:none:';
+                    const wordId = user ? `u:${user.id}:${childPart}${baseId}` : `guest:${baseId}`;
                     await raidenCache.delete(CacheStore.USER_WORDS, wordId);
                 }
             }
