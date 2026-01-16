@@ -48,13 +48,14 @@ export function MagicSentenceActionBar({
     const canGenerate = isLoggedIn && activeChild && !isMagicLimitReached && !isSelectionLimitExceeded;
 
     return (
-        <motion.div
-            initial={{ y: 150, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 150, opacity: 0, scale: 0.9 }}
-            className="fixed bottom-6 inset-x-4 md:left-1/2 md:right-auto md:-translate-x-1/2 z-[80] md:w-full md:max-w-md pointer-events-none"
-        >
-            <div className="pointer-events-auto bg-white/80 backdrop-blur-xl rounded-[2rem] p-5 shadow-[0_20px_40px_-10px_rgba(124,58,237,0.3)] border-[3px] border-white ring-1 ring-white/50 flex flex-col gap-4 relative overflow-hidden">
+        <div className="fixed bottom-6 inset-x-0 z-[80] pointer-events-none flex justify-center px-4">
+            <motion.div
+                initial={{ y: 150, opacity: 0, scale: 0.9 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: 150, opacity: 0, scale: 0.9 }}
+                className="w-full max-w-md pointer-events-auto"
+            >
+                <div className="bg-white/95 backdrop-blur-2xl rounded-[2rem] p-5 shadow-[0_24px_50px_-12px_rgba(124,58,237,0.4)] border-[3px] border-white ring-1 ring-white/50 flex flex-col gap-4 relative overflow-hidden">
                 
                 {/* Background Decor */}
                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-200/30 rounded-full blur-2xl" />
@@ -225,6 +226,7 @@ export function MagicSentenceActionBar({
                 cancelLabel="Cancel"
                 variant="danger"
             />
-        </motion.div>
+            </motion.div>
+        </div>
     );
 }

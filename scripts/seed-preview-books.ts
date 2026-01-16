@@ -173,8 +173,14 @@ async function main() {
             fs.mkdirSync(path.join(bookDir, 'audio'), { recursive: true });
 
             // --- Generate Assets ---
+            console.log(`  🔍 Generating Character Anchor...`);
+            const characterAnchor = await claude.generateCharacterAnchor(
+                entry.brand_theme || entry.title,
+                entry.level
+            );
+
             console.log(`  🖼️ Generating Smart Cover...`);
-            const smartCoverPrompt = await claude.generateCoverPrompt(fullText);
+            const smartCoverPrompt = await claude.generateCoverPrompt(fullText, characterAnchor);
             let base64Cover = "";
             try {
                 base64Cover = await nova.generateImage(smartCoverPrompt, bookSeed);

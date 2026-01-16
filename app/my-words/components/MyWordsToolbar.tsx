@@ -94,7 +94,7 @@ export function MyWordsToolbar({
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
-                        className="flex items-center gap-0.5 md:gap-2 min-w-0 flex-1"
+                        className="flex items-center justify-between gap-0.5 md:gap-2 min-w-0 flex-1"
                     >
                         {/* Compact tabs */}
                         <div className="flex items-center gap-0.5 md:gap-1">

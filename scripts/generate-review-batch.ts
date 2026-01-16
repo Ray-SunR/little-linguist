@@ -112,6 +112,7 @@ async function main() {
             let pages: any[] = [];
             let fullText = "";
             let wordCount = 0;
+            let characterAnchor = "";
             let attempts = 0;
             const maxAttempts = 3;
 
@@ -120,17 +121,28 @@ async function main() {
                 attempts++;
                 console.log(`  📝 Story Attempt ${attempts}/${maxAttempts}...`);
 
+                characterAnchor = await claude.generateCharacterAnchor(entry.brand_theme || entry.title, entry.level);
+                console.log(`  👤 Character Anchor: ${characterAnchor}`);
+
                 const themeText = attempts === maxAttempts ?
                     `a very safe and general story about ${entry.category}` :
                     sanitizeTheme(entry.brand_theme || entry.title);
 
                 const prompt = `Write a ${entry.is_nonfiction ? 'non-fiction' : 'fiction'} story for a child at ${entry.level} reading level about ${entry.category}.
                 Theme Focus: ${themeText}.
+                Character Anchor (Visual Identity): ${characterAnchor}.
                 Target total word count: ${specs.targetWords} words.
                 Complexity: ${specs.complexity}.
                 Structure: Split into EXACTLY ${specs.sceneCount} scenes.
                 Requirement: Each scene MUST contain at least ${specs.sentencesPerScene} descriptive sentences.
                 Format as JSON array: [{ "text": "...", "imagePrompt": "..." }]
+                IMPORTANT: Return ONLY the raw JSON array. No markdown backticks, no introduction, no conversational filler.
+                
+                IMAGE PROMPT INSTRUCTIONS:
+                Each "imagePrompt" MUST focus on the ACTION and SETTING first. 
+                Structure it as: "[Detailed action and background description], featuring [Character Anchor markers]".
+                Example: "A brave hero jumping over a crumbling stone wall in a ruined city, featuring a 10yo boy, blue suit, red cape, yellow belt".
+                Do NOT just repeat the Character Anchor description alone. Ensure the background is vivid and changing in every scene.
                 IMPORTANT: For G3-5, each scene must be a substantial paragraph. Use engaging and age-appropriate storytelling.`;
 
                 try {
@@ -161,10 +173,6 @@ async function main() {
             const aiTitle = await claude.generateBookTitle(fullText);
             console.log(`  ✨ AI Title: ${aiTitle}`);
 
-            console.log(`  ⚓ Generating Character Anchor for consistency...`);
-            const characterAnchor = await claude.generateCharacterAnchor(fullText, entry.brand_theme || entry.category);
-            console.log(`  📍 Anchor: ${characterAnchor}`);
-
             console.log(`  🔍 Generating keywords and description for ${entry.id}...`);
             const { keywords, description } = await claude.generateKeywordsAndDescription(
                 fullText, 
@@ -185,15 +193,15 @@ async function main() {
             fs.mkdirSync(path.join(bookDir, 'audio'), { recursive: true });
 
             // --- Generate Assets ---
-            const smartCoverPrompt = await claude.generateCoverPrompt(fullText);
-            const consistentCoverPrompt = `${characterAnchor}. ${smartCoverPrompt}`;
+            console.log(`  🖼️ Generating Smart Cover...`);
+            const smartCoverPrompt = await claude.generateCoverPrompt(fullText, characterAnchor);
             let base64Cover = "";
             try {
-                base64Cover = await nova.generateImage(consistentCoverPrompt, bookSeed);
+                base64Cover = await nova.generateImage(smartCoverPrompt, bookSeed);
             } catch (coverErr: any) {
                 if (coverErr.name === 'ValidationException' || coverErr.message?.includes('content filters')) {
                     console.warn(`  ⚠️ Cover image blocked. Falling back to generic...`);
-                    base64Cover = await nova.generateImage(`${characterAnchor}. A beautiful children's book cover for a story titled "${entry.title}" about ${entry.category}`, bookSeed);
+                    base64Cover = await nova.generateImage(`${characterAnchor}. Children's book cover for a story about ${entry.category}`, bookSeed);
                 } else {
                     throw coverErr;
                 }
@@ -207,13 +215,12 @@ async function main() {
             for (let i = 0; i < pages.length; i++) {
                 console.log(`  🎨 Scene ${i + 1}/${pages.length}...`);
                 let base64Image = "";
-                const consistentScenePrompt = `${characterAnchor}. ${pages[i].imagePrompt}`;
                 try {
-                    base64Image = await nova.generateImage(consistentScenePrompt, bookSeed);
+                    base64Image = await nova.generateImage(pages[i].imagePrompt, bookSeed);
                 } catch (imgErr: any) {
                     if (imgErr.name === 'ValidationException' || imgErr.message?.includes('content filters')) {
                         console.warn(`  ⚠️ Scene image blocked. Falling back to generic...`);
-                        base64Image = await nova.generateImage(`${characterAnchor}. A children's book illustration of ${entry.category}`, bookSeed);
+                        base64Image = await nova.generateImage(`${characterAnchor}. Children's book illustration of ${entry.category}`, bookSeed);
                     } else {
                         throw imgErr;
                     }

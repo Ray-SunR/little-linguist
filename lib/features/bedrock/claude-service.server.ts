@@ -47,24 +47,34 @@ export class ClaudeStoryService {
         // Claude 3 Messages API response format
         const content = responseBody.content[0].text;
 
-        // Find JSON in the response
-        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        // Find JSON in the response - more robust regex for arrays
+        const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
         if (!jsonMatch) {
-            console.error("Failed to parse story JSON from Claude response. Raw content:", content);
-            throw new Error("Failed to parse story JSON from Claude response");
+             // Try a last resort: maybe it's the whole string or has markdown backticks
+             const cleanContent = content.replace(/```json|```/g, '').trim();
+             try {
+                 return JSON.parse(cleanContent);
+             } catch {
+                console.error("Failed to parse story JSON from Claude response. Raw content:", content);
+                throw new Error("Failed to parse story JSON from Claude response");
+             }
         }
 
         return JSON.parse(jsonMatch[0]);
     }
 
-    async generateCoverPrompt(storyText: string): Promise<string> {
+    async generateCoverPrompt(storyText: string, characterAnchor: string): Promise<string> {
         const prompt = `Based on the following children's story, generate a highly descriptive image prompt for a book cover illustration. 
-        Focus on the main characters and the central theme. Ensure the prompt is vivid and captures the essence of the book.
+        Focus on the central theme and action, featuring the main character.
         
         Story Text:
         ${storyText}
+
+        Character Visual Identity (USE THIS EXACTLY):
+        ${characterAnchor}
         
-        IMPORTANT: Your output MUST be under 800 characters. Output ONLY the image prompt text. Do not include style keywords as they will be added later.`;
+        IMPORTANT: Your output MUST be under 800 characters. Output ONLY the image prompt text. Do not include style keywords as they will be added later.
+        The prompt should describe an iconic, centered scene suitable for a book cover.`;
 
         const body = {
             anthropic_version: "bedrock-2023-05-31",
@@ -237,26 +247,19 @@ export class ClaudeStoryService {
         return responseBody.content[0].text.trim().replace(/^"|"$/g, '');
     }
 
-    async generateCharacterAnchor(storyText: string, theme: string): Promise<string> {
-        const prompt = `Based on the following children's story details, create a hyper-specific physical description of the main character (or main object for vehicle-based themes) to be used as a "Character Anchor" for AI image generation.
-        The description must be rigid and detailed to ensure visual consistency across many scenes.
-
-        Theme: ${theme}
-        Story Snippet: ${storyText.slice(0, 1000)}
-
+    async generateCharacterAnchor(theme: string, level: string): Promise<string> {
+        const prompt = `Create a concise set of "Visual Keys" for the main character of a children's story about "${theme}" for ${level} level.
+        
         Requirements:
-        - Specify EXACT colors for clothing/features (e.g., "sky blue suit", "crimson cape").
-        - Mention specific physical markers (e.g., "chestnut messy hair", "silver emblem", "round freckled face").
-        - For brands like Superman or Batman, use descriptive "lookalike" terms but keep the iconic colors and shapes (e.g., "hero in a blue suit with a red cape and golden shield").
-        - Keep it to 1-2 concise but highly descriptive sentences.
-        - Return ONLY the description text. No introduction.
-
-        Example output: A 10-year-old boy with messy chestnut hair, wearing a bright red hoodie with a white zipper, blue denim jeans, and white sneakers.`;
+        1. List only the absolute essentials: age/build, specific hair, specific clothing colors/items, and 1 signature accessory (glasses, hat, etc.).
+        2. Format should be a comma-separated list of visual markers (e.g., "10yo boy, messy chestnut hair, bright red hoodie, blue denim jeans, small round glasses").
+        3. Do NOT use trademarked names (like Batman or Superman), instead use descriptive equivalents.
+        4. Return ONLY the comma-separated list. No introduction or bullets.`;
 
         const body = {
             anthropic_version: "bedrock-2023-05-31",
-            max_tokens: 500,
-            temperature: 0.3, // Low temperature for rigidity
+            max_tokens: 300,
+            temperature: 0.7,
             messages: [
                 {
                     role: "user",

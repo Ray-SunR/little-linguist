@@ -67,24 +67,24 @@ export default function MyWordsContent() {
                 {/* Selection Mode Banner */}
                 <AnimatePresence>
                     {state.isSelectionMode && (
-                        <div className="sticky top-[73px] md:top-[85px] z-[30] w-full isolate pointer-events-none">
+                        <div className="fixed top-[88px] md:top-[104px] left-0 right-0 z-[60] pointer-events-none flex justify-center px-4">
                             <motion.div
-                                initial={{ y: -20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: -20, opacity: 0 }}
+                                initial={{ y: -20, opacity: 0, scale: 0.9 }}
+                                animate={{ y: 0, opacity: 1, scale: 1 }}
+                                exit={{ y: -20, opacity: 0, scale: 0.9 }}
                                 style={{ pointerEvents: "auto" }}
-                                className="bg-violet-600 text-white py-2 px-4 shadow-lg flex items-center justify-center gap-4 border-b border-violet-700/50 backdrop-blur-sm bg-violet-600/95"
+                                className="bg-violet-600/90 text-white py-2.5 px-6 rounded-full shadow-[0_12px_40px_rgba(139,78,255,0.4)] flex items-center gap-4 border border-white/20 backdrop-blur-md"
                             >
-                                <div className="max-w-7xl mx-auto flex items-center gap-3">
+                                <div className="flex items-center gap-3">
                                     <div className="p-1.5 bg-white/20 rounded-full animate-pulse">
                                         <Wand2 className="w-4 h-4 text-white" />
                                     </div>
-                                    <span className="text-sm font-bold font-fredoka tracking-wide">
-                                        Select words to create a magic sentence with image!
+                                    <span className="text-sm font-bold font-fredoka tracking-wide whitespace-nowrap">
+                                        Select words for magic!
                                     </span>
                                     <button 
                                         onClick={actions.toggleSelectionMode}
-                                        className="ml-4 p-1 rounded-full hover:bg-white/20 transition-colors"
+                                        className="ml-2 p-1 rounded-full hover:bg-white/20 transition-colors"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>

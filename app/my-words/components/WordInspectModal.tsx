@@ -135,7 +135,7 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                className="absolute inset-0 bg-slate-900/70 backdrop-blur-md"
                 onClick={onClose}
             />
             

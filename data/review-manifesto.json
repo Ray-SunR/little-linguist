@@ -1,5 +1,13 @@
 [
     {
+        "id": "avengers-g35-review",
+        "title": "Avengers: Earth's Mightiest Heroes",
+        "category": "superheroes",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Avengers"
+    },
+    {
         "id": "superman-g35-review",
         "title": "Superman: The Man of Tomorrow",
         "category": "superheroes",
@@ -14,5 +22,117 @@
         "level": "G3-5",
         "is_nonfiction": false,
         "brand_theme": "Batman"
+    },
+    {
+        "id": "batwheels-g35-review",
+        "title": "Batwheels: Ready to Roll",
+        "category": "things-that-go",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Batwheels"
+    },
+    {
+        "id": "hotwheels-g35-review",
+        "title": "Hotwheels: Speed City",
+        "category": "things-that-go",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Hotwheels"
+    },
+    {
+        "id": "minecraft-g35-review",
+        "title": "Minecraft: Blocky Adventure",
+        "category": "gaming",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Minecraft"
+    },
+    {
+        "id": "disneytales-g35-review",
+        "title": "Disney Tales: Magic Kingdom",
+        "category": "disney-tales",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Disney Tales"
+    },
+    {
+        "id": "dogman-g35-review",
+        "title": "Dogman: Hero of the City",
+        "category": "dogman",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Dog Man"
+    },
+    {
+        "id": "pvz-g35-review",
+        "title": "Plants vs. Zombies: Garden Defense",
+        "category": "pvz",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Plants vs Zombies"
+    },
+    {
+        "id": "pawpatrol-g35-review",
+        "title": "Paw Patrol: Rescue Mission",
+        "category": "paw-patrol",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Paw Patrol"
+    },
+    {
+        "id": "spidey-g35-review",
+        "title": "Spidey and Friends",
+        "category": "superheroes",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Spidey"
+    },
+    {
+        "id": "sciencenature-g35-review",
+        "title": "Explorers of Nature",
+        "category": "science-nature",
+        "level": "G3-5",
+        "is_nonfiction": true,
+        "brand_theme": "Science and Nature"
+    },
+    {
+        "id": "history-g35-review",
+        "title": "Travelers Through Time",
+        "category": "history",
+        "level": "G3-5",
+        "is_nonfiction": true,
+        "brand_theme": "History"
+    },
+    {
+        "id": "space-g35-review",
+        "title": "Space Frontiers",
+        "category": "space",
+        "level": "G3-5",
+        "is_nonfiction": true,
+        "brand_theme": "Space"
+    },
+    {
+        "id": "train-g35-review",
+        "title": "The Iron Engine",
+        "category": "things-that-go",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Train"
+    },
+    {
+        "id": "cars-g35-review",
+        "title": "Turbo Racers",
+        "category": "things-that-go",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Cars"
+    },
+    {
+        "id": "trucks-g35-review",
+        "title": "Big Rig Adventure",
+        "category": "things-that-go",
+        "level": "G3-5",
+        "is_nonfiction": false,
+        "brand_theme": "Trucks"
     }
 ]

@@ -133,8 +133,13 @@ export function useMyWordsV2ViewModel() {
 
     const toggleSelection = useCallback((word: string) => {
         setSelectedWords(prev => {
-            if (prev.includes(word)) {
-                return prev.filter(w => w !== word);
+            const isRemoving = prev.includes(word);
+            if (isRemoving) {
+                const next = prev.filter(w => w !== word);
+                if (next.length === 0) {
+                    setIsSelectionMode(false);
+                }
+                return next;
             }
             if (prev.length >= 10) return prev; // Increased limit slightly for bulk actions
             return [...prev, word];
@@ -146,17 +151,27 @@ export function useMyWordsV2ViewModel() {
         setSelectedWords(prev => {
             const allSelected = groupWordStrings.every(w => prev.includes(w));
             if (allSelected) {
-                return prev.filter(w => !groupWordStrings.includes(w));
+                const next = prev.filter(w => !groupWordStrings.includes(w));
+                if (next.length === 0) {
+                    setIsSelectionMode(false);
+                }
+                return next;
             } else {
+                const toAdd = groupWordStrings.filter(w => !prev.includes(w));
+                const remainingSpace = 10 - prev.length;
+                
+                if (remainingSpace <= 0) return prev;
+                
                 setIsSelectionMode(true);
-                const newSelection = [...new Set([...prev, ...groupWordStrings])];
-                return newSelection;
+                const clippedAdditions = toAdd.slice(0, remainingSpace);
+                return [...prev, ...clippedAdditions];
             }
         });
     }, [setIsSelectionMode]);
 
     const clearSelection = useCallback(() => {
         setSelectedWords([]);
+        setIsSelectionMode(false);
     }, []);
 
     const toggleSelectionMode = useCallback(() => {
@@ -220,13 +235,13 @@ export function useMyWordsV2ViewModel() {
 
             setMagicResult(data);
             setIsMagicModalOpen(true);
-            setSelectedWords([]); // Clear selection on success
+            clearSelection(); // Use the standard clear selection path which also resets mode
         } catch (err: any) {
             setGenerationError(err.message);
         } finally {
             setIsGenerating(false);
         }
-    }, [selectedWords, activeChild]);
+    }, [selectedWords, activeChild, clearSelection]);
     
     const fetchMagicHistory = useCallback(async () => {
         if (!activeChild) return;

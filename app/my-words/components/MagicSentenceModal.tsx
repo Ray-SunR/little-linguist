@@ -234,7 +234,7 @@ export function MagicSentenceModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-ink/50 backdrop-blur-md"
+                    className="absolute inset-0 bg-slate-900/70 backdrop-blur-md"
                     onClick={onClose}
                 />
 

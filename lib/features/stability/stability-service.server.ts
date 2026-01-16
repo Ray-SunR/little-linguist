@@ -3,7 +3,8 @@ import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedroc
 export class StabilityStoryService {
     private client: BedrockRuntimeClient;
     private region: string;
-    private static readonly ART_STYLE_SUFFIX = "Professional digital children's book illustration, vibrant colors, clear focus, whimsical charm, highly detailed, masterpieces, storybook style.";
+    private static readonly ART_STYLE_GUIDE = "A consistent professional children's book illustration in vibrant digital watercolor style, clean vector lines, whimsical charm, highly detailed character features, uniform soft lighting.";
+    private static readonly NEGATIVE_PROMPT = "photorealistic, 3d render, grainy, blurry, deformed anatomy, mismatched eyes, extra limbs, text, watermark, low resolution, messy lines, realistic photography, dark moody lighting.";
 
     constructor() {
         this.region = process.env.POLLY_REGION || "us-west-2";
@@ -19,7 +20,8 @@ export class StabilityStoryService {
     async generateImage(prompt: string, seed?: number): Promise<string> {
         // SDXL is available in us-west-2/us-east-1
         const body = {
-            prompt: `${prompt}. ${StabilityStoryService.ART_STYLE_SUFFIX}`,
+            prompt: `Style: ${StabilityStoryService.ART_STYLE_GUIDE}. Subject: ${prompt}`,
+            negative_prompt: StabilityStoryService.NEGATIVE_PROMPT,
             mode: "text-to-image",
             aspect_ratio: "1:1",
             output_format: "png",
