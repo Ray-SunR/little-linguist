@@ -93,7 +93,8 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         const isGroupable = entityType === 'story' || entityType === 'magic_sentence';
 
         if (entityId && isGroupable) {
-            let group = entityGroups.get(entityId);
+            const groupKey = `${entityType}:${entityId}`;
+            let group = entityGroups.get(groupKey);
             if (!group) {
                 group = {
                     id: `group-${entityId}`,
@@ -108,7 +109,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
                     type: 'debit',
                     amount: 0
                 };
-                entityGroups.set(entityId, group);
+                entityGroups.set(groupKey, group);
                 processedTransactions.push(group);
             }
 

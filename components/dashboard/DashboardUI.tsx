@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { BookOpen, Sparkles, Wand2, Star, TrendingUp, Clock, ChevronRight, User } from "lucide-react";
+import { BookOpen, Sparkles, Wand2, Star, TrendingUp, Clock, ChevronRight } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import type { ChildProfile } from "@/app/actions/profiles";
 import type { DashboardStats } from "@/app/actions/dashboard";

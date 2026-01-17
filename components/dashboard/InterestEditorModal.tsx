@@ -4,8 +4,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Plus, Sparkles, Save, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createClient } from '@/lib/supabase/client';
-import { updateChildProfile, ChildProfile } from '@/app/actions/profiles';
+import { updateChildProfile } from '@/app/actions/profiles';
 import { toast } from 'sonner';
 import { cn } from '@/lib/core';
 

@@ -88,13 +88,21 @@ export async function getAvatarUploadUrl(fileName: string) {
  * Validates a storage path for an avatar.
  */
 async function validateAvatarPath(
-  path: string
+  path: string,
+  userId: string
 ): Promise<string | null> {
   // Only allow bucket-relative paths (no external URLs, base64 data, or scripts)
   if (path.startsWith('http') || path.startsWith('javascript:') || path.startsWith('data:') || path.includes('://')) {
     console.warn('[profiles:validateAvatarPath] Rejected external/dangerous/base64 URL:', path.slice(0, 50));
     return null;
   }
+  
+  // Strict namespace isolation: Path MUST start with the user's ID
+  if (!path.startsWith(`${userId}/`)) {
+    console.warn('[profiles:validateAvatarPath] Path isolation violation. Path must start with userId:', { path, userId });
+    return null;
+  }
+
   return path;
 }
 
@@ -116,7 +124,7 @@ export async function createChildProfile(data: ChildProfilePayload) {
     // Handle avatar assignment
     let avatarPaths: string[] = [];
     if (data.avatar_asset_path) {
-      const storagePath = await validateAvatarPath(data.avatar_asset_path);
+      const storagePath = await validateAvatarPath(data.avatar_asset_path, user.id);
       if (storagePath) {
         avatarPaths = [storagePath];
       }
@@ -209,7 +217,7 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
 
     // Handle avatar assignment if provided
     if (data.avatar_asset_path) {
-      const uploadedPath = await validateAvatarPath(data.avatar_asset_path);
+      const uploadedPath = await validateAvatarPath(data.avatar_asset_path, user.id);
       if (uploadedPath) {
         // Get existing avatar_paths and append (with owner_user_id filter for safety)
         const { data: existing } = await supabase
