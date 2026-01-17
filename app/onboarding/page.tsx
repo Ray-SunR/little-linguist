@@ -1,7 +1,7 @@
 "use client";
 
 import ChildProfileWizard from '@/components/profile/ChildProfileWizard';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion'; // Removed unused import
 
 import { useAuth } from '@/components/auth/auth-provider';
 import { useRouter } from 'next/navigation';
@@ -13,22 +13,22 @@ export default function OnboardingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-        router.push('/login');
-    }
-  }, [user, isLoading, router]);
+    if (isLoading) return;
 
-  useEffect(() => {
-    // Log if a user with profiles lands here (could be manual navigation or unwanted redirect)
-    if (!isLoading && user && profiles.length > 0) {
-      console.warn("[RAIDEN_DIAG][Onboarding] User landed on onboarding despite having profiles.", {
-        userId: user.id,
-        profileCount: profiles.length
-      });
+    if (!user) {
+      router.replace('/login');
+      return;
     }
-  }, [user, profiles, isLoading]);
 
-  if (isLoading || !user) {
+    // Redirect if a user with profiles lands here (manual navigation or back button)
+    // Guard against profiles being undefined, though auth provider typically initializes it
+    const profileCount = profiles?.length ?? 0;
+    if (profileCount > 0) {
+      router.replace('/dashboard');
+    }
+  }, [user, profiles, isLoading, router]);
+
+  if (isLoading || !user || (profiles?.length ?? 0) > 0) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[--shell]">
             <LumoLoader />

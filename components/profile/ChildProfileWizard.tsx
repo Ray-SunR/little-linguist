@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createChildProfile, getAvatarUploadUrl } from '@/app/actions/profiles';
-import { Camera, Check, ChevronRight, ChevronLeft, Sparkles, User, Wand2, BookOpen, Plus, Heart, UserPlus } from 'lucide-react';
+import { Camera, Check, ChevronRight, ChevronLeft, Sparkles, Wand2, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { CachedImage } from '@/components/ui/cached-image';
@@ -33,7 +33,7 @@ const GUEST_MAGIC_WORDS = [
 
 export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfileWizardProps) {
     const router = useRouter();
-    const { refreshProfiles, user } = useAuth();
+    const { refreshProfiles } = useAuth();
     const [step, setStep] = useState<Step>('name');
     const [formData, setFormData] = useState({
         first_name: '',
@@ -184,7 +184,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
     return (
         <div className="w-full max-w-2xl mx-auto px-4 sm:px-0">
-            <div className="clay-card bg-white/70 backdrop-blur-xl p-6 sm:p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border-4 border-white shadow-2xl relative overflow-hidden min-h-[400px] md:min-h-[500px] flex flex-col">
+            <div className="clay-card bg-white/70 backdrop-blur-xl p-5 sm:p-8 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] border-4 border-white shadow-2xl relative overflow-hidden min-h-[50dvh] md:min-h-[500px] flex flex-col">
 
                 {/* Progress Bar */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-purple-100/50">
@@ -204,7 +204,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                         animate="center"
                         exit="exit"
                         transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-                        className="flex-grow flex flex-col items-center justify-center py-8"
+                        className="flex-grow flex flex-col items-center justify-center py-4 md:py-8 overflow-y-auto w-full"
                     >
                         {/* --- STEP: NAME --- */}
                         {step === 'name' && (
@@ -399,7 +399,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                                     {isUploading ? (
                                                         <motion.img
                                                             src="/logo.png"
-                                                            className="h-8 w-8 md:h-10 md:h-10"
+                                                            className="h-8 w-8 md:h-10 md:w-10"
                                                             animate={{ rotate: 360, scale: [1, 1.2, 1] }}
                                                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                                                         />
@@ -472,11 +472,11 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                         {step === 'interests' && (
                             <div className="w-full space-y-8 text-center">
                                 <div className="space-y-2">
-                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka">Magic Interests!</h2>
+                                    <h2 className="text-2xl md:text-4xl font-black text-ink font-fredoka">Magic Interests!</h2>
                                     <p className="text-ink-muted font-bold font-nunito">What does <span className="text-purple-600">{formData.first_name}</span> love most?</p>
                                 </div>
 
-                                <div className="flex-1 overflow-y-auto max-h-[300px] md:max-h-[350px] pr-2 scrollbar-thin scrollbar-thumb-purple-200 scrollbar-track-transparent">
+                                <div className="flex-1 overflow-y-auto max-h-[45dvh] md:max-h-[350px] pr-2 scrollbar-thin scrollbar-thumb-purple-200 scrollbar-track-transparent">
                                     <div className="space-y-6">
                                         {Object.entries(SUGGESTED_INTERESTS).map(([category, items]) => (
                                             <div key={category} className="space-y-3">
@@ -492,7 +492,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                                                 whileHover={{ scale: 1.05 }}
                                                                 whileTap={{ scale: 0.95 }}
                                                                 className={cn(
-                                                                    "px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl text-sm md:text-base font-bold font-nunito transition-all border-2 shadow-sm",
+                                                                    "px-3 py-1.5 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl text-sm md:text-base font-bold font-nunito transition-all border-2 shadow-sm",
                                                                     isSelected
                                                                         ? 'bg-purple-500 text-white border-purple-400 shadow-clay-purple-sm'
                                                                         : 'bg-white text-ink-muted border-slate-100 hover:border-purple-200'
@@ -517,7 +517,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         disabled={formData.interests.length === 0}
                                         whileHover={{ scale: 1.05, y: -4 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="primary-btn h-12 md:h-14 px-10 text-lg md:text-xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 w-full sm:w-auto"
+                                        className="primary-btn min-h-[3rem] md:h-14 py-2 px-6 md:px-10 text-sm sm:text-lg md:text-xl font-black font-fredoka uppercase tracking-wide md:tracking-widest disabled:opacity-50 w-full sm:w-auto flex items-center justify-center text-center leading-tight whitespace-normal"
                                     >
                                         {mode === 'onboarding' ? "Complete Journey! ✨" : (
                                             <>Next <ChevronRight className="ml-2 inline" /></>
@@ -544,7 +544,15 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         autoFocus
                                         value={formData.topic}
                                         onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                                        onKeyDown={(e) => e.key === 'Enter' && nextStep('setting')}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                if (!formData.topic) {
+                                                    setError("What should our story be about?");
+                                                    return;
+                                                }
+                                                nextStep('setting');
+                                            }
+                                        }}
                                         className="w-full h-20 px-8 rounded-3xl border-4 border-orange-50 bg-white/50 focus:bg-white focus:border-orange-300 outline-none transition-all font-fredoka text-2xl font-black text-ink placeholder:text-slate-300 shadow-inner"
                                         placeholder="Space, Dinosaurs, Tea Party..."
                                     />
@@ -590,7 +598,15 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         autoFocus
                                         value={formData.setting}
                                         onChange={(e) => setFormData({ ...formData, setting: e.target.value })}
-                                        onKeyDown={(e) => e.key === 'Enter' && nextStep('words')}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                if (!formData.setting) {
+                                                    setError("Where should this adventure happen?");
+                                                    return;
+                                                }
+                                                nextStep('words');
+                                            }
+                                        }}
                                         className="w-full h-20 px-8 rounded-3xl border-4 border-blue-50 bg-white/50 focus:bg-white focus:border-blue-300 outline-none transition-all font-fredoka text-2xl font-black text-ink placeholder:text-slate-300 shadow-inner"
                                         placeholder="Enchanted Forest, Mars, Underwater..."
                                     />
@@ -674,7 +690,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
                         {/* --- STEP: SAVING --- */}
                         {step === 'saving' && (
-                            <div className="w-full space-y-8 text-center flex flex-col items-center justify-center min-h-[400px]">
+                            <div className="w-full space-y-8 text-center flex flex-col items-center justify-center min-h-[50dvh]">
                                 <div className="relative">
                                     <div className="absolute inset-0 bg-purple-400/20 blur-3xl animate-pulse rounded-full" />
                                     <motion.div
