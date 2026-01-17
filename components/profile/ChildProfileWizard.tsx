@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createChildProfile } from '@/app/actions/profiles';
+import { createChildProfile, getAvatarUploadUrl } from '@/app/actions/profiles';
 import { Camera, Check, ChevronRight, ChevronLeft, Sparkles, User, Wand2, BookOpen, Plus, Heart, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
-import { compressImage } from "@/lib/core/utils/image";
 import { CachedImage } from '@/components/ui/cached-image';
 import { useAuth } from '@/components/auth/auth-provider';
 import { raidenCache, CacheStore } from "@/lib/core/cache";
@@ -17,11 +16,15 @@ interface ChildProfileWizardProps {
     mode?: 'onboarding' | 'story';
 }
 
-const INTEREST_OPTIONS = [
-    'Adventures', 'Princess', 'Nature', 'Animal',
-    'Science', 'Fantasy', 'History', 'Space',
-    'Vehicles', 'Dinosaurs', 'Sports', 'Music'
-];
+
+
+const SUGGESTED_INTERESTS = {
+    "Themes 🎭": ["Adventure", "Friendship", "Magic", "Mystery", "Kindness", "Courage"],
+    "Topics 🦖": ["Nature", "Animals", "Science", "Pets", "Space", "Dinosaurs", "Transport"],
+    "Characters 🦸": ["Princesses", "Superheroes", "Fairies", "Knights"],
+    "Activities 🚀": ["Sports", "Building", "Exploration"]
+};
+
 
 const GUEST_MAGIC_WORDS = [
     'Magic', 'Adventure', 'Friendship', 'Dragon', 'Space',
@@ -30,7 +33,7 @@ const GUEST_MAGIC_WORDS = [
 
 export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfileWizardProps) {
     const router = useRouter();
-    const { refreshProfiles } = useAuth();
+    const { refreshProfiles, user } = useAuth();
     const [step, setStep] = useState<Step>('name');
     const [formData, setFormData] = useState({
         first_name: '',
@@ -44,6 +47,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
     });
 
     const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
+    const [avatarStoragePath, setAvatarStoragePath] = useState<string | undefined>();
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -94,7 +98,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
         try {
             const result = await createChildProfile({
                 ...formData,
-                avatar_asset_path: avatarPreview || ''
+                avatar_asset_path: avatarStoragePath || ''
             });
 
             if (!result) {
@@ -363,7 +367,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                             <div className="relative w-full h-full p-4">
                                                 <CachedImage
                                                     src={avatarPreview}
-                                                    storagePath={avatarPreview.startsWith('data:') ? undefined : avatarPreview}
+                                                    storagePath={avatarStoragePath}
                                                     alt="Preview"
                                                     fill
                                                     className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
@@ -412,17 +416,33 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                             disabled={isUploading}
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0];
-                                                if (file) {
-                                                    setIsUploading(true);
-                                                    try {
-                                                        const compressed = await compressImage(file);
-                                                        setAvatarPreview(compressed);
-                                                    } catch (err: any) {
-                                                        console.error("Compression failed:", err);
-                                                        setError("Failed to process image.");
-                                                    } finally {
-                                                        setIsUploading(false);
-                                                    }
+                                                if (!file) return;
+
+                                                setIsUploading(true);
+                                                try {
+                                                    // Always show immediate preview
+                                                    const localUrl = URL.createObjectURL(file);
+                                                    setAvatarPreview(localUrl);
+
+                                                    // Always upload to bucket (guest or user)
+                                                    const result = await getAvatarUploadUrl(file.name);
+                                                    if (result.error || !result.data) throw new Error(result.error);
+                                                    
+                                                    const { signedUrl, path } = result.data;
+                                                    await fetch(signedUrl, { 
+                                                        method: 'PUT', 
+                                                        body: file, 
+                                                        headers: { 'Content-Type': file.type } 
+                                                    });
+                                                    
+                                                    setAvatarStoragePath(path);
+                                                } catch (err: any) {
+                                                    console.error("Upload failed:", err);
+                                                    setError(err.message || "Failed to upload image.");
+                                                    setAvatarPreview(undefined);
+                                                    setAvatarStoragePath(undefined);
+                                                } finally {
+                                                    setIsUploading(false);
                                                 }
                                             }}
                                         />
@@ -447,39 +467,46 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
                         {/* --- STEP: INTERESTS --- */}
                         {step === 'interests' && (
-                            <div className="w-full space-y-10 text-center">
-                                <div className="space-y-4">
+                            <div className="w-full space-y-8 text-center">
+                                <div className="space-y-2">
                                     <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka">Magic Interests!</h2>
                                     <p className="text-ink-muted font-bold font-nunito">What does <span className="text-purple-600">{formData.first_name}</span> love most?</p>
                                 </div>
 
-                                <div className="flex flex-wrap justify-center gap-3 md:gap-4 max-w-xl mx-auto">
-                                    {INTEREST_OPTIONS.map(interest => {
-                                        const isSelected = formData.interests.includes(interest);
-                                        return (
-                                            <motion.button
-                                                key={interest}
-                                                type="button"
-                                                onClick={() => toggleInterest(interest)}
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                className={cn(
-                                                    "px-4 py-3 md:px-6 md:py-4 rounded-2xl md:rounded-3xl text-base md:text-lg font-black font-fredoka transition-all border-4 shadow-sm",
-                                                    isSelected
-                                                        ? 'bg-purple-500 text-white border-purple-400 shadow-clay-purple-sm'
-                                                        : 'bg-white text-ink border-white hover:border-purple-100'
-                                                )}
-                                            >
-                                                {interest}
-                                            </motion.button>
-                                        );
-                                    })}
+                                <div className="flex-1 overflow-y-auto max-h-[300px] md:max-h-[350px] pr-2 scrollbar-thin scrollbar-thumb-purple-200 scrollbar-track-transparent">
+                                    <div className="space-y-6">
+                                        {Object.entries(SUGGESTED_INTERESTS).map(([category, items]) => (
+                                            <div key={category} className="space-y-3">
+                                                <h3 className="text-left text-sm font-black text-ink-muted/50 uppercase tracking-widest px-1">{category}</h3>
+                                                <div className="flex flex-wrap gap-2 md:gap-3">
+                                                    {items.map(interest => {
+                                                        const isSelected = formData.interests.includes(interest);
+                                                        return (
+                                                            <motion.button
+                                                                key={interest}
+                                                                type="button"
+                                                                onClick={() => toggleInterest(interest)}
+                                                                whileHover={{ scale: 1.05 }}
+                                                                whileTap={{ scale: 0.95 }}
+                                                                className={cn(
+                                                                    "px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl text-sm md:text-base font-bold font-nunito transition-all border-2 shadow-sm",
+                                                                    isSelected
+                                                                        ? 'bg-purple-500 text-white border-purple-400 shadow-clay-purple-sm'
+                                                                        : 'bg-white text-ink-muted border-slate-100 hover:border-purple-200'
+                                                                )}
+                                                            >
+                                                                {interest}
+                                                            </motion.button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
 
-                                {error && <p className="text-rose-500 font-bold font-nunito">{error}</p>}
-
-                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                    <button onClick={() => prevStep('avatar')} className="ghost-btn h-14 md:h-16 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+                                    <button onClick={() => prevStep('avatar')} className="ghost-btn h-12 md:h-14 px-8 flex items-center gap-2 text-ink/70 w-full sm:w-auto justify-center">
                                         <ChevronLeft /> Back
                                     </button>
                                     <motion.button
@@ -487,7 +514,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         disabled={formData.interests.length === 0}
                                         whileHover={{ scale: 1.05, y: -4 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="primary-btn h-14 md:h-16 px-12 text-xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 w-full sm:w-auto"
+                                        className="primary-btn h-12 md:h-14 px-10 text-lg md:text-xl font-black font-fredoka uppercase tracking-widest disabled:opacity-50 w-full sm:w-auto"
                                     >
                                         {mode === 'onboarding' ? "Complete Journey! ✨" : (
                                             <>Next <ChevronRight className="ml-2 inline" /></>

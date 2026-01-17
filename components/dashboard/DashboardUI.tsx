@@ -5,8 +5,12 @@ import Link from "next/link";
 import { BookOpen, Sparkles, Wand2, Star, TrendingUp, Clock, ChevronRight, User } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import type { ChildProfile } from "@/app/actions/profiles";
-import { CachedImage } from "@/components/ui/cached-image";
 import type { DashboardStats } from "@/app/actions/dashboard";
+import { CachedImage } from "@/components/ui/cached-image";
+import { InterestEditorModal } from "@/components/dashboard/InterestEditorModal";
+import { useState } from "react";
+import { Edit2 } from "lucide-react";
+import { useAuth } from "@/components/auth/auth-provider";
 
 interface Props {
     activeChild: ChildProfile | null;
@@ -14,6 +18,9 @@ interface Props {
 }
 
 export default function DashboardUI({ activeChild, stats }: Props) {
+    const { refreshProfiles } = useAuth();
+    const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
+    const [optimisticInterests, setOptimisticInterests] = useState<string[] | null>(null);
     const childName = activeChild?.first_name || "Captain";
     const level = stats?.level || activeChild?.level || 1;
     const xp = stats?.totalXp || activeChild?.total_xp || 0;
@@ -70,9 +77,20 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                 <h1 className="text-4xl md:text-5xl font-black text-ink mb-2 font-fredoka tracking-tight">
                     Mission Control
                 </h1>
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 font-bold text-sm border border-purple-200">
-                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    {activeChild ? `${activeChild.first_name}'s System Online` : "System Online"}
+                <div className="flex items-center justify-center gap-2 mt-4">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 font-bold text-sm border border-purple-200">
+                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                        {activeChild ? `${activeChild.first_name}'s System Online` : "System Online"}
+                    </div>
+                    {activeChild && (
+                        <button 
+                            onClick={() => setIsInterestModalOpen(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 font-bold text-xs hover:bg-slate-200 transition-colors"
+                        >
+                            <Edit2 className="w-3 h-3" />
+                            Edit Interests
+                        </button>
+                    )}
                 </div>
             </motion.div>
 
@@ -340,6 +358,24 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                     </div>
                 </div>
             </motion.div>
+
+
+            {activeChild && (
+                <InterestEditorModal 
+                    isOpen={isInterestModalOpen}
+                    onClose={() => setIsInterestModalOpen(false)}
+                    child={{
+                        id: activeChild.id,
+                        name: activeChild.first_name,
+                        interests: optimisticInterests || activeChild.interests
+                    }}
+                    onUpdate={async (newInterests) => {
+                         setOptimisticInterests(newInterests);
+                         await refreshProfiles(true);
+                         window.location.reload();
+                    }} 
+                />
+            )}
         </main>
     );
 }

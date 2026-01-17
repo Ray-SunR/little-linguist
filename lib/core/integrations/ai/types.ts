@@ -12,6 +12,11 @@ export interface AIProvider {
      * Generate a story based on a list of words and user profile
      */
     generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, storyLengthMinutes?: number, imageSceneCount?: number, idempotencyKey?: string }): Promise<GeneratedStoryContent>;
+
+    /**
+     * Generate an embedding vector for a given text
+     */
+    generateEmbedding(text: string): Promise<number[]>;
 }
 
 export interface GeneratedStoryContent {

@@ -1,0 +1,398 @@
+[
+  {
+    "id": "pvz-prek-0",
+    "title": "Happy Sunflowers",
+    "concept_prompt": "Simple story about sunflowers smiling in the garden.",
+    "category": "pvz",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "pvz-k-1",
+    "title": "The Peashooter",
+    "concept_prompt": "Peashooter protects the garden from a funny zombie.",
+    "category": "pvz",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "pvz-g35-2",
+    "title": "Dr. Zomboss's Plot",
+    "concept_prompt": "Strategic battle against Zomboss's giant robot.",
+    "category": "pvz",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "superheroes-prek-3",
+    "title": "Super Baby",
+    "concept_prompt": "A baby with super strength helps mom.",
+    "category": "superheroes",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "superheroes-k-4",
+    "title": "Hero School",
+    "concept_prompt": "Kids learning how to use powers at school.",
+    "category": "superheroes",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "superheroes-g35-5",
+    "title": "The Dark Villain",
+    "concept_prompt": "A team of heroes stops a shadow villain.",
+    "category": "superheroes",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "avengers-prek-6",
+    "title": "Baby Avengers: Team Up!",
+    "concept_prompt": "Toddler versions of Iron Man and Hulk playing together.",
+    "category": "avengers",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "avengers-k-7",
+    "title": "Captain's Shield",
+    "concept_prompt": "Captain America searches for his missing shield.",
+    "category": "avengers",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "avengers-g35-8",
+    "title": "Avengers Assemble: Earth Defense",
+    "concept_prompt": "The full team defending NYC from aliens.",
+    "category": "avengers",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "superman-prek-9",
+    "title": "Up in the Sky",
+    "concept_prompt": "Superman flying high and waving at clouds.",
+    "category": "superman",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "superman-k-10",
+    "title": "Clark's Secret",
+    "concept_prompt": "Clark Kent hiding his cape at the Daily Planet.",
+    "category": "superman",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "superman-g35-11",
+    "title": "Superman vs. Lex",
+    "concept_prompt": "Lex Luthor's kryptonite trap.",
+    "category": "superman",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "batman-prek-12",
+    "title": "The Batmobile",
+    "concept_prompt": "The Batmobile driving fast through a tunnel.",
+    "category": "batman",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "batman-k-13",
+    "title": "Robin's Training",
+    "concept_prompt": "Batman teaching Robin how to use the grappling hook.",
+    "category": "batman",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "batman-g35-14",
+    "title": "Gotham City Shadows",
+    "concept_prompt": "Detective work tracking the Joker.",
+    "category": "batman",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "frozen-prek-15",
+    "title": "Olaf's Summer",
+    "concept_prompt": "Olaf dreaming about summer fun.",
+    "category": "frozen",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "disney-prek-16",
+    "title": "Mickey's Picnic",
+    "concept_prompt": "Mickey and Minnie having a picnic in the park.",
+    "category": "disney",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "frozen-k-17",
+    "title": "Elsa's Magic Ice",
+    "concept_prompt": "Elsa making an ice skating rink for the kingdom.",
+    "category": "frozen",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "moana-k-18",
+    "title": "Moana's Boat",
+    "concept_prompt": "Moana sailing on a calm ocean.",
+    "category": "moana",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "frozen-g35-19",
+    "title": "The North Mountain",
+    "concept_prompt": "A dangerous trek up the North Mountain.",
+    "category": "frozen",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "aladdin-g35-20",
+    "title": "Jafar's Return",
+    "concept_prompt": "Aladdin and Genie facing Jafar's magic.",
+    "category": "aladdin",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "dogman-prek-21",
+    "title": "Puppy Cop",
+    "concept_prompt": "A cute puppy wearing a police hat.",
+    "category": "dogman",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "dogman-k-22",
+    "title": "Dog Man: The Cat Burglar",
+    "concept_prompt": "Dog Man chasing a cat who stole a fish.",
+    "category": "dogman",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "dogman-g35-23",
+    "title": "Dog Man: Robot Rampage",
+    "concept_prompt": "Dog Man fighting a giant robot.",
+    "category": "dogman",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "batwheels-prek-24",
+    "title": "Batwheels Go!",
+    "concept_prompt": "Bam the Batmobile racing Redbird.",
+    "category": "batwheels",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "hotwheels-prek-25",
+    "title": "Zoom Zoom Cars",
+    "concept_prompt": "Colorful cars zooming on a track.",
+    "category": "hotwheels",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "hotwheels-k-26",
+    "title": "Hotwheels: Loop Track",
+    "concept_prompt": "Cars going through a giant loop-de-loop.",
+    "category": "hotwheels",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "hotwheels-g35-27",
+    "title": "Ultimate Racing Championship",
+    "concept_prompt": "A high-stakes tournament race.",
+    "category": "hotwheels",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "daemon_hunter-k-28",
+    "title": "Monster Catcher",
+    "concept_prompt": "A kid catching cute little shadow monsters in a jar.",
+    "category": "daemon_hunter",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "daemon_hunter-g35-29",
+    "title": "Daemon Hunter: Shadow Blade",
+    "concept_prompt": "A warrior with a glowing sword fighting a shadow demon.",
+    "category": "daemon_hunter",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "space-prek-30",
+    "title": "Twinkle Rocket",
+    "concept_prompt": "A smiling rocket ship flying past stars.",
+    "category": "space",
+    "level": "PreK",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "space-k-31",
+    "title": "Moon Walk",
+    "concept_prompt": "Astronauts walking on the moon.",
+    "category": "space",
+    "level": "K",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "space-g35-32",
+    "title": "Mission to Mars: The Red Planet",
+    "concept_prompt": "Scientist astronauts establishing a base on Mars.",
+    "category": "space",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "universe-prek-33",
+    "title": "Mr. Sun & Friends",
+    "concept_prompt": "The Sun saying hello to the planets.",
+    "category": "universe",
+    "level": "PreK",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "universe-k-34",
+    "title": "The Solar System",
+    "concept_prompt": "A tour of all the planets.",
+    "category": "universe",
+    "level": "K",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "universe-g35-35",
+    "title": "Black Holes & Time Warps",
+    "concept_prompt": "Scientific adventure into a black hole.",
+    "category": "universe",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "daemon_hunter-g35-36",
+    "title": "K-Pop Demon Hunter",
+    "concept_prompt": "A pop star group that fights demons with musical magic at night.",
+    "category": "daemon_hunter",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "daemon_hunter-g35-37",
+    "title": "Rhythm Blade",
+    "concept_prompt": "A hero whose sword attacks sync with the beat of K-Pop songs.",
+    "category": "daemon_hunter",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "history-g35-38",
+    "title": "The First Computer",
+    "concept_prompt": "Ada Lovelace and the first computer code.",
+    "category": "history",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "history-g35-39",
+    "title": "Samurai Code",
+    "concept_prompt": "A young samurai learning honor and swordsmanship.",
+    "category": "history",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "space-g35-40",
+    "title": "Interstellar Voyage",
+    "concept_prompt": "Traveling to a new galaxy to find a home.",
+    "category": "space",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": null
+  },
+  {
+    "id": "technology-g35-41",
+    "title": "The AI Robot",
+    "concept_prompt": "A robot learning what it means to be a friend.",
+    "category": "technology",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "technology-g35-42",
+    "title": "Cyber-City Hackers",
+    "concept_prompt": "Kids saving their futuristic city from a virus.",
+    "category": "technology",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": null
+  },
+  {
+    "id": "technology-k-43",
+    "title": "My Robot Dog",
+    "concept_prompt": "A puppy made of metal that barks and plays.",
+    "category": "technology",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": null
+  }
+]

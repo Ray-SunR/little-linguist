@@ -4,20 +4,37 @@ import ChildProfileWizard from '@/components/profile/ChildProfileWizard';
 import { motion } from 'framer-motion';
 
 import { useAuth } from '@/components/auth/auth-provider';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import LumoLoader from '@/components/ui/lumo-loader';
 
 export default function OnboardingPage() {
-  const { user, profiles } = useAuth();
+  const { user, profiles, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+        router.push('/login');
+    }
+  }, [user, isLoading, router]);
 
   useEffect(() => {
     // Log if a user with profiles lands here (could be manual navigation or unwanted redirect)
-    if (user && profiles.length > 0) {
+    if (!isLoading && user && profiles.length > 0) {
       console.warn("[RAIDEN_DIAG][Onboarding] User landed on onboarding despite having profiles.", {
         userId: user.id,
         profileCount: profiles.length
       });
     }
-  }, [user, profiles]);
+  }, [user, profiles, isLoading]);
+
+  if (isLoading || !user) {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-[--shell]">
+            <LumoLoader />
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[--shell] font-sans selection:bg-accent selection:text-white overflow-x-hidden flex flex-col">

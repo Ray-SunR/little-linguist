@@ -7,6 +7,7 @@ import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { useAuth } from "@/components/auth/auth-provider";
 import { ChildProfile } from "@/app/actions/profiles";
 import { getCookie } from "cookies-next";
+import { InterestEditorModal } from "@/components/dashboard/InterestEditorModal";
 
 // Memory caches scoped by userId to prevent cross-user leakage and improve instant navigation
 const cachedLibraryBooks: Record<string, LibraryBookCard[]> = {};
@@ -14,7 +15,7 @@ const cachedLibraryBooks: Record<string, LibraryBookCard[]> = {};
 type LoadState = 'idle' | 'loading' | 'success' | 'error' | 'empty';
 
 export interface LibraryFilters {
-    collection?: 'discovery' | 'my-tales' | 'favorites';
+    collection?: 'discovery' | 'my-tales' | 'favorites' | 'browse';
     level?: string;
     origin?: string;
     type?: 'fiction' | 'nonfiction';
@@ -35,7 +36,7 @@ interface LibraryContentProps {
 }
 
 export default function LibraryContent({ serverProfiles }: LibraryContentProps) {
-    const { user, activeChild, isLoading: authLoading, librarySettings, updateLibrarySettings, profiles: authProfiles } = useAuth();
+    const { user, activeChild, isLoading: authLoading, librarySettings, updateLibrarySettings, profiles: authProfiles, refreshProfiles } = useAuth();
 
     // Fast-path: Use server profiles if AuthProvider hasn't hydrated yet.
     const effectiveProfiles = authProfiles.length > 0 ? authProfiles : (serverProfiles || []);
@@ -92,7 +93,8 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         return {
             discovery: collectionKey === 'discovery' ? rest : {},
             "my-tales": collectionKey === 'my-tales' ? rest : {},
-            favorites: collectionKey === 'favorites' ? rest : {}
+            favorites: collectionKey === 'favorites' ? rest : {},
+            browse: collectionKey === 'browse' ? rest : {}
         };
     });
 
@@ -110,6 +112,28 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const sortOrderRef = useRef(sortOrder);
     const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isDirtyRef = useRef(false);
+    const searchQueryRef = useRef("");
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+    const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
+    
+    // Optimistic cache for immediate UI feedback
+    const [optimisticInterests, setOptimisticInterests] = useState<string[] | null>(null);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Reset optimistic state when resolved child changes (backend caught up)
+    useEffect(() => {
+        setOptimisticInterests(null);
+    }, [resolvedActiveChild?.id, resolvedActiveChild?.interests]);
+
+    searchQueryRef.current = debouncedSearchQuery;
 
     useEffect(() => {
         if (loadState === 'loading') {
@@ -158,24 +182,59 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 if (isInitial) setLoadState('loading');
                 else setIsNextPageLoading(true);
 
-                const filterParams = new URLSearchParams();
-                if (resolvedActiveChild?.id) filterParams.set('childId', resolvedActiveChild.id);
-                filterParams.set('mode', 'library');
-                filterParams.set('limit', LIMIT.toString());
-                filterParams.set('offset', currentOffset.toString());
-                filterParams.set('sortBy', currentSort);
-                filterParams.set('sortOrder', currentSortOrder);
+                let booksUrl = '';
 
-                if (currentFilters.level) filterParams.set('level', currentFilters.level);
-                if (currentFilters.origin) filterParams.set('origin', currentFilters.origin);
-                if (currentFilters.type) filterParams.set('type', currentFilters.type);
-                if (currentFilters.category) filterParams.set('category', currentFilters.category);
-                if (currentFilters.duration) filterParams.set('duration', currentFilters.duration);
-                if (currentFilters.collection === 'favorites') filterParams.set('isFavorite', 'true');
+                if (process.env.NODE_ENV === 'development') {
+                    console.log("[LibraryContent] loadBooks check:", {
+                        collection: currentFilters.collection,
+                        isDiscovery: (!currentFilters.collection || currentFilters.collection === 'discovery'),
+                        hasFilters: !!(currentFilters.category || currentFilters.level || currentFilters.type),
+                        searchQuery: searchQueryRef.current
+                    });
+                }
+                
+                // 1. Search Mode
+                if (searchQueryRef.current) {
+                    booksUrl = `/api/books/search?q=${encodeURIComponent(searchQueryRef.current)}&limit=${LIMIT}&offset=${currentOffset}`;
+                    if (resolvedActiveChild?.id) booksUrl += `&childId=${resolvedActiveChild.id}`;
+                } 
+                // 2. Discovery Mode (Recommendations)
+                // 2. Discovery Mode (Recommendations) -- Now supports filters!
+                else if ((!currentFilters.collection || currentFilters.collection === 'discovery') && resolvedActiveChild?.id && currentUserId) {
+                     const recParams = new URLSearchParams();
+                     recParams.set('childId', resolvedActiveChild.id);
+                     recParams.set('limit', LIMIT.toString());
+                     recParams.set('offset', currentOffset.toString());
+                     
+                     if (currentFilters.level) recParams.set('level', currentFilters.level);
+                     if (currentFilters.category && currentFilters.category !== 'all') recParams.set('category', currentFilters.category);
+                     if (currentFilters.type) recParams.set('type', currentFilters.type);
+                     if (currentFilters.duration) recParams.set('duration', currentFilters.duration);
+
+                     booksUrl = `/api/books/recommendations?${recParams.toString()}`;
+                }
+                // 3. Standard Library Filter Mode
+                else {
+                    const filterParams = new URLSearchParams();
+                    if (resolvedActiveChild?.id) filterParams.set('childId', resolvedActiveChild.id);
+                    filterParams.set('mode', 'library');
+                    filterParams.set('limit', LIMIT.toString());
+                    filterParams.set('offset', currentOffset.toString());
+                    filterParams.set('sortBy', currentSort);
+                    filterParams.set('sortOrder', currentSortOrder);
+    
+                    if (currentFilters.level) filterParams.set('level', currentFilters.level);
+                    if (currentFilters.origin) filterParams.set('origin', currentFilters.origin);
+                    if (currentFilters.type) filterParams.set('type', currentFilters.type);
+                    if (currentFilters.category) filterParams.set('category', currentFilters.category);
+                    if (currentFilters.duration) filterParams.set('duration', currentFilters.duration);
+                    if (currentFilters.collection === 'favorites') filterParams.set('isFavorite', 'true');
                 if (currentFilters.collection === 'my-tales') filterParams.set('onlyPersonal', 'true');
-                if (currentFilters.collection === 'discovery') filterParams.set('onlyPublic', 'true');
-
-                const booksUrl = `/api/books?${filterParams.toString()}`;
+                if (currentFilters.collection === 'discovery' || currentFilters.collection === 'browse') filterParams.set('onlyPublic', 'true');
+    
+                    booksUrl = `/api/books?${filterParams.toString()}`;
+                }
+                
                 const booksRes = await fetch(booksUrl, { signal: controller.signal });
 
                 if (requestId !== activeRequestIdRef.current) return;
@@ -278,7 +337,8 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         setCollectionFilters({
             discovery: collectionKey === 'discovery' ? savedFilters : {},
             "my-tales": collectionKey === 'my-tales' ? savedFilters : {},
-            favorites: collectionKey === 'favorites' ? savedFilters : {}
+            favorites: collectionKey === 'favorites' ? savedFilters : {},
+            browse: collectionKey === 'browse' ? savedFilters : {}
         });
         setSortBy(targetSort);
         setSortOrder(targetSortOrder as any);
@@ -299,7 +359,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         setHasMore(true);
         loadBooks(true);
         return () => { if (abortControllerRef.current) abortControllerRef.current.abort(); };
-    }, [cacheKey, authLoading, filters, sortBy, sortOrder, loadBooks]);
+    }, [cacheKey, authLoading, filters, sortBy, sortOrder, debouncedSearchQuery, resolvedActiveChild?.id, currentUserId]);
 
     useEffect(() => {
         if (authLoading || !user || !resolvedActiveChild?.id || !isDirtyRef.current) return;
@@ -346,12 +406,17 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     }, []);
 
     return (
-        <LibraryView
+        <><LibraryView
             books={books}
             onDeleteBook={handleDeleteBook}
             currentUserId={currentUserId}
             activeChildId={resolvedActiveChild?.id}
-            activeChild={resolvedActiveChild ? { id: resolvedActiveChild.id, name: resolvedActiveChild.first_name, avatar_url: resolvedActiveChild.avatar_asset_path } : null}
+            activeChild={resolvedActiveChild ? { 
+                id: resolvedActiveChild.id, 
+                name: resolvedActiveChild.first_name, 
+                avatar_url: resolvedActiveChild.avatar_asset_path,
+                interests: optimisticInterests || resolvedActiveChild.interests 
+            } : null}
             isLoading={loadState === 'loading'}
             onLoadMore={() => loadBooks(false)}
             hasMore={hasMore}
@@ -361,6 +426,8 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             onSortChange={handleSortChange}
             onSortOrderChange={(val) => { setSortOrder(val); isDirtyRef.current = true; }}
             filters={filters}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
             onFiltersChange={(newFilters: LibraryFilters) => {
                 const nextCollection = newFilters.collection;
                 const { collection, ...rest } = newFilters;
@@ -378,6 +445,24 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             }}
             isGuest={!user}
             onRetry={() => loadBooks(true)}
+            onEditInterests={() => setIsInterestModalOpen(true)}
         />
+        {resolvedActiveChild && (
+             <InterestEditorModal
+                isOpen={isInterestModalOpen}
+                onClose={() => setIsInterestModalOpen(false)}
+                child={{
+                    id: resolvedActiveChild.id,
+                    name: resolvedActiveChild.first_name,
+                    interests: optimisticInterests || resolvedActiveChild.interests
+                }}
+                onUpdate={async (newInterests) => {
+                    setOptimisticInterests(newInterests);
+                    await refreshProfiles(true);
+                    loadBooks(true);
+                }}
+            />
+        )}
+    </>
     );
 }

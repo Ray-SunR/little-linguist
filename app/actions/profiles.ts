@@ -49,10 +49,15 @@ export async function getAvatarUploadUrl(fileName: string) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return { error: 'Not authenticated' };
+      return { error: 'Authentication required for avatar uploads' };
     }
 
-    const fileExt = fileName.split('.').pop() || 'jpg';
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic'];
+    const fileExt = fileName.split('.').pop()?.toLowerCase() || 'jpg';
+    if (!allowedExtensions.includes(fileExt)) {
+      return { error: 'Invalid file type. Allowed: jpg, png, webp, heic' };
+    }
+
     const timestamp = Date.now();
     const storagePath = `${user.id}/avatars/${timestamp}-${crypto.randomUUID()}.${fileExt}`;
 
@@ -85,9 +90,9 @@ export async function getAvatarUploadUrl(fileName: string) {
 async function validateAvatarPath(
   path: string
 ): Promise<string | null> {
-  // Only allow bucket-relative paths (no external URLs or scripts)
-  if (path.startsWith('http') || path.startsWith('javascript:') || path.includes('://')) {
-    console.warn('[profiles:validateAvatarPath] Rejected external/dangerous URL:', path.slice(0, 50));
+  // Only allow bucket-relative paths (no external URLs, base64 data, or scripts)
+  if (path.startsWith('http') || path.startsWith('javascript:') || path.startsWith('data:') || path.includes('://')) {
+    console.warn('[profiles:validateAvatarPath] Rejected external/dangerous/base64 URL:', path.slice(0, 50));
     return null;
   }
   return path;
@@ -237,7 +242,7 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
       return { error: error.message };
     }
 
-    revalidatePath('/dashboard');
+    revalidatePath('/', 'layout');
 
     // Audit: Child Updated
     await AuditService.log({

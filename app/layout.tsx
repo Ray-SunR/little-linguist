@@ -7,6 +7,7 @@ import { GuestBanner } from "@/components/layout/guest-banner";
 import { ChildGate } from "@/components/auth/child-gate";
 import { WordListGate } from "@/components/providers/word-list-gate";
 import { NarrationGate } from "@/components/providers/narration-gate";
+import { Toaster } from "sonner";
 
 import dynamic from "next/dynamic";
 const GlobalStoryListener = dynamic(
@@ -66,6 +67,7 @@ export default function RootLayout({
         </AuthProvider>
         <CookieConsent />
         <Analytics />
+        <Toaster />
       </body>
     </html>
   );

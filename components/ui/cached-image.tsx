@@ -35,7 +35,8 @@ export function CachedImage({
     const isValidSrc = src.startsWith('http://') || src.startsWith('https://') || src.startsWith('blob:') || src.startsWith('data:') || src.startsWith('/');
     const safeSrc = isValidSrc ? src : TRANSPARENT_PIXEL;
 
-    const [displayUrl, setDisplayUrl] = useState<string>(storagePath ? TRANSPARENT_PIXEL : safeSrc);
+    const isImmediateUrl = src.startsWith('blob:') || src.startsWith('data:');
+    const [displayUrl, setDisplayUrl] = useState<string>((storagePath && !isImmediateUrl) ? TRANSPARENT_PIXEL : safeSrc);
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Use a ref to track the previous storage token to avoid unnecessary resets

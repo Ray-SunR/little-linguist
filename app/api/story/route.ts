@@ -16,6 +16,7 @@ import {
     refundCredits,
     UsageIdentity
 } from "@/lib/features/usage/usage-service.server";
+import { BedrockEmbeddingService } from "@/lib/features/bedrock/bedrock-embedding.server";
 
 export const dynamic = 'force-dynamic';
 
@@ -367,6 +368,17 @@ FINAL RECAP:
 
             const bookKey = `${data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.random().toString(36).substring(2, 7)}`;
 
+            // 1.8 Generate Embedding for the new story
+            let bookEmbedding: number[] | null = null;
+            try {
+                const embeddingText = `Title: ${data.title}. Description: ${data.content.substring(0, 500)}. Keywords: ${wordsList}.`;
+                const embeddingService = new BedrockEmbeddingService();
+                bookEmbedding = await embeddingService.generateEmbedding(embeddingText);
+            } catch (err) {
+                console.error("[StoryAPI] Failed to generate embedding:", err);
+                // We don't fail the whole request if embedding fails, but we log it
+            }
+
             // 2. Create Book Metadata
             const { data: book, error: bookError } = await serviceRoleClient
                 .from('books')
@@ -382,6 +394,9 @@ FINAL RECAP:
                     estimated_reading_time: storyLengthMinutes,
                     child_id: childId,
                     schema_version: 2,
+                    embedding: bookEmbedding, // Store the generated embedding
+                    description: data.content.substring(0, 500), // Store description
+                    keywords: wordsList.split(',').map((w: string) => w.trim()), // Store keywords
                     metadata: {
                         isAIGenerated: true,
                         sections: sectionsWithIndices,

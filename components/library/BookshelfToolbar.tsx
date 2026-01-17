@@ -91,6 +91,15 @@ const COLLECTIONS = [
         border: "border-purple-100"
     },
     {
+        id: "browse",
+        label: "Browse All",
+        icon: BookOpen,
+        theme: "from-blue-500 to-indigo-500",
+        bg: "bg-blue-50",
+        text: "text-blue-600",
+        border: "border-blue-100"
+    },
+    {
         id: "my-tales",
         label: "My Tales",
         icon: Wand2,
@@ -117,7 +126,7 @@ interface BookshelfToolbarProps {
         level?: string;
         type?: "fiction" | "nonfiction";
         duration?: string;
-        collection?: "discovery" | "my-tales" | "favorites";
+        collection?: "discovery" | "my-tales" | "favorites" | "browse";
         category?: string;
     };
     onFilterChange: (key: string, val: any) => void;
@@ -163,6 +172,7 @@ export function BookshelfToolbar({
 
     const COLLECTION_THEMES = {
         discovery: "bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-indigo-200/50",
+        browse: "bg-gradient-to-r from-blue-500 to-indigo-500",
         "my-tales": "bg-gradient-to-r from-rose-400 to-purple-500",
         favorites: "bg-gradient-to-r from-amber-400 to-pink-500"
     };

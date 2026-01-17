@@ -11,7 +11,7 @@ dotenv.config({ path: ".env.local" });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const SEED_LIBRARY_PATH = path.join(process.cwd(), "output/review-library");
+const SEED_LIBRARY_PATH = path.join(process.cwd(), "output/expanded-library");
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     console.error("Missing Supabase credentials in .env.local");
@@ -64,7 +64,6 @@ async function seedBook(relPath: string) {
     const metadata = JSON.parse(metadataContent);
     const bookKey = metadata.id || `key-${relPath.replace(/\//g, '-')}`;
 
-    // 1. Check if book already exists (to avoid duplicate random IDs)
     const { data: existingBook } = await supabase
         .from("books")
         .select("id")
@@ -91,11 +90,11 @@ async function seedBook(relPath: string) {
         }
     }
 
-    // 3. Generate Embedding (using title, description, keywords)
+    // 3. Generate Embedding
     let embedding: number[] | null = null;
     try {
         const description = metadata.description || "";
-        const keywords = metadata.category ? [metadata.category] : []; // Fallback to category if no keywords
+        const keywords = metadata.keywords || (metadata.category ? [metadata.category] : []);
         const embeddingText = `Title: ${metadata.title}. Description: ${description}. Keywords: ${keywords.join(', ')}.`;
         
         const embeddingService = new BedrockEmbeddingService();
@@ -126,14 +125,14 @@ async function seedBook(relPath: string) {
             total_tokens: metadata.stats?.word_count || 0,
             estimated_reading_time: readingTimeMinutes, 
             voice_id: metadata.audio?.voice_id || "Kevin",
-            origin: "seed_script_v2",
+            origin: "seed_expanded_v1", // Distinct origin for traceability
             schema_version: 2,
             metadata: metadata,
             level: level,
             min_grade: minGrade,
             is_nonfiction: metadata.is_nonfiction || false,
             length_category: metadata.stats?.length_category || "Short",
-            embedding: embedding, // Include embedding in upsert
+            embedding: embedding,
             description: metadata.description || null,
             keywords: metadata.keywords || (metadata.category ? [metadata.category] : [])
         }, { onConflict: 'book_key' })
@@ -162,18 +161,13 @@ async function seedBook(relPath: string) {
             }
 
             if (imagePath) {
-                const { error: mediaError } = await supabase.from("book_media").upsert({
+                await supabase.from("book_media").upsert({
                     book_id: bookId,
                     media_type: "image",
                     path: imagePath,
                     metadata: { index: pageIdx },
                     after_word_index: scene.after_word_index || 0
                 }, { onConflict: 'book_id,path' });
-                if (mediaError) {
-                    console.error(`    [Media Error] ${mediaError.message}`);
-                } else {
-                    console.log(`    ✓ Scene ${pageIdx} Image`);
-                }
             }
             pageIdx++;
         }
@@ -189,13 +183,11 @@ async function seedBook(relPath: string) {
     }
 
     if (fullText) {
-        const { error: contentError } = await supabase.from("book_contents").upsert({
+        await supabase.from("book_contents").upsert({
             book_id: bookId,
             full_text: fullText,
             tokens: metadata.tokens || null, 
         }, { onConflict: 'book_id' });
-        if (contentError) console.error(`    [Content Error] ${contentError.message}`);
-        else console.log(`    ✓ Content`);
     }
     
     // 6. Audio
@@ -207,7 +199,7 @@ async function seedBook(relPath: string) {
                  await uploadAsset("book-assets", localAudio, dest);
                  
                  const voiceId = metadata.audio.voice_id || "Kevin";
-                 const { error: audioError } = await supabase.from("book_audios").upsert({
+                 await supabase.from("book_audios").upsert({
                      book_id: bookId,
                      voice_id: voiceId,
                      audio_path: dest,
@@ -216,12 +208,6 @@ async function seedBook(relPath: string) {
                      end_word_index: shard.end_word_index,
                      timings: shard.timings 
                  }, { onConflict: 'book_id,chunk_index,voice_id' });
-                 
-                 if (audioError) {
-                     console.error(`    [Audio Error] Shard ${shard.index}: ${audioError.message}`);
-                 } else {
-                     console.log(`    ✓ Audio Shard ${shard.index}`);
-                 }
              }
          }
     }
@@ -249,6 +235,7 @@ function findAllBooks(dir: string, base: string = ""): string[] {
 }
 
 async function run() {
+    console.log("🌱 Seeding Expanded Library...");
     const allBooks = findAllBooks(SEED_LIBRARY_PATH);
     console.log(`Found ${allBooks.length} books to seed.`);
 

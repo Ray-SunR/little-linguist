@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Heart, Wand2 } from "lucide-react";
+import { Sparkles, Heart, Wand2, BookOpen } from "lucide-react";
 import LibraryBookCardComponent from "./library-book-card";
 import { LibraryBookCard } from "@/lib/core/books/library-types";
 import { cn } from "@/lib/core";
@@ -16,7 +16,7 @@ interface LibraryViewProps {
     onDeleteBook?: (id: string) => void;
     currentUserId?: string | null;
     activeChildId?: string;
-    activeChild?: { id: string; name: string; avatar_url?: string | null } | null;
+    activeChild?: { id: string; name: string; avatar_url?: string | null; interests?: string[] } | null;
     isLoading?: boolean;
     onLoadMore?: () => void;
     hasMore?: boolean;
@@ -31,12 +31,15 @@ interface LibraryViewProps {
         type?: "fiction" | "nonfiction";
         category?: string;
         duration?: string;
-        collection?: "discovery" | "my-tales" | "favorites";
+        collection?: "discovery" | "my-tales" | "favorites" | "browse";
     };
     onFiltersChange: (val: any) => void;
     isGuest?: boolean;
     error?: string | null;
     onRetry?: () => void;
+    searchQuery: string;
+    onSearchChange: (val: string) => void;
+    onEditInterests?: () => void;
 }
 
 export default function LibraryView({
@@ -57,23 +60,13 @@ export default function LibraryView({
     onFiltersChange,
     isGuest,
     error,
-    onRetry
+    onRetry,
+    searchQuery,
+    onSearchChange,
+    onEditInterests
 }: LibraryViewProps) {
-    const [searchQuery, setSearchQuery] = useState("");
+    // Client-side filtering removed in favor of server-side search
 
-    // Filter books based on active category (Client-side Search only now)
-    const filteredBooks = useMemo(() => {
-        let result = books;
-
-        // 1. Search Filter
-        if (searchQuery) {
-            result = result.filter(book =>
-                book.title.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-
-        return result;
-    }, [books, searchQuery]);
 
     // Normalize items for virtualization
     const virtualItems = useMemo(() => {
@@ -83,7 +76,7 @@ export default function LibraryView({
             items.push({ type: 'create-card' });
         }
 
-        filteredBooks.forEach(book => {
+        books.forEach(book => {
             items.push({ type: 'book', data: book });
         });
 
@@ -92,7 +85,7 @@ export default function LibraryView({
         }
 
         return items;
-    }, [filteredBooks, currentUserId, isGuest]);
+    }, [books, currentUserId, isGuest]);
 
     // Lumo greeting messages
     const GREETINGS = [
@@ -130,7 +123,7 @@ export default function LibraryView({
                     duration: undefined,
                     origin: undefined
                 });
-                setSearchQuery("");
+                onSearchChange("");
             }
         }
     }, [activeStepDetails?.id, filters.collection, filters.category, filters.level, searchQuery, onFiltersChange]);
@@ -187,7 +180,7 @@ export default function LibraryView({
                 {/* Sticky Toolbar */}
                 <BookshelfToolbar
                     searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
+                    onSearchChange={onSearchChange}
                     filters={filters}
                     onFilterChange={handleFilterChange}
                     sortBy={sortBy}
@@ -221,6 +214,11 @@ export default function LibraryView({
                                     <Heart className="w-8 h-8 text-amber-500 fill-amber-100" />
                                     Favorite Tales
                                 </>
+                            ) : filters.collection === 'browse' ? (
+                                <>
+                                    <BookOpen className="w-8 h-8 text-blue-600" />
+                                    Explore Library
+                                </>
                             ) : (
                                 <>
                                     <Sparkles className="w-8 h-8 text-purple-600" />
@@ -228,14 +226,34 @@ export default function LibraryView({
                                 </>
                             )}
                         </h2>
-                        <p className="mt-2 text-slate-500 font-medium font-nunito max-w-2xl leading-relaxed">
+                        <div className="mt-2 text-slate-500 font-medium font-nunito max-w-2xl leading-relaxed">
                             {filters.collection === 'my-tales'
                                 ? "Your personal collection of magical stories you've created together."
                                 : filters.collection === 'favorites'
                                     ? "Quick access to all the treasure stories you've saved to your heart."
-                                    : "Explore a world of magical stories crafted to spark your imagination."
+                                    : filters.collection === 'browse'
+                                    ? "Browse our complete collection of magical stories."
+                                    : (activeChild?.interests && activeChild.interests.length > 0)
+                                        ? (
+                                            <span className="flex items-center gap-2 flex-wrap">
+                                                <span>Showing stories based on your interests in: <span className="text-purple-600 font-bold">{activeChild.interests.slice(0, 3).join(', ')}{activeChild.interests.length > 3 ? '...' : ''}</span></span>
+                                                <button onClick={onEditInterests} className="text-xs font-bold text-slate-400 hover:text-purple-600 underline decoration-dashed underline-offset-4 hover:decoration-purple-300 transition-colors">
+                                                    Edit Interests
+                                                </button>
+                                            </span>
+                                        )
+                                        : (
+                                            <span className="flex items-center gap-2">
+                                                <span>Explore a world of magical stories crafted to spark your imagination.</span>
+                                                {activeChild && (
+                                                    <button onClick={onEditInterests} className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full hover:bg-purple-100 transition-colors">
+                                                        + Add Interests
+                                                    </button>
+                                                )}
+                                            </span>
+                                        )
                             }
-                        </p>
+                        </div>
                     </motion.div>
 
                     {/* Loading Overlay for Double Buffering */}
@@ -349,7 +367,7 @@ export default function LibraryView({
                                 </motion.div>
                             ))}
                         </div>
-                    ) : (!currentUserId || filteredBooks.length > 0) ? (
+                    ) : (!currentUserId || books.length > 0) ? (
                         <WindowVirtualizer
                             data={rows}
                             bufferSize={400}
@@ -432,7 +450,7 @@ export default function LibraryView({
                                                     onDelete={onDeleteBook}
                                                     dataTourTarget={
                                                         book.title.includes("Alex's Blocky World Adventure") ? "first-book" :
-                                                            (!filteredBooks.some(b => b.title.includes("Alex's Blocky World Adventure")) && index === 0) ? "first-book" : undefined
+                                                            (!books.some(b => b.title.includes("Alex's Blocky World Adventure")) && index === 0) ? "first-book" : undefined
                                                     }
                                                 />
                                             );
@@ -473,7 +491,7 @@ export default function LibraryView({
                                 ) : (
                                     <button
                                         onClick={() => {
-                                            setSearchQuery("");
+                                            onSearchChange("");
                                             onFiltersChange({ ...filters, category: "all", collection: "discovery" });
                                         }}
                                         className="mt-6 px-8 py-3 rounded-2xl bg-purple-100 text-purple-700 font-bold font-fredoka hover:bg-purple-200 transition-colors"

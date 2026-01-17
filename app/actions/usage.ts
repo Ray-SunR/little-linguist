@@ -22,6 +22,7 @@ export interface UsageEvent {
     magicSentenceId?: string;
     entityId?: string;
     entityType?: string;
+    isDeleted?: boolean;
 }
 
 interface TransactionMetadata {
@@ -276,6 +277,17 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             if (storagePath) coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath);
         }
 
+        // Determine if the entity has been deleted
+        let isDeleted = false;
+        if (eId) {
+            if (eType === 'story' && !bookMap.has(eId)) isDeleted = true;
+            if (eType === 'magic_sentence' && !magicSentenceMap.has(eId)) isDeleted = true;
+        } else if (bId && !bookMap.has(bId)) {
+            // Check if it's a reason that implies there SHOULD be an entity
+            const needsEntity = ['story_generation', 'image_generation', 'magic_sentence'].includes((tx as any).reason);
+            if (needsEntity) isDeleted = true;
+        }
+
         // Final fallback for description if still empty or generic
         if (!description || description === 'generation_group' || description === tx.reason) {
             if ((tx as any).reason === 'story_generation') description = 'New Story';
@@ -306,7 +318,8 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             isGrouped: isGroup,
             storyAmount: isGroup ? (tx as TransactionGroup).storyAmount : undefined,
             imageAmount: isGroup ? (tx as TransactionGroup).imageAmount : undefined,
-            magicSentenceId
+            magicSentenceId,
+            isDeleted
         };
     });
 }

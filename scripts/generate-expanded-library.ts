@@ -1,3 +1,4 @@
+
 import { StabilityStoryService } from "../lib/features/stability/stability-service.server";
 import { ClaudeStoryService } from "../lib/features/bedrock/claude-service.server";
 import { PollyNarrationService } from "../lib/features/narration/polly-service.server";
@@ -11,8 +12,8 @@ import sharp from "sharp";
 
 dotenv.config({ path: ".env.local" });
 
-const MANIFESTO_PATH = path.join(process.cwd(), 'data/review-manifesto.json');
-const OUTPUT_DIR = path.join(process.cwd(), 'output/review-library');
+const MANIFESTO_PATH = path.join(process.cwd(), 'data/expanded-manifesto.json');
+const OUTPUT_DIR = path.join(process.cwd(), 'output/expanded-library');
 const STATE_FILE = path.join(OUTPUT_DIR, 'state.json');
 
 function sanitizeTheme(theme: string | null): string {
@@ -22,7 +23,6 @@ function sanitizeTheme(theme: string | null): string {
         .replace(/Avengers/gi, "a team of mighty superheroes")
         .replace(/Superman/gi, "a superhero with a blue suit, red cape, and an S-shield")
         .replace(/Batman/gi, "a hero in a black bat-suit with pointed ears in a dark city")
-        .replace(/Batwheels/gi, "heroic talking vehicles with glowing logos")
         .replace(/Batwheels/gi, "heroic talking vehicles with glowing logos")
         .replace(/Hotwheels/gi, "fast and colorful racing toy cars on a looping orange track")
         .replace(/^Cars$/gi, "talking racing cars in a colorful world")
@@ -35,7 +35,8 @@ function sanitizeTheme(theme: string | null): string {
         .replace(/Disney Princess/gi, "a magical princess in a fairy tale kingdom")
         .replace(/Star Wars/gi, "a galactic space adventure")
         .replace(/Harry Potter/gi, "a young wizard in a magical school")
-        .replace(/Minecraft/gi, "a world of blocks and building");
+        .replace(/Minecraft/gi, "a world of blocks and building")
+        .replace(/Daemon Hunter/gi, "a brave warrior with a magic sword fighting shadow monsters");
 }
 
 const LEVEL_SPECS: Record<string, { minWords: number, targetWords: number, sceneCount: number, sentencesPerScene: number, complexity: string }> = {
@@ -80,73 +81,54 @@ async function main() {
     const claude = new ClaudeStoryService();
     const polly = new PollyNarrationService();
 
-    // --- Critical Repair & Quality Check ---
-    console.log(`\n🔍 Checking for books needing repair (short length or bad styles)...`);
-    for (const entryId of state.completed) {
-        const entry = manifesto.find((e: any) => e.id === entryId);
-        if (!entry) continue;
+    console.log(`\n🚀 Starting concurrent generation (Concurrency: 3) for remaining ${manifesto.length - state.completed.length} books...`);
 
-        const bookDir = path.join(OUTPUT_DIR, entry.category, entry.id);
-        const metaPath = path.join(bookDir, 'metadata.json');
-
-        if (fs.existsSync(metaPath)) {
-            const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-            const specs = LEVEL_SPECS[entry.level];
-            const currentWordCount = meta.stats?.word_count || 0;
-
-            // Mark for re-generation if way too short or missing cover prompt
-            if (currentWordCount < specs.minWords || !meta.cover_prompt) {
-                console.log(`  ⚠️ Book ${entry.id} needs repair (Words: ${currentWordCount}/${specs.minWords})`);
-                state.completed = state.completed.filter((id: string) => id !== entry.id);
-                // We'll let the main loop pick it up again
-            }
-        }
-    }
-    fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
-
-    console.log(`\n🚀 Starting concurrent generation (Concurrency: 2) for remaining ${manifesto.length - state.completed.length} books...`);
-
-    const CONCURRENCY = 2;
+    const CONCURRENCY = 3;
     const queue = [...manifesto];
 
     async function processBook(entry: any) {
         if (state.completed.includes(entry.id)) {
-            // console.log(`⏩ Skipping ${entry.id} (already generated)`);
             return;
         }
 
-        // if (state.failed?.some((f: any) => f.id === entry.id)) {
-        //      console.log(`⚠️ Skipping previously failed book: ${entry.id}`);
-        //      return;
-        // }
-
         console.log(`\n📚 [${entry.category}] ${entry.title} (${entry.level})`);
         const bookSeed = getSeed(entry.id);
-        const specs = LEVEL_SPECS[entry.level];
+        const specs = LEVEL_SPECS[entry.level] || LEVEL_SPECS["G3-5"];
         const bookDir = path.join(OUTPUT_DIR, entry.category, entry.id);
 
-        if (!state.inProgress[entry.id]) {
-            state.inProgress[entry.id] = {
+        // Style Selection based on Level
+        const isOlder = ["G3-5", "G1-2"].includes(entry.level);
+        const artStyle = isOlder 
+            ? "Cinematic digital concept art, realistic textures, dramatic lighting, detailed background, anime-influenced but semi-realistic, 8k resolution"
+            : undefined; // undefined uses the default "vibrant watercolor" style from the service
+
+
+        let bState = state.inProgress[entry.id];
+        if (!bState) {
+            bState = {
                 id: entry.id,
                 status: 'starting',
                 completedScenes: [],
                 completedAudio: [],
                 hasCover: false
             };
+            state.inProgress[entry.id] = bState;
             saveState();
         }
-
-        const bState = state.inProgress[entry.id];
 
         try {
             // --- Phase 1: Story & Metadata ---
             if (!bState.pages) {
                 console.log(`  📝 Generating story and character anchor...`);
-                bState.characterAnchor = await claude.generateCharacterAnchor(entry.brand_theme || entry.title, entry.level);
+                // Use concept prompt + brand theme for anchor generation
+                bState.characterAnchor = await claude.generateCharacterAnchor(entry.concept_prompt || entry.brand_theme || entry.title, entry.level);
                 
-                const themeText = sanitizeTheme(entry.brand_theme || entry.title);
+                const themeText = sanitizeTheme(entry.brand_theme || entry.category);
+                const conceptContext = entry.concept_prompt ? `Specific Story Concept: ${entry.concept_prompt}` : "";
+
                 const prompt = `Write a ${entry.is_nonfiction ? 'non-fiction' : 'fiction'} story for a child at ${entry.level} reading level about ${entry.category}.
                 Theme Focus: ${themeText}.
+                ${conceptContext}
                 Character Anchor (Visual Identity): ${bState.characterAnchor}.
                 Target total word count: ${specs.targetWords} words.
                 Complexity: ${specs.complexity}.
@@ -175,7 +157,15 @@ async function main() {
                     bState.tokens = Tokenizer.tokenize(bState.fullText);
                 }
 
+                // If explicit title is simplistic "TBD" or just theme-based, let AI regenerate, otherwise use provided concept title if good?
+                // Actually, the manifesto has specific titles like "Baby Avengers". We should probably trust the manifesto title 
+                // BUT Claude might generate a better "Book Title". Let's stick to generating a title based on the *actual story content*
+                // to match the story, and maybe preserve the concept as subtitle if needed.
+                // Or just overwrite.
                 bState.aiTitle = await claude.generateBookTitle(bState.fullText);
+                
+                // If the generated title is extremely different, maybe interesting, but let's stick to AI title as it reflects the text.
+                
                 const metaData = await claude.generateKeywordsAndDescription(bState.fullText, entry.category, entry.brand_theme || entry.title);
                 bState.keywords = metaData.keywords;
                 bState.description = metaData.description;
@@ -194,17 +184,15 @@ async function main() {
                 console.log(`  🖼️ Generating Smart Cover...`);
                 let base64Cover = "";
                 try {
-                    base64Cover = await nova.generateImage(bState.smartCoverPrompt, bookSeed);
+                    base64Cover = await nova.generateImage(bState.smartCoverPrompt, bookSeed, artStyle);
                 } catch (coverErr: any) {
                     console.warn(`  ⚠️ Cover image blocked/failed. Attempting fallbacks...`);
                     try {
-                        // Fallback 1: Anchor + Generic Context
-                        base64Cover = await nova.generateImage(`${bState.characterAnchor}. Children's book cover for a story about ${entry.category}`, bookSeed);
+                        base64Cover = await nova.generateImage(`${bState.characterAnchor}. Children's book cover for a story about ${entry.category}`, bookSeed, artStyle);
                     } catch (fb1Err) {
                          console.warn(`  ⚠️ Fallback 1 blocked. Attempting Safe Fallback...`);
-                         // Fallback 2: Sanitized Theme Only (No Anchor)
                          const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || `a story about ${entry.category}`;
-                         base64Cover = await nova.generateImage(`Children's book cover illustration of ${safeDesc}. Colorful, distinct style.`, bookSeed);
+                         base64Cover = await nova.generateImage(`Children's book cover illustration of ${safeDesc}. Colorful, distinct style.`, bookSeed, artStyle);
                     }
                 }
                 await saveOptimizedImage(base64Cover, path.join(bookDir, 'cover.webp'));
@@ -223,17 +211,15 @@ async function main() {
                     console.log(`  🎨 Scene ${i + 1}/${bState.pages.length}...`);
                     let base64Image = "";
                     try {
-                        base64Image = await nova.generateImage(bState.pages[i].imagePrompt, bookSeed);
+                        base64Image = await nova.generateImage(bState.pages[i].imagePrompt, bookSeed, artStyle);
                     } catch (imgErr: any) {
                         console.warn(`  ⚠️ Scene ${i} blocked/failed. Attempting fallbacks...`);
                         try {
-                             // Fallback 1: Anchor + Generic Context
-                            base64Image = await nova.generateImage(`${bState.characterAnchor}. Children's book illustration for: ${bState.pages[i].text}`, bookSeed);
+                            base64Image = await nova.generateImage(`${bState.characterAnchor}. Children's book illustration for: ${bState.pages[i].text}`, bookSeed, artStyle);
                         } catch (fb1Err) {
                              console.warn(`  ⚠️ Scene ${i} Fallback 1 blocked. Attempting Safe Fallback...`);
-                            // Fallback 2: Sanitized Theme + Context (No Anchor)
                             const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || entry.category;
-                            base64Image = await nova.generateImage(`Children's book illustration of ${safeDesc}. Action: ${bState.pages[i].text.substring(0, 50)}...`, bookSeed);
+                            base64Image = await nova.generateImage(`Children's book illustration of ${safeDesc}. Action: ${bState.pages[i].text.substring(0, 50)}...`, bookSeed, artStyle);
                         }
                     }
                     const imageFilename = `scene_${i}.webp`;
@@ -289,6 +275,7 @@ async function main() {
             const finalMetadata = {
                 id: entry.id,
                 title: bState.aiTitle,
+                original_concept_title: entry.title, // Keep original concept title just in case
                 category: entry.category,
                 level: entry.level,
                 is_nonfiction: entry.is_nonfiction,
@@ -324,13 +311,12 @@ async function main() {
 
         } catch (err: any) {
             console.error(`❌ Failed ${entry.id}:`, err);
-            // Record failure in state so we don't retry endlessly and can analyze later
             state.failed.push({
                 id: entry.id,
                 error: err.message || JSON.stringify(err),
                 timestamp: new Date().toISOString()
             });
-            delete state.inProgress[entry.id]; // Remove from inProgress
+            delete state.inProgress[entry.id];
             saveState();
         }
     }

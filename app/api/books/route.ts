@@ -55,7 +55,6 @@ export async function GET(request: NextRequest) {
             const isFavorite = searchParams.get('isFavorite') === 'true' || undefined;
             const onlyPersonal = searchParams.get('onlyPersonal') === 'true' || undefined;
             const onlyPublic = searchParams.get('onlyPublic') === 'true' || undefined;
-
             // SECURITY: only_personal requires an authenticated user
             if (onlyPersonal && !user?.id) {
                 return NextResponse.json([]);
@@ -86,6 +85,7 @@ export async function GET(request: NextRequest) {
                     duration
                 }
             );
+
             return NextResponse.json(booksWithCovers);
         }
 

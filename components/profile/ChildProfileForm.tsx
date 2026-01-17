@@ -7,7 +7,6 @@ import { Loader2, User, Camera, Sparkles, Check, ChevronRight, Wand2, Plus, Minu
 import type { ChildProfilePayload, ChildProfile } from '@/app/actions/profiles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
-import { compressImage } from "@/lib/core/utils/image";
 import { CachedImage } from '@/components/ui/cached-image';
 import { useAuth } from '@/components/auth/auth-provider';
 

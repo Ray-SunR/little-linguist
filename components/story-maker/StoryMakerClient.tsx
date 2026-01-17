@@ -12,7 +12,6 @@ import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/
 import { useUsage } from "@/lib/hooks/use-usage";
 import type { Story, UserProfile } from "@/lib/features/story";
 import SupabaseReaderShell, { type SupabaseBook } from "@/components/reader/supabase-reader-shell";
-import { compressImage } from "@/lib/core/utils/image";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
 import { CachedImage } from "@/components/ui/cached-image";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -950,7 +949,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                         disabled={isUploading}
                                                         onChange={async (e) => {
                                                             const file = e.target.files?.[0];
-                                                            if (file && user) {
+                                                            if (file) {
                                                                 setIsUploading(true);
                                                                 try {
                                                                     const localUrl = URL.createObjectURL(file);

@@ -56,6 +56,8 @@ export default function SubscriptionUI() {
     };
 
     const handleRowClick = (event: UsageEvent) => {
+        if (event.isDeleted) return;
+
         if (event.entityType === 'magic_sentence' && event.entityId) {
             handleViewSentence(event.entityId);
         } else if (event.entityType === 'story' && event.entityId) {
@@ -243,13 +245,14 @@ export default function SubscriptionUI() {
                                     </tr>
                                 )}
                                 {filteredHistory.map((event) => {
-                                    const isClickable = !!(event.entityId || event.bookId);
+                                    const isClickable = !!(event.entityId || event.bookId) && !event.isDeleted;
                                     return (
                                         <tr
                                             key={event.id}
                                             className={cn(
                                                 "transition-colors border-b border-slate-50 last:border-0",
-                                                isClickable ? "cursor-pointer hover:bg-slate-50" : ""
+                                                isClickable ? "cursor-pointer hover:bg-slate-50" : "",
+                                                event.isDeleted ? "opacity-70" : ""
                                             )}
                                             onClick={() => isClickable && handleRowClick(event)}
                                         >
@@ -269,14 +272,23 @@ export default function SubscriptionUI() {
                                                     <div className="flex-1 min-w-0">
                                                         {event.bookId ? (
                                                             <>
-                                                                <Link href={`/reader/${event.bookId}`} className="font-bold font-nunito text-ink text-sm truncate hover:text-purple-600 hover:underline block leading-tight">
-                                                                    {event.description}
+                                                                <Link
+                                                                    href={event.isDeleted ? "#" : `/reader/${event.bookId}`}
+                                                                    onClick={(e) => event.isDeleted && e.preventDefault()}
+                                                                    className={cn(
+                                                                        "font-bold font-nunito text-ink text-sm truncate block leading-tight",
+                                                                        event.isDeleted ? "cursor-default" : "hover:text-purple-600 hover:underline"
+                                                                    )}
+                                                                >
+                                                                    {event.description} {event.isDeleted && <span className="text-slate-400 font-normal opacity-70">(Deleted)</span>}
                                                                 </Link>
                                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight leading-tight">{event.action}</p>
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <p className="font-bold font-nunito text-ink text-sm truncate leading-tight">{event.action}</p>
+                                                                <p className="font-bold font-nunito text-ink text-sm truncate leading-tight">
+                                                                    {event.action} {event.isDeleted && <span className="text-slate-400 font-normal opacity-70 ml-1">(Deleted)</span>}
+                                                                </p>
                                                                 <p className="text-[10px] font-semibold text-slate-400 line-clamp-1 leading-tight">{event.description}</p>
                                                             </>
                                                         )}
@@ -308,15 +320,16 @@ export default function SubscriptionUI() {
                             </li>
                         )}
                         {filteredHistory.map((event) => {
-                            const isClickable = !!(event.entityId || event.bookId);
+                            const isClickable = !!(event.entityId || event.bookId) && !event.isDeleted;
                             return (
                                 <li
                                     key={event.id}
                                     className={cn(
                                         "p-4 flex flex-col gap-3 transition-colors",
-                                        isClickable ? "cursor-pointer hover:bg-slate-50 active:bg-slate-100" : ""
+                                        isClickable ? "cursor-pointer hover:bg-slate-50 active:bg-slate-100" : "",
+                                        event.isDeleted ? "opacity-70" : ""
                                     )}
-                                    aria-label={`Activity: ${event.action || event.description}`}
+                                    aria-label={`Activity: ${event.action || event.description}${event.isDeleted ? ' (Deleted)' : ''}`}
                                     onClick={() => isClickable && handleRowClick(event)}
                                 >
                                     <div className="flex items-start gap-3">
@@ -334,14 +347,23 @@ export default function SubscriptionUI() {
                                         <div className="flex-1 min-w-0">
                                             {event.bookId ? (
                                                 <>
-                                                    <Link href={`/reader/${event.bookId}`} className="font-bold font-nunito text-ink text-sm line-clamp-1 hover:text-purple-600 active:text-purple-700">
-                                                        {event.description}
+                                                    <Link
+                                                        href={event.isDeleted ? "#" : `/reader/${event.bookId}`}
+                                                        onClick={(e) => event.isDeleted && e.preventDefault()}
+                                                        className={cn(
+                                                            "font-bold font-nunito text-ink text-sm line-clamp-1",
+                                                            event.isDeleted ? "cursor-default" : "hover:text-purple-600 active:text-purple-700"
+                                                        )}
+                                                    >
+                                                        {event.description} {event.isDeleted && <span className="text-slate-400 font-normal opacity-70">(Deleted)</span>}
                                                     </Link>
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">{event.action}</p>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <p className="font-bold font-nunito text-ink text-sm line-clamp-1">{event.action}</p>
+                                                    <p className="font-bold font-nunito text-ink text-sm line-clamp-1">
+                                                        {event.action} {event.isDeleted && <span className="text-slate-400 font-normal opacity-70 ml-1">(Deleted)</span>}
+                                                    </p>
                                                     <p className="text-[10px] font-semibold text-slate-400 line-clamp-2 mt-0.5">{event.description}</p>
                                                 </>
                                             )}
@@ -357,15 +379,17 @@ export default function SubscriptionUI() {
                                                 month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                                             })}
                                         </p>
-                                        <button
-                                            className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-1 hover:underline"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRowClick(event);
-                                            }}
-                                        >
-                                            Details <ArrowUpRight className="w-2.5 h-2.5" />
-                                        </button>
+                                        {!event.isDeleted && (
+                                            <button
+                                                className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-1 hover:underline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRowClick(event);
+                                                }}
+                                            >
+                                                Details <ArrowUpRight className="w-2.5 h-2.5" />
+                                            </button>
+                                        )}
                                     </div>
                                 </li>
                             );

@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 import { Book } from '../types';
+import { BedrockEmbeddingService } from "@/lib/features/bedrock/bedrock-embedding.server";
 
 // Types for optimized library fetching
 // ~580 tokens reads in 100s = 348 tokens/min. Rounded to 350 for simplicity.
@@ -20,6 +21,7 @@ interface BookFilters {
     only_personal?: boolean;
     only_public?: boolean;
     duration?: string;
+    ids?: string[];
 }
 
 interface BookWithCover {
@@ -112,7 +114,8 @@ export class BookRepository {
             p_filter_category: filters.category && filters.category !== 'all' ? filters.category : null,
             p_filter_duration: filters.duration || null,
             p_filter_is_nonfiction: filters.is_nonfiction ?? null,
-            p_only_public: !!filters.only_public
+            p_only_public: !!filters.only_public,
+            p_filter_ids: filters.ids || null
         };
 
         // GUEST LIMIT: Enforce 6 books max for unauthenticated users
@@ -586,5 +589,154 @@ export class BookRepository {
         });
 
         return data;
+    }
+
+    /**
+     * Generates an embedding for a book based on its title, description, and keywords,
+     * and stores it in the database.
+     */
+    async generateAndStoreBookEmbedding(bookId: string): Promise<number[]> {
+        const { data: book, error: fetchError } = await this.supabase
+            .from('books')
+            .select('title, description, keywords')
+            .eq('id', bookId)
+            .single();
+
+        if (fetchError || !book) {
+            throw new Error(`Failed to fetch book for embedding: ${fetchError?.message || 'Book not found'}`);
+        }
+
+        const description = book.description || '';
+        const keywords = book.keywords || [];
+
+        const embeddingText = `Title: ${book.title}. Description: ${description}. Keywords: ${keywords.join(', ')}.`;
+        
+        const embeddingService = new BedrockEmbeddingService();
+        const embedding = await embeddingService.generateEmbedding(embeddingText);
+
+        const { error: updateError } = await this.supabase
+            .from('books')
+            .update({ embedding })
+            .eq('id', bookId);
+
+        if (updateError) {
+            throw new Error(`Failed to store book embedding: ${updateError.message}`);
+        }
+
+        return embedding;
+    }
+
+    /**
+     * Performs a semantic search for books based on a text query.
+     * STRICTLY searches PUBLIC books only via match_books RPC.
+     */
+    async searchBooks(query: string, options: { matchThreshold?: number, limit?: number, offset?: number } = {}): Promise<any[]> {
+        const embeddingService = new BedrockEmbeddingService();
+        const queryEmbedding = await embeddingService.generateEmbedding(query);
+
+        const { data, error } = await this.supabase.rpc('match_books', {
+            query_embedding: queryEmbedding,
+            match_threshold: options.matchThreshold ?? 0.15, // Lowered from 0.4 to capture broader matches
+            match_count: options.limit ?? 20,
+            match_offset: options.offset ?? 0,
+            filter_min_grade: null,
+            filter_max_grade: null,
+            filter_category: null,
+            filter_is_nonfiction: null,
+            filter_min_duration: null,
+            filter_max_duration: null
+        });
+
+        if (error) throw error;
+        return data || [];
+    }
+
+    /**
+     * Recommends books for a child based on their interests.
+     * STRICTLY recommends PUBLIC books only via match_books RPC.
+     */
+    async recommendBooksForChild(childId: string, options: { 
+        matchThreshold?: number, 
+        limit?: number, 
+        offset?: number,
+        level?: string,
+        category?: string,
+        isNonFiction?: boolean,
+        duration?: string
+    } = {}): Promise<any[]> {
+        const { data: child, error: childError } = await this.supabase
+            .from('children')
+            .select('interests')
+            .eq('id', childId)
+            .single();
+
+        if (childError || !child) {
+            throw new Error(`Failed to fetch child interests: ${childError?.message || 'Child not found'}`);
+        }
+
+        const interests = child.interests || [];
+        if (interests.length === 0) {
+            return [];
+        }
+
+        const interestText = `Interests: ${interests.join(', ')}.`;
+        
+        const embeddingService = new BedrockEmbeddingService();
+        const interestEmbedding = await embeddingService.generateEmbedding(interestText);
+
+        // Map UI filters to DB ranges
+        let minGrade: number | null = null;
+        let maxGrade: number | null = null;
+        if (options.level) {
+             switch (options.level.toLowerCase()) {
+                 case 'toddler': // Assuming Pre-K or 0-3yo equivalent
+                 case 'preschool':
+                     minGrade = -2; // Covering PreK (-1) and below
+                     maxGrade = -1;
+                     break;
+                 case 'kindergarten':
+                 case 'starting':
+                    minGrade = 0;
+                    maxGrade = 0;
+                    break;
+                 case 'elementary': 
+                    minGrade = 1;
+                    maxGrade = 5;
+                    break;
+             }
+        }
+
+        let minDuration: number | null = null;
+        let maxDuration: number | null = null;
+        if (options.duration) {
+            switch (options.duration) {
+                case 'short': // < 5m
+                    maxDuration = 4;
+                    break;
+                case 'medium': // 5-10m
+                    minDuration = 5;
+                    maxDuration = 10;
+                    break;
+                case 'long': // > 10m
+                    minDuration = 11;
+                    break;
+            }
+        }
+
+        const { data, error } = await this.supabase.rpc('match_books', {
+            query_embedding: interestEmbedding,
+            match_threshold: options.matchThreshold ?? 0.15,
+            match_count: options.limit ?? 20,
+            match_offset: options.offset ?? 0,
+            filter_min_grade: minGrade,
+            filter_max_grade: maxGrade,
+            filter_category: options.category || null,
+            filter_is_nonfiction: options.isNonFiction ?? null,
+            filter_min_duration: minDuration,
+            filter_max_duration: maxDuration
+        });
+
+        if (error) throw error;
+        return data || [];
     }
 }

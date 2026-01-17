@@ -80,6 +80,7 @@ export class GeminiProvider implements AIProvider {
     }
 
     async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, storyLengthMinutes?: number, imageSceneCount?: number, idempotencyKey?: string }): Promise<GeneratedStoryContent> {
+        // ... existing implementation ...
         try {
             const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
                 ? "/api/mock/story"
@@ -138,5 +139,11 @@ export class GeminiProvider implements AIProvider {
             if (error instanceof Error && error.name === 'AbortError') throw error;
             throw new AIError('unknown', 'Failed to generate story', error);
         }
+    }
+
+    async generateEmbedding(text: string): Promise<number[]> {
+        // Since the user specifically requested AWS Bedrock for embeddings, 
+        // we implement it in a separate service, but this satisfies the AIProvider interface.
+        throw new Error("Generative AI Embeddings not implemented in GeminiProvider. Use BedrockEmbeddingService.");
     }
 }
