@@ -7,12 +7,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/core/utils/cn";
 import {
-    DEMO_TOKENS,
-    DEMO_WORD_INSIGHTS,
-    MAGIC_WORD_INDICES,
-    DEMO_BOOK_ID,
-    DEMO_WORD_TIMINGS,
+    DEMO_BOOKS,
+    DemoBook,
 } from "./demo-data";
+import { ArrowRight, Sparkles as SparklesIcon, Wand2 } from "lucide-react";
 
 interface WordInsight {
     word: string;
@@ -22,19 +20,25 @@ interface WordInsight {
 }
 
 export function ReaderDemo() {
+    const [activeIndex, setActiveIndex] = useState(0);
+    const book = DEMO_BOOKS[activeIndex];
+
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentWordIndex, setCurrentWordIndex] = useState<number | null>(null);
     const [selectedWord, setSelectedWord] = useState<WordInsight | null>(null);
+    const [isMagicLoading, setIsMagicLoading] = useState(false);
+    const [magicResult, setMagicResult] = useState<{ sentence: string; emoji: string } | null>(null);
+
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [coverUrl, setCoverUrl] = useState<string | null>(null);
     const [isAudioLoading, setIsAudioLoading] = useState(true);
     const [audioError, setAudioError] = useState<string | null>(null);
-    const audioTimings = DEMO_WORD_TIMINGS;
+    const audioTimings = book.timings;
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const animationFrameRef = useRef<number | null>(null);
 
-    // Last word index in demo text ("fall" at index 38)
-    const DEMO_LAST_WORD_INDEX = 38;
+    // Last word index in current demo book
+    const lastWordIndex = book.tokens.length - 1;
 
     // Fetch audio and cover URLs from the book API
     useEffect(() => {
@@ -43,21 +47,29 @@ export function ReaderDemo() {
                 setIsAudioLoading(true);
                 setAudioError(null);
 
+                // Stop any current audio
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current = null;
+                }
+                setIsPlaying(false);
+                setCurrentWordIndex(null);
+
                 // Fetch book data with audio included
-                const res = await fetch(`/api/books/${DEMO_BOOK_ID}?include=audio`);
+                const res = await fetch(`/api/books/${book.id}?include=audio`);
                 if (!res.ok) {
                     throw new Error("Failed to fetch book");
                 }
-                const book = await res.json();
+                const bookData = await res.json();
 
                 // Get cover URL
-                if (book.coverImageUrl) {
-                    setCoverUrl(book.coverImageUrl);
+                if (bookData.coverImageUrl) {
+                    setCoverUrl(bookData.coverImageUrl);
                 }
 
                 // Get audio URL from the first shard
-                if (book.audios && book.audios.length > 0 && book.audios[0].audio_path) {
-                    setAudioUrl(book.audios[0].audio_path);
+                if (bookData.audios && bookData.audios.length > 0 && bookData.audios[0].audio_path) {
+                    setAudioUrl(bookData.audios[0].audio_path);
                 } else {
                     setAudioError("Audio unavailable");
                 }
@@ -69,7 +81,7 @@ export function ReaderDemo() {
             }
         };
         fetchAssets();
-    }, []);
+    }, [book.id]);
 
     // Sync word highlighting with audio playback (same approach as use-narration-engine)
     const syncHighlight = useCallback(() => {
@@ -84,10 +96,10 @@ export function ReaderDemo() {
 
         if (mark) {
             // Stop playback when we reach past the demo text
-            if (mark.absIndex > DEMO_LAST_WORD_INDEX) {
+            if (mark.absIndex > lastWordIndex) {
                 audioRef.current.pause();
                 setIsPlaying(false);
-                setCurrentWordIndex(DEMO_LAST_WORD_INDEX); // Keep last word highlighted
+                setCurrentWordIndex(lastWordIndex); // Keep last word highlighted
                 return;
             }
             setCurrentWordIndex(mark.absIndex);
@@ -148,12 +160,60 @@ export function ReaderDemo() {
 
     const handleWordClick = (wordText: string, wordIndex: number) => {
         // Only show insight for magic words
-        if (!MAGIC_WORD_INDICES.has(wordIndex)) return;
+        if (!book.magicWordIndices.has(wordIndex)) return;
 
-        const insight = DEMO_WORD_INSIGHTS[wordText.toLowerCase()];
+        const insight = book.insights[wordText.toLowerCase()];
         if (insight) {
             setSelectedWord(insight);
+            setMagicResult(null); // Reset magic sentence when clicking a new word
         }
+    };
+
+    const handleNextBook = () => {
+        const nextIdx = (activeIndex + 1) % DEMO_BOOKS.length;
+        setActiveIndex(nextIdx);
+    };
+
+    const handleMagicSentence = async () => {
+        if (!selectedWord) return;
+        setIsMagicLoading(true);
+        // Simulate magic sentence generation for the demo
+        await new Promise((r) => setTimeout(r, 1500));
+
+        const mockMagicSentences: Record<string, { sentence: string, emoji: string }> = {
+            "blocky": {
+                sentence: "Lumo built a blocky house for his pet robot!",
+                emoji: "🤖"
+            },
+            "square": {
+                sentence: "The square pizza was cut into tiny blocky pieces!",
+                emoji: "🍕"
+            },
+            "stacks": {
+                sentence: "She stacks the colorful blocks into a giant castle!",
+                emoji: "🏰"
+            },
+            "tall": {
+                sentence: "A tall giraffe peeked over the blocky wall!",
+                emoji: "🦒"
+            },
+            "fluffy": {
+                sentence: "The fluffy clouds looked like sweet cotton candy!",
+                emoji: "🍭"
+            },
+            "climbs": {
+                sentence: "Alex climbs the mountain to high-five a comet!",
+                emoji: "☄️"
+            }
+        };
+
+        const result = mockMagicSentences[selectedWord.word.toLowerCase()] || {
+            sentence: `A magical story about ${selectedWord.word.toLowerCase()} started here!`,
+            emoji: "✨"
+        };
+
+        setMagicResult(result);
+        setIsMagicLoading(false);
     };
 
     // Cleanup audio on unmount
@@ -229,17 +289,17 @@ export function ReaderDemo() {
                             )}
                             <div>
                                 <h3 className="font-fredoka font-bold text-ink text-lg leading-tight">
-                                    Steve&apos;s Blocky Building Adventure
+                                    {book.title}
                                 </h3>
-                                <p className="text-xs text-ink-muted font-nunito">PreK Level • Minecraft Theme</p>
+                                <p className="text-xs text-ink-muted font-nunito">Level {activeIndex + 1} • {activeIndex === 0 ? "Minecraft" : "Discovery"} Theme</p>
                             </div>
                         </div>
 
                         {/* Text Display */}
-                        <div className="text-xl md:text-2xl leading-relaxed font-nunito font-medium text-ink select-none">
-                            {DEMO_TOKENS.map((token, idx) => {
+                        <div className="text-xl md:text-2xl leading-relaxed font-nunito font-medium text-ink select-none min-h-[160px]">
+                            {book.tokens.map((token, idx) => {
                                 if (token.type === "w" && token.i !== undefined) {
-                                    const isMagicWord = MAGIC_WORD_INDICES.has(token.i);
+                                    const isMagicWord = book.magicWordIndices.has(token.i);
                                     const isHighlighted = currentWordIndex === token.i;
 
                                     return (
@@ -281,39 +341,50 @@ export function ReaderDemo() {
 
                     {/* Play Controls */}
                     <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 md:p-6 flex items-center justify-between border-t border-amber-100">
-                        <button
-                            onClick={handlePlay}
-                            disabled={isButtonDisabled}
-                            className={cn(
-                                "flex items-center gap-3 px-6 py-3 rounded-2xl font-fredoka font-bold text-white shadow-lg transition-all",
-                                isPlaying
-                                    ? "bg-red-500 hover:bg-red-600"
-                                    : audioError
-                                        ? "bg-gray-400"
-                                        : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600",
-                                isButtonDisabled && "opacity-50 cursor-not-allowed"
-                            )}
-                        >
-                            {isAudioLoading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    Loading...
-                                </>
-                            ) : isPlaying ? (
-                                <>
-                                    <VolumeX className="w-5 h-5" />
-                                    Stop
-                                </>
-                            ) : (
-                                <>
-                                    <Volume2 className="w-5 h-5" />
-                                    {buttonText}
-                                </>
-                            )}
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handlePlay}
+                                disabled={isButtonDisabled}
+                                className={cn(
+                                    "flex items-center gap-3 px-6 py-3 rounded-2xl font-fredoka font-bold text-white shadow-lg transition-all",
+                                    isPlaying
+                                        ? "bg-red-500 hover:bg-red-600"
+                                        : audioError
+                                            ? "bg-gray-400"
+                                            : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600",
+                                    isButtonDisabled && "opacity-50 cursor-not-allowed"
+                                )}
+                            >
+                                {isAudioLoading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Loading...
+                                    </>
+                                ) : isPlaying ? (
+                                    <>
+                                        <VolumeX className="w-5 h-5" />
+                                        Stop
+                                    </>
+                                ) : (
+                                    <>
+                                        <Volume2 className="w-5 h-5" />
+                                        {buttonText}
+                                    </>
+                                )}
+                            </button>
+
+                            <button
+                                onClick={handleNextBook}
+                                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-100 text-amber-700 font-fredoka font-bold hover:bg-amber-200 transition-all shadow-sm"
+                                title="Load Next Demo"
+                            >
+                                Next
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
 
                         <Link
-                            href={`/reader/${DEMO_BOOK_ID}`}
+                            href="/library"
                             className="hidden md:flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border-2 border-amber-200 text-amber-700 font-fredoka font-bold hover:bg-amber-50 transition-all"
                         >
                             Read Full Story
@@ -333,7 +404,7 @@ export function ReaderDemo() {
                         href="/library"
                         className="inline-flex items-center gap-2 text-purple-600 font-fredoka font-bold hover:underline"
                     >
-                        Explore 50+ more books in the library
+                        Explore 300+ more books in the library
                         <span>→</span>
                     </Link>
                 </motion.div>
@@ -371,10 +442,55 @@ export function ReaderDemo() {
                                 <p className="text-lg text-ink font-nunito font-medium mb-4">
                                     {selectedWord.definition}
                                 </p>
-                                <div className="bg-purple-50 rounded-xl p-4">
+                                <div className="bg-purple-50 rounded-xl p-4 mb-4">
+                                    <p className="text-xs text-purple-300 font-fredoka font-black uppercase tracking-wider mb-2">Example</p>
                                     <p className="text-sm text-purple-700 font-nunito italic">
                                         &quot;{selectedWord.example}&quot;
                                     </p>
+                                </div>
+
+                                {/* Magic Sentence Button */}
+                                <div className="space-y-3">
+                                    {!magicResult && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleMagicSentence();
+                                            }}
+                                            disabled={isMagicLoading}
+                                            className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl font-fredoka font-black flex items-center justify-center gap-2 shadow-lg shadow-purple-200 active:scale-95 transition-all disabled:opacity-50"
+                                        >
+                                            {isMagicLoading ? (
+                                                <>
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                    Casting Spell...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Wand2 className="w-5 h-5" />
+                                                    Magic Spark ✨
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+
+                                    {magicResult && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            className="p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl relative"
+                                        >
+                                            <div className="absolute -top-3 -left-2 bg-amber-400 text-white p-1.5 rounded-lg shadow-sm">
+                                                <SparklesIcon className="w-3 h-3" />
+                                            </div>
+                                            <div className="flex gap-3">
+                                                <span className="text-2xl mt-1">{magicResult.emoji}</span>
+                                                <p className="text-sm text-amber-900 font-nunito font-bold text-left leading-relaxed">
+                                                    {magicResult.sentence}
+                                                </p>
+                                            </div>
+                                        </motion.div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
