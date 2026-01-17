@@ -91,13 +91,12 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         const entityId = tx.entity_id;
         const entityType = tx.entity_type;
         const isGroupable = entityType === 'story' || entityType === 'magic_sentence';
-
         if (entityId && isGroupable) {
             const groupKey = `${entityType}:${entityId}`;
             let group = entityGroups.get(groupKey);
             if (!group) {
                 group = {
-                    id: `group-${entityId}`,
+                    id: `group-${entityType}-${entityId}`,
                     isGrouped: true,
                     entityId,
                     entityType,
@@ -121,59 +120,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             }
             group.type = group.amount < 0 ? 'debit' : 'credit';
         } else {
-            // Legacy grouping checks
-            const legacyBookId = tx.metadata?.book_id;
-            const legacyMagicId = tx.metadata?.magic_sentence_id;
-
-            if (legacyBookId && (tx.reason === 'story_generation' || tx.reason === 'image_generation')) {
-                let group = entityGroups.get(legacyBookId);
-                if (!group) {
-                    group = {
-                        id: `group-${legacyBookId}`,
-                        isGrouped: true,
-                        entityId: legacyBookId,
-                        entityType: 'story',
-                        storyAmount: 0,
-                        imageAmount: 0,
-                        timestamp: tx.created_at,
-                        metadata: tx.metadata,
-                        reason: 'generation_group',
-                        type: 'debit',
-                        amount: 0
-                    };
-                    entityGroups.set(legacyBookId, group);
-                    processedTransactions.push(group);
-                }
-                group.amount += tx.amount;
-                if (tx.reason === 'story_generation') group.storyAmount += tx.amount;
-                else group.imageAmount += tx.amount;
-                group.type = group.amount < 0 ? 'debit' : 'credit';
-            } else if (legacyMagicId && (tx.reason === 'magic_sentence' || tx.reason === 'image_generation')) {
-                let group = entityGroups.get(legacyMagicId);
-                if (!group) {
-                    group = {
-                        id: `group-${legacyMagicId}`,
-                        isGrouped: true,
-                        entityId: legacyMagicId,
-                        entityType: 'magic_sentence',
-                        storyAmount: 0,
-                        imageAmount: 0,
-                        timestamp: tx.created_at,
-                        metadata: tx.metadata,
-                        reason: 'generation_group',
-                        type: 'debit',
-                        amount: 0
-                    };
-                    entityGroups.set(legacyMagicId, group);
-                    processedTransactions.push(group);
-                }
-                group.amount += tx.amount;
-                if (tx.reason === 'magic_sentence') group.storyAmount += tx.amount;
-                else group.imageAmount += tx.amount;
-                group.type = group.amount < 0 ? 'debit' : 'credit';
-            } else {
-                processedTransactions.push(tx);
-            }
+            processedTransactions.push(tx);
         }
     });
 
@@ -193,8 +140,6 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             if (eType === 'story') bookIds.add(eId);
             else if (eType === 'magic_sentence') magicSentenceIds.add(eId);
         }
-        const legacyBookId = (tx as any).metadata?.book_id;
-        if (legacyBookId) bookIds.add(legacyBookId);
     });
 
     if (bookIds.size > 0) {
@@ -232,9 +177,9 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
     // 4. Map to UsageEvent
     return finalTransactions.map((tx) => {
         const isGroup = 'isGrouped' in tx && tx.isGrouped === true;
-        const eId = isGroup ? (tx as TransactionGroup).entityId : (tx as RawTransaction).entity_id;
-        const eType = isGroup ? (tx as TransactionGroup).entityType : (tx as RawTransaction).entity_type;
-        const bId = (eType === 'story' ? eId : null) || (tx as any).metadata?.book_id;
+        const eId = isGroup ? (tx as TransactionGroup).entityId : ((tx as RawTransaction).entity_id || undefined);
+        const eType = isGroup ? (tx as TransactionGroup).entityType : ((tx as RawTransaction).entity_type || undefined);
+        const bId = (eType === 'story' ? eId : undefined);
 
         const formatAction = (reason: string) => {
             if (reason === 'generation_group') {
