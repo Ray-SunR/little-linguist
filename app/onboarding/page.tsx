@@ -37,8 +37,8 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[--shell] font-sans selection:bg-accent selection:text-white overflow-x-hidden flex flex-col">
-      <main className="flex-grow flex flex-col items-center justify-center p-4 md:p-6 relative py-8 md:py-12 lg:py-24">
+    <div className="flex-1 bg-[--shell] font-sans selection:bg-accent selection:text-white flex flex-col min-h-0">
+      <main className="flex-1 h-0 relative flex flex-col items-center justify-center pb-20 px-2 sm:px-4 overflow-hidden">
 
         {/* === Background Elements (Matching Story Maker Magic) === */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">

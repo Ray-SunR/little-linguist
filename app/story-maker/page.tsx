@@ -37,7 +37,7 @@ export default function StoryMakerPage() {
     // After all checks, if still no user, show guest wizard
     if (!user) {
         return (
-            <div className="min-h-screen py-20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+            <div className="flex-1 h-0 flex flex-col items-center justify-center pb-20 px-2 sm:px-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5 overflow-hidden min-h-0">
                 <ChildProfileWizard mode="story" />
             </div>
         );

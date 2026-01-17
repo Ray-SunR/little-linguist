@@ -55,7 +55,7 @@ export default function RootLayout({
                 <GlobalStoryListener />
                 <ChildGate />
                 <div className="relative flex flex-col lg:flex-row min-h-screen">
-                  <div className="flex-1 w-full">
+                  <div className="flex-1 w-full flex flex-col">
                     <GuestBanner />
                     {children}
                   </div>
