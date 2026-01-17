@@ -106,7 +106,7 @@ export function ReaderDemo() {
         }
 
         animationFrameRef.current = requestAnimationFrame(syncHighlight);
-    }, [isPlaying, audioTimings]);
+    }, [isPlaying, audioTimings, lastWordIndex]);
 
     // Start/stop animation frame loop
     useEffect(() => {
