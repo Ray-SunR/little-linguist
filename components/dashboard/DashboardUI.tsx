@@ -190,15 +190,26 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                                 </div>
                             </div>
                         ) : (
-                            <Link href="/login" className="flex items-center justify-between group/cta">
-                                <div className="flex flex-col">
-                                    <span className="text-xs font-black text-purple-600 uppercase tracking-widest leading-none mb-1">Guest Mode</span>
-                                    <span className="text-sm font-black text-ink font-fredoka leading-none group-hover/cta:text-purple-600 transition-colors">Sign in to track progress</span>
-                                </div>
-                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 group-hover/cta:scale-110 transition-transform">
-                                    <ChevronRight className="w-5 h-5" />
-                                </div>
-                            </Link>
+                            <div className="flex flex-col gap-4">
+                                <Link href="/story-maker" className="flex items-center justify-between group/cta bg-purple-50 p-3 rounded-2xl hover:bg-purple-100 transition-colors">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-black text-purple-600 uppercase tracking-widest leading-none mb-1">Guest Flow</span>
+                                        <span className="text-sm font-black text-ink font-fredoka leading-none group-hover/cta:text-purple-600 transition-colors">Create a Story</span>
+                                    </div>
+                                    <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center text-purple-600 group-hover/cta:scale-110 transition-transform">
+                                        <ChevronRight className="w-5 h-5" />
+                                    </div>
+                                </Link>
+                                <Link href="/login" className="flex items-center justify-between group/cta">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Already a member?</span>
+                                        <span className="text-sm font-black text-ink-muted font-fredoka leading-none group-hover/cta:text-purple-600 transition-colors">Sign in to track progress</span>
+                                    </div>
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover/cta:scale-110 transition-transform">
+                                        <ChevronRight className="w-5 h-5" />
+                                    </div>
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </motion.div>

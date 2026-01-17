@@ -252,6 +252,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [fetchProfiles]);
 
+  // Navigation-based session synchronization
+  // This helps catch session changes made on the server (e.g. via server actions)
+  // that the client-side Supabase listener might not have noticed yet.
+  useEffect(() => {
+    async function syncSession() {
+      if (isLoggingOutRef.current) return;
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUid = session?.user?.id;
+      
+      if (currentUid !== userRef.current?.id) {
+        Log.info("Navigation detected session change. Syncing state...", { old: userRef.current?.id, new: currentUid });
+        setUser(session?.user ?? null);
+        if (currentUid) {
+          setStatus('hydrating');
+          await hydrateFromCache(currentUid);
+          await fetchProfiles(currentUid, true);
+        } else {
+          setProfiles([]);
+          handleSetActiveChild(null);
+          setStatus('ready');
+        }
+      }
+    }
+    
+    syncSession();
+  }, [pathname, supabase, fetchProfiles, hydrateFromCache]);
+
   // Sync library settings when active child changes
   useEffect(() => {
     // Only set if different to avoid redundant renders

@@ -203,13 +203,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     : "draft:guest";
                 let savedDraft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
 
-                // 2. Migration: If user is logged in but has no draft, check for guest draft
+                // 2. Migration: Handled by resumeDraftIfNeeded to avoid race conditions
                 if (!savedDraft && user && !processingRef.current) {
-                    const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
-                    if (guestDraft) {
-                        console.debug("[StoryMakerClient] Found guest draft to migrate.");
-                        savedDraft = guestDraft;
-                    }
+                    // We skip manual migration here and let the resume logic handle it
+                    // because it needs to be atomic with the generation trigger.
+                    console.debug("[StoryMakerClient] Waiting for resume logic to handle migration if needed.");
                 }
 
                 // 3. Migration fallback: check localStorage
@@ -270,24 +268,44 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     // Unified Effect for Resuming, Result Polling, and Cleanup
     useEffect(() => {
         async function resumeDraftIfNeeded() {
+            console.debug("[StoryMakerClient] resumeDraftIfNeeded triggered:", { hasUser: !!user, status, isLoading, step, processing: processingRef.current });
             // Wait for user and hydration, but allow step === "profile"
             if (!user || isLoading || step !== "profile" || processingRef.current) return;
 
             const action = searchParams.get("action");
             const isResuming = action === "resume_story_maker" || action === "generate";
+            console.debug("[StoryMakerClient] Action check:", { action, isResuming });
             if (!isResuming) return;
 
-            const draftKey = `draft:${user.id}`;
-            let draft = await raidenCache.get<any>(CacheStore.DRAFTS, draftKey);
+            const userDraftKey = `draft:${user.id}`;
+            const childDraftKey = activeChild?.id ? `draft:${user.id}:${activeChild.id}` : null;
+            
+            let draft = await raidenCache.get<any>(CacheStore.DRAFTS, userDraftKey);
+            if (!draft && childDraftKey) {
+                draft = await raidenCache.get<any>(CacheStore.DRAFTS, childDraftKey);
+            }
 
             // Migration fallback
-            if (!draft) {
+            if (!draft && user.id) {
                 const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
                 if (guestDraft) {
-                    console.debug("[StoryMakerClient] Consuming guest draft for resume.");
-                    draft = guestDraft;
-                    // Persist to user+child record and delete guest
-                    await raidenCache.put(CacheStore.DRAFTS, { id: draftKey, ...guestDraft });
+                    console.debug("[StoryMakerClient] Found guest draft to migrate. Profile count:", profiles.length);
+                    // If user already has children, don't auto-create. Instead, show the "pick a child" selection.
+                    if (profiles.length > 0) {
+                        setIsGuestOneOffFlow(true);
+                        setProfile(guestDraft.profile);
+                        if (guestDraft.selectedWords) setSelectedWords(guestDraft.selectedWords);
+                    } else {
+                        // Brand new user: proceed with auto-creation
+                        draft = guestDraft;
+                        if (!profile.name) {
+                            setProfile(guestDraft.profile);
+                            if (guestDraft.selectedWords) setSelectedWords(guestDraft.selectedWords);
+                        }
+                    }
+                    
+                    // Persist to user record and clean up guest
+                    await raidenCache.put(CacheStore.DRAFTS, { id: userDraftKey, ...guestDraft });
                     await raidenCache.delete(CacheStore.DRAFTS, "draft:guest");
                 }
             }
@@ -304,8 +322,12 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             console.debug("[StoryMakerClient] Resuming with draft:", draft.profile.name);
             setProfile(draft.profile);
             setSelectedWords(draft.selectedWords);
-            if (draft.storyLength) setStoryLengthMinutes(draft.storyLength);
-            setImageSceneCount(draft.imageCount !== undefined ? draft.imageCount : (draft.storyLength || 5));
+            
+            const finalLength = draft.storyLengthMinutes || 5;
+            const finalImageCount = draft.imageSceneCount !== undefined ? draft.imageSceneCount : finalLength;
+            
+            setStoryLengthMinutes(finalLength);
+            setImageSceneCount(finalImageCount);
             if (draft.idempotencyKey) setCurrentIdempotencyKey(draft.idempotencyKey);
 
             if (state.isGenerating) {
@@ -326,7 +348,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             // Trigger generation
             processingRef.current = true;
-            generateStory(draft.selectedWords, draft.profile, draft.storyLength, draft.imageCount, draft.idempotencyKey);
+            generateStory(draft.selectedWords, draft.profile, finalLength, finalImageCount, draft.idempotencyKey);
         }
 
         resumeDraftIfNeeded();
@@ -433,7 +455,14 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         const finalStoryLengthMinutes = overrideStoryLengthMinutes || storyLengthMinutes;
 
         if (!user) {
-            await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", profile: finalProfile, selectedWords: finalWords });
+            await raidenCache.put(CacheStore.DRAFTS, { 
+                id: "draft:guest", 
+                profile: finalProfile, 
+                selectedWords: finalWords,
+                storyLengthMinutes: finalStoryLengthMinutes,
+                imageSceneCount: imageSceneCount,
+                idempotencyKey: currentIdempotencyKey || crypto.randomUUID()
+            });
             router.push("/login?returnTo=/story-maker&action=generate");
             return;
         }
@@ -835,10 +864,36 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                     interests: p.interests || []
                                                 };
                                                 setProfile(selectedProfile);
-                                                const draftKey = user ? (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`) : "draft:guest";
-                                                const draft = await raidenCache.get<{ selectedWords: string[]; storyLength: number }>(CacheStore.DRAFTS, draftKey);
-                                                if (draft) {
-                                                    generateStory(draft.selectedWords, selectedProfile, draft.storyLength);
+                                                
+                                                if (!user) return;
+
+                                                // Draft Lookup: Try child-specific, then generic user, then guest-migrated
+                                                const possibleKeys = [
+                                                    `draft:${user.id}:${p.id}`,
+                                                    `draft:${user.id}`,
+                                                    "draft:guest"
+                                                ];
+                                                
+                                                let foundDraft = null;
+                                                for (const key of possibleKeys) {
+                                                    const d = await raidenCache.get<any>(CacheStore.DRAFTS, key);
+                                                    if (d) {
+                                                        foundDraft = d;
+                                                        break;
+                                                    }
+                                                }
+
+                                                if (foundDraft) {
+                                                    generateStory(
+                                                        foundDraft.selectedWords, 
+                                                        selectedProfile, 
+                                                        foundDraft.storyLengthMinutes || 5,
+                                                        foundDraft.imageSceneCount,
+                                                        foundDraft.idempotencyKey
+                                                    );
+                                                } else {
+                                                    // No draft found, just proceed with selection
+                                                    setStep("words");
                                                 }
                                             }}
                                             className="p-6 rounded-[2.5rem] bg-white/60 border-2 border-white shadow-soft hover:shadow-clay-purple transition-all flex flex-col items-center gap-4 group"

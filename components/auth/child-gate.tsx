@@ -20,8 +20,8 @@ export function ChildGate() {
     // Only proceed with onboarding check if we are strictly in 'ready' state and authenticated.
     if (status !== 'ready' || !user) return;
 
-    // If already on onboarding or login, don't redirect loop.
-    if (pathname.startsWith('/onboarding') || pathname === '/login') {
+    // If already on onboarding, login, or story-maker (which handles its own profile creation), don't redirect.
+    if (pathname.startsWith('/onboarding') || pathname === '/login' || pathname === '/story-maker') {
       return;
     }
 

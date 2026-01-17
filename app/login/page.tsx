@@ -215,7 +215,11 @@ function LoginForm() {
                 setSuccess(result.success)
                 setLoading(null)
             }
-        } catch (err) {
+        } catch (err: any) {
+            // Next.js redirect() throws an error that should not be caught if we want it to work
+            if (err?.digest?.includes('NEXT_REDIRECT')) {
+                throw err;
+            }
             setError('The portal is unstable. Please try again.')
             setLoading(null)
         }

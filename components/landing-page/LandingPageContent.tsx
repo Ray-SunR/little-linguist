@@ -552,6 +552,14 @@ export default function LandingPageContent() {
                                     </li>
                                 ))}
                             </ul>
+                            <motion.div className="flex gap-4">
+                                <Link 
+                                    href="/story-maker"
+                                    className="px-8 py-3 rounded-2xl bg-purple-500 text-white font-black font-fredoka shadow-clay-purple hover:scale-105 transition-transform"
+                                >
+                                    Try Story Maker
+                                </Link>
+                            </motion.div>
                         </motion.div>
                     </div>
 

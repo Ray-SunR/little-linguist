@@ -9,6 +9,7 @@ const PUBLIC_ROUTES = [
     '/auth',
     '/legal',
     '/support',
+    '/story-maker',
     '/api/word-insight',
     '/api/books',
     '/api/usage',
@@ -74,6 +75,13 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
     // Redirect logged-in users away from auth pages
     if (user && REDIRECT_TO_DASHBOARD.includes(pathname)) {
+        const returnTo = request.nextUrl.searchParams.get('returnTo')
+        if (returnTo) {
+            const isRelative = returnTo.startsWith('/') && !returnTo.startsWith('//')
+            if (isRelative) {
+                return createRedirectWithCookies(returnTo)
+            }
+        }
         return createRedirectWithCookies('/dashboard')
     }
 

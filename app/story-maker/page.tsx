@@ -4,17 +4,37 @@ import { useAuth } from "@/components/auth/auth-provider";
 import StoryMakerClient from "@/components/story-maker/StoryMakerClient";
 import type { UserProfile } from "@/lib/features/story";
 import LumoLoader from "@/components/ui/lumo-loader";
-import { Suspense } from "react";
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 import ChildProfileWizard from "@/components/profile/ChildProfileWizard";
 
 export default function StoryMakerPage() {
-    const { activeChild, isLoading, user } = useAuth();
+    const { activeChild, isLoading, user, status } = useAuth();
+    const [isInitialWait, setIsInitialWait] = useState(true);
+    const searchParams = useSearchParams();
+    const action = searchParams.get('action');
+    const isResuming = action === 'resume_story_maker' || action === 'generate';
 
-    if (isLoading && !user) {
+    useEffect(() => {
+        // Give a short window for initial hydration and auth listener to catch up
+        const timer = setTimeout(() => setIsInitialWait(false), 500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Comprehensive loading state
+    // When resuming, we MUST stay in loading state until we are certain about the user status
+    if (status === 'loading' || status === 'hydrating' || (isResuming && status !== 'ready' && status !== 'error')) {
         return <LumoLoader />;
     }
 
+    // After hydration, if we are resuming and still no user, we might want to wait a split second 
+    // for the auth listener to fire if getSession missed it.
+    if (!user && isResuming && isInitialWait) {
+        return <LumoLoader />;
+    }
+
+    // After all checks, if still no user, show guest wizard
     if (!user) {
         return (
             <div className="min-h-screen py-20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
@@ -40,7 +60,7 @@ export default function StoryMakerPage() {
     return (
         <Suspense fallback={<LumoLoader />}>
             <StoryMakerClient
-                key={activeChild?.id || 'guest'}
+                key={user.id}
                 initialProfile={initialProfile}
             />
         </Suspense>

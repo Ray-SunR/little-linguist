@@ -12,6 +12,7 @@ export interface ChildProfilePayload {
   gender?: string;
   interests: string[];
   avatar_asset_path?: string; // Still accept this for backwards compat, but we store to avatar_paths
+  avatar_paths?: string[]; // Support direct storage paths
 }
 
 export interface LibrarySettings {
@@ -48,10 +49,6 @@ export async function getAvatarUploadUrl(fileName: string) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return { error: 'Authentication required for avatar uploads' };
-    }
-
     const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic'];
     const fileExt = fileName.split('.').pop()?.toLowerCase() || 'jpg';
     if (!allowedExtensions.includes(fileExt)) {
@@ -59,7 +56,27 @@ export async function getAvatarUploadUrl(fileName: string) {
     }
 
     const timestamp = Date.now();
-    const storagePath = `${user.id}/avatars/${timestamp}-${crypto.randomUUID()}.${fileExt}`;
+    let prefix = user ? `${user.id}` : 'guests';
+    
+    // If guest, use a persistent guest_id for isolation
+    if (!user) {
+      let guestId = cookies().get('guest_id')?.value;
+      if (!guestId) {
+        guestId = crypto.randomUUID();
+        // Set for 30 days with production best practices
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 30);
+        cookies().set('guest_id', guestId, { 
+          expires, 
+          path: '/', 
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production'
+        });
+      }
+      prefix = `guests/${guestId}`;
+    }
+
+    const storagePath = `${prefix}/avatars/${timestamp}-${crypto.randomUUID()}.${fileExt}`;
 
     const { data, error } = await supabase.storage
       .from(AVATAR_BUCKET)
@@ -97,9 +114,22 @@ async function validateAvatarPath(
     return null;
   }
   
-  // Strict namespace isolation: Path MUST start with the user's ID
-  if (!path.startsWith(`${userId}/`)) {
-    console.warn('[profiles:validateAvatarPath] Path isolation violation. Path must start with userId:', { path, userId });
+  // Namespace isolation: Path MUST start with the user's ID or 'guests/'
+  // Additionally enforce the '/avatars/' subfolder to prevent arbitrary object access
+  const avatarsSubpath = '/avatars/';
+  const isUserOwned = path.startsWith(`${userId}${avatarsSubpath}`);
+  
+  // For guest paths, we MUST bind it to the current guest_id cookie to prevent cross-tenant access.
+  let isGuestOwned = false;
+  if (path.startsWith('guests/')) {
+    const currentGuestId = cookies().get('guest_id')?.value;
+    if (currentGuestId && path.startsWith(`guests/${currentGuestId}${avatarsSubpath}`)) {
+      isGuestOwned = true;
+    }
+  }
+  
+  if (!isUserOwned && !isGuestOwned) {
+    console.warn('[profiles:validateAvatarPath] Path isolation violation. Path must be in userId/avatars/ or current guest_id/avatars/:', { path, userId });
     return null;
   }
 
@@ -123,7 +153,16 @@ export async function createChildProfile(data: ChildProfilePayload) {
 
     // Handle avatar assignment
     let avatarPaths: string[] = [];
-    if (data.avatar_asset_path) {
+    
+    // 1. Prefer explicit avatar_paths from payload (e.g. from StoryMaker migration)
+    if (data.avatar_paths && data.avatar_paths.length > 0) {
+      for (const p of data.avatar_paths) {
+        const validated = await validateAvatarPath(p, user.id);
+        if (validated) avatarPaths.push(validated);
+      }
+    } 
+    // 2. Fallback to avatar_asset_path (legacy style or direct preview URL)
+    else if (data.avatar_asset_path) {
       const storagePath = await validateAvatarPath(data.avatar_asset_path, user.id);
       if (storagePath) {
         avatarPaths = [storagePath];
@@ -307,9 +346,9 @@ export async function deleteChildProfile(id: string) {
       return { error: childError.message };
     }
 
-    // Security: Only allow deleting paths that start with the user's ID to prevent traversal
+    // Security: Only allow deleting paths that start with the user's ID or 'guests/' to prevent traversal
     const storagePathsUserAssets: string[] = ((childData?.avatar_paths as string[]) || [])
-      .filter(path => path.startsWith(`${user.id}/`));
+      .filter(path => path.startsWith(`${user.id}/`) || path.startsWith('guests/'));
 
     // 2. Find all books associated with this child
     const { data: books, error: booksError } = await supabase

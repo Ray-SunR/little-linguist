@@ -131,11 +131,14 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                     age: new Date().getFullYear() - formData.birth_year,
                     gender: formData.gender,
                     avatarUrl: avatarPreview,
+                    avatarStoragePath: avatarStoragePath,
                     interests: formData.interests,
                     topic: formData.topic,
                     setting: formData.setting
                 },
                 selectedWords: formData.selectedWords,
+                storyLengthMinutes: 5, // Default for guest
+                imageSceneCount: 5,    // Default for guest
                 isGuestFlow: true
             };
 
