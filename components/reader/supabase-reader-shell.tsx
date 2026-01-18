@@ -183,7 +183,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
     const { request: requestWakeLock, release: releaseWakeLock } = useWakeLock();
 
     useEffect(() => {
-        if (playbackState === "playing") {
+        if (playbackState === "playing" || playbackState === "buffering") {
             requestWakeLock();
         } else {
             releaseWakeLock();
@@ -341,17 +341,24 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                     isMaximized ? "p-2 sm:p-4" : "p-4 sm:px-5 sm:pt-5 sm:pb-3",
                     "bg-white/95 dark:bg-[#1c1f2f]/95 backdrop-blur-md border-b border-purple-100/20 dark:border-white/5"
                 )}>
-                    <Link
-                        href="/library"
+                    <button
                         id="reader-back-to-library"
                         data-tour-target="reader-back-to-library"
-                        onClick={() => saveProgress({ force: true, isExiting: true })}
+                        onClick={() => {
+                            saveProgress({ force: true, isExiting: true });
+                            if (window.history.length > 1) {
+                                router.back();
+                            } else {
+                                const lastUrl = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('lastLibraryUrl') : null;
+                                router.push(lastUrl || '/library');
+                            }
+                        }}
                         className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-ink shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border border-purple-100 dark:border-transparent"
                         aria-label="Back to Library"
                         title="Back to Library"
                     >
                         <ArrowLeft className="h-5 w-5" />
-                    </Link>
+                    </button>
 
                     <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
                         <LumoCharacter size="sm" className="hidden sm:flex flex-shrink-0" />

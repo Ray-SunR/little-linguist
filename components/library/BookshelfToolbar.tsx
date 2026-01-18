@@ -30,6 +30,7 @@ import {
     Play,
     Flame,
     Palette,
+    X,
     LucideIcon
 } from "lucide-react";
 import {

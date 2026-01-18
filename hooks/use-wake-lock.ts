@@ -76,21 +76,35 @@ export function useWakeLock({
         // Cleanup listener first to prevent double-firing
         if (handleReleaseRef.current) {
             wakeLock.removeEventListener("release", handleReleaseRef.current);
-            handleReleaseRef.current = null;
+            // Don't nullify yet, might need to re-attach if we abort
         }
 
         try {
             if (wakeLock.released) {
                 wakeLockRef.current = null;
+                handleReleaseRef.current = null;
                 if (isMountedRef.current) setIsLocked(false);
                 if (onReleaseRef.current && isMountedRef.current) onReleaseRef.current();
                 return;
             }
 
+            // --- CRITICAL FIX START ---
+            // If while we were waiting/processing, a new request came in (shouldBeLockedRef became true),
+            // then DO NOT release. Instead, treat this as an "abort release".
+            // We must re-attach the listener because we removed it above hoping to release.
+            if (shouldBeLockedRef.current) {
+                if (handleReleaseRef.current) {
+                    wakeLock.addEventListener("release", handleReleaseRef.current);
+                }
+                return;
+            }
+            // --- CRITICAL FIX END ---
+
             await wakeLock.release();
 
             // Manual state update
             wakeLockRef.current = null;
+            handleReleaseRef.current = null;
             if (isMountedRef.current) setIsLocked(false);
             if (onReleaseRef.current && isMountedRef.current) onReleaseRef.current();
 
