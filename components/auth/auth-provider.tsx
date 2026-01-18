@@ -3,9 +3,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { getChildren, getUserProfile, updateLibrarySettings as apiUpdateLibrarySettings, type ChildProfile } from "@/app/actions/profiles";
+import { getChildren, updateLibrarySettings as apiUpdateLibrarySettings, type ChildProfile } from "@/app/actions/profiles";
 import { getCookie, setCookie, deleteCookie } from "cookies-next";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const DEBUG = process.env.NODE_ENV === "development";
 const Log = {
@@ -57,7 +57,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profileError, setProfileError] = useState<string | null>(null);
   const authListenerFiredRef = useRef<boolean>(false);
 
-  const router = useRouter();
   const pathname = usePathname();
 
   // Keep refs in sync
