@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import LibraryView from "@/components/reader/library-view";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import { raidenCache, CacheStore } from "@/lib/core/cache";
@@ -16,12 +17,17 @@ type LoadState = 'idle' | 'loading' | 'success' | 'error' | 'empty';
 
 export interface LibraryFilters {
     collection?: 'discovery' | 'my-tales' | 'favorites' | 'browse';
-    level?: string;
+    level?: 'toddler' | 'preschool' | 'elementary' | 'intermediate';
     origin?: string;
     type?: 'fiction' | 'nonfiction';
     category?: string;
-    duration?: string;
+    duration?: 'short' | 'medium' | 'long';
 }
+
+const VALID_LEVELS = ['toddler', 'preschool', 'elementary', 'intermediate'];
+const VALID_TYPES = ['fiction', 'nonfiction'];
+const VALID_DURATIONS = ['short', 'medium', 'long'];
+const VALID_COLLECTIONS = ['discovery', 'my-tales', 'favorites', 'browse'];
 
 const isDefaultFilters = (f: LibraryFilters, sortBy: string = "last_opened", sortOrder: string = "desc") => {
     if (!f) return true;
@@ -39,7 +45,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const { user, activeChild, isLoading: authLoading, librarySettings, updateLibrarySettings, profiles: authProfiles, refreshProfiles } = useAuth();
 
     // Fast-path: Use server profiles if AuthProvider hasn't hydrated yet.
-    const effectiveProfiles = authProfiles.length > 0 ? authProfiles : (serverProfiles || []);
+    const effectiveProfiles = useMemo(() => authProfiles.length > 0 ? authProfiles : (serverProfiles || []), [authProfiles, serverProfiles]);
 
     const activeChildFromCookie = useMemo(() => {
         if (typeof window === "undefined") return null;
@@ -56,11 +62,44 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
     const hasCacheHint = typeof window !== "undefined" && !!window.localStorage.getItem(`raiden:has_library_cache:${cacheKey}`);
 
-    // Initial state derivation for eager filter-awareness
-    const initialSortBy = resolvedActiveChild?.library_settings?.sortBy || "last_opened";
-    const initialSortOrder = (resolvedActiveChild?.library_settings?.sortOrder as 'asc' | 'desc') || "desc";
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // Initial state derivation for eager filter-awareness with URL priority
+    const urlCollectionRaw = searchParams.get('collection');
+    const urlCollection = (urlCollectionRaw && VALID_COLLECTIONS.includes(urlCollectionRaw))
+        ? urlCollectionRaw as LibraryFilters['collection']
+        : undefined;
+    const urlSort = searchParams.get('sort');
+    const urlOrderRaw = searchParams.get('order');
+    const urlOrder = (urlOrderRaw === 'asc' || urlOrderRaw === 'desc') ? urlOrderRaw : undefined;
+    const urlQuery = searchParams.get('q') || "";
+
+    const initialSortBy = urlSort || resolvedActiveChild?.library_settings?.sortBy || "last_opened";
+    const initialSortOrder = urlOrder || (resolvedActiveChild?.library_settings?.sortOrder as 'asc' | 'desc') || "desc";
     const initialFilters = (resolvedActiveChild?.library_settings?.filters || {}) as LibraryFilters;
-    const isInitialDefault = isDefaultFilters(initialFilters, initialSortBy, initialSortOrder);
+
+    // Build URL filters object with whitelisting
+    const urlFilters: Partial<LibraryFilters> = {};
+    const level = searchParams.get('level');
+    const type = searchParams.get('type');
+    const category = searchParams.get('category');
+    const origin = searchParams.get('origin');
+    const duration = searchParams.get('duration');
+
+    if (level && VALID_LEVELS.includes(level)) urlFilters.level = level as any;
+    if (type && VALID_TYPES.includes(type)) urlFilters.type = type as any;
+    if (duration && VALID_DURATIONS.includes(duration)) urlFilters.duration = duration as any;
+    if (category && category !== 'all') urlFilters.category = category;
+    if (origin) urlFilters.origin = origin;
+
+    const [searchQuery, setSearchQuery] = useState(urlQuery);
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(urlQuery);
+    const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
+
+    // Filter-aware initial hydration
+    const isInitialDefault = !urlQuery && isDefaultFilters({ ...initialFilters, ...urlFilters, collection: urlCollection || initialFilters.collection }, initialSortBy, initialSortOrder);
 
     const [books, setBooks] = useState<LibraryBookCard[]>(() => {
         if (typeof window !== "undefined" && cachedLibraryBooks[cacheKey] && isInitialDefault) {
@@ -72,29 +111,30 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const [error, setError] = useState<string | null>(null);
     const [loadState, setLoadState] = useState<LoadState>(() => {
         if (cachedLibraryBooks[cacheKey] && isInitialDefault) return 'success';
-        if (hasCacheHint && isInitialDefault) return 'idle'; 
+        if (hasCacheHint && isInitialDefault) return 'idle';
         return 'loading';
     });
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
 
-    // Filtering & Sorting State
     const [sortBy, setSortBy] = useState<string>(() => initialSortBy);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => initialSortOrder);
     const [activeCollection, setActiveCollection] = useState<NonNullable<LibraryFilters["collection"]>>(() => {
-        return initialFilters.collection || "discovery";
+        return urlCollection || initialFilters.collection || "discovery";
     });
 
     const [collectionFilters, setCollectionFilters] = useState<Record<NonNullable<LibraryFilters["collection"]>, Partial<LibraryFilters>>>(() => {
         const filters = initialFilters;
-        const { collection, ...rest } = filters;
-        const collectionKey = collection || "discovery";
+        const { collection: _, ...rest } = filters;
+        const collectionKey = urlCollection || filters.collection || "discovery";
+
+        // Merge URL filters into the active collection's initial state
         return {
-            discovery: collectionKey === 'discovery' ? rest : {},
-            "my-tales": collectionKey === 'my-tales' ? rest : {},
-            favorites: collectionKey === 'favorites' ? rest : {},
-            browse: collectionKey === 'browse' ? rest : {}
+            discovery: collectionKey === 'discovery' ? { ...rest, ...urlFilters } : (filters.collection === 'discovery' ? rest : {}),
+            "my-tales": collectionKey === 'my-tales' ? { ...rest, ...urlFilters } : (filters.collection === 'my-tales' ? rest : {}),
+            favorites: collectionKey === 'favorites' ? { ...rest, ...urlFilters } : (filters.collection === 'favorites' ? rest : {}),
+            browse: collectionKey === 'browse' ? { ...rest, ...urlFilters } : (filters.collection === 'browse' ? rest : {})
         };
     });
 
@@ -114,19 +154,124 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const isDirtyRef = useRef(false);
     const searchQueryRef = useRef("");
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-    const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
-    
-    // Optimistic cache for immediate UI feedback
-    const [optimisticInterests, setOptimisticInterests] = useState<string[] | null>(null);
-
+    // Debounce search query
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchQuery(searchQuery);
         }, 500);
         return () => clearTimeout(timer);
     }, [searchQuery]);
+
+
+    // Sync URL with all state (Search + Filters + Sort)
+    useEffect(() => {
+        // Use a functional approach to avoid depending on searchParams directly for everything
+        // but we still want to preserve parameters we don't manage.
+        const current = new URLSearchParams(window.location.search);
+
+        // Search
+        if (debouncedSearchQuery) current.set('q', debouncedSearchQuery);
+        else current.delete('q');
+
+        // Collection
+        if (activeCollection && activeCollection !== 'discovery') current.set('collection', activeCollection);
+        else current.delete('collection');
+
+        // Sort
+        if (sortBy && sortBy !== 'last_opened') current.set('sort', sortBy);
+        else current.delete('sort');
+
+        if (sortOrder && sortOrder !== 'desc') current.set('order', sortOrder);
+        else current.delete('order');
+
+        // Filters - Current Collection
+        const currentCollFilters = collectionFilters[activeCollection] || {};
+        const filterKeys = ['level', 'type', 'category', 'origin', 'duration'] as const;
+        filterKeys.forEach(key => {
+            const val = currentCollFilters[key];
+            if (val && (key !== 'category' || val !== 'all')) {
+                current.set(key, val as string);
+            } else {
+                current.delete(key);
+            }
+        });
+
+        // Ensure stable ordering for comparison
+        current.sort();
+        const search = current.toString();
+        const query = search ? `?${search}` : "";
+        const fullPath = `${pathname}${query}`;
+
+        // Comparison URL
+        const existing = new URLSearchParams(window.location.search);
+        existing.sort();
+        const currentPath = `${pathname}${existing.toString() ? `?${existing.toString()}` : ''}`;
+
+        // Save for ClayNav persistence
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('lastLibraryUrl', fullPath);
+        }
+
+        if (fullPath !== currentPath) {
+            router.replace(fullPath, { scroll: false });
+        }
+    }, [debouncedSearchQuery, activeCollection, collectionFilters, sortBy, sortOrder, pathname, router]);
+
+
+    useEffect(() => {
+        // Search
+        if (urlQuery !== debouncedSearchQuery) {
+            setSearchQuery(urlQuery);
+            setDebouncedSearchQuery(urlQuery);
+        }
+
+        // Filters & Sort
+        const urlCollectionRaw = searchParams.get('collection');
+        const urlCollection = (urlCollectionRaw && VALID_COLLECTIONS.includes(urlCollectionRaw))
+            ? urlCollectionRaw as NonNullable<LibraryFilters["collection"]>
+            : activeCollection;
+
+        if (urlCollection !== activeCollection) {
+            setActiveCollection(urlCollection);
+        }
+
+        const currentUrlSort = searchParams.get('sort') || 'last_opened';
+        const currentUrlOrderRaw = searchParams.get('order');
+        const currentUrlOrder = (currentUrlOrderRaw === 'asc' || currentUrlOrderRaw === 'desc') ? currentUrlOrderRaw : 'desc';
+
+        if (currentUrlSort !== sortBy) setSortBy(currentUrlSort);
+        if (currentUrlOrder !== sortOrder) setSortOrder(currentUrlOrder);
+
+        const urlFilters: Partial<LibraryFilters> = {};
+        const level = searchParams.get('level');
+        const type = searchParams.get('type');
+        const category = searchParams.get('category');
+        const origin = searchParams.get('origin');
+        const duration = searchParams.get('duration');
+
+        if (level && VALID_LEVELS.includes(level)) urlFilters.level = level as any;
+        if (type && VALID_TYPES.includes(type)) urlFilters.type = type as any;
+        if (duration && VALID_DURATIONS.includes(duration)) urlFilters.duration = duration as any;
+        if (category && category !== 'all') urlFilters.category = category;
+        if (origin) urlFilters.origin = origin;
+
+        // Deep compare to avoid loops? 
+        // For now, simplify: just update if different.
+        // But collectionFilters is complex.
+        // We really only need to update the *current* collection's filters from URL.
+
+        setCollectionFilters(prev => {
+            const current = prev[urlCollection];
+            const isDiff = JSON.stringify(current) !== JSON.stringify(urlFilters);
+            if (!isDiff) return prev;
+            return { ...prev, [urlCollection]: urlFilters };
+        });
+
+    }, [searchParams, debouncedSearchQuery, activeCollection, sortBy, sortOrder, urlQuery]); // Depend on searchParams key-value changes essentially
+
+
+    // Optimistic cache for immediate UI feedback
+    const [optimisticInterests, setOptimisticInterests] = useState<string[] | null>(null);
 
     // Reset optimistic state when resolved child changes (backend caught up)
     useEffect(() => {
@@ -192,26 +337,37 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                         searchQuery: searchQueryRef.current
                     });
                 }
-                
+
                 // 1. Search Mode
                 if (searchQueryRef.current) {
-                    booksUrl = `/api/books/search?q=${encodeURIComponent(searchQueryRef.current)}&limit=${LIMIT}&offset=${currentOffset}`;
-                    if (resolvedActiveChild?.id) booksUrl += `&childId=${resolvedActiveChild.id}`;
-                } 
+                    const searchParams = new URLSearchParams();
+                    searchParams.set('q', searchQueryRef.current);
+                    searchParams.set('limit', LIMIT.toString());
+                    searchParams.set('offset', currentOffset.toString());
+                    if (resolvedActiveChild?.id) searchParams.set('childId', resolvedActiveChild.id);
+
+                    // Add filters to search too!
+                    if (currentFilters.level) searchParams.set('level', currentFilters.level);
+                    if (currentFilters.category && currentFilters.category !== 'all') searchParams.set('category', currentFilters.category);
+                    if (currentFilters.duration) searchParams.set('duration', currentFilters.duration);
+                    if (currentFilters.type) searchParams.set('type', currentFilters.type);
+
+                    booksUrl = `/api/books/search?${searchParams.toString()}`;
+                }
                 // 2. Discovery Mode (Recommendations)
                 // 2. Discovery Mode (Recommendations) -- Now supports filters!
                 else if ((!currentFilters.collection || currentFilters.collection === 'discovery') && resolvedActiveChild?.id && currentUserId) {
-                     const recParams = new URLSearchParams();
-                     recParams.set('childId', resolvedActiveChild.id);
-                     recParams.set('limit', LIMIT.toString());
-                     recParams.set('offset', currentOffset.toString());
-                     
-                     if (currentFilters.level) recParams.set('level', currentFilters.level);
-                     if (currentFilters.category && currentFilters.category !== 'all') recParams.set('category', currentFilters.category);
-                     if (currentFilters.type) recParams.set('type', currentFilters.type);
-                     if (currentFilters.duration) recParams.set('duration', currentFilters.duration);
+                    const recParams = new URLSearchParams();
+                    recParams.set('childId', resolvedActiveChild.id);
+                    recParams.set('limit', LIMIT.toString());
+                    recParams.set('offset', currentOffset.toString());
 
-                     booksUrl = `/api/books/recommendations?${recParams.toString()}`;
+                    if (currentFilters.level) recParams.set('level', currentFilters.level);
+                    if (currentFilters.category && currentFilters.category !== 'all') recParams.set('category', currentFilters.category);
+                    if (currentFilters.type) recParams.set('type', currentFilters.type);
+                    if (currentFilters.duration) recParams.set('duration', currentFilters.duration);
+
+                    booksUrl = `/api/books/recommendations?${recParams.toString()}`;
                 }
                 // 3. Standard Library Filter Mode
                 else {
@@ -222,19 +378,19 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                     filterParams.set('offset', currentOffset.toString());
                     filterParams.set('sortBy', currentSort);
                     filterParams.set('sortOrder', currentSortOrder);
-    
+
                     if (currentFilters.level) filterParams.set('level', currentFilters.level);
                     if (currentFilters.origin) filterParams.set('origin', currentFilters.origin);
                     if (currentFilters.type) filterParams.set('type', currentFilters.type);
                     if (currentFilters.category) filterParams.set('category', currentFilters.category);
                     if (currentFilters.duration) filterParams.set('duration', currentFilters.duration);
                     if (currentFilters.collection === 'favorites') filterParams.set('isFavorite', 'true');
-                if (currentFilters.collection === 'my-tales') filterParams.set('onlyPersonal', 'true');
-                if (currentFilters.collection === 'discovery' || currentFilters.collection === 'browse') filterParams.set('onlyPublic', 'true');
-    
+                    if (currentFilters.collection === 'my-tales') filterParams.set('onlyPersonal', 'true');
+                    if (currentFilters.collection === 'discovery' || currentFilters.collection === 'browse') filterParams.set('onlyPublic', 'true');
+
                     booksUrl = `/api/books?${filterParams.toString()}`;
                 }
-                
+
                 const booksRes = await fetch(booksUrl, { signal: controller.signal });
 
                 if (requestId !== activeRequestIdRef.current) return;
@@ -268,7 +424,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 if (isInitial) {
                     setBooks(libraryBooks);
                     setOffset(LIMIT);
-                    if (isDefaultFilters(currentFilters, currentSort, currentSortOrder)) {
+                    if (!searchQueryRef.current && isDefaultFilters(currentFilters, currentSort, currentSortOrder)) {
                         cachedLibraryBooks[cacheKey] = libraryBooks;
                         raidenCache.put(CacheStore.LIBRARY_METADATA, { id: cacheKey, books: libraryBooks, updatedAt: Date.now() }).catch(() => { });
                     }
@@ -277,7 +433,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                         const existingIds = new Set(prev.map(b => b.id));
                         const newBooks = libraryBooks.filter(b => !existingIds.has(b.id));
                         const combined = [...prev, ...newBooks];
-                        if (isDefaultFilters(currentFilters, currentSort, currentSortOrder)) cachedLibraryBooks[cacheKey] = combined;
+                        if (!searchQueryRef.current && isDefaultFilters(currentFilters, currentSort, currentSortOrder)) cachedLibraryBooks[cacheKey] = combined;
                         return combined;
                     });
                     setOffset(prev => prev + LIMIT);
@@ -293,7 +449,9 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             } catch (err: any) {
                 if (err instanceof Error && err.name === 'AbortError') return;
                 if (requestId === activeRequestIdRef.current) {
-                    if (isInitial && !cachedLibraryBooks[cacheKey]?.length) {
+                    // If searching OR no cache, show error.
+                    // (If searching, we already cleared books, so we must show error)
+                    if (searchQueryRef.current || (isInitial && !cachedLibraryBooks[cacheKey]?.length)) {
                         setError(err instanceof Error ? err.message : 'Failed to load library');
                         setLoadState('error');
                     }
@@ -304,7 +462,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             }
         };
         return work();
-    }, [cacheKey, authLoading, resolvedActiveChild?.id]);
+    }, [cacheKey, authLoading, resolvedActiveChild?.id, currentUserId]);
 
     useEffect(() => {
         if (lastHydratedKey.current === cacheKey) return;
@@ -332,7 +490,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
         const { collection: savedCollection, ...savedFilters } = targetFilters;
         const collectionKey = savedCollection || "discovery";
-        
+
         setActiveCollection(collectionKey as any);
         setCollectionFilters({
             discovery: collectionKey === 'discovery' ? savedFilters : {},
@@ -348,8 +506,8 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     useEffect(() => {
         if (authLoading) return;
         const hasCache = !!cachedLibraryBooks[cacheKey];
-        const isDefaultView = isDefaultFilters(filters, sortBy, sortOrder);
-        
+        const isDefaultView = !debouncedSearchQuery && isDefaultFilters(filters, sortBy, sortOrder);
+
         if (!isDefaultView || !hasCache) {
             setLoadState('loading');
             setBooks([]);
@@ -359,14 +517,14 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         setHasMore(true);
         loadBooks(true);
         return () => { if (abortControllerRef.current) abortControllerRef.current.abort(); };
-    }, [cacheKey, authLoading, filters, sortBy, sortOrder, debouncedSearchQuery, resolvedActiveChild?.id, currentUserId]);
+    }, [cacheKey, authLoading, filters, sortBy, sortOrder, debouncedSearchQuery, resolvedActiveChild?.id, currentUserId, loadBooks]);
 
     useEffect(() => {
         if (authLoading || !user || !resolvedActiveChild?.id || !isDirtyRef.current) return;
         const timeout = setTimeout(() => {
             updateLibrarySettings({ filters, sortBy, sortOrder }).then(() => {
                 isDirtyRef.current = false;
-            }).catch(() => {});
+            }).catch(() => { });
         }, 1500);
         return () => clearTimeout(timeout);
     }, [filters, sortBy, sortOrder, resolvedActiveChild?.id, authLoading, user, updateLibrarySettings]);
@@ -411,11 +569,11 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             onDeleteBook={handleDeleteBook}
             currentUserId={currentUserId}
             activeChildId={resolvedActiveChild?.id}
-            activeChild={resolvedActiveChild ? { 
-                id: resolvedActiveChild.id, 
-                name: resolvedActiveChild.first_name, 
+            activeChild={resolvedActiveChild ? {
+                id: resolvedActiveChild.id,
+                name: resolvedActiveChild.first_name,
                 avatar_url: resolvedActiveChild.avatar_asset_path,
-                interests: optimisticInterests || resolvedActiveChild.interests 
+                interests: optimisticInterests || resolvedActiveChild.interests
             } : null}
             isLoading={loadState === 'loading'}
             onLoadMore={() => loadBooks(false)}
@@ -428,18 +586,30 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             filters={filters}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            onFiltersChange={(newFilters: LibraryFilters) => {
+            onFiltersChange={(newFilters: LibraryFilters, changedKey?: string) => {
                 const nextCollection = newFilters.collection;
                 const { collection, ...rest } = newFilters;
                 isDirtyRef.current = true;
-                
-                if (nextCollection && nextCollection !== activeCollection) {
-                    setActiveCollection(nextCollection);
-                    const hasNewFilters = Object.keys(rest).length > 0;
-                    if (hasNewFilters) {
-                        setCollectionFilters(prev => ({ ...prev, [nextCollection]: rest }));
+
+                // Reset search ONLY if a collection button was specifically clicked
+                if (changedKey === 'collection') {
+                    setSearchQuery("");
+                    setDebouncedSearchQuery("");
+                }
+
+                if (nextCollection) {
+                    if (nextCollection !== activeCollection) {
+                        setActiveCollection(nextCollection);
+                        const hasNewFilters = Object.keys(rest).length > 0;
+                        if (hasNewFilters) {
+                            setCollectionFilters(prev => ({ ...prev, [nextCollection]: rest }));
+                        }
+                    } else {
+                        // If same collection, we still want to ensure other filters in that collection are merged if provided
+                        setCollectionFilters(prev => ({ ...prev, [activeCollection]: { ...prev[activeCollection], ...rest } }));
                     }
                 } else {
+                    // Fallback for general filter changes not involving collection buttons
                     setCollectionFilters(prev => ({ ...prev, [activeCollection]: rest }));
                 }
             }}
@@ -447,22 +617,22 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             onRetry={() => loadBooks(true)}
             onEditInterests={() => setIsInterestModalOpen(true)}
         />
-        {resolvedActiveChild && (
-             <InterestEditorModal
-                isOpen={isInterestModalOpen}
-                onClose={() => setIsInterestModalOpen(false)}
-                child={{
-                    id: resolvedActiveChild.id,
-                    name: resolvedActiveChild.first_name,
-                    interests: optimisticInterests || resolvedActiveChild.interests
-                }}
-                onUpdate={async (newInterests) => {
-                    setOptimisticInterests(newInterests);
-                    await refreshProfiles(true);
-                    loadBooks(true);
-                }}
-            />
-        )}
-    </>
+            {resolvedActiveChild && (
+                <InterestEditorModal
+                    isOpen={isInterestModalOpen}
+                    onClose={() => setIsInterestModalOpen(false)}
+                    child={{
+                        id: resolvedActiveChild.id,
+                        name: resolvedActiveChild.first_name,
+                        interests: optimisticInterests || resolvedActiveChild.interests
+                    }}
+                    onUpdate={async (newInterests) => {
+                        setOptimisticInterests(newInterests);
+                        await refreshProfiles(true);
+                        loadBooks(true);
+                    }}
+                />
+            )}
+        </>
     );
 }

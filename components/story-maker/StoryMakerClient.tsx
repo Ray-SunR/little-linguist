@@ -279,7 +279,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
             const userDraftKey = `draft:${user.id}`;
             const childDraftKey = activeChild?.id ? `draft:${user.id}:${activeChild.id}` : null;
-            
+
             let draft = await raidenCache.get<any>(CacheStore.DRAFTS, userDraftKey);
             if (!draft && childDraftKey) {
                 draft = await raidenCache.get<any>(CacheStore.DRAFTS, childDraftKey);
@@ -303,7 +303,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                             if (guestDraft.selectedWords) setSelectedWords(guestDraft.selectedWords);
                         }
                     }
-                    
+
                     // Persist to user record and clean up guest
                     await raidenCache.put(CacheStore.DRAFTS, { id: userDraftKey, ...guestDraft });
                     await raidenCache.delete(CacheStore.DRAFTS, "draft:guest");
@@ -322,10 +322,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             console.debug("[StoryMakerClient] Resuming with draft:", draft.profile.name);
             setProfile(draft.profile);
             setSelectedWords(draft.selectedWords);
-            
+
             const finalLength = draft.storyLengthMinutes || 5;
             const finalImageCount = draft.imageSceneCount !== undefined ? draft.imageSceneCount : finalLength;
-            
+
             setStoryLengthMinutes(finalLength);
             setImageSceneCount(finalImageCount);
             if (draft.idempotencyKey) setCurrentIdempotencyKey(draft.idempotencyKey);
@@ -366,7 +366,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 router.push(`/reader/${result.book_id}`);
             }
         }
-    }, [step, user]);
+    }, [step, user, router]);
 
     // Save draft on changes (Debounced)
     useEffect(() => {
@@ -455,9 +455,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         const finalStoryLengthMinutes = overrideStoryLengthMinutes || storyLengthMinutes;
 
         if (!user) {
-            await raidenCache.put(CacheStore.DRAFTS, { 
-                id: "draft:guest", 
-                profile: finalProfile, 
+            await raidenCache.put(CacheStore.DRAFTS, {
+                id: "draft:guest",
+                profile: finalProfile,
                 selectedWords: finalWords,
                 storyLengthMinutes: finalStoryLengthMinutes,
                 imageSceneCount: imageSceneCount,
@@ -653,19 +653,19 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             router.push(`/reader/${content.book_id}`);
             // service.generateImagesForBook is now called automatically on backend
 
-            } catch (err: unknown) {
-                console.error(err);
-                if (err instanceof Error && err.name === 'AIError' && (err.message === 'LIMIT_REACHED' || err.message === 'IMAGE_LIMIT_REACHED')) {
-                    const msg = err.message === 'IMAGE_LIMIT_REACHED'
-                        ? "You don't have enough energy crystals for that many sections!"
-                        : "You've reached your story generation limit for today! Upgrade to Pro for more stories.";
-                    setError({ message: msg, type: 'quota' });
-                    setStep("profile"); // Drop back to profile step so they can see the error
-                } else {
-                    const errorMessage = err instanceof Error ? err.message : "Oops! Something went wrong while making your story. Please try again.";
-                    setError({ message: errorMessage, type: 'general' });
-                }
-            } finally {
+        } catch (err: unknown) {
+            console.error(err);
+            if (err instanceof Error && err.name === 'AIError' && (err.message === 'LIMIT_REACHED' || err.message === 'IMAGE_LIMIT_REACHED')) {
+                const msg = err.message === 'IMAGE_LIMIT_REACHED'
+                    ? "You don't have enough energy crystals for that many sections!"
+                    : "You've reached your story generation limit for today! Upgrade to Pro for more stories.";
+                setError({ message: msg, type: 'quota' });
+                setStep("profile"); // Drop back to profile step so they can see the error
+            } else {
+                const errorMessage = err instanceof Error ? err.message : "Oops! Something went wrong while making your story. Please try again.";
+                setError({ message: errorMessage, type: 'general' });
+            }
+        } finally {
             // Immediate refresh
             refreshUsage();
             setTimeout(() => refreshUsage(), 5000);
@@ -755,7 +755,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         )}
                         {plan === 'free' && user && (
                             <Link href="/pricing" className="shrink-0 hidden lg:block">
-                                <motion.div 
+                                <motion.div
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     className="bg-gradient-to-r from-purple-500 to-indigo-600 px-3 py-1.5 rounded-xl shadow-clay-purple flex items-center gap-2"
@@ -772,15 +772,15 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             <main className="mx-auto max-w-5xl relative px-4">
                 {step === 'profile' && (
                     <div className="pt-6 pb-2 text-left mb-6">
-                        <motion.h2 
-                            initial={{ opacity: 0, y: -10 }} 
+                        <motion.h2
+                            initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="text-3xl md:text-4xl font-black font-fredoka text-ink uppercase tracking-tight mb-2"
                         >
                             Story Maker
                         </motion.h2>
-                        <motion.p 
-                            initial={{ opacity: 0, y: -5 }} 
+                        <motion.p
+                            initial={{ opacity: 0, y: -5 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
                             className="text-base md:text-lg font-bold font-nunito text-ink-muted/80 leading-tight"
@@ -864,7 +864,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                     interests: p.interests || []
                                                 };
                                                 setProfile(selectedProfile);
-                                                
+
                                                 if (!user) return;
 
                                                 // Draft Lookup: Try child-specific, then generic user, then guest-migrated
@@ -873,7 +873,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                     `draft:${user.id}`,
                                                     "draft:guest"
                                                 ];
-                                                
+
                                                 let foundDraft = null;
                                                 for (const key of possibleKeys) {
                                                     const d = await raidenCache.get<any>(CacheStore.DRAFTS, key);
@@ -885,8 +885,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
                                                 if (foundDraft) {
                                                     generateStory(
-                                                        foundDraft.selectedWords, 
-                                                        selectedProfile, 
+                                                        foundDraft.selectedWords,
+                                                        selectedProfile,
                                                         foundDraft.storyLengthMinutes || 5,
                                                         foundDraft.imageSceneCount,
                                                         foundDraft.idempotencyKey
@@ -1472,11 +1472,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 )}
             </main>
 
-            <UsageModal 
-                isOpen={showUsageModal} 
-                onClose={() => setShowUsageModal(false)} 
-                usage={usage} 
-                plan={plan as string} 
+            <UsageModal
+                isOpen={showUsageModal}
+                onClose={() => setShowUsageModal(false)}
+                usage={usage}
+                plan={plan as string}
             />
         </div>
     );

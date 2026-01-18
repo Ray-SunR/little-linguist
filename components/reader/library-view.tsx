@@ -27,14 +27,14 @@ interface LibraryViewProps {
     sortOrder: "asc" | "desc";
     onSortOrderChange: (val: "asc" | "desc") => void;
     filters: {
-        level?: string;
+        level?: 'toddler' | 'preschool' | 'elementary' | 'intermediate';
         origin?: string;
         type?: "fiction" | "nonfiction";
         category?: string;
-        duration?: string;
+        duration?: 'short' | 'medium' | 'long';
         collection?: "discovery" | "my-tales" | "favorites" | "browse";
     };
-    onFiltersChange: (val: Partial<LibraryViewProps['filters']>) => void;
+    onFiltersChange: (val: Partial<LibraryViewProps['filters']>, changedKey?: string) => void;
     isGuest?: boolean;
     error?: string | null;
     onRetry?: () => void;
@@ -151,7 +151,7 @@ export default function LibraryView({
             newFilters.category = undefined;
         }
 
-        onFiltersChange(newFilters);
+        onFiltersChange(newFilters, key);
     };
 
     // Responsive Column Calculation

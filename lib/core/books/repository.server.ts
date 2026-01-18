@@ -610,7 +610,7 @@ export class BookRepository {
         const keywords = book.keywords || [];
 
         const embeddingText = `Title: ${book.title}. Description: ${description}. Keywords: ${keywords.join(', ')}.`;
-        
+
         const embeddingService = new BedrockEmbeddingService();
         const embedding = await embeddingService.generateEmbedding(embeddingText);
 
@@ -626,25 +626,80 @@ export class BookRepository {
         return embedding;
     }
 
+    private _mapLevelToGradeRange(level: string): { minGrade: number | null, maxGrade: number | null } {
+        let minGrade: number | null = null;
+        let maxGrade: number | null = null;
+        switch (level.toLowerCase()) {
+            case 'toddler':
+            case 'preschool':
+                minGrade = -2;
+                maxGrade = -1;
+                break;
+            case 'kindergarten':
+            case 'starting':
+                minGrade = 0;
+                maxGrade = 0;
+                break;
+            case 'elementary':
+                minGrade = 1;
+                maxGrade = 2;
+                break;
+            case 'intermediate':
+                minGrade = 3;
+                maxGrade = 5;
+                break;
+        }
+        return { minGrade, maxGrade };
+    }
+
+    private _mapDurationToRange(duration: string): { minDuration: number | null, maxDuration: number | null } {
+        let minDuration: number | null = null;
+        let maxDuration: number | null = null;
+        switch (duration) {
+            case 'short': // < 5m
+                maxDuration = 4;
+                break;
+            case 'medium': // 5-10m
+                minDuration = 5;
+                maxDuration = 10;
+                break;
+            case 'long': // > 10m
+                minDuration = 11;
+                break;
+        }
+        return { minDuration, maxDuration };
+    }
+
     /**
      * Performs a semantic search for books based on a text query.
      * STRICTLY searches PUBLIC books only via match_books RPC.
      */
-    async searchBooks(query: string, options: { matchThreshold?: number, limit?: number, offset?: number } = {}): Promise<any[]> {
+    async searchBooks(query: string, options: {
+        matchThreshold?: number,
+        limit?: number,
+        offset?: number,
+        level?: string,
+        category?: string,
+        isNonFiction?: boolean,
+        duration?: string
+    } = {}): Promise<any[]> {
         const embeddingService = new BedrockEmbeddingService();
         const queryEmbedding = await embeddingService.generateEmbedding(query);
+
+        const { minGrade, maxGrade } = options.level ? this._mapLevelToGradeRange(options.level) : { minGrade: null, maxGrade: null };
+        const { minDuration, maxDuration } = options.duration ? this._mapDurationToRange(options.duration) : { minDuration: null, maxDuration: null };
 
         const { data, error } = await this.supabase.rpc('match_books', {
             query_embedding: queryEmbedding,
             match_threshold: options.matchThreshold ?? 0.15, // Lowered from 0.4 to capture broader matches
             match_count: options.limit ?? 20,
             match_offset: options.offset ?? 0,
-            filter_min_grade: null,
-            filter_max_grade: null,
-            filter_category: null,
-            filter_is_nonfiction: null,
-            filter_min_duration: null,
-            filter_max_duration: null
+            filter_min_grade: minGrade,
+            filter_max_grade: maxGrade,
+            filter_category: options.category && options.category !== 'all' ? options.category : null,
+            filter_is_nonfiction: options.isNonFiction ?? null,
+            filter_min_duration: minDuration,
+            filter_max_duration: maxDuration
         });
 
         if (error) throw error;
@@ -655,9 +710,9 @@ export class BookRepository {
      * Recommends books for a child based on their interests.
      * STRICTLY recommends PUBLIC books only via match_books RPC.
      */
-    async recommendBooksForChild(childId: string, options: { 
-        matchThreshold?: number, 
-        limit?: number, 
+    async recommendBooksForChild(childId: string, options: {
+        matchThreshold?: number,
+        limit?: number,
         offset?: number,
         level?: string,
         category?: string,
@@ -680,48 +735,12 @@ export class BookRepository {
         }
 
         const interestText = `Interests: ${interests.join(', ')}.`;
-        
+
         const embeddingService = new BedrockEmbeddingService();
         const interestEmbedding = await embeddingService.generateEmbedding(interestText);
 
-        // Map UI filters to DB ranges
-        let minGrade: number | null = null;
-        let maxGrade: number | null = null;
-        if (options.level) {
-             switch (options.level.toLowerCase()) {
-                 case 'toddler': // Assuming Pre-K or 0-3yo equivalent
-                 case 'preschool':
-                     minGrade = -2; // Covering PreK (-1) and below
-                     maxGrade = -1;
-                     break;
-                 case 'kindergarten':
-                 case 'starting':
-                    minGrade = 0;
-                    maxGrade = 0;
-                    break;
-                 case 'elementary': 
-                    minGrade = 1;
-                    maxGrade = 5;
-                    break;
-             }
-        }
-
-        let minDuration: number | null = null;
-        let maxDuration: number | null = null;
-        if (options.duration) {
-            switch (options.duration) {
-                case 'short': // < 5m
-                    maxDuration = 4;
-                    break;
-                case 'medium': // 5-10m
-                    minDuration = 5;
-                    maxDuration = 10;
-                    break;
-                case 'long': // > 10m
-                    minDuration = 11;
-                    break;
-            }
-        }
+        const { minGrade, maxGrade } = options.level ? this._mapLevelToGradeRange(options.level) : { minGrade: null, maxGrade: null };
+        const { minDuration, maxDuration } = options.duration ? this._mapDurationToRange(options.duration) : { minDuration: null, maxDuration: null };
 
         const { data, error } = await this.supabase.rpc('match_books', {
             query_embedding: interestEmbedding,
@@ -730,7 +749,7 @@ export class BookRepository {
             match_offset: options.offset ?? 0,
             filter_min_grade: minGrade,
             filter_max_grade: maxGrade,
-            filter_category: options.category || null,
+            filter_category: options.category && options.category !== 'all' ? options.category : null,
             filter_is_nonfiction: options.isNonFiction ?? null,
             filter_min_duration: minDuration,
             filter_max_duration: maxDuration

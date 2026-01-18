@@ -99,6 +99,15 @@ export function ClayNav() {
     const { user, isStoryGenerating, activeChild, logout } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
+    const [libraryHref, setLibraryHref] = useState("/library");
+
+    // Update library href from session storage to restore state
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const last = sessionStorage.getItem('lastLibraryUrl');
+            if (last) setLibraryHref(last);
+        }
+    }, [pathname, isHubOpen]); // Check when path changes or hub opens/closes
     const { usage, plan, loading } = useUsage(["story_generation", "word_insight", "image_generation"]);
     const { completeStep } = useTutorial();
     const isReaderView = pathname.startsWith("/reader");
@@ -131,8 +140,12 @@ export function ClayNav() {
 
     // Clear pending state when navigation completes
     useEffect(() => {
-        if (pendingHref && pathname.startsWith(pendingHref)) {
-            setPendingHref(null);
+        if (pendingHref) {
+            // Compare only the pathname part as pendingHref may contain search params
+            const targetPath = pendingHref.split('?')[0];
+            if (pathname === targetPath || (targetPath !== '/' && pathname.startsWith(targetPath))) {
+                setPendingHref(null);
+            }
         }
     }, [pathname, pendingHref]);
 
@@ -280,10 +293,11 @@ export function ClayNav() {
 
                             {navItems.map((item) => {
                                 const activeNow = isActive(item.href) || pendingHref === item.href;
+                                const finalItem = item.id === 'nav-item-library' ? { ...item, href: libraryHref } : item;
                                 return (
                                     <MemoizedNavItem
                                         key={item.href}
-                                        item={item}
+                                        item={finalItem}
                                         isActive={activeNow}
                                         onClick={(href) => setPendingHref(href)}
                                         onComplete={completeStep}
@@ -461,8 +475,8 @@ export function ClayNav() {
                                                         <Sparkles className="w-5 h-5 text-amber-300" />
                                                         <span className="text-[12px] font-black font-fredoka uppercase tracking-tight">Unlock Premium Access</span>
                                                     </div>
-                                                    <ParentalLink 
-                                                        href="/pricing" 
+                                                    <ParentalLink
+                                                        href="/pricing"
                                                         className="px-5 py-2 bg-white text-indigo-600 rounded-xl font-black font-fredoka text-[11px] uppercase shadow-sm active:scale-95 transition-all shrink-0"
                                                     >
                                                         Upgrade

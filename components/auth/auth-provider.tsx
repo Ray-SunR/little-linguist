@@ -146,9 +146,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     if (isLoggingOutRef.current) return;
     isLoggingOutRef.current = true;
-    
+
     Log.info("Logout initiated...");
-    
+
     // Immediate in-memory cleanup to avoid stale UI flashes
     setUser(null);
     setProfiles([]);
@@ -181,7 +181,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         window.location.href = "/login";
       }
     }
-  }, []);
+  }, [supabase]);
 
   const fetchProfiles = useCallback(async (uid: string, silent = false, retryCount = 0): Promise<void> => {
     const requestId = ++activeFetchIdRef.current;
@@ -244,7 +244,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         Log.info(`fetchProfiles finished, cleared loading for req ${requestId}`);
       }
     }
-  }, [persistProfiles]);
+  }, [persistProfiles, logout]);
 
   const refreshProfiles = useCallback(async (silent = false): Promise<void> => {
     if (userRef.current?.id) {
@@ -258,10 +258,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     async function syncSession() {
       if (isLoggingOutRef.current) return;
-      
+
       const { data: { session } } = await supabase.auth.getSession();
       const currentUid = session?.user?.id;
-      
+
       if (currentUid !== userRef.current?.id) {
         Log.info("Navigation detected session change. Syncing state...", { old: userRef.current?.id, new: currentUid });
         setUser(session?.user ?? null);
@@ -276,7 +276,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       }
     }
-    
+
     syncSession();
   }, [pathname, supabase, fetchProfiles, hydrateFromCache]);
 
