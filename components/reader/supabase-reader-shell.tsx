@@ -17,6 +17,7 @@ import { WebSpeechNarrationProvider } from "@/lib/features/narration/implementat
 import type { ViewMode } from "@/lib/core";
 import { cn } from "@/lib/core";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
+import { useWakeLock } from "@/hooks/use-wake-lock";
 
 import BookLayout from "./book-layout";
 import ControlPanel from "./control-panel";
@@ -177,6 +178,17 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
     }, [playbackState]);
 
     const { completeStep } = useTutorial();
+
+    // Wake Lock Integration
+    const { request: requestWakeLock, release: releaseWakeLock } = useWakeLock();
+
+    useEffect(() => {
+        if (playbackState === "playing") {
+            requestWakeLock();
+        } else {
+            releaseWakeLock();
+        }
+    }, [playbackState, requestWakeLock, releaseWakeLock]);
 
     const handleWordClick = useCallback(async (word: string, element: HTMLElement, wordIndex: number) => {
         if (playbackStateRef.current === "playing") pause();

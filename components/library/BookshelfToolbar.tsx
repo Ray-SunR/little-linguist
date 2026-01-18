@@ -2,15 +2,11 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { cn } from "@/lib/core";
 import {
     Search,
-    GraduationCap,
     BookOpen,
     ArrowUpDown,
-    Star,
-    Compass,
     Rocket,
     Wand2,
     Heart,
@@ -29,19 +25,13 @@ import {
     Car,
     Sparkles,
     Filter,
-    X,
     Baby,
     Microscope,
-    Library,
     Play,
     Flame,
     Palette,
-    User,
-    ChevronDown,
     LucideIcon
 } from "lucide-react";
-import { clayVariants } from "@/lib/clay-utils";
-import { ClaySelect } from "./clay-select";
 import {
     Popover,
     PopoverContent,
@@ -57,7 +47,6 @@ import {
     SheetClose,
 } from "@/components/ui/sheet";
 
-import { CachedImage } from "@/components/ui/cached-image";
 import { PageToolbar } from "@/components/layout/page-toolbar";
 
 // --- Shared Constants (Move to shared file in future cleanup) ---
@@ -323,10 +312,43 @@ export function BookshelfToolbar({
                                         placeholder="Level"
                                         icon={Baby}
                                         options={[
-                                            { value: "toddler", label: "Toddler", icon: Baby, theme: "bg-rose-500 text-white shadow-rose-200", iconColor: "text-rose-500", lightBg: "bg-rose-50", activeIconColor: "text-white" },
-                                            { value: "preschool", label: "Preschool", icon: Palette, theme: "bg-amber-500 text-white shadow-amber-200", iconColor: "text-amber-500", lightBg: "bg-amber-50", activeIconColor: "text-white" },
-                                            { value: "elementary", label: "Elementary", icon: Rocket, theme: "bg-indigo-500 text-white shadow-indigo-200", iconColor: "text-indigo-500", lightBg: "bg-indigo-50", activeIconColor: "text-white" },
-                                            { value: "intermediate", label: "Intermediate", icon: FlaskConical, theme: "bg-violet-600 text-white shadow-violet-200", iconColor: "text-violet-500", lightBg: "bg-violet-50", activeIconColor: "text-white" },
+                                            {
+                                                value: "toddler",
+                                                label: "Toddler",
+                                                icon: Baby,
+                                                theme: "bg-rose-500 text-white shadow-rose-200",
+                                                iconColor: "text-rose-500",
+                                                // Pre-calculate hover states
+                                                hoverRx: "hover:bg-rose-50 group-hover:text-rose-500",
+                                                activeIconColor: "text-white"
+                                            },
+                                            {
+                                                value: "preschool",
+                                                label: "Preschool",
+                                                icon: Palette,
+                                                theme: "bg-amber-500 text-white shadow-amber-200",
+                                                iconColor: "text-amber-500",
+                                                hoverRx: "hover:bg-amber-50 group-hover:text-amber-500",
+                                                activeIconColor: "text-white"
+                                            },
+                                            {
+                                                value: "elementary",
+                                                label: "Elementary",
+                                                icon: Rocket,
+                                                theme: "bg-indigo-500 text-white shadow-indigo-200",
+                                                iconColor: "text-indigo-500",
+                                                hoverRx: "hover:bg-indigo-50 group-hover:text-indigo-500",
+                                                activeIconColor: "text-white"
+                                            },
+                                            {
+                                                value: "intermediate",
+                                                label: "Intermediate",
+                                                icon: FlaskConical,
+                                                theme: "bg-violet-600 text-white shadow-violet-200",
+                                                iconColor: "text-violet-500",
+                                                hoverRx: "hover:bg-violet-50 group-hover:text-violet-500",
+                                                activeIconColor: "text-white"
+                                            },
                                         ]}
                                     />
                                     <FilterSelect
@@ -336,8 +358,24 @@ export function BookshelfToolbar({
                                         placeholder="Type"
                                         icon={Sparkles}
                                         options={[
-                                            { value: "fiction", label: "Stories", icon: Wand2, theme: "bg-purple-500 text-white shadow-purple-200", iconColor: "text-purple-500", lightBg: "bg-purple-50", activeIconColor: "text-white" },
-                                            { value: "nonfiction", label: "Facts", icon: Microscope, theme: "bg-blue-500 text-white shadow-blue-200", iconColor: "text-blue-500", lightBg: "bg-blue-50", activeIconColor: "text-white" },
+                                            {
+                                                value: "fiction",
+                                                label: "Stories",
+                                                icon: Wand2,
+                                                theme: "bg-purple-500 text-white shadow-purple-200",
+                                                iconColor: "text-purple-500",
+                                                hoverRx: "hover:bg-purple-50 group-hover:text-purple-500",
+                                                activeIconColor: "text-white"
+                                            },
+                                            {
+                                                value: "nonfiction",
+                                                label: "Facts",
+                                                icon: Microscope,
+                                                theme: "bg-blue-500 text-white shadow-blue-200",
+                                                iconColor: "text-blue-500",
+                                                hoverRx: "hover:bg-blue-50 group-hover:text-blue-500",
+                                                activeIconColor: "text-white"
+                                            },
                                         ]}
                                     />
                                     <FilterSelect
@@ -347,9 +385,33 @@ export function BookshelfToolbar({
                                         placeholder="Time"
                                         icon={Clock}
                                         options={[
-                                            { value: "short", label: "< 5m", icon: Zap, theme: "bg-teal-500 text-white shadow-teal-200", iconColor: "text-teal-500", lightBg: "bg-teal-50", activeIconColor: "text-white" },
-                                            { value: "medium", label: "5-10m", icon: Play, theme: "bg-sky-500 text-white shadow-sky-200", iconColor: "text-sky-500", lightBg: "bg-sky-50", activeIconColor: "text-white" },
-                                            { value: "long", label: "> 10m", icon: Flame, theme: "bg-orange-500 text-white shadow-orange-200", iconColor: "text-orange-500", lightBg: "bg-orange-50", activeIconColor: "text-white" },
+                                            {
+                                                value: "short",
+                                                label: "< 5m",
+                                                icon: Zap,
+                                                theme: "bg-teal-500 text-white shadow-teal-200",
+                                                iconColor: "text-teal-500",
+                                                hoverRx: "hover:bg-teal-50 group-hover:text-teal-500",
+                                                activeIconColor: "text-white"
+                                            },
+                                            {
+                                                value: "medium",
+                                                label: "5-10m",
+                                                icon: Play,
+                                                theme: "bg-sky-500 text-white shadow-sky-200",
+                                                iconColor: "text-sky-500",
+                                                hoverRx: "hover:bg-sky-50 group-hover:text-sky-500",
+                                                activeIconColor: "text-white"
+                                            },
+                                            {
+                                                value: "long",
+                                                label: "> 10m",
+                                                icon: Flame,
+                                                theme: "bg-orange-500 text-white shadow-orange-200",
+                                                iconColor: "text-orange-500",
+                                                hoverRx: "hover:bg-orange-50 group-hover:text-orange-500",
+                                                activeIconColor: "text-white"
+                                            },
                                         ]}
                                     />
                                 </div>
@@ -377,7 +439,7 @@ export function BookshelfToolbar({
                                     <button
                                         className={cn(
                                             "lg:hidden p-2 rounded-xl transition-colors",
-                                            (filters.level || filters.type || filters.duration || filters.category !== 'all')
+                                            (filters.level || filters.type || filters.duration || (filters.category && filters.category !== 'all'))
                                                 ? "text-purple-600 bg-purple-50 border border-purple-100 shadow-sm"
                                                 : "text-purple-600/70 bg-purple-50/30 hover:bg-purple-50 hover:text-purple-600"
                                         )}
@@ -435,10 +497,34 @@ export function BookshelfToolbar({
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Reading Level</label>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {[
-                                                    { id: "toddler", label: "Toddler", icon: Baby, color: "rose" },
-                                                    { id: "preschool", label: "Preschool", icon: Palette, color: "amber" },
-                                                    { id: "elementary", label: "Elementary", icon: Rocket, color: "indigo" },
-                                                    { id: "intermediate", label: "Intermediate", icon: FlaskConical, color: "violet" },
+                                                    {
+                                                        id: "toddler",
+                                                        label: "Toddler",
+                                                        icon: Baby,
+                                                        activeClass: "bg-white border-rose-400 text-rose-600 shadow-lg shadow-rose-100",
+                                                        activeIconClass: "text-rose-500"
+                                                    },
+                                                    {
+                                                        id: "preschool",
+                                                        label: "Preschool",
+                                                        icon: Palette,
+                                                        activeClass: "bg-white border-amber-400 text-amber-600 shadow-lg shadow-amber-100",
+                                                        activeIconClass: "text-amber-500"
+                                                    },
+                                                    {
+                                                        id: "elementary",
+                                                        label: "Elementary",
+                                                        icon: Rocket,
+                                                        activeClass: "bg-white border-indigo-400 text-indigo-600 shadow-lg shadow-indigo-100",
+                                                        activeIconClass: "text-indigo-500"
+                                                    },
+                                                    {
+                                                        id: "intermediate",
+                                                        label: "Intermediate",
+                                                        icon: FlaskConical,
+                                                        activeClass: "bg-white border-violet-400 text-violet-600 shadow-lg shadow-violet-100",
+                                                        activeIconClass: "text-violet-500"
+                                                    },
                                                 ].map((opt) => {
                                                     const isActive = filters.level === opt.id;
                                                     const Icon = opt.icon;
@@ -449,11 +535,11 @@ export function BookshelfToolbar({
                                                             className={cn(
                                                                 "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
                                                                 isActive
-                                                                    ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
+                                                                    ? opt.activeClass
                                                                     : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
                                                             )}
                                                         >
-                                                            <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
+                                                            <Icon className={cn("w-4 h-4", isActive ? opt.activeIconClass : "text-slate-300")} />
                                                             {opt.label}
                                                         </button>
                                                     );
@@ -466,8 +552,20 @@ export function BookshelfToolbar({
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Story Type</label>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {[
-                                                    { id: "fiction", label: "Stories", icon: Wand2, color: "purple" },
-                                                    { id: "nonfiction", label: "Facts", icon: Microscope, color: "blue" },
+                                                    {
+                                                        id: "fiction",
+                                                        label: "Stories",
+                                                        icon: Wand2,
+                                                        activeClass: "bg-white border-purple-400 text-purple-600 shadow-lg shadow-purple-100",
+                                                        activeIconClass: "text-purple-500"
+                                                    },
+                                                    {
+                                                        id: "nonfiction",
+                                                        label: "Facts",
+                                                        icon: Microscope,
+                                                        activeClass: "bg-white border-blue-400 text-blue-600 shadow-lg shadow-blue-100",
+                                                        activeIconClass: "text-blue-500"
+                                                    },
                                                 ].map((opt) => {
                                                     const isActive = filters.type === opt.id;
                                                     const Icon = opt.icon;
@@ -478,11 +576,11 @@ export function BookshelfToolbar({
                                                             className={cn(
                                                                 "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
                                                                 isActive
-                                                                    ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
+                                                                    ? opt.activeClass
                                                                     : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
                                                             )}
                                                         >
-                                                            <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
+                                                            <Icon className={cn("w-4 h-4", isActive ? opt.activeIconClass : "text-slate-300")} />
                                                             {opt.label}
                                                         </button>
                                                     );
@@ -495,9 +593,27 @@ export function BookshelfToolbar({
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Length</label>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {[
-                                                    { id: "short", label: "< 5m", icon: Zap, color: "teal" },
-                                                    { id: "medium", label: "5-10m", icon: Play, color: "sky" },
-                                                    { id: "long", label: "> 10m", icon: Flame, color: "orange" },
+                                                    {
+                                                        id: "short",
+                                                        label: "< 5m",
+                                                        icon: Zap,
+                                                        activeClass: "bg-white border-teal-400 text-teal-600 shadow-lg shadow-teal-100",
+                                                        activeIconClass: "text-teal-500"
+                                                    },
+                                                    {
+                                                        id: "medium",
+                                                        label: "5-10m",
+                                                        icon: Play,
+                                                        activeClass: "bg-white border-sky-400 text-sky-600 shadow-lg shadow-sky-100",
+                                                        activeIconClass: "text-sky-500"
+                                                    },
+                                                    {
+                                                        id: "long",
+                                                        label: "> 10m",
+                                                        icon: Flame,
+                                                        activeClass: "bg-white border-orange-400 text-orange-600 shadow-lg shadow-orange-100",
+                                                        activeIconClass: "text-orange-500"
+                                                    },
                                                 ].map((opt) => {
                                                     const isActive = filters.duration === opt.id;
                                                     const Icon = opt.icon;
@@ -508,11 +624,11 @@ export function BookshelfToolbar({
                                                             className={cn(
                                                                 "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
                                                                 isActive
-                                                                    ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
+                                                                    ? opt.activeClass
                                                                     : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
                                                             )}
                                                         >
-                                                            <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
+                                                            <Icon className={cn("w-4 h-4", isActive ? opt.activeIconClass : "text-slate-300")} />
                                                             {opt.label}
                                                         </button>
                                                     );
@@ -680,20 +796,20 @@ function FilterSelect({ value, onChange, options, placeholder, icon: BaseIcon, p
                                     w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 group
                                     ${isActive
                                         ? `${opt.theme} shadow-lg scale-[1.02] z-10`
-                                        : `hover:${opt.lightBg || 'bg-slate-100'} text-slate-600 hover:text-slate-900 border border-transparent`}
+                                        : `${opt.hoverRx || 'hover:bg-slate-100'} text-slate-600 hover:text-slate-900 border border-transparent`}
                                 `}
                             >
                                 <div className={`
                                     w-10 h-10 flex items-center justify-center rounded-xl relative transition-all duration-300
                                     ${isActive
                                         ? 'bg-white/20'
-                                        : `bg-slate-50 group-hover:${opt.lightBg || 'bg-slate-100'}`}
+                                        : `bg-slate-50 ${opt.hoverRx?.split(' ')[0] || 'hover:bg-slate-100'}`}
                                 `}>
                                     <OptIcon className={`
                                         w-5 h-5 relative z-10 transition-colors duration-300
                                         ${isActive
                                             ? (opt.activeIconColor || 'text-white')
-                                            : `text-slate-400 group-hover:${opt.iconColor}`}
+                                            : `text-slate-400 ${opt.hoverRx?.split(' ')[1] || 'group-hover:text-slate-600'}`}
                                     `} />
                                     {isActive && (
                                         <div className={`absolute inset-0 blur-md opacity-40 ${opt.iconColor} bg-current rounded-full`} />
