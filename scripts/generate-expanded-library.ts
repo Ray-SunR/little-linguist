@@ -2,6 +2,7 @@
 import { StabilityStoryService } from "../lib/features/stability/stability-service.server";
 import { ClaudeStoryService } from "../lib/features/bedrock/claude-service.server";
 import { PollyNarrationService } from "../lib/features/narration/polly-service.server";
+import { NarrativeDirector } from "../lib/features/narration/narrative-director.server";
 import { Tokenizer } from "../lib/core/books/tokenizer";
 import { TextChunker } from "../lib/core/books/text-chunker";
 import { alignSpeechMarksToTokens, getWordTokensForChunk } from "../lib/core/books/speech-mark-aligner";
@@ -87,6 +88,7 @@ async function main() {
     const nova = new StabilityStoryService();
     const claude = new ClaudeStoryService();
     const polly = new PollyNarrationService();
+    const director = new NarrativeDirector();
 
     console.log(`\n🚀 Starting concurrent generation (Concurrency: 3) for remaining ${manifesto.length - state.completed.length} books...`);
 
@@ -275,7 +277,15 @@ async function main() {
                     if (bState.completedAudio.includes(i)) continue;
 
                     const chunk = textChunks[i];
-                    const { audioBuffer, speechMarks } = await polly.synthesize(chunk.text);
+                    console.log(`    🎭 Annotating and synthesizing chunk ${i + 1}/${textChunks.length}...`);
+
+                    const annotation = await director.annotate(chunk.text, entry.level);
+                    const { audioBuffer, speechMarks } = await polly.synthesize(annotation.ssml, {
+                        textType: "ssml",
+                        voiceId: annotation.metadata.suggestedVoice || "Ruth",
+                        engine: "generative"
+                    });
+
                     const audioFilename = `${chunk.index}.mp3`;
                     fs.writeFileSync(path.join(bookDir, 'audio', audioFilename), audioBuffer);
 
@@ -293,7 +303,8 @@ async function main() {
                     bState.audioShards = audioShards;
                     saveState();
                 }
-                bState.voiceId = voiceId;
+                bState.voiceId = "Ruth";
+                bState.engine = "generative";
             }
 
             // --- Finalize ---
@@ -320,6 +331,7 @@ async function main() {
                 scenes: bState.sceneData,
                 audio: {
                     voice_id: bState.voiceId,
+                    engine: bState.engine,
                     shards: bState.audioShards
                 },
                 tokens: bState.tokens,

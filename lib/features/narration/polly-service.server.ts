@@ -20,44 +20,60 @@ export class PollyNarrationService {
         this.voiceId = process.env.POLLY_VOICE_ID || "Kevin";
     }
 
-    async synthesize(text: string): Promise<PollyResponse> {
+    async synthesize(
+        text: string,
+        options: {
+            textType?: "text" | "ssml",
+            voiceId?: string,
+            engine?: "neural" | "generative" | "standard"
+        } = {}
+    ): Promise<PollyResponse> {
+        const textType = options.textType || "text";
+        const voiceId = options.voiceId || this.voiceId;
+        const engine = options.engine || "neural";
+
         const audioParams = {
             OutputFormat: "mp3" as const,
             Text: text,
-            VoiceId: this.voiceId as any,
-            Engine: "neural" as const,
-            TextType: "text" as const,
+            VoiceId: voiceId as any,
+            Engine: engine as any,
+            TextType: textType,
             SampleRate: "22050",
         };
 
-        const marksParams = {
-            OutputFormat: "json" as const,
-            Text: text,
-            VoiceId: this.voiceId as any,
-            Engine: "neural" as const,
-            SpeechMarkTypes: ["word"] as any[],
-            TextType: "text" as const,
-            SampleRate: "22050",
-        };
+        const audioResp = await this.client.send(new SynthesizeSpeechCommand(audioParams));
+        let marksResp = null;
 
-        const [audioResp, marksResp] = await Promise.all([
-            this.client.send(new SynthesizeSpeechCommand(audioParams)),
-            this.client.send(new SynthesizeSpeechCommand(marksParams)),
-        ]);
+        if (engine !== "generative") {
+            const marksParams = {
+                OutputFormat: "json" as const,
+                Text: text,
+                VoiceId: voiceId as any,
+                Engine: engine as any,
+                SpeechMarkTypes: ["word"] as any[],
+                TextType: textType,
+                SampleRate: "22050",
+            };
+            marksResp = await this.client.send(new SynthesizeSpeechCommand(marksParams));
+        }
 
-        if (!audioResp.AudioStream || !marksResp.AudioStream) {
-            throw new Error("Failed to generate audio or marks stream");
+        if (!audioResp.AudioStream) {
+            throw new Error("Failed to generate audio stream");
         }
 
         const audioBuffer = await this.streamToBuffer(audioResp.AudioStream as any);
-        const marksBuffer = await this.streamToBuffer(marksResp.AudioStream as any);
-        const marksString = marksBuffer.toString("utf-8");
+        let speechMarks: any[] = [];
 
-        // Polly JSON marks are newline-delimited JSON objects
-        const speechMarks = marksString
-            .split("\n")
-            .filter(line => line.trim())
-            .map(line => JSON.parse(line));
+        if (marksResp && marksResp.AudioStream) {
+            const marksBuffer = await this.streamToBuffer(marksResp.AudioStream as any);
+            const marksString = marksBuffer.toString("utf-8");
+
+            // Polly JSON marks are newline-delimited JSON objects
+            speechMarks = marksString
+                .split("\n")
+                .filter(line => line.trim())
+                .map(line => JSON.parse(line));
+        }
 
         return {
             audioBuffer,

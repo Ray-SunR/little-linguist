@@ -24,10 +24,15 @@ export interface LibraryFilters {
     duration?: 'short' | 'medium' | 'long';
 }
 
-const VALID_LEVELS = ['toddler', 'preschool', 'elementary', 'intermediate'];
-const VALID_TYPES = ['fiction', 'nonfiction'];
-const VALID_DURATIONS = ['short', 'medium', 'long'];
-const VALID_COLLECTIONS = ['discovery', 'my-tales', 'favorites', 'browse'];
+const VALID_LEVELS = ['toddler', 'preschool', 'elementary', 'intermediate'] as const;
+const VALID_TYPES = ['fiction', 'nonfiction'] as const;
+const VALID_DURATIONS = ['short', 'medium', 'long'] as const;
+const VALID_COLLECTIONS = ['discovery', 'my-tales', 'favorites', 'browse'] as const;
+
+type LibraryLevel = typeof VALID_LEVELS[number];
+type LibraryType = typeof VALID_TYPES[number];
+type LibraryDuration = typeof VALID_DURATIONS[number];
+type LibraryCollection = typeof VALID_COLLECTIONS[number];
 
 const isDefaultFilters = (f: LibraryFilters, sortBy: string = "last_opened", sortOrder: string = "desc") => {
     if (!f) return true;
@@ -42,7 +47,7 @@ interface LibraryContentProps {
 }
 
 export default function LibraryContent({ serverProfiles }: LibraryContentProps) {
-    const { user, activeChild, isLoading: authLoading, librarySettings, updateLibrarySettings, profiles: authProfiles, refreshProfiles } = useAuth();
+    const { user, activeChild, isLoading: authLoading, updateLibrarySettings, profiles: authProfiles, refreshProfiles } = useAuth();
 
     // Fast-path: Use server profiles if AuthProvider hasn't hydrated yet.
     const effectiveProfiles = useMemo(() => authProfiles.length > 0 ? authProfiles : (serverProfiles || []), [authProfiles, serverProfiles]);
@@ -60,7 +65,14 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         ? (resolvedActiveChild?.id ? `${currentUserId}:${resolvedActiveChild.id}` : currentUserId)
         : "anonymous";
 
-    const hasCacheHint = typeof window !== "undefined" && !!window.localStorage.getItem(`raiden:has_library_cache:${cacheKey}`);
+    const hasCacheHint = useMemo(() => {
+        if (typeof window === "undefined") return false;
+        try {
+            return !!window.localStorage.getItem(`raiden:has_library_cache:${cacheKey}`);
+        } catch {
+            return false;
+        }
+    }, [cacheKey]);
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -68,8 +80,8 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
     // Initial state derivation for eager filter-awareness with URL priority
     const urlCollectionRaw = searchParams.get('collection');
-    const urlCollection = (urlCollectionRaw && VALID_COLLECTIONS.includes(urlCollectionRaw))
-        ? urlCollectionRaw as LibraryFilters['collection']
+    const urlCollection = (urlCollectionRaw && (VALID_COLLECTIONS as readonly string[]).includes(urlCollectionRaw))
+        ? urlCollectionRaw as LibraryCollection
         : undefined;
     const urlSort = searchParams.get('sort');
     const urlOrderRaw = searchParams.get('order');
@@ -88,9 +100,9 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const origin = searchParams.get('origin');
     const duration = searchParams.get('duration');
 
-    if (level && VALID_LEVELS.includes(level)) urlFilters.level = level as any;
-    if (type && VALID_TYPES.includes(type)) urlFilters.type = type as any;
-    if (duration && VALID_DURATIONS.includes(duration)) urlFilters.duration = duration as any;
+    if (level && (VALID_LEVELS as readonly string[]).includes(level)) urlFilters.level = level as LibraryLevel;
+    if (type && (VALID_TYPES as readonly string[]).includes(type)) urlFilters.type = type as LibraryType;
+    if (duration && (VALID_DURATIONS as readonly string[]).includes(duration)) urlFilters.duration = duration as LibraryDuration;
     if (category && category !== 'all') urlFilters.category = category;
     if (origin) urlFilters.origin = origin;
 
@@ -120,11 +132,11 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
     const [sortBy, setSortBy] = useState<string>(() => initialSortBy);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => initialSortOrder);
-    const [activeCollection, setActiveCollection] = useState<NonNullable<LibraryFilters["collection"]>>(() => {
+    const [activeCollection, setActiveCollection] = useState<LibraryCollection>(() => {
         return urlCollection || initialFilters.collection || "discovery";
     });
 
-    const [collectionFilters, setCollectionFilters] = useState<Record<NonNullable<LibraryFilters["collection"]>, Partial<LibraryFilters>>>(() => {
+    const [collectionFilters, setCollectionFilters] = useState<Record<LibraryCollection, Partial<LibraryFilters>>>(() => {
         const filters = initialFilters;
         const { collection: _, ...rest } = filters;
         const collectionKey = urlCollection || filters.collection || "discovery";
@@ -153,6 +165,8 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isDirtyRef = useRef(false);
     const searchQueryRef = useRef("");
+    const pendingInternalPathsRef = useRef<Set<string>>(new Set());
+    const booksRef = useRef<LibraryBookCard[]>([]);
 
     // Debounce search query
     useEffect(() => {
@@ -161,6 +175,9 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         }, 500);
         return () => clearTimeout(timer);
     }, [searchQuery]);
+    useEffect(() => {
+        booksRef.current = books;
+    }, [books]);
 
 
     // Sync URL with all state (Search + Filters + Sort)
@@ -209,26 +226,40 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
         // Save for ClayNav persistence
         if (typeof window !== 'undefined') {
-            sessionStorage.setItem('lastLibraryUrl', fullPath);
+            try {
+                sessionStorage.setItem('lastLibraryUrl', fullPath);
+            } catch (e) {
+                // Silently ignore storage errors in restricted environments
+            }
         }
 
         if (fullPath !== currentPath) {
+            pendingInternalPathsRef.current.add(fullPath);
             router.replace(fullPath, { scroll: false });
         }
     }, [debouncedSearchQuery, activeCollection, collectionFilters, sortBy, sortOrder, pathname, router]);
 
 
     useEffect(() => {
-        // Search
-        if (urlQuery !== debouncedSearchQuery) {
+        // Sync state from URL - only when search params actually changed from external source (like back button)
+        const currentPath = `${pathname}${window.location.search}`;
+
+        // If this exact URL was pushed by us, ignore it to prevent resetting state with a lagging URL
+        if (pendingInternalPathsRef.current.has(currentPath)) {
+            pendingInternalPathsRef.current.delete(currentPath);
+            return;
+        }
+
+        // Search: Compare with searchQuery directly to detect external changes
+        if (urlQuery !== searchQuery) {
             setSearchQuery(urlQuery);
             setDebouncedSearchQuery(urlQuery);
         }
 
         // Filters & Sort
         const urlCollectionRaw = searchParams.get('collection');
-        const urlCollection = (urlCollectionRaw && VALID_COLLECTIONS.includes(urlCollectionRaw))
-            ? urlCollectionRaw as NonNullable<LibraryFilters["collection"]>
+        const urlCollection = (urlCollectionRaw && (VALID_COLLECTIONS as readonly string[]).includes(urlCollectionRaw))
+            ? urlCollectionRaw as LibraryCollection
             : activeCollection;
 
         if (urlCollection !== activeCollection) {
@@ -242,32 +273,27 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         if (currentUrlSort !== sortBy) setSortBy(currentUrlSort);
         if (currentUrlOrder !== sortOrder) setSortOrder(currentUrlOrder);
 
-        const urlFilters: Partial<LibraryFilters> = {};
+        const currentUrlFilters: Partial<LibraryFilters> = {};
         const level = searchParams.get('level');
         const type = searchParams.get('type');
         const category = searchParams.get('category');
         const origin = searchParams.get('origin');
         const duration = searchParams.get('duration');
 
-        if (level && VALID_LEVELS.includes(level)) urlFilters.level = level as any;
-        if (type && VALID_TYPES.includes(type)) urlFilters.type = type as any;
-        if (duration && VALID_DURATIONS.includes(duration)) urlFilters.duration = duration as any;
-        if (category && category !== 'all') urlFilters.category = category;
-        if (origin) urlFilters.origin = origin;
-
-        // Deep compare to avoid loops? 
-        // For now, simplify: just update if different.
-        // But collectionFilters is complex.
-        // We really only need to update the *current* collection's filters from URL.
+        if (level && (VALID_LEVELS as readonly string[]).includes(level)) currentUrlFilters.level = level as LibraryLevel;
+        if (type && (VALID_TYPES as readonly string[]).includes(type)) currentUrlFilters.type = type as LibraryType;
+        if (duration && (VALID_DURATIONS as readonly string[]).includes(duration)) currentUrlFilters.duration = duration as LibraryDuration;
+        if (category && category !== 'all') currentUrlFilters.category = category;
+        if (origin) currentUrlFilters.origin = origin;
 
         setCollectionFilters(prev => {
             const current = prev[urlCollection];
-            const isDiff = JSON.stringify(current) !== JSON.stringify(urlFilters);
+            const isDiff = JSON.stringify(current) !== JSON.stringify(currentUrlFilters);
             if (!isDiff) return prev;
-            return { ...prev, [urlCollection]: urlFilters };
+            return { ...prev, [urlCollection]: currentUrlFilters };
         });
 
-    }, [searchParams, debouncedSearchQuery, activeCollection, sortBy, sortOrder, urlQuery]); // Depend on searchParams key-value changes essentially
+    }, [searchParams]); // ONLY depend on searchParams for URL-to-state sync
 
 
     // Optimistic cache for immediate UI feedback
@@ -396,13 +422,14 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 if (requestId !== activeRequestIdRef.current) return;
                 if (!booksRes.ok) throw new Error('Failed to fetch books');
 
-                const booksData = await booksRes.json();
+                const booksData: unknown = await booksRes.json();
                 if (requestId !== activeRequestIdRef.current) return;
+
                 if (!Array.isArray(booksData)) throw new Error('Invalid response from server');
 
-                const libraryBooks: LibraryBookCard[] = (booksData as any[])
-                    .filter((book) => book.id && book.title)
-                    .map((book) => ({
+                const libraryBooks: LibraryBookCard[] = booksData
+                    .filter((book: any): book is any => book && typeof book === 'object' && book.id && book.title)
+                    .map((book: any) => ({
                         id: book.id,
                         title: book.title,
                         coverImageUrl: book.coverImageUrl,
@@ -440,7 +467,11 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 }
                 setHasMore(libraryBooks.length === LIMIT);
                 if (isInitial) {
-                    window.localStorage.setItem(`raiden:has_library_cache:${cacheKey}`, "true");
+                    try {
+                        window.localStorage.setItem(`raiden:has_library_cache:${cacheKey}`, "true");
+                    } catch (e) {
+                        // Silently ignore storage errors
+                    }
                     setLoadState(libraryBooks.length === 0 ? 'empty' : 'success');
                 } else {
                     setIsNextPageLoading(false);
@@ -449,9 +480,13 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             } catch (err: any) {
                 if (err instanceof Error && err.name === 'AbortError') return;
                 if (requestId === activeRequestIdRef.current) {
-                    // If searching OR no cache, show error.
-                    // (If searching, we already cleared books, so we must show error)
-                    if (searchQueryRef.current || (isInitial && !cachedLibraryBooks[cacheKey]?.length)) {
+                    // Optimized Error Handling with Ref to avoid stale closure
+                    // If we have cached results, revert to 'success' state so the UI isn't stuck behind a spinner.
+                    // We only show a full error screen if there are NO results to show.
+                    if (booksRef.current.length > 0) {
+                        setLoadState('success');
+                        // Optional: Surface toast or small banner if needed.
+                    } else if (searchQueryRef.current || (isInitial && !cachedLibraryBooks[cacheKey]?.length)) {
                         setError(err instanceof Error ? err.message : 'Failed to load library');
                         setLoadState('error');
                     }
@@ -488,18 +523,20 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             targetFilters = defaults as LibraryFilters;
         }
 
-        const { collection: savedCollection, ...savedFilters } = targetFilters;
-        const collectionKey = savedCollection || "discovery";
+        const { collection: savedCollectionRaw, ...savedFilters } = targetFilters;
+        const savedCollection = (savedCollectionRaw && (VALID_COLLECTIONS as readonly string[]).includes(savedCollectionRaw))
+            ? savedCollectionRaw as LibraryCollection
+            : "discovery";
 
-        setActiveCollection(collectionKey as any);
+        setActiveCollection(savedCollection);
         setCollectionFilters({
-            discovery: collectionKey === 'discovery' ? savedFilters : {},
-            "my-tales": collectionKey === 'my-tales' ? savedFilters : {},
-            favorites: collectionKey === 'favorites' ? savedFilters : {},
-            browse: collectionKey === 'browse' ? savedFilters : {}
+            discovery: savedCollection === 'discovery' ? savedFilters : {},
+            "my-tales": savedCollection === 'my-tales' ? savedFilters : {},
+            favorites: savedCollection === 'favorites' ? savedFilters : {},
+            browse: savedCollection === 'browse' ? savedFilters : {}
         });
         setSortBy(targetSort);
-        setSortOrder(targetSortOrder as any);
+        setSortOrder(targetSortOrder as 'asc' | 'desc');
         lastHydratedKey.current = cacheKey;
     }, [cacheKey, resolvedActiveChild]);
 
@@ -510,7 +547,8 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
 
         if (!isDefaultView || !hasCache) {
             setLoadState('loading');
-            setBooks([]);
+            // Optimization: Keep previous books visible while searching/filtering 
+            // to avoid jarring UI flashes. The LibraryView will show an Updating overlay.
         }
 
         setOffset(0);
@@ -533,11 +571,15 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         const syncHydrate = async () => {
             if (typeof window === "undefined") return;
             if (!isDefaultFilters(filters, sortBy, sortOrder)) return;
-            const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, cacheKey);
-            if (cached?.books) {
-                setBooks(cached.books);
-                cachedLibraryBooks[cacheKey] = cached.books;
-                setLoadState('success');
+            try {
+                const cached = await raidenCache.get<{ id: string, books: LibraryBookCard[] }>(CacheStore.LIBRARY_METADATA, cacheKey);
+                if (cached?.books) {
+                    setBooks(cached.books);
+                    cachedLibraryBooks[cacheKey] = cached.books;
+                    setLoadState('success');
+                }
+            } catch (e) {
+                // Silently ignore cache read errors
             }
         };
         if (!authLoading) syncHydrate();
@@ -614,6 +656,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                 }
             }}
             isGuest={!user}
+            error={error}
             onRetry={() => loadBooks(true)}
             onEditInterests={() => setIsInterestModalOpen(true)}
         />
