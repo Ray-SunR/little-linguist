@@ -821,7 +821,7 @@ h6 {
   border-radius: 8px;
   box-shadow: var(--paper-shadow);
   overflow: hidden;
-  min-height: 500px;
+  min-height: 0;
 }
 
 .book-surface::before {

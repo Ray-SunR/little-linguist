@@ -36,7 +36,8 @@ function sanitizeTheme(theme: string | null): string {
         .replace(/Star Wars/gi, "a galactic space adventure")
         .replace(/Harry Potter/gi, "a young wizard in a magical school")
         .replace(/Minecraft/gi, "a world of blocks and building")
-        .replace(/Daemon Hunter/gi, "a brave warrior with a magic sword fighting shadow monsters");
+        .replace(/Daemon Hunter/gi, "a brave warrior with a magic sword fighting shadow monsters")
+        .replace(/Sun Wukong/gi, "Sun Wukong the Monkey King, a cute but heroic anthropomorphic golden monkey with a heart-shaped face and mischievous expression, golden chainmail armor, tiger-skin skirt, red trousers, and a Phoenix-feather cap, rendered in a vibrant 3D animation style, cute character design, soft studio lighting, volumetric 3D render, Pixar style, high fidelity, 8k resolution.");
 }
 
 const LEVEL_SPECS: Record<string, { minWords: number, targetWords: number, sceneCount: number, sentencesPerScene: number, complexity: string }> = {
@@ -98,7 +99,7 @@ async function main() {
 
         // Style Selection based on Level
         const isOlder = ["G3-5", "G1-2"].includes(entry.level);
-        const artStyle = isOlder 
+        const artStyle = isOlder
             ? "Cinematic digital concept art, realistic textures, dramatic lighting, detailed background, anime-influenced but semi-realistic, 8k resolution"
             : undefined; // undefined uses the default "vibrant watercolor" style from the service
 
@@ -120,9 +121,13 @@ async function main() {
             // --- Phase 1: Story & Metadata ---
             if (!bState.pages) {
                 console.log(`  📝 Generating story and character anchor...`);
-                // Use concept prompt + brand theme for anchor generation
-                bState.characterAnchor = await claude.generateCharacterAnchor(entry.concept_prompt || entry.brand_theme || entry.title, entry.level);
-                
+
+                if (entry.category === 'sunwukong') {
+                    bState.characterAnchor = "Sun Wukong the Monkey King, a cute but heroic anthropomorphic golden monkey with a heart-shaped face and mischievous expression. He has bright golden fur and piercing fiery gold eyes. He is wearing his iconic golden chainmail armor breastplate, a tiger-skin loincloth skirt, red trousers, and black cloud-walking boots. On his head is a golden fillet headband and a Phoenix-feather cap with two very long red pheasant feathers curving high into the air. He is holding a magical red and gold iron staff, rendered in a vibrant 3D animation style, cute character design, soft studio lighting, volumetric 3D render, Pixar style, high fidelity, 8k resolution.";
+                } else {
+                    bState.characterAnchor = await claude.generateCharacterAnchor(entry.concept_prompt || entry.brand_theme || entry.title, entry.level);
+                }
+
                 const themeText = sanitizeTheme(entry.brand_theme || entry.category);
                 const conceptContext = entry.concept_prompt ? `Specific Story Concept: ${entry.concept_prompt}` : "";
 
@@ -163,14 +168,14 @@ async function main() {
                 // to match the story, and maybe preserve the concept as subtitle if needed.
                 // Or just overwrite.
                 bState.aiTitle = await claude.generateBookTitle(bState.fullText);
-                
+
                 // If the generated title is extremely different, maybe interesting, but let's stick to AI title as it reflects the text.
-                
+
                 const metaData = await claude.generateKeywordsAndDescription(bState.fullText, entry.category, entry.brand_theme || entry.title);
                 bState.keywords = metaData.keywords;
                 bState.description = metaData.description;
                 bState.smartCoverPrompt = await claude.generateCoverPrompt(bState.fullText, bState.characterAnchor);
-                
+
                 bState.status = 'story_done';
                 saveState();
             }
@@ -190,9 +195,9 @@ async function main() {
                     try {
                         base64Cover = await nova.generateImage(`${bState.characterAnchor}. Children's book cover for a story about ${entry.category}`, bookSeed, artStyle);
                     } catch (fb1Err) {
-                         console.warn(`  ⚠️ Fallback 1 blocked. Attempting Safe Fallback...`);
-                         const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || `a story about ${entry.category}`;
-                         base64Cover = await nova.generateImage(`Children's book cover illustration of ${safeDesc}. Colorful, distinct style.`, bookSeed, artStyle);
+                        console.warn(`  ⚠️ Fallback 1 blocked. Attempting Safe Fallback...`);
+                        const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || `a story about ${entry.category}`;
+                        base64Cover = await nova.generateImage(`Children's book cover illustration of ${safeDesc}. Colorful, distinct style.`, bookSeed, artStyle);
                     }
                 }
                 await saveOptimizedImage(base64Cover, path.join(bookDir, 'cover.webp'));
@@ -217,14 +222,14 @@ async function main() {
                         try {
                             base64Image = await nova.generateImage(`${bState.characterAnchor}. Children's book illustration for: ${bState.pages[i].text}`, bookSeed, artStyle);
                         } catch (fb1Err) {
-                             console.warn(`  ⚠️ Scene ${i} Fallback 1 blocked. Attempting Safe Fallback...`);
+                            console.warn(`  ⚠️ Scene ${i} Fallback 1 blocked. Attempting Safe Fallback...`);
                             const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || entry.category;
                             base64Image = await nova.generateImage(`Children's book illustration of ${safeDesc}. Action: ${bState.pages[i].text.substring(0, 50)}...`, bookSeed, artStyle);
                         }
                     }
                     const imageFilename = `scene_${i}.webp`;
                     await saveOptimizedImage(base64Image, path.join(bookDir, 'scenes', imageFilename));
-                    
+
                     sceneData[i] = {
                         index: i,
                         text: bState.pages[i].text,

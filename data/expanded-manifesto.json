@@ -394,5 +394,275 @@
     "level": "K",
     "is_nonfiction": false,
     "series_id": null
+  },
+  {
+    "id": "sunwukong-prek-1",
+    "title": "The Red Staff",
+    "concept_prompt": "Sun Wukong changes his staff into many big and small shapes. Red and gold colors.",
+    "category": "sunwukong",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-prek-2",
+    "title": "Sweet Peaches",
+    "concept_prompt": "Sun Wukong finds five delicious peaches. A story about counting and colors.",
+    "category": "sunwukong",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-prek-3",
+    "title": "Up on a Cloud",
+    "concept_prompt": "Sun Wukong flies high and low on a soft white cloud. Simple action words.",
+    "category": "sunwukong",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-prek-4",
+    "title": "The Happy Monkey",
+    "concept_prompt": "Sun Wukong plays with his friends and laughs. A story about simple emotions.",
+    "category": "sunwukong",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-prek-5",
+    "title": "Friendly Monkey",
+    "concept_prompt": "Sun Wukong shares his fruit with a little bird. A simple story about kindness.",
+    "category": "sunwukong",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-k-1",
+    "title": "The Magic Mask",
+    "concept_prompt": "Sun Wukong uses magic to change his face into different animals.",
+    "category": "sunwukong",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-k-2",
+    "title": "The Rainbow Cloud",
+    "concept_prompt": "Sun Wukong chases a cloud made of rainbows across the sky.",
+    "category": "sunwukong",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-k-3",
+    "title": "Helping a Friend",
+    "concept_prompt": "Sun Wukong helps a tired monk carry a heavy bag over a hill.",
+    "category": "sunwukong",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-k-4",
+    "title": "The Mountain of Flowers",
+    "concept_prompt": "Sun Wukong visits a beautiful mountain where the flowers talk and sing.",
+    "category": "sunwukong",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-k-5",
+    "title": "The Monkey King's Mirror",
+    "concept_prompt": "Sun Wukong finds a magic mirror that shows how brave he is.",
+    "category": "sunwukong",
+    "level": "K",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-1",
+    "title": "The King of Flower Fruit Mountain",
+    "concept_prompt": "How Sun Wukong became the leader of all the monkeys by jumping through a waterfall.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-2",
+    "title": "The Blue Dragon's Gift",
+    "concept_prompt": "Sun Wukong visits the Dragon King under the sea and finds a magical treasure.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-3",
+    "title": "The Whispering Wind",
+    "concept_prompt": "Sun Wukong follows a mysterious voice across the mountains to find a hidden cave.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-4",
+    "title": "The Magic Bridge",
+    "concept_prompt": "Sun Wukong builds a bridge of light to help his friends cross a wide, deep river.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-5",
+    "title": "The Brave Little Monkey",
+    "concept_prompt": "Sun Wukong protects a small, lost monkey from a group of mischievous forest spirits.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-6",
+    "title": "The Golden Key",
+    "concept_prompt": "Sun Wukong finds a golden key and must solve puzzles to find what it opens.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-7",
+    "title": "The Monkey King's Race",
+    "concept_prompt": "Sun Wukong races against the Wind Spirit to see who is faster.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-8",
+    "title": "The Crystal Flower",
+    "concept_prompt": "Sun Wukong searches for a rare crystal flower that only blooms at midnight.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-9",
+    "title": "The Giant Panda's Lesson",
+    "concept_prompt": "A wise panda teaches Sun Wukong that being quiet is sometimes a superpower.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-10",
+    "title": "The Midnight Feast",
+    "concept_prompt": "Sun Wukong and his forest friends have a party under the full moon.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-0",
+    "title": "The Monkey King's Great Journey",
+    "concept_prompt": "Sun Wukong protects a monk on a long journey to find legendary scrolls in a mythical land.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-1",
+    "title": "Escape from the Sky Furnace",
+    "concept_prompt": "Sun Wukong is trapped in a magical furnace but escapes with legendary golden eyes.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-2",
+    "title": "Battle of the East Sea",
+    "concept_prompt": "Sun Wukong faces the Dragon King's warriors to claim his legendary iron staff.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-3",
+    "title": "The Royal Peach Banquet",
+    "concept_prompt": "Mischief in the Heavenly Gardens leads to an epic chase through the clouds.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-4",
+    "title": "The Three Trials of Wisdom",
+    "concept_prompt": "Sun Wukong must solve three impossible riddles to save a village from a shadow demon.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-5",
+    "title": "The Shadow Monkey",
+    "concept_prompt": "A mysterious double of the Monkey King appears, and Sun Wukong must prove who is real.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-6",
+    "title": "Fire and Ice",
+    "concept_prompt": "Sun Wukong must balance his powers to cross a land that is half fire and half ice.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-7",
+    "title": "The Demon of the White Bone",
+    "concept_prompt": "A master of disguise tries to trick the travelers, but Sun Wukong sees through the magic.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-8",
+    "title": "The Five Fingers Mountain",
+    "concept_prompt": "The story of Sun Wukong's long wait and how he learned the true meaning of patience.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-9",
+    "title": "The Return to Flower Fruit Mountain",
+    "concept_prompt": "Sun Wukong returns home to defend his monkey kingdom from a new threat.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
   }
 ]

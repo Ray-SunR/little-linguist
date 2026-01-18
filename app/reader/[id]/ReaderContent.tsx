@@ -95,6 +95,20 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
         }
     }, [bookId, activeChildId, initialBook]);
 
+    // Lock body scroll when reader is active
+    useEffect(() => {
+        const bodyInline = document.body.style.overflow;
+        const htmlInline = document.documentElement.style.overflow;
+
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = bodyInline;
+            document.documentElement.style.overflow = htmlInline;
+        };
+    }, []);
+
     // Background sync to cache when initialBook arrives
     useEffect(() => {
         if (initialBook && initialBook.id === bookId) {
@@ -227,7 +241,7 @@ export default function ReaderContent({ bookId, initialBook, initialError }: Rea
     const books = currentBook ? [currentBook] : [];
 
     return (
-        <main className="page-story-maker relative h-screen overflow-hidden px-4 py-2 sm:py-4">
+        <main className="page-story-maker fixed inset-0 flex flex-col overflow-hidden">
             <SupabaseReaderShell
                 books={books}
                 initialBookId={bookId}

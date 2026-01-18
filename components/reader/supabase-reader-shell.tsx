@@ -311,7 +311,10 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
     }
 
     return (
-        <section className={`relative mx-auto flex h-full w-full flex-1 min-h-0 flex-col transition-all duration-500 ease-in-out ${isMaximized ? 'max-w-none px-0 py-0 gap-0' : 'max-w-7xl gap-4 sm:gap-5'}`}>
+        <section className={cn(
+            "relative mx-auto flex h-full w-full flex-1 flex-col overflow-hidden overscroll-contain transition-all duration-500 ease-in-out",
+            isMaximized ? "max-w-none px-0 py-0 gap-0" : "max-w-7xl px-4 py-2 sm:py-4 gap-4 sm:gap-5"
+        )}>
             {!isMaximized && (
                 <>
                     <div className="pointer-events-none absolute -left-6 top-6 h-28 w-28 blob blob-1" />
@@ -320,8 +323,12 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                 </>
             )}
 
-            <div className={`glass-card flex flex-col flex-1 min-h-0 transition-all duration-500 ${isMaximized ? 'p-2 sm:p-4 rounded-none border-none bg-white dark:bg-[#0b0c14]' : 'p-4 sm:p-5'}`}>
-                <header className="flex items-center gap-1.5 sm:gap-3 mb-3">
+            <div className={`glass-card flex flex-col flex-1 min-h-0 overflow-hidden transition-all duration-500 ${isMaximized ? 'rounded-none border-none bg-white dark:bg-[#0b0c14]' : ''}`}>
+                <header className={cn(
+                    "relative z-[60] flex items-center flex-shrink-0 gap-1.5 sm:gap-3 transition-all duration-300",
+                    isMaximized ? "p-2 sm:p-4" : "p-4 sm:px-5 sm:pt-5 sm:pb-3",
+                    "bg-white/95 dark:bg-[#1c1f2f]/95 backdrop-blur-md border-b border-purple-100/20 dark:border-white/5"
+                )}>
                     <Link
                         href="/library"
                         id="reader-back-to-library"
@@ -432,7 +439,11 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                 </header>
 
                 {controlsExpanded && !isEmpty && (
-                    <div ref={controlsRef} className="absolute right-4 top-[5.2rem] z-50 w-[calc(100%-2rem)] max-w-sm animate-slide-down">
+                    <div ref={controlsRef} className={cn(
+                        "absolute z-[70] animate-slide-down shadow-2xl",
+                        isMaximized ? "right-4 top-[4.5rem] w-[calc(100%-2rem)]" : "right-8 top-[5.5rem] w-[calc(100%-4rem)]",
+                        "max-w-sm"
+                    )}>
                         <ControlPanel
                             speed={playbackSpeed}
                             onSpeedChange={setPlaybackSpeed}
@@ -447,8 +458,14 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                     </div>
                 )}
 
-                <div ref={scrollContainerRef} className="flex-1 min-h-0 flex flex-col pt-1">
-                    <div id="reader-text-content" data-tour-target="reader-text-content" className="relative h-full overflow-hidden rounded-[1.8rem] bg-card/60 dark:bg-card/40 shadow-soft">
+                <div ref={scrollContainerRef} className={cn(
+                    "flex-1 min-h-0 flex flex-col",
+                    !isMaximized && "px-4 pb-4 sm:px-5 sm:pb-5"
+                )}>
+                    <div id="reader-text-content" data-tour-target="reader-text-content" className={cn(
+                        "relative h-full overflow-hidden bg-card/60 dark:bg-card/40 shadow-soft",
+                        isMaximized ? "rounded-none" : "rounded-b-[2rem] sm:rounded-b-[2.2rem]"
+                    )}>
                         <BookLayout
                             bookId={selectedBookId}
                             tokens={wordTokens}
