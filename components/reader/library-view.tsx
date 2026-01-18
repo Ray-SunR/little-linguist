@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Heart, Wand2, BookOpen } from "lucide-react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Heart, Wand2, BookOpen, AlertTriangle, RefreshCw } from "lucide-react";
 import LibraryBookCardComponent from "./library-book-card";
+import { LumoCharacter } from "@/components/ui/lumo-character";
 import { LibraryBookCard } from "@/lib/core/books/library-types";
 import { cn } from "@/lib/core";
 import Link from "next/link";
@@ -33,7 +34,7 @@ interface LibraryViewProps {
         duration?: string;
         collection?: "discovery" | "my-tales" | "favorites" | "browse";
     };
-    onFiltersChange: (val: any) => void;
+    onFiltersChange: (val: Partial<LibraryViewProps['filters']>) => void;
     isGuest?: boolean;
     error?: string | null;
     onRetry?: () => void;
@@ -41,6 +42,13 @@ interface LibraryViewProps {
     onSearchChange: (val: string) => void;
     onEditInterests?: () => void;
 }
+
+type VirtualItem =
+    | { type: 'book'; data: LibraryBookCard }
+    | { type: 'create-card' }
+    | { type: 'signin-card' };
+
+// Precompute static configurations to avoid recalculation in render
 
 export default function LibraryView({
     books,
@@ -68,9 +76,17 @@ export default function LibraryView({
     // Client-side filtering removed in favor of server-side search
 
 
-    // Normalize items for virtualization
-    const virtualItems = useMemo(() => {
-        const items: ({ type: 'book'; data: LibraryBookCard } | { type: 'create-card' } | { type: 'signin-card' })[] = [];
+    // Unified state for navigating overlay (lifted from cards)
+    const [navigatingBookId, setNavigatingBookId] = useState<string | null>(null);
+    // Unified state for delete confirmation (lifted from cards)
+    const [deletingBook, setDeletingBook] = useState<LibraryBookCard | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Precompute tour flags and normalization O(n) instead of O(n^2)
+
+    const { virtualItems, hasAlexBook } = useMemo(() => {
+        const items: VirtualItem[] = [];
+        let foundAlex = false;
 
         if (!currentUserId) {
             items.push({ type: 'create-card' });
@@ -78,43 +94,31 @@ export default function LibraryView({
 
         books.forEach(book => {
             items.push({ type: 'book', data: book });
+            if (book.title.includes("Alex's Blocky World Adventure")) foundAlex = true;
         });
 
         if (isGuest) {
             items.push({ type: 'signin-card' });
         }
 
-        return items;
+        return { virtualItems: items, hasAlexBook: foundAlex };
     }, [books, currentUserId, isGuest]);
 
-    // Lumo greeting messages
-    const GREETINGS = [
-        "Let's read! 📚",
-        "What adventure today? ✨",
-        "I found new stories! 🌟",
-        "Ready to explore? 🚀",
-        "Let's learn together! 💡"
-    ];
-    const [greetingIndex, setGreetingIndex] = useState(0);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setGreetingIndex(prev => (prev + 1) % GREETINGS.length);
-        }, 4000);
-        return () => clearInterval(interval);
-    }, [GREETINGS.length]);
-
-    const personalizedGreeting = activeChild?.name
-        ? `Hi, ${activeChild.name}! ${GREETINGS[greetingIndex]}`
-        : GREETINGS[greetingIndex];
 
     // Tutorial Integration: Ensure filters are reset when "Choose a Book" step is active
     const { activeStepDetails } = useTutorial();
     useEffect(() => {
         if (activeStepDetails?.id === 'library-book-list') {
             // Check if we need to reset to ensure visibility
-            // We force reset to 'discovery' and clear other filters
-            if (filters.collection !== 'discovery' || filters.category || filters.level || searchQuery) {
+            const hasActiveFilters = filters.collection !== 'discovery' ||
+                filters.category ||
+                filters.level ||
+                filters.type ||
+                filters.duration ||
+                filters.origin ||
+                searchQuery;
+
+            if (hasActiveFilters) {
                 onFiltersChange({
                     collection: 'discovery',
                     category: undefined,
@@ -126,7 +130,18 @@ export default function LibraryView({
                 onSearchChange("");
             }
         }
-    }, [activeStepDetails?.id, filters.collection, filters.category, filters.level, searchQuery, onFiltersChange]);
+    }, [
+        activeStepDetails?.id,
+        filters.collection,
+        filters.category,
+        filters.level,
+        filters.type,
+        filters.duration,
+        filters.origin,
+        searchQuery,
+        onFiltersChange,
+        onSearchChange
+    ]);
 
     const handleFilterChange = (key: string, val: any) => {
         const newFilters = { ...filters, [key]: val };
@@ -163,15 +178,20 @@ export default function LibraryView({
         return r;
     }, [virtualItems, columns]);
 
+    // Handle book opening with central overlay
+    const handleBookOpen = useCallback((bookId: string) => {
+        setNavigatingBookId(bookId);
+    }, []);
+
     return (
         <div className="relative min-h-screen w-full page-story-maker bg-[#f0f4f8] text-slate-800">
-            {/* Background Magic Blobs - Softer Clay colors */}
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
+            {/* Background Magic Blobs - Optimized performance */}
+            <div className="pointer-events-none fixed inset-0 overflow-hidden select-none">
                 <div
-                    className="hidden sm:block absolute -left-20 top-20 h-[400px] w-[400px] rounded-full bg-[#f3e8ff] blur-[80px] animate-blob-slow opacity-60"
+                    className="hidden sm:block absolute -left-20 top-20 h-[400px] w-[400px] rounded-full bg-[#f3e8ff] blur-[80px] animate-blob-slow opacity-60 will-change-transform motion-reduce:animate-none"
                 />
                 <div
-                    className="hidden sm:block absolute right-0 bottom-0 h-[500px] w-[500px] rounded-full bg-[#e0f2fe] blur-[90px] animate-blob-reverse opacity-60"
+                    className="hidden sm:block absolute right-0 bottom-0 h-[500px] w-[500px] rounded-full bg-[#e0f2fe] blur-[90px] animate-blob-reverse opacity-60 will-change-transform motion-reduce:animate-none"
                 />
             </div>
 
@@ -232,26 +252,26 @@ export default function LibraryView({
                                 : filters.collection === 'favorites'
                                     ? "Quick access to all the treasure stories you've saved to your heart."
                                     : filters.collection === 'browse'
-                                    ? "Browse our complete collection of magical stories."
-                                    : (activeChild?.interests && activeChild.interests.length > 0)
-                                        ? (
-                                            <span className="flex items-center gap-2 flex-wrap">
-                                                <span>Showing stories based on your interests in: <span className="text-purple-600 font-bold">{activeChild.interests.slice(0, 3).join(', ')}{activeChild.interests.length > 3 ? '...' : ''}</span></span>
-                                                <button onClick={onEditInterests} className="text-xs font-bold text-slate-400 hover:text-purple-600 underline decoration-dashed underline-offset-4 hover:decoration-purple-300 transition-colors">
-                                                    Edit Interests
-                                                </button>
-                                            </span>
-                                        )
-                                        : (
-                                            <span className="flex items-center gap-2">
-                                                <span>Explore a world of magical stories crafted to spark your imagination.</span>
-                                                {activeChild && (
-                                                    <button onClick={onEditInterests} className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full hover:bg-purple-100 transition-colors">
-                                                        + Add Interests
+                                        ? "Browse our complete collection of magical stories."
+                                        : (activeChild?.interests && activeChild.interests.length > 0)
+                                            ? (
+                                                <span className="flex items-center gap-2 flex-wrap">
+                                                    <span>Showing stories based on your interests in: <span className="text-purple-600 font-bold">{activeChild.interests.slice(0, 3).join(', ')}{activeChild.interests.length > 3 ? '...' : ''}</span></span>
+                                                    <button onClick={onEditInterests} className="text-xs font-bold text-slate-400 hover:text-purple-600 underline decoration-dashed underline-offset-4 hover:decoration-purple-300 transition-colors">
+                                                        Edit Interests
                                                     </button>
-                                                )}
-                                            </span>
-                                        )
+                                                </span>
+                                            )
+                                            : (
+                                                <span className="flex items-center gap-2">
+                                                    <span>Explore a world of magical stories crafted to spark your imagination.</span>
+                                                    {activeChild && (
+                                                        <button onClick={onEditInterests} className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full hover:bg-purple-100 transition-colors">
+                                                            + Add Interests
+                                                        </button>
+                                                    )}
+                                                </span>
+                                            )
                             }
                         </div>
                     </motion.div>
@@ -370,9 +390,9 @@ export default function LibraryView({
                     ) : (!currentUserId || books.length > 0) ? (
                         <WindowVirtualizer
                             data={rows}
-                            bufferSize={400}
+                            bufferSize={200} // Reduced buffer for better scroll performance
                         >
-                            {(rowItems: any[], rowIndex: number) => {
+                            {(rowItems: VirtualItem[], rowIndex: number) => {
                                 return (
                                     <div className="grid grid-cols-1 gap-x-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full mb-16">
                                         {rowItems.map((item, colIndex) => {
@@ -447,10 +467,11 @@ export default function LibraryView({
                                                     index={index}
                                                     isOwned={!!book.owner_user_id && book.owner_user_id === currentUserId}
                                                     activeChildId={activeChildId}
-                                                    onDelete={onDeleteBook}
+                                                    onDelete={() => setDeletingBook(book)}
+                                                    onNavigate={() => handleBookOpen(book.id)}
                                                     dataTourTarget={
                                                         book.title.includes("Alex's Blocky World Adventure") ? "first-book" :
-                                                            (!books.some(b => b.title.includes("Alex's Blocky World Adventure")) && index === 0) ? "first-book" : undefined
+                                                            (!hasAlexBook && index === 0) ? "first-book" : undefined
                                                     }
                                                 />
                                             );
@@ -541,6 +562,98 @@ export default function LibraryView({
                     </p>
                 </footer>
             </div>
+            {/* Delete Confirmation Modal - Lifted for stability */}
+            <AnimatePresence>
+                {deletingBook && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isDeleting) setDeletingBook(null);
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-3xl p-8 max-w-sm mx-4 shadow-2xl border-4 border-red-100"
+                        >
+                            <div className="flex flex-col items-center text-center gap-4">
+                                <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
+                                    <AlertTriangle className="h-8 w-8 text-red-500" />
+                                </div>
+                                <h3 className="font-fredoka text-xl font-bold text-slate-800">Delete Story?</h3>
+                                <p className="text-slate-600 text-sm">
+                                    Are you sure you want to delete <span className="font-bold">&quot;{deletingBook.title}&quot;</span>? This action cannot be undone.
+                                </p>
+                                <div className="flex gap-3 w-full mt-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setDeletingBook(null);
+                                        }}
+                                        disabled={isDeleting}
+                                        className="flex-1 py-3 px-4 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            setIsDeleting(true);
+                                            try {
+                                                await onDeleteBook?.(deletingBook.id);
+                                            } finally {
+                                                setIsDeleting(false);
+                                                setDeletingBook(null);
+                                            }
+                                        }}
+                                        disabled={isDeleting}
+                                        className="flex-1 py-3 px-4 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {isDeleting ? (
+                                            <>
+                                                <motion.div
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                                    className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full"
+                                                />
+                                                Deleting...
+                                            </>
+                                        ) : (
+                                            "Delete"
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            {/* Global Navigation Overlay - Stable during virtualization */}
+            <AnimatePresence>
+                {navigatingBookId && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/40 backdrop-blur-xl"
+                    >
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-purple-400/20 blur-3xl rounded-full animate-pulse" />
+                            <LumoCharacter size="xl" className="relative animate-bounce-slow" />
+                        </div>
+                        <div className="mt-8 flex items-center gap-3 px-6 py-3 bg-white/90 rounded-[2rem] shadow-clay-purple border-2 border-purple-100">
+                            <RefreshCw className="w-5 h-5 animate-spin text-purple-600" />
+                            <span className="text-sm font-black text-purple-600 font-fredoka uppercase tracking-widest">Opening...</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

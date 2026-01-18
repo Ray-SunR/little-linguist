@@ -47,20 +47,38 @@ export class ClaudeStoryService {
         // Claude 3 Messages API response format
         const content = responseBody.content[0].text;
 
-        // Find JSON in the response - more robust regex for arrays
-        const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
-        if (!jsonMatch) {
-             // Try a last resort: maybe it's the whole string or has markdown backticks
-             const cleanContent = content.replace(/```json|```/g, '').trim();
-             try {
-                 return JSON.parse(cleanContent);
-             } catch {
+        // Find JSON in the response - find the first [ and last ]
+        const startIdx = content.indexOf('[');
+        const endIdx = content.lastIndexOf(']');
+
+        if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
+            // Try a last resort: maybe it's the whole string or has markdown backticks
+            const cleanContent = content.replace(/```json|```/g, '').trim();
+            try {
+                return JSON.parse(cleanContent);
+            } catch {
                 console.error("Failed to parse story JSON from Claude response. Raw content:", content);
                 throw new Error("Failed to parse story JSON from Claude response");
-             }
+            }
         }
 
-        return JSON.parse(jsonMatch[0]);
+        const jsonString = content.substring(startIdx, endIdx + 1);
+        try {
+            return JSON.parse(jsonString);
+        } catch (err) {
+            // If direct parse fails, try to fix common issues like trailing commas
+            const cleaned = jsonString
+                .replace(/,\s*([\]}])/g, '$1') // Remove trailing commas
+                .replace(/([^\\])"\s*\+/g, '$1') // Handle multi-line string concatenation if present
+                .replace(/\+ \s*"/g, '');
+
+            try {
+                return JSON.parse(cleaned);
+            } catch (innerErr) {
+                console.error("Failed to parse story JSON from Claude response even after cleaning. Raw content:", content);
+                throw new Error("Failed to parse story JSON from Claude response");
+            }
+        }
     }
 
     async generateCoverPrompt(storyText: string, characterAnchor: string): Promise<string> {
@@ -70,11 +88,11 @@ export class ClaudeStoryService {
         Story Text:
         ${storyText}
 
-        Character Visual Identity (USE THIS EXACTLY):
+        Character Visual Identity (USE THIS FULL DESCRIPTION EXACTLY, DO NOT SUMMARIZE):
         ${characterAnchor}
         
         IMPORTANT: Your output MUST be under 800 characters. Output ONLY the image prompt text. Do not include style keywords as they will be added later.
-        The prompt should describe an iconic, centered scene suitable for a book cover.`;
+        The prompt should describe an iconic, centered scene suitable for a book cover, and MUST literally include the key visual markers from the Character Visual Identity description above.`;
 
         const body = {
             anthropic_version: "bedrock-2023-05-31",
@@ -149,11 +167,25 @@ export class ClaudeStoryService {
         const response = await this.client.send(command);
         const responseBody = JSON.parse(new TextDecoder().decode(response.body));
         const content = responseBody.content[0].text.trim();
-        
+
         const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error("Failed to parse keywords JSON");
-        
-        return JSON.parse(jsonMatch[0]);
+        if (!jsonMatch) {
+            console.error("Failed to find JSON in Claude response. Raw content:", content);
+            throw new Error("Failed to parse keywords JSON");
+        }
+
+        try {
+            return JSON.parse(jsonMatch[0]);
+        } catch (e) {
+            console.error("JSON parse error in generateKeywordsAndDescription:", e, "JSON string:", jsonMatch[0]);
+            // Fallback: try to fix common issues like trailing commas
+            try {
+                const fixedJson = jsonMatch[0].replace(/,\s*([\}\]])/g, '$1');
+                return JSON.parse(fixedJson);
+            } catch (e2) {
+                throw new Error("Failed to parse fixed keywords JSON");
+            }
+        }
     }
 
     async sanitizeImagePrompt(originalPrompt: string): Promise<string> {
@@ -327,7 +359,7 @@ export class ClaudeStoryService {
         const response = await this.client.send(command);
         const responseBody = JSON.parse(new TextDecoder().decode(response.body));
         const content = responseBody.content[0].text.trim();
-        
+
         // Find JSON in the response
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {

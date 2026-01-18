@@ -3,8 +3,8 @@ import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedroc
 export class StabilityStoryService {
     private client: BedrockRuntimeClient;
     private region: string;
-    private static readonly ART_STYLE_GUIDE = "A consistent professional children's book illustration in vibrant digital watercolor style, clean vector lines, whimsical charm, highly detailed character features, uniform soft lighting.";
-    private static readonly NEGATIVE_PROMPT = "photorealistic, 3d render, grainy, blurry, deformed anatomy, mismatched eyes, extra limbs, text, watermark, low resolution, messy lines, realistic photography, dark moody lighting.";
+    private static readonly ART_STYLE_GUIDE = "A consistent professional children's book illustration, clean lines, whimsical charm, highly detailed character features, uniform soft lighting.";
+    private static readonly NEGATIVE_PROMPT = "photorealistic, grainy, blurry, deformed anatomy, mismatched eyes, extra limbs, text, watermark, low resolution, messy lines, realistic photography, dark moody lighting.";
 
     constructor() {
         this.region = process.env.POLLY_REGION || "us-west-2";
@@ -17,7 +17,7 @@ export class StabilityStoryService {
         });
     }
 
-    async generateImage(prompt: string, seed?: number, styleOverride?: string): Promise<string> {
+    async generateImage(prompt: string, seed?: number, styleOverride?: string, negativePromptOverride?: string): Promise<string> {
         let attempts = 0;
         const maxAttempts = 3;
         const initialDelay = 2000;
@@ -29,7 +29,7 @@ export class StabilityStoryService {
                 attempts++;
                 const body = {
                     prompt: `Style: ${effectiveStyle}. Subject: ${prompt}`,
-                    negative_prompt: StabilityStoryService.NEGATIVE_PROMPT,
+                    negative_prompt: negativePromptOverride || StabilityStoryService.NEGATIVE_PROMPT,
                     mode: "text-to-image",
                     aspect_ratio: "1:1",
                     output_format: "png",
@@ -59,7 +59,7 @@ export class StabilityStoryService {
                 throw new Error("Stable Diffusion failed to generate image");
             } catch (err: any) {
                 const isRetryable = err.$metadata?.httpStatusCode === 429 || err.$metadata?.httpStatusCode === 500 || err.$metadata?.httpStatusCode === 503;
-                
+
                 if (isRetryable && attempts < maxAttempts) {
                     const delay = initialDelay * Math.pow(2, attempts - 1);
                     console.warn(`  ⚠️ Stability API error (${err.$metadata?.httpStatusCode}). Retrying in ${delay}ms... (Attempt ${attempts}/${maxAttempts})`);

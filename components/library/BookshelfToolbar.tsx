@@ -203,403 +203,403 @@ export function BookshelfToolbar({
                     >
                         {/* LEFT & CENTER: Descriptive Navigation (Fills the space) */}
                         <div className="flex items-center gap-2 md:gap-4 min-w-0">
-                {/* Tabs & Category Dropdown Wrapper */}
-                <div className="flex items-center min-w-0 gap-1.5 md:gap-2 flex-1">
-                    {/* Compact tabs */}
-                    <div className="flex items-center gap-0.5 md:gap-1 pl-1 md:pl-0">
-                        {visibleCollections.map((col) => {
-                            const Icon = col.icon;
-                            const isActive = activeCollection === col.id;
-                            const activeTheme = COLLECTION_THEMES[col.id as keyof typeof COLLECTION_THEMES];
-                            const isMultipleTabs = visibleCollections.length > 1;
+                            {/* Tabs & Category Dropdown Wrapper */}
+                            <div className="flex items-center min-w-0 gap-1.5 md:gap-2 flex-1">
+                                {/* Compact tabs */}
+                                <div className="flex items-center gap-0.5 md:gap-1 pl-1 md:pl-0">
+                                    {visibleCollections.map((col) => {
+                                        const Icon = col.icon;
+                                        const isActive = activeCollection === col.id;
+                                        const activeTheme = COLLECTION_THEMES[col.id as keyof typeof COLLECTION_THEMES];
+                                        const isMultipleTabs = visibleCollections.length > 1;
 
-                            return (
-                                <button
-                                    key={col.id}
-                                    onClick={() => onCollectionChange(col.id)}
-                                    className={cn(
-                                        "relative flex items-center justify-center font-fredoka font-bold text-sm transition-all duration-300 py-2 rounded-full",
-                                    isActive
-                                        ? `${activeTheme} text-white shadow-lg shadow-purple-200/50 scale-105 z-10 px-3 md:px-4`
-                                        : "text-purple-400 bg-purple-50/30 hover:text-purple-600 hover:bg-purple-50/50 px-2 md:px-3",
-                                    !isMultipleTabs && "px-4"
-                                )}
-                                title={col.label}
-                            >
-                                <Icon className={cn("w-4 h-4 flex-shrink-0 transition-transform", isActive && "scale-110")} />
+                                        return (
+                                            <button
+                                                key={col.id}
+                                                onClick={() => onCollectionChange(col.id)}
+                                                className={cn(
+                                                    "relative flex items-center justify-center font-fredoka font-bold text-sm transition-all duration-300 py-2 rounded-full",
+                                                    isActive
+                                                        ? `${activeTheme} text-white shadow-lg shadow-purple-200/50 scale-105 z-10 px-3 md:px-4`
+                                                        : "text-purple-400 bg-purple-50/30 hover:text-purple-600 hover:bg-purple-50/50 px-2 md:px-3",
+                                                    !isMultipleTabs && "px-4"
+                                                )}
+                                                title={col.label}
+                                            >
+                                                <Icon className={cn("w-4 h-4 flex-shrink-0 transition-transform", isActive && "scale-110")} />
 
-                                <AnimatePresence initial={false}>
-                                    {(isActive || !isMultipleTabs) && (
-                                        <motion.span
-                                            initial={{ width: 0, opacity: 0, marginLeft: 0 }}
-                                            animate={{ width: "auto", opacity: 1, marginLeft: 8 }}
-                                            exit={{ width: 0, opacity: 0, marginLeft: 0 }}
-                                            transition={{ duration: 0.3, ease: "easeOut" }}
-                                            className="hidden lg:inline overflow-hidden whitespace-nowrap text-xs md:text-sm"
+                                                <AnimatePresence initial={false}>
+                                                    {(isActive || !isMultipleTabs) && (
+                                                        <motion.span
+                                                            initial={{ width: 0, opacity: 0, marginLeft: 0 }}
+                                                            animate={{ width: "auto", opacity: 1, marginLeft: 8 }}
+                                                            exit={{ width: 0, opacity: 0, marginLeft: 0 }}
+                                                            transition={{ duration: 0.3, ease: "easeOut" }}
+                                                            className="hidden lg:inline overflow-hidden whitespace-nowrap text-xs md:text-sm"
+                                                        >
+                                                            {col.label}
+                                                        </motion.span>
+                                                    )}
+                                                </AnimatePresence>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Desktop Filters Group (Now includes Category) */}
+                                <div className="hidden lg:flex items-center gap-2 ml-2 border-l border-purple-100 pl-3">
+                                    {/* Category Dropdown (Filter) */}
+                                    <Popover open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
+                                        <PopoverTrigger asChild>
+                                            <button
+                                                className={cn(
+                                                    "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold font-fredoka transition-all outline-none border active:scale-95",
+                                                    activeCategory !== 'all'
+                                                        ? "bg-purple-50 border-purple-100 text-purple-600 shadow-purple-100/30 shadow-sm"
+                                                        : "bg-purple-50/30 border-purple-100/50 text-purple-600/70 hover:bg-purple-50 hover:text-purple-600 shadow-sm"
+                                                )}
+                                            >
+                                                <CategoryIcon className={cn("w-3.5 h-3.5", activeCategory !== 'all' ? "text-purple-600" : "text-purple-400")} />
+                                                <span>
+                                                    {activeCategory === 'all' ? 'Everywhere' : selectedCategoryObj.label}
+                                                </span>
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent
+                                            className="w-[480px] p-4 rounded-3xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]"
+                                            align="start"
                                         >
-                                            {col.label}
-                                        </motion.span>
-                                    )}
-                                </AnimatePresence>
-                            </button>
-                        );
-                    })}
-                </div>
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between px-1">
+                                                    <h3 className="font-fredoka font-black text-slate-400 text-[10px] uppercase tracking-widest flex items-center gap-2">
+                                                        <Wand2 className="w-3 h-3" />
+                                                        Choose a Theme
+                                                    </h3>
+                                                    <button
+                                                        onClick={() => onFilterChange("category", "all")}
+                                                        className="text-[10px] font-black text-purple-500 hover:text-purple-600 uppercase tracking-widest px-2 py-1 rounded-lg hover:bg-purple-50 transition-colors"
+                                                    >
+                                                        Reset
+                                                    </button>
+                                                </div>
 
-                        {/* Desktop Filters Group (Now includes Category) */}
-                        <div className="hidden lg:flex items-center gap-2 ml-2 border-l border-purple-100 pl-3">
-                             {/* Category Dropdown (Filter) */}
-                             <Popover open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                                <PopoverTrigger asChild>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {CATEGORIES.map((cat) => {
+                                                        const Icon = cat.icon;
+                                                        const isActive = activeCategory === cat.id;
+
+                                                        return (
+                                                            <button
+                                                                key={cat.id}
+                                                                onClick={() => {
+                                                                    onFilterChange("category", cat.id);
+                                                                    setIsCategoryOpen(false);
+                                                                }}
+                                                                className={cn(
+                                                                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold font-fredoka transition-all text-left group",
+                                                                    isActive
+                                                                        ? "bg-purple-600 text-white shadow-lg shadow-purple-100 ring-2 ring-purple-100"
+                                                                        : "bg-slate-50 text-slate-600 hover:bg-white hover:shadow-md hover:scale-[1.02] border border-transparent hover:border-slate-100"
+                                                                )}
+                                                            >
+                                                                <div className={cn(
+                                                                    "p-1.5 rounded-lg transition-colors bg-white/20 group-hover:scale-110 duration-300",
+                                                                )}>
+                                                                    <Icon className={cn("w-3.5 h-3.5", isActive ? "text-white" : cat.iconClass)} />
+                                                                </div>
+                                                                <span className="flex-1 truncate">{cat.label}</span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    <FilterSelect
+                                        value={filters.level}
+                                        onChange={(v: string | undefined) => onFilterChange("level", v)}
+                                        prefix="Level"
+                                        placeholder="Level"
+                                        icon={Baby}
+                                        options={[
+                                            { value: "toddler", label: "Toddler", icon: Baby, theme: "bg-rose-500 text-white shadow-rose-200", iconColor: "text-rose-500", lightBg: "bg-rose-50", activeIconColor: "text-white" },
+                                            { value: "preschool", label: "Preschool", icon: Palette, theme: "bg-amber-500 text-white shadow-amber-200", iconColor: "text-amber-500", lightBg: "bg-amber-50", activeIconColor: "text-white" },
+                                            { value: "elementary", label: "Elementary", icon: Rocket, theme: "bg-indigo-500 text-white shadow-indigo-200", iconColor: "text-indigo-500", lightBg: "bg-indigo-50", activeIconColor: "text-white" },
+                                            { value: "intermediate", label: "Intermediate", icon: FlaskConical, theme: "bg-violet-600 text-white shadow-violet-200", iconColor: "text-violet-500", lightBg: "bg-violet-50", activeIconColor: "text-white" },
+                                        ]}
+                                    />
+                                    <FilterSelect
+                                        value={filters.type}
+                                        onChange={(v: string | undefined) => onFilterChange("type", v)}
+                                        prefix="Type"
+                                        placeholder="Type"
+                                        icon={Sparkles}
+                                        options={[
+                                            { value: "fiction", label: "Stories", icon: Wand2, theme: "bg-purple-500 text-white shadow-purple-200", iconColor: "text-purple-500", lightBg: "bg-purple-50", activeIconColor: "text-white" },
+                                            { value: "nonfiction", label: "Facts", icon: Microscope, theme: "bg-blue-500 text-white shadow-blue-200", iconColor: "text-blue-500", lightBg: "bg-blue-50", activeIconColor: "text-white" },
+                                        ]}
+                                    />
+                                    <FilterSelect
+                                        value={filters.duration}
+                                        onChange={(v: string | undefined) => onFilterChange("duration", v)}
+                                        prefix="Time"
+                                        placeholder="Time"
+                                        icon={Clock}
+                                        options={[
+                                            { value: "short", label: "< 5m", icon: Zap, theme: "bg-teal-500 text-white shadow-teal-200", iconColor: "text-teal-500", lightBg: "bg-teal-50", activeIconColor: "text-white" },
+                                            { value: "medium", label: "5-10m", icon: Play, theme: "bg-sky-500 text-white shadow-sky-200", iconColor: "text-sky-500", lightBg: "bg-sky-50", activeIconColor: "text-white" },
+                                            { value: "long", label: "> 10m", icon: Flame, theme: "bg-orange-500 text-white shadow-orange-200", iconColor: "text-orange-500", lightBg: "bg-orange-50", activeIconColor: "text-white" },
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Search & Actions */}
+                        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+                            {/* Desktop Search - Hidden on small mobile */}
+                            <div className="hidden lg:block relative w-40 md:w-52 max-w-md group">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => onSearchChange(e.target.value)}
+                                    placeholder="Find a story..."
+                                    className="w-full bg-purple-50/30 hover:bg-purple-50 border-none rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-sm font-fredoka focus:ring-2 focus:ring-purple-200 transition-all outline-none"
+                                />
+                            </div>
+
+
+                            {/* Mobile Filters Trigger */}
+                            <Sheet>
+                                <SheetTrigger asChild>
                                     <button
                                         className={cn(
-                                            "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold font-fredoka transition-all outline-none border active:scale-95",
-                                            activeCategory !== 'all'
-                                                ? "bg-purple-50 border-purple-100 text-purple-600 shadow-purple-100/30 shadow-sm"
-                                                : "bg-purple-50/30 border-purple-100/50 text-purple-600/70 hover:bg-purple-50 hover:text-purple-600 shadow-sm"
+                                            "lg:hidden p-2 rounded-xl transition-colors",
+                                            (filters.level || filters.type || filters.duration || filters.category !== 'all')
+                                                ? "text-purple-600 bg-purple-50 border border-purple-100 shadow-sm"
+                                                : "text-purple-600/70 bg-purple-50/30 hover:bg-purple-50 hover:text-purple-600"
                                         )}
                                     >
-                                        <CategoryIcon className={cn("w-3.5 h-3.5", activeCategory !== 'all' ? "text-purple-600" : "text-purple-400")} />
-                                        <span>
-                                            {activeCategory === 'all' ? 'Everywhere' : selectedCategoryObj.label}
-                                        </span>
+                                        <Filter className="w-5 h-5" />
                                     </button>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                    className="w-[480px] p-4 rounded-3xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]"
-                                    align="start"
-                                >
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between px-1">
-                                            <h3 className="font-fredoka font-black text-slate-400 text-[10px] uppercase tracking-widest flex items-center gap-2">
-                                                <Wand2 className="w-3 h-3" />
-                                                Choose a Theme
-                                            </h3>
-                                            <button
-                                                onClick={() => onFilterChange("category", "all")}
-                                                className="text-[10px] font-black text-purple-500 hover:text-purple-600 uppercase tracking-widest px-2 py-1 rounded-lg hover:bg-purple-50 transition-colors"
-                                            >
-                                                Reset
-                                            </button>
+                                </SheetTrigger>
+                                <SheetContent side="bottom" className="rounded-t-[32px] p-0 overflow-hidden bg-slate-50 border-none">
+                                    <SheetHeader className="p-6 bg-white border-b border-slate-100 flex flex-row items-center justify-between space-y-0">
+                                        <div className="space-y-1">
+                                            <SheetTitle className="text-left font-fredoka text-2xl font-black text-slate-800">Filters</SheetTitle>
+                                            <SheetDescription className="text-xs font-bold font-nunito text-slate-400 uppercase tracking-widest">Refine your library</SheetDescription>
                                         </div>
-
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {CATEGORIES.map((cat) => {
-                                                const Icon = cat.icon;
-                                                const isActive = activeCategory === cat.id;
-
-                                                return (
-                                                    <button
-                                                        key={cat.id}
-                                                        onClick={() => {
-                                                            onFilterChange("category", cat.id);
-                                                            setIsCategoryOpen(false);
-                                                        }}
-                                                        className={cn(
-                                                            "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold font-fredoka transition-all text-left group",
-                                                            isActive
-                                                                ? "bg-purple-600 text-white shadow-lg shadow-purple-100 ring-2 ring-purple-100"
-                                                                : "bg-slate-50 text-slate-600 hover:bg-white hover:shadow-md hover:scale-[1.02] border border-transparent hover:border-slate-100"
-                                                        )}
-                                                    >
-                                                        <div className={cn(
-                                                            "p-1.5 rounded-lg transition-colors bg-white/20 group-hover:scale-110 duration-300",
-                                                        )}>
-                                                            <Icon className={cn("w-3.5 h-3.5", isActive ? "text-white" : cat.iconClass)} />
-                                                        </div>
-                                                        <span className="flex-1 truncate">{cat.label}</span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-
-                            <FilterSelect
-                                value={filters.level}
-                                onChange={(v: string | undefined) => onFilterChange("level", v)}
-                                prefix="Level"
-                                placeholder="Level"
-                                icon={Baby}
-                                options={[
-                                    { value: "toddler", label: "Toddler", icon: Baby, theme: "bg-rose-500 text-white shadow-rose-200", iconColor: "text-rose-500", lightBg: "bg-rose-50", activeIconColor: "text-white" },
-                                    { value: "preschool", label: "Preschool", icon: Palette, theme: "bg-amber-500 text-white shadow-amber-200", iconColor: "text-amber-500", lightBg: "bg-amber-50", activeIconColor: "text-white" },
-                                    { value: "elementary", label: "Elementary", icon: Rocket, theme: "bg-indigo-500 text-white shadow-indigo-200", iconColor: "text-indigo-500", lightBg: "bg-indigo-50", activeIconColor: "text-white" },
-                                    { value: "intermediate", label: "Intermediate", icon: FlaskConical, theme: "bg-violet-600 text-white shadow-violet-200", iconColor: "text-violet-500", lightBg: "bg-violet-50", activeIconColor: "text-white" },
-                                ]}
-                            />
-                            <FilterSelect
-                                value={filters.type}
-                                onChange={(v: string | undefined) => onFilterChange("type", v)}
-                                prefix="Type"
-                                placeholder="Type"
-                                icon={Sparkles}
-                                options={[
-                                    { value: "fiction", label: "Stories", icon: Wand2, theme: "bg-purple-500 text-white shadow-purple-200", iconColor: "text-purple-500", lightBg: "bg-purple-50", activeIconColor: "text-white" },
-                                    { value: "nonfiction", label: "Facts", icon: Microscope, theme: "bg-blue-500 text-white shadow-blue-200", iconColor: "text-blue-500", lightBg: "bg-blue-50", activeIconColor: "text-white" },
-                                ]}
-                            />
-                            <FilterSelect
-                                value={filters.duration}
-                                onChange={(v: string | undefined) => onFilterChange("duration", v)}
-                                prefix="Time"
-                                placeholder="Time"
-                                icon={Clock}
-                                options={[
-                                    { value: "short", label: "< 5m", icon: Zap, theme: "bg-teal-500 text-white shadow-teal-200", iconColor: "text-teal-500", lightBg: "bg-teal-50", activeIconColor: "text-white" },
-                                    { value: "medium", label: "5-10m", icon: Play, theme: "bg-sky-500 text-white shadow-sky-200", iconColor: "text-sky-500", lightBg: "bg-sky-50", activeIconColor: "text-white" },
-                                    { value: "long", label: "> 10m", icon: Flame, theme: "bg-orange-500 text-white shadow-orange-200", iconColor: "text-orange-500", lightBg: "bg-orange-50", activeIconColor: "text-white" },
-                                ]}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-            {/* RIGHT: Search & Actions */}
-            <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
-                {/* Desktop Search - Hidden on small mobile */}
-                <div className="hidden lg:block relative w-40 md:w-52 max-w-md group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
-                     <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                        placeholder="Find a story..."
-                        className="w-full bg-purple-50/30 hover:bg-purple-50 border-none rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-sm font-fredoka focus:ring-2 focus:ring-purple-200 transition-all outline-none"
-                    />
-                </div>
-
-
-                {/* Mobile Filters Trigger */}
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <button
-                            className={cn(
-                                "lg:hidden p-2 rounded-xl transition-colors",
-                                (filters.level || filters.type || filters.duration || filters.category !== 'all')
-                                    ? "text-purple-600 bg-purple-50 border border-purple-100 shadow-sm"
-                                    : "text-purple-600/70 bg-purple-50/30 hover:bg-purple-50 hover:text-purple-600"
-                            )}
-                        >
-                            <Filter className="w-5 h-5" />
-                        </button>
-                    </SheetTrigger>
-                    <SheetContent side="bottom" className="rounded-t-[32px] p-0 overflow-hidden bg-slate-50 border-none">
-                        <SheetHeader className="p-6 bg-white border-b border-slate-100 flex flex-row items-center justify-between space-y-0">
-                            <div className="space-y-1">
-                                <SheetTitle className="text-left font-fredoka text-2xl font-black text-slate-800">Filters</SheetTitle>
-                                <SheetDescription className="text-xs font-bold font-nunito text-slate-400 uppercase tracking-widest">Refine your library</SheetDescription>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    onFilterChange("level", undefined);
-                                    onFilterChange("type", undefined);
-                                    onFilterChange("duration", undefined);
-                                    onFilterChange("category", "all");
-                                }}
-                                className="text-xs font-black text-purple-600 uppercase tracking-widest px-3 py-1.5 rounded-xl hover:bg-purple-50"
-                            >
-                                Reset
-                            </button>
-                        </SheetHeader>
-                        <div className="p-6 space-y-8 overflow-y-auto max-h-[60vh] pb-12">
-                            {/* Theme/Category Section (New for Mobile Sheet) */}
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Theme</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {CATEGORIES.map((cat) => {
-                                        const isActive = filters.category === cat.id || (cat.id === 'all' && !filters.category);
-                                        const Icon = cat.icon;
-                                        return (
-                                            <button
-                                                key={cat.id}
-                                                onClick={() => onFilterChange("category", cat.id)}
-                                                className={cn(
-                                                    "flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black font-fredoka transition-all border-2",
-                                                    isActive
-                                                        ? "bg-white border-purple-400 text-purple-600 shadow-lg shadow-purple-100"
-                                                        : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
-                                                )}
-                                            >
-                                                <Icon className={cn("w-4 h-4", isActive ? "text-purple-500" : "text-slate-300")} />
-                                                <span className="truncate">{cat.label}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Level Section */}
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Reading Level</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {[
-                                        { id: "toddler", label: "Toddler", icon: Baby, color: "rose" },
-                                        { id: "preschool", label: "Preschool", icon: Palette, color: "amber" },
-                                        { id: "elementary", label: "Elementary", icon: Rocket, color: "indigo" },
-                                        { id: "intermediate", label: "Intermediate", icon: FlaskConical, color: "violet" },
-                                    ].map((opt) => {
-                                        const isActive = filters.level === opt.id;
-                                        const Icon = opt.icon;
-                                        return (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => onFilterChange("level", isActive ? undefined : opt.id)}
-                                                className={cn(
-                                                    "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
-                                                    isActive
-                                                        ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
-                                                        : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
-                                                )}
-                                            >
-                                                <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
-                                                {opt.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Type Section */}
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Story Type</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {[
-                                        { id: "fiction", label: "Stories", icon: Wand2, color: "purple" },
-                                        { id: "nonfiction", label: "Facts", icon: Microscope, color: "blue" },
-                                    ].map((opt) => {
-                                        const isActive = filters.type === opt.id;
-                                        const Icon = opt.icon;
-                                        return (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => onFilterChange("type", isActive ? undefined : opt.id)}
-                                                className={cn(
-                                                    "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
-                                                    isActive
-                                                        ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
-                                                        : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
-                                                )}
-                                            >
-                                                <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
-                                                {opt.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Duration Section */}
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Length</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {[
-                                        { id: "short", label: "< 5m", icon: Zap, color: "teal" },
-                                        { id: "medium", label: "5-10m", icon: Play, color: "sky" },
-                                        { id: "long", label: "> 10m", icon: Flame, color: "orange" },
-                                    ].map((opt) => {
-                                        const isActive = filters.duration === opt.id;
-                                        const Icon = opt.icon;
-                                        return (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => onFilterChange("duration", isActive ? undefined : opt.id)}
-                                                className={cn(
-                                                    "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
-                                                    isActive
-                                                        ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
-                                                        : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
-                                                )}
-                                            >
-                                                <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
-                                                {opt.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="absolute bottom-6 left-6 right-6">
-                            <SheetClose asChild>
-                                <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-fredoka font-black text-lg shadow-clay-indigo hover:translate-y-[1px] transition-all">
-                                    Show Stories
-                                </button>
-                            </SheetClose>
-                        </div>
-                    </SheetContent>
-                </Sheet>
-
-                {/* Sort Button - Full UI or Compact based on screen */}
-                <div className="relative">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <button
-                                className={cn(
-                                    "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl text-xs font-black font-fredoka transition-all outline-none border shadow-sm",
-                                    sortBy !== "last_opened"
-                                        ? "bg-indigo-100 border-indigo-200 text-indigo-700 shadow-sm"
-                                        : "bg-indigo-50/30 border-indigo-100/50 text-indigo-600/70 hover:bg-indigo-50 hover:text-indigo-600"
-                                )}
-                            >
-                                <ArrowUpDown className={cn("w-3.5 h-3.5", sortBy !== "last_opened" ? "text-indigo-600" : "text-slate-400")} />
-                                <span className="hidden lg:inline">Sort</span>
-                                <div className="hidden lg:flex items-center">
-                                    <span className="text-[10px] opacity-40 ml-0.5">•</span>
-                                    <span className={cn(
-                                        "text-xs font-bold ml-1",
-                                        sortOrder === 'desc' ? "text-rose-400" : "text-emerald-400"
-                                    )}>
-                                        {sortOrder === 'desc' ? 'New' : 'Old'}
-                                    </span>
-                                </div>
-                            </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-48 p-2 rounded-2xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]" align="end">
-                            <div className="grid gap-1">
-                                {[
-                                    { id: 'last_opened', label: 'Recently Read' },
-                                    { id: 'created_at', label: 'Recently Added' },
-                                    { id: 'lexile_level', label: 'Reading Level' },
-                                    { id: 'reading_time', label: 'Reading Time' },
-                                    { id: 'title', label: 'Alphabetical' }
-                                ].map((option) => (
-                                    <div 
-                                        key={option.id}
-                                        onClick={() => onSortChange(option.id)}
-                                        className={cn(
-                                            "flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-xs font-black font-fredoka transition-all outline-none cursor-pointer",
-                                            sortBy === option.id ? "bg-indigo-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50"
-                                        )}
-                                    >
-                                        <span>{option.label}</span>
-                                        {sortBy === option.id && (
-                                            <div
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc');
-                                                }}
-                                                className="p-1 hover:bg-indigo-100 rounded-md transition-colors"
-                                            >
-                                                <ArrowUpDown className={cn("w-3 h-3 transition-transform", sortOrder === 'asc' && "rotate-180")} />
+                                        <button
+                                            onClick={() => {
+                                                onFilterChange("level", undefined);
+                                                onFilterChange("type", undefined);
+                                                onFilterChange("duration", undefined);
+                                                onFilterChange("category", "all");
+                                            }}
+                                            className="text-xs font-black text-purple-600 uppercase tracking-widest px-3 py-1.5 rounded-xl hover:bg-purple-50"
+                                        >
+                                            Reset
+                                        </button>
+                                    </SheetHeader>
+                                    <div className="p-6 space-y-8 overflow-y-auto max-h-[60vh] pb-12">
+                                        {/* Theme/Category Section (New for Mobile Sheet) */}
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Theme</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {CATEGORIES.map((cat) => {
+                                                    const isActive = filters.category === cat.id || (cat.id === 'all' && !filters.category);
+                                                    const Icon = cat.icon;
+                                                    return (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => onFilterChange("category", cat.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black font-fredoka transition-all border-2",
+                                                                isActive
+                                                                    ? "bg-white border-purple-400 text-purple-600 shadow-lg shadow-purple-100"
+                                                                    : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
+                                                            )}
+                                                        >
+                                                            <Icon className={cn("w-4 h-4", isActive ? "text-purple-500" : "text-slate-300")} />
+                                                            <span className="truncate">{cat.label}</span>
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                </div>
+                                        </div>
 
-                {/* Reordered Mobile Search Trigger */}
-                <button
-                    onClick={() => setIsSearchExpanded(true)}
-                    className="lg:hidden p-2 rounded-xl bg-purple-50/30 border border-purple-100/50 text-purple-600/70 hover:bg-purple-50 hover:text-purple-600 transition-all active:scale-95"
-                >
-                    <Search className="w-5 h-5" />
-                </button>
-            </div>
-        </motion.div>
+                                        {/* Level Section */}
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Reading Level</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {[
+                                                    { id: "toddler", label: "Toddler", icon: Baby, color: "rose" },
+                                                    { id: "preschool", label: "Preschool", icon: Palette, color: "amber" },
+                                                    { id: "elementary", label: "Elementary", icon: Rocket, color: "indigo" },
+                                                    { id: "intermediate", label: "Intermediate", icon: FlaskConical, color: "violet" },
+                                                ].map((opt) => {
+                                                    const isActive = filters.level === opt.id;
+                                                    const Icon = opt.icon;
+                                                    return (
+                                                        <button
+                                                            key={opt.id}
+                                                            onClick={() => onFilterChange("level", isActive ? undefined : opt.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
+                                                                isActive
+                                                                    ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
+                                                                    : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
+                                                            )}
+                                                        >
+                                                            <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
+                                                            {opt.label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Type Section */}
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Story Type</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {[
+                                                    { id: "fiction", label: "Stories", icon: Wand2, color: "purple" },
+                                                    { id: "nonfiction", label: "Facts", icon: Microscope, color: "blue" },
+                                                ].map((opt) => {
+                                                    const isActive = filters.type === opt.id;
+                                                    const Icon = opt.icon;
+                                                    return (
+                                                        <button
+                                                            key={opt.id}
+                                                            onClick={() => onFilterChange("type", isActive ? undefined : opt.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
+                                                                isActive
+                                                                    ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
+                                                                    : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
+                                                            )}
+                                                        >
+                                                            <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
+                                                            {opt.label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Duration Section */}
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Length</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {[
+                                                    { id: "short", label: "< 5m", icon: Zap, color: "teal" },
+                                                    { id: "medium", label: "5-10m", icon: Play, color: "sky" },
+                                                    { id: "long", label: "> 10m", icon: Flame, color: "orange" },
+                                                ].map((opt) => {
+                                                    const isActive = filters.duration === opt.id;
+                                                    const Icon = opt.icon;
+                                                    return (
+                                                        <button
+                                                            key={opt.id}
+                                                            onClick={() => onFilterChange("duration", isActive ? undefined : opt.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-3 px-4 py-4 rounded-2xl text-sm font-black font-fredoka transition-all border-2",
+                                                                isActive
+                                                                    ? `bg-white border-${opt.color}-400 text-${opt.color}-600 shadow-lg shadow-${opt.color}-100`
+                                                                    : "bg-white border-transparent text-slate-500 hover:border-slate-100 shadow-sm"
+                                                            )}
+                                                        >
+                                                            <Icon className={cn("w-4 h-4", isActive ? `text-${opt.color}-500` : "text-slate-300")} />
+                                                            {opt.label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="absolute bottom-6 left-6 right-6">
+                                        <SheetClose asChild>
+                                            <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-fredoka font-black text-lg shadow-clay-indigo hover:translate-y-[1px] transition-all">
+                                                Show Stories
+                                            </button>
+                                        </SheetClose>
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+
+                            {/* Sort Button - Full UI or Compact based on screen */}
+                            <div className="relative">
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className={cn(
+                                                "flex items-center gap-2 px-2 py-2 md:px-3 md:py-2 rounded-xl text-xs font-black font-fredoka transition-all outline-none border shadow-sm",
+                                                sortBy !== "last_opened"
+                                                    ? "bg-indigo-100 border-indigo-200 text-indigo-700 shadow-sm"
+                                                    : "bg-indigo-50/30 border-indigo-100/50 text-indigo-600/70 hover:bg-indigo-50 hover:text-indigo-600"
+                                            )}
+                                        >
+                                            <ArrowUpDown className={cn("w-3.5 h-3.5", sortBy !== "last_opened" ? "text-indigo-600" : "text-slate-400")} />
+                                            <span className="hidden lg:inline">Sort</span>
+                                            <div className="hidden lg:flex items-center">
+                                                <span className="text-[10px] opacity-40 ml-0.5">•</span>
+                                                <span className={cn(
+                                                    "text-xs font-bold ml-1",
+                                                    sortOrder === 'desc' ? "text-rose-400" : "text-emerald-400"
+                                                )}>
+                                                    {sortOrder === 'desc' ? 'New' : 'Old'}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-48 p-2 rounded-2xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]" align="end">
+                                        <div className="grid gap-1">
+                                            {[
+                                                { id: 'last_opened', label: 'Recently Read' },
+                                                { id: 'created_at', label: 'Recently Added' },
+                                                { id: 'lexile_level', label: 'Reading Level' },
+                                                { id: 'reading_time', label: 'Reading Time' },
+                                                { id: 'title', label: 'Alphabetical' }
+                                            ].map((option) => (
+                                                <div
+                                                    key={option.id}
+                                                    onClick={() => onSortChange(option.id)}
+                                                    className={cn(
+                                                        "flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-xs font-black font-fredoka transition-all outline-none cursor-pointer",
+                                                        sortBy === option.id ? "bg-indigo-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50"
+                                                    )}
+                                                >
+                                                    <span>{option.label}</span>
+                                                    {sortBy === option.id && (
+                                                        <div
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc');
+                                                            }}
+                                                            className="p-1 hover:bg-indigo-100 rounded-md transition-colors"
+                                                        >
+                                                            <ArrowUpDown className={cn("w-3 h-3 transition-transform", sortOrder === 'asc' && "rotate-180")} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
+                            {/* Reordered Mobile Search Trigger */}
+                            <button
+                                onClick={() => setIsSearchExpanded(true)}
+                                className="lg:hidden p-2 rounded-xl bg-purple-50/30 border border-purple-100/50 text-purple-600/70 hover:bg-purple-50 hover:text-purple-600 transition-all active:scale-95"
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </motion.div>
                 ) : (
                     <motion.div
                         key="search"
@@ -616,7 +616,7 @@ export function BookshelfToolbar({
                                 value={searchQuery}
                                 onChange={(e) => onSearchChange(e.target.value)}
                                 placeholder="Search stories..."
-                                className="w-full bg-slate-50 border-2 border-transparent focus:border-purple-200 rounded-xl py-2 pl-10 pr-4 text-sm font-fredoka outline-none transition-all"
+                                className="w-full bg-slate-50 border-2 border-transparent focus:border-purple-200 rounded-xl py-2 pl-10 pr-4 text-base font-fredoka outline-none transition-all"
                             />
                         </div>
                         <button

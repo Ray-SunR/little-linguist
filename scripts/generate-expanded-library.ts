@@ -16,6 +16,12 @@ const MANIFESTO_PATH = path.join(process.cwd(), 'data/expanded-manifesto.json');
 const OUTPUT_DIR = path.join(process.cwd(), 'output/expanded-library');
 const STATE_FILE = path.join(OUTPUT_DIR, 'state.json');
 
+const SUN_WUKONG_ANCHOR = `Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.`;
+
+const SUN_WUKONG_NEGATIVE = `feminine features, long eyelashes, makeup, girl, woman, lipstick, jewelry, rounded soft face, thin frame, fragile build, 2D, sketch, flat colors, watercolor, paper texture. No human, no gorilla, no chimp, no robotic parts, no modern street clothing.`;
+
+const SUN_WUKONG_STYLE = `Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution, cinematic render, Octane render, highly detailed textures.`;
+
 function sanitizeTheme(theme: string | null): string {
     if (!theme) return "";
     return theme
@@ -37,7 +43,7 @@ function sanitizeTheme(theme: string | null): string {
         .replace(/Harry Potter/gi, "a young wizard in a magical school")
         .replace(/Minecraft/gi, "a world of blocks and building")
         .replace(/Daemon Hunter/gi, "a brave warrior with a magic sword fighting shadow monsters")
-        .replace(/Sun Wukong/gi, "Sun Wukong the Monkey King, a cute but heroic anthropomorphic golden monkey with a heart-shaped face and mischievous expression, golden chainmail armor, tiger-skin skirt, red trousers, and a Phoenix-feather cap, rendered in a vibrant 3D animation style, cute character design, soft studio lighting, volumetric 3D render, Pixar style, high fidelity, 8k resolution.");
+        .replace(/Sun Wukong/gi, "Sun Wukong (The Monkey King), a heroic anthropomorphic monkey warrior with golden-orange fur and myth armor. Kid-friendly, vibrant 3D animation style.");
 }
 
 const LEVEL_SPECS: Record<string, { minWords: number, targetWords: number, sceneCount: number, sentencesPerScene: number, complexity: string }> = {
@@ -85,7 +91,7 @@ async function main() {
     console.log(`\n🚀 Starting concurrent generation (Concurrency: 3) for remaining ${manifesto.length - state.completed.length} books...`);
 
     const CONCURRENCY = 3;
-    const queue = [...manifesto];
+    const queue = manifesto.filter((entry: any) => entry.category === 'sunwukong');
 
     async function processBook(entry: any) {
         if (state.completed.includes(entry.id)) {
@@ -99,9 +105,13 @@ async function main() {
 
         // Style Selection based on Level
         const isOlder = ["G3-5", "G1-2"].includes(entry.level);
-        const artStyle = isOlder
+        let artStyle = isOlder
             ? "Cinematic digital concept art, realistic textures, dramatic lighting, detailed background, anime-influenced but semi-realistic, 8k resolution"
-            : undefined; // undefined uses the default "vibrant watercolor" style from the service
+            : undefined; // undefined uses the default from the service
+
+        if (entry.category === 'sunwukong') {
+            artStyle = SUN_WUKONG_STYLE;
+        }
 
 
         let bState = state.inProgress[entry.id];
@@ -123,10 +133,14 @@ async function main() {
                 console.log(`  📝 Generating story and character anchor...`);
 
                 if (entry.category === 'sunwukong') {
-                    bState.characterAnchor = "Sun Wukong the Monkey King, a cute but heroic anthropomorphic golden monkey with a heart-shaped face and mischievous expression. He has bright golden fur and piercing fiery gold eyes. He is wearing his iconic golden chainmail armor breastplate, a tiger-skin loincloth skirt, red trousers, and black cloud-walking boots. On his head is a golden fillet headband and a Phoenix-feather cap with two very long red pheasant feathers curving high into the air. He is holding a magical red and gold iron staff, rendered in a vibrant 3D animation style, cute character design, soft studio lighting, volumetric 3D render, Pixar style, high fidelity, 8k resolution.";
+                    bState.characterAnchor = SUN_WUKONG_ANCHOR;
                 } else {
                     bState.characterAnchor = await claude.generateCharacterAnchor(entry.concept_prompt || entry.brand_theme || entry.title, entry.level);
                 }
+
+                const journeyToWestInstruction = entry.category === 'sunwukong'
+                    ? "CRITICAL: The story MUST be based on actual mythical episodes, lore, or characters from the classical novel 'Journey to the West' (西游记). Maintain cultural and narrative authenticity while adapting for the target reading level."
+                    : "";
 
                 const themeText = sanitizeTheme(entry.brand_theme || entry.category);
                 const conceptContext = entry.concept_prompt ? `Specific Story Concept: ${entry.concept_prompt}` : "";
@@ -134,6 +148,7 @@ async function main() {
                 const prompt = `Write a ${entry.is_nonfiction ? 'non-fiction' : 'fiction'} story for a child at ${entry.level} reading level about ${entry.category}.
                 Theme Focus: ${themeText}.
                 ${conceptContext}
+                ${journeyToWestInstruction}
                 Character Anchor (Visual Identity): ${bState.characterAnchor}.
                 Target total word count: ${specs.targetWords} words.
                 Complexity: ${specs.complexity}.
@@ -144,8 +159,11 @@ async function main() {
                 
                 IMAGE PROMPT INSTRUCTIONS:
                 Each "imagePrompt" MUST focus on the ACTION and SETTING first. 
-                Structure it as: "[Detailed action and background description], featuring [Character Anchor markers]".
-                Example: "A brave hero jumping over a crumbling stone wall in a ruined city, featuring a 10yo boy, blue suit, red cape, yellow belt".
+                Structure it as: "[Detailed action and background description], featuring [STRICT Character Anchor markers]".
+                IMPORTANT: Under "featuring", you MUST include the FULL Character Anchor description provided below without summarizing it. This ensures visual consistency.
+                Character Anchor to include in EVERY prompt: ${bState.characterAnchor}
+                
+                Example: "A brave hero jumping over a crumbling stone wall in a ruined city, featuring [Full Character Anchor Description]".
                 Do NOT just repeat the Character Anchor description alone. Ensure the background is vivid and changing in every scene.
                 IMPORTANT: For G3-5, each scene must be a substantial paragraph. Use engaging and age-appropriate storytelling.`;
 
@@ -180,6 +198,8 @@ async function main() {
                 saveState();
             }
 
+            const negativePrompt = entry.category === 'sunwukong' ? SUN_WUKONG_NEGATIVE : undefined;
+
             // --- Phase 2: Assets Creation ---
             if (!fs.existsSync(bookDir)) fs.mkdirSync(bookDir, { recursive: true });
             if (!fs.existsSync(path.join(bookDir, 'scenes'))) fs.mkdirSync(path.join(bookDir, 'scenes'), { recursive: true });
@@ -189,15 +209,15 @@ async function main() {
                 console.log(`  🖼️ Generating Smart Cover...`);
                 let base64Cover = "";
                 try {
-                    base64Cover = await nova.generateImage(bState.smartCoverPrompt, bookSeed, artStyle);
+                    base64Cover = await nova.generateImage(bState.smartCoverPrompt, bookSeed, artStyle, negativePrompt);
                 } catch (coverErr: any) {
                     console.warn(`  ⚠️ Cover image blocked/failed. Attempting fallbacks...`);
                     try {
-                        base64Cover = await nova.generateImage(`${bState.characterAnchor}. Children's book cover for a story about ${entry.category}`, bookSeed, artStyle);
+                        base64Cover = await nova.generateImage(`${bState.characterAnchor}. Children's book cover for a story about ${entry.category}`, bookSeed, artStyle, negativePrompt);
                     } catch (fb1Err) {
                         console.warn(`  ⚠️ Fallback 1 blocked. Attempting Safe Fallback...`);
                         const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || `a story about ${entry.category}`;
-                        base64Cover = await nova.generateImage(`Children's book cover illustration of ${safeDesc}. Colorful, distinct style.`, bookSeed, artStyle);
+                        base64Cover = await nova.generateImage(`Children's book cover illustration of ${safeDesc}. Colorful, distinct style.`, bookSeed, artStyle, negativePrompt);
                     }
                 }
                 await saveOptimizedImage(base64Cover, path.join(bookDir, 'cover.webp'));
@@ -216,15 +236,15 @@ async function main() {
                     console.log(`  🎨 Scene ${i + 1}/${bState.pages.length}...`);
                     let base64Image = "";
                     try {
-                        base64Image = await nova.generateImage(bState.pages[i].imagePrompt, bookSeed, artStyle);
+                        base64Image = await nova.generateImage(bState.pages[i].imagePrompt, bookSeed, artStyle, negativePrompt);
                     } catch (imgErr: any) {
                         console.warn(`  ⚠️ Scene ${i} blocked/failed. Attempting fallbacks...`);
                         try {
-                            base64Image = await nova.generateImage(`${bState.characterAnchor}. Children's book illustration for: ${bState.pages[i].text}`, bookSeed, artStyle);
+                            base64Image = await nova.generateImage(`${bState.characterAnchor}. Children's book illustration for: ${bState.pages[i].text}`, bookSeed, artStyle, negativePrompt);
                         } catch (fb1Err) {
                             console.warn(`  ⚠️ Scene ${i} Fallback 1 blocked. Attempting Safe Fallback...`);
                             const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || entry.category;
-                            base64Image = await nova.generateImage(`Children's book illustration of ${safeDesc}. Action: ${bState.pages[i].text.substring(0, 50)}...`, bookSeed, artStyle);
+                            base64Image = await nova.generateImage(`Children's book illustration of ${safeDesc}. Action: ${bState.pages[i].text.substring(0, 50)}...`, bookSeed, artStyle, negativePrompt);
                         }
                     }
                     const imageFilename = `scene_${i}.webp`;
