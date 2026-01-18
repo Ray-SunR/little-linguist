@@ -36,37 +36,70 @@ export function useWakeLock({
     const wakeLockRef = useRef<WakeLockSentinel | null>(null);
     const shouldBeLockedRef = useRef(false);
     const isRequestingRef = useRef(false);
+    const isMountedRef = useRef(false);
+    const reacquireTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Check support on mount
+    // Refs for callbacks
+    const onRequestRef = useRef(onRequest);
+    const onReleaseRef = useRef(onRelease);
+    const onErrorRef = useRef(onError);
+
+    // Ref for the release handler to allow cleanup from outside request()
+    const handleReleaseRef = useRef<((e: Event) => void) | null>(null);
+
+    useEffect(() => { onRequestRef.current = onRequest; }, [onRequest]);
+    useEffect(() => { onReleaseRef.current = onRelease; }, [onRelease]);
+    useEffect(() => { onErrorRef.current = onError; }, [onError]);
+
     useEffect(() => {
+        isMountedRef.current = true;
         if (typeof window !== "undefined" && "wakeLock" in navigator) {
             setIsSupported(true);
         }
+        return () => {
+            isMountedRef.current = false;
+        };
     }, []);
 
     const release = useCallback(async () => {
         shouldBeLockedRef.current = false;
+
+        // Clear any pending re-acquire
+        if (reacquireTimeoutRef.current) {
+            clearTimeout(reacquireTimeoutRef.current);
+            reacquireTimeoutRef.current = null;
+        }
+
         const wakeLock = wakeLockRef.current;
         if (!wakeLock) return;
 
-        // Prevent event listener from double-handling
-        wakeLockRef.current = null;
-        setIsLocked(false);
+        // Cleanup listener first to prevent double-firing
+        if (handleReleaseRef.current) {
+            wakeLock.removeEventListener("release", handleReleaseRef.current);
+            handleReleaseRef.current = null;
+        }
 
         try {
             if (wakeLock.released) {
-                if (onRelease) onRelease();
+                wakeLockRef.current = null;
+                if (isMountedRef.current) setIsLocked(false);
+                if (onReleaseRef.current && isMountedRef.current) onReleaseRef.current();
                 return;
             }
 
             await wakeLock.release();
-            if (onRelease) onRelease();
+
+            // Manual state update
+            wakeLockRef.current = null;
+            if (isMountedRef.current) setIsLocked(false);
+            if (onReleaseRef.current && isMountedRef.current) onReleaseRef.current();
+
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
-            if (onError) onError(err);
+            if (onErrorRef.current && isMountedRef.current) onErrorRef.current(err);
             console.error(err);
         }
-    }, [onError, onRelease]);
+    }, []);
 
     const request = useCallback(async () => {
         const isSupportedNow = typeof navigator !== "undefined" && "wakeLock" in navigator;
@@ -86,73 +119,106 @@ export function useWakeLock({
             const nav = navigator as NavigatorWithWakeLock;
             const wakeLock = await nav.wakeLock.request("screen");
 
-            // Race condition check: if cleanup/release called while awaiting
+            // Race check
             if (!shouldBeLockedRef.current) {
                 try {
                     await wakeLock.release();
-                    if (onError) onError(new Error("WakeLock released immediately due to cancellation"));
                 } catch (e) {
                     console.error("Failed to release lock acquired after cancellation", e);
                 }
                 return;
             }
 
-            const handleRelease = () => {
+            const handleRelease = (e?: Event) => {
+                // Remove listener (self-cleanup)
                 wakeLock.removeEventListener("release", handleRelease);
 
-                // Only handle if this is still the active lock
+                // Only clear the global ref if it points to us
+                if (handleReleaseRef.current === handleRelease) {
+                    handleReleaseRef.current = null;
+                }
+
+                // Only proceed if this is still the active lock
                 if (wakeLockRef.current === wakeLock) {
-                    setIsLocked(false);
                     wakeLockRef.current = null;
-                    if (onRelease) onRelease();
+                    if (isMountedRef.current) {
+                        setIsLocked(false);
+                        if (onReleaseRef.current) onReleaseRef.current();
+                    }
+
+                    // Auto-reacquire logic
+                    if (shouldBeLockedRef.current && document.visibilityState === "visible") {
+                        reacquireTimeoutRef.current = setTimeout(() => {
+                            reacquireTimeoutRef.current = null;
+                            if (shouldBeLockedRef.current && isMountedRef.current) {
+                                request().catch((e) => console.error("Re-acquire failed", e));
+                            }
+                        }, 100);
+                    }
                 }
             };
 
+            handleReleaseRef.current = handleRelease;
             wakeLock.addEventListener("release", handleRelease);
+            wakeLockRef.current = wakeLock;
 
-            // Check if it was released immediately
+            // Immediate release check
             if (wakeLock.released) {
                 handleRelease();
                 return;
             }
 
-            wakeLockRef.current = wakeLock;
-            setIsLocked(true);
-            if (onRequest) onRequest();
+            if (isMountedRef.current) setIsLocked(true);
+            if (onRequestRef.current && isMountedRef.current) onRequestRef.current();
 
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
-            if (onError) onError(err);
+            if (onErrorRef.current && isMountedRef.current) onErrorRef.current(err);
             console.error(err);
         } finally {
             isRequestingRef.current = false;
         }
-    }, [onRequest, onError, onRelease]);
+    }, []);
 
-    // Re-acquire lock when visibility changes to visible
+    // Re-acquire on visibility
     useEffect(() => {
         const handleVisibilityChange = async () => {
-            if (shouldBeLockedRef.current &&
+            if (typeof document !== "undefined" &&
+                shouldBeLockedRef.current &&
                 document.visibilityState === "visible" &&
                 (!wakeLockRef.current || wakeLockRef.current.released)
             ) {
-                await request();
+                try {
+                    await request();
+                } catch (e) {
+                    console.error("Failed to re-acquire wake lock on visibility change", e);
+                }
             }
         };
 
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-        };
+        if (typeof document !== "undefined") {
+            document.addEventListener("visibilitychange", handleVisibilityChange);
+            return () => {
+                document.removeEventListener("visibilitychange", handleVisibilityChange);
+            };
+        }
     }, [request]);
 
-    // Cleanup on unmount
+    // Unmount cleanup
     useEffect(() => {
         return () => {
             shouldBeLockedRef.current = false;
+            // Clear timeout
+            if (reacquireTimeoutRef.current) {
+                clearTimeout(reacquireTimeoutRef.current);
+            }
+
             const lock = wakeLockRef.current;
             if (lock) {
-                // Determine if we need to release
+                // Try to remove listener if we have the ref
+                if (handleReleaseRef.current) {
+                    lock.removeEventListener("release", handleReleaseRef.current);
+                }
                 lock.release().catch((e) => console.error("WakeLock cleanup error", e));
             }
         };
