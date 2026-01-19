@@ -23,6 +23,9 @@ export interface UsageEvent {
     entityId?: string;
     entityType?: string;
     isDeleted?: boolean;
+    childId?: string;
+    childName?: string;
+    childAvatar?: string;
 }
 
 interface TransactionMetadata {
@@ -41,6 +44,7 @@ interface RawTransaction {
     created_at: string;
     metadata: TransactionMetadata | null;
     owner_user_id: string;
+    child_id: string | null;
     entity_id: string | null;
     entity_type: string | null;
 }
@@ -58,6 +62,7 @@ interface TransactionGroup {
     type: "debit" | "credit";
     amount: number;
     bucket?: string;
+    childId?: string;
 }
 
 export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]> {
@@ -73,7 +78,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
 
     const { data: transactions, error } = await supabase
         .from("point_transactions")
-        .select("id, amount, reason, created_at, metadata, owner_user_id, entity_id, entity_type")
+        .select("id, amount, reason, created_at, metadata, owner_user_id, child_id, entity_id, entity_type")
         .eq("owner_user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(internalLimit);
@@ -106,7 +111,8 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
                     metadata: tx.metadata,
                     reason: 'generation_group',
                     type: 'debit',
-                    amount: 0
+                    amount: 0,
+                    childId: tx.child_id || undefined
                 };
                 entityGroups.set(groupKey, group);
                 processedTransactions.push(group);
@@ -131,15 +137,19 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
     const magicSentenceMap = new Map<string, { id: string, image_path: string | null, created_at: string }>();
     const bookIds = new Set<string>();
     const magicSentenceIds = new Set<string>();
-
+    const childIds = new Set<string>();
+ 
     finalTransactions.forEach(tx => {
         const isGroup = 'isGrouped' in tx && tx.isGrouped;
         const eId = isGroup ? (tx as TransactionGroup).entityId : (tx as RawTransaction).entity_id;
         const eType = isGroup ? (tx as TransactionGroup).entityType : (tx as RawTransaction).entity_type;
+        const cId = isGroup ? (tx as TransactionGroup).childId : (tx as RawTransaction).child_id;
+
         if (eId) {
-            if (eType === 'story') bookIds.add(eId);
+            if (eType === 'story' || eType === 'book') bookIds.add(eId);
             else if (eType === 'magic_sentence') magicSentenceIds.add(eId);
         }
+        if (cId) childIds.add(cId);
     });
 
     if (bookIds.size > 0) {
@@ -149,6 +159,17 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
     if (magicSentenceIds.size > 0) {
         const { data: magicSentences } = await supabase.from("child_magic_sentences").select("id, image_path, created_at").in("id", Array.from(magicSentenceIds));
         magicSentences?.forEach(ms => magicSentenceMap.set(ms.id, ms));
+    }
+
+    const childMap = new Map<string, { id: string, name: string, avatar_path: string | null }>();
+    if (childIds.size > 0) {
+        const { data: children } = await supabase.from("children").select("id, first_name, avatar_paths, primary_avatar_index").in("id", Array.from(childIds));
+        children?.forEach(c => {
+            const avatarPaths = (c.avatar_paths as string[]) || [];
+            const primary = c.primary_avatar_index ?? 0;
+            const path = avatarPaths[primary] || avatarPaths[0] || null;
+            childMap.set(c.id, { id: c.id, name: c.first_name, avatar_path: path });
+        });
     }
 
     const mediaCoverMap = new Map<string, { path: string, updated_at: string }>();
@@ -163,6 +184,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
     bookMap.forEach(book => { if (book.cover_image_path && !book.cover_image_path.startsWith('http')) bookPathsToSign.add(book.cover_image_path); });
     mediaCoverMap.forEach(media => { if (media.path && !media.path.startsWith('http')) bookPathsToSign.add(media.path); });
     magicSentenceMap.forEach(ms => { if (ms.image_path && !ms.image_path.startsWith('http')) userPathsToSign.add(ms.image_path); });
+    childMap.forEach(child => { if (child.avatar_path && !child.avatar_path.startsWith('http')) userPathsToSign.add(child.avatar_path); });
 
     const signedUrlMap = new Map<string, string>();
     if (bookPathsToSign.size > 0) {
@@ -180,13 +202,16 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         const eId = isGroup ? (tx as TransactionGroup).entityId : ((tx as RawTransaction).entity_id || undefined);
         const eType = isGroup ? (tx as TransactionGroup).entityType : ((tx as RawTransaction).entity_type || undefined);
         const bId = (eType === 'story' ? eId : undefined);
+        const cId = isGroup ? (tx as TransactionGroup).childId : ((tx as RawTransaction).child_id || undefined);
 
         const formatAction = (reason: string) => {
             if (reason === 'generation_group') {
                 return eType === 'magic_sentence' ? 'Magic Sentence' : 'Story Collection';
             }
             if (reason === 'magic_sentence') return 'Magic Sentence';
-            return reason.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            if (reason === 'book.completed') return 'Goal Reached! 🏆';
+            if (reason === 'book.opened') return 'Reading Adventure';
+            return reason.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ').split('.').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         };
 
         let description = (tx as any).metadata?.title || (tx as any).metadata?.book_key;
@@ -214,11 +239,15 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
                 bucket = 'user-assets';
                 if (storagePath) coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath);
             }
-        } else if (bId && bookMap.has(bId)) {
-            const book = bookMap.get(bId)!;
-            description = book.title;
-            storagePath = mediaCoverMap.get(bId)?.path || book.cover_image_path || undefined;
-            updatedAt = mediaCoverMap.get(bId)?.updated_at || book.updated_at || undefined;
+        } else if ((eType === 'story' || eType === 'book') && eId && bookMap.has(eId)) {
+            const book = bookMap.get(eId)!;
+            if (eType === 'book') {
+                description = (tx as any).reason === 'book.completed' ? `Finished reading "${book.title}"` : `Started reading "${book.title}"`;
+            } else {
+                description = book.title;
+            }
+            storagePath = mediaCoverMap.get(eId)?.path || book.cover_image_path || undefined;
+            updatedAt = mediaCoverMap.get(eId)?.updated_at || book.updated_at || undefined;
             bucket = 'book-assets';
             if (storagePath) coverImageUrl = storagePath.startsWith('http') ? storagePath : signedUrlMap.get(storagePath);
         }
@@ -226,11 +255,11 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         // Determine if the entity has been deleted
         let isDeleted = false;
         if (eId) {
-            if (eType === 'story' && !bookMap.has(eId)) isDeleted = true;
+            if ((eType === 'story' || eType === 'book') && !bookMap.has(eId)) isDeleted = true;
             if (eType === 'magic_sentence' && !magicSentenceMap.has(eId)) isDeleted = true;
         } else if (bId && !bookMap.has(bId)) {
             // Check if it's a reason that implies there SHOULD be an entity
-            const needsEntity = ['story_generation', 'image_generation', 'magic_sentence'].includes((tx as any).reason);
+            const needsEntity = ['story_generation', 'image_generation', 'magic_sentence', 'book.opened', 'book.completed'].includes((tx as any).reason);
             if (needsEntity) isDeleted = true;
         }
 
@@ -242,6 +271,8 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             else if ((tx as any).reason === 'magic_sentence') description = 'Magic Sentence';
             else description = formatAction((tx as any).reason);
         }
+
+        const child = cId ? childMap.get(cId) : undefined;
 
         const timestamp = isGroup ? (tx as TransactionGroup).timestamp : (tx as RawTransaction).created_at;
         const amount = Math.abs((tx as any).amount);
@@ -265,7 +296,10 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             storyAmount: isGroup ? (tx as TransactionGroup).storyAmount : undefined,
             imageAmount: isGroup ? (tx as TransactionGroup).imageAmount : undefined,
             magicSentenceId,
-            isDeleted
+            isDeleted,
+            childId: cId,
+            childName: child?.name,
+            childAvatar: child?.avatar_path ? (child.avatar_path.startsWith('http') ? child.avatar_path : signedUrlMap.get(child.avatar_path)) : undefined
         };
     });
 }

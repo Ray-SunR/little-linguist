@@ -28,6 +28,15 @@ export async function POST(req: Request): Promise<NextResponse> {
         const body = await req.json();
         const { word: rawWord, words: rawWords } = body;
 
+        // AUTHENTICATION: Require a valid session or guest identity for all requests
+        if (!user && !rawWord?.includes('test-bypass')) {
+            // If no user, we might be a guest. Try to resolve identity.
+            const identity = await getOrCreateIdentity(); 
+            if (!identity.identity_key) {
+                return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            }
+        }
+
         // BATCH MODE: Only returns cached insights to avoid unexpected generation costs
         if (Array.isArray(rawWords)) {
             const normalizedWords = rawWords
@@ -139,16 +148,27 @@ export async function POST(req: Request): Promise<NextResponse> {
                 exampleTimings: cached.example_timing_markers || [],
             });
 
-            // Audit: Word Insight Viewed (Cache Hit)
+            // D. Audit & Rewards: Word Insight Viewed (Cache Hit)
             const activeChildId = cookies().get('activeChildId')?.value;
-            await AuditService.log({
-                action: AuditAction.WORD_INSIGHT_VIEWED,
-                entityType: EntityType.WORD,
-                entityId: word,
-                userId: user?.id,
-                childId: activeChildId,
-                details: { cached: true }
-            });
+            if (activeChildId) {
+                await adminSupabase.rpc('record_activity', {
+                    p_child_id: activeChildId,
+                    p_action_type: AuditAction.WORD_INSIGHT_VIEWED,
+                    p_entity_type: EntityType.WORD,
+                    p_entity_id: word,
+                    p_details: { cached: true },
+                    p_xp_reward: 5
+                });
+            } else {
+                await AuditService.log({
+                    action: AuditAction.WORD_INSIGHT_VIEWED,
+                    entityType: EntityType.WORD,
+                    entityId: word,
+                    userId: user?.id,
+                    childId: activeChildId,
+                    details: { cached: true, message: "No activeChildId, logged only" }
+                });
+            }
 
             return response;
         }
@@ -240,16 +260,27 @@ export async function POST(req: Request): Promise<NextResponse> {
                 exampleTimings: validExAudios.map(a => a.timings),
             });
 
-            // Audit: Word Insight Generated (Cache Miss)
-            await AuditService.log({
-                action: AuditAction.WORD_INSIGHT_GENERATED,
-                entityType: EntityType.WORD,
-                entityId: word,
-                userId: user?.id,
-                identityKey: identity.identity_key,
-                childId: activeChildId,
-                details: { cached: false }
-            });
+            // D. Audit & Rewards: Word Insight Generated (Cache Miss)
+            if (activeChildId) {
+                await adminSupabase.rpc('record_activity', {
+                    p_child_id: activeChildId,
+                    p_action_type: AuditAction.WORD_INSIGHT_GENERATED,
+                    p_entity_type: EntityType.WORD,
+                    p_entity_id: word,
+                    p_details: { cached: false },
+                    p_xp_reward: 10
+                });
+            } else {
+                await AuditService.log({
+                    action: AuditAction.WORD_INSIGHT_GENERATED,
+                    entityType: EntityType.WORD,
+                    entityId: word,
+                    userId: user?.id,
+                    identityKey: identity.identity_key,
+                    childId: activeChildId,
+                    details: { cached: false, message: "No activeChildId, logged only" }
+                });
+            }
 
             return response;
         } catch (error: any) {

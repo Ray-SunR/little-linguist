@@ -12,6 +12,8 @@ interface PersistenceProps {
     viewMode: string;
     speed: number;
     isCompleted?: boolean;
+    isMission?: boolean;
+    title?: string;
 }
 
 /**
@@ -27,7 +29,9 @@ export function useReaderPersistence({
     playbackState,
     viewMode,
     speed,
-    isCompleted = false
+    isCompleted = false,
+    isMission = false,
+    title = ''
 }: PersistenceProps) {
     const lastSavedRef = useRef<{ tokenIndex: number; time: number; viewMode: string; speed: number; isCompleted: boolean }>({
         tokenIndex: -1, time: -1, viewMode: '', speed: 1.0, isCompleted: false
@@ -36,24 +40,24 @@ export function useReaderPersistence({
     const hasLoggedOpenRef = useRef(false);
 
     // Keep current values in a ref to avoid stale closure in callbacks (like handleExit)
-    const currentValuesRef = useRef({ tokenIndex, shardIndex, time, viewMode, speed, isCompleted });
+    const currentValuesRef = useRef({ tokenIndex, shardIndex, time, viewMode, speed, isCompleted, isMission, title });
     useEffect(() => {
-        currentValuesRef.current = { tokenIndex, shardIndex, time, viewMode, speed, isCompleted };
-    }, [tokenIndex, shardIndex, time, viewMode, speed, isCompleted]);
+        currentValuesRef.current = { tokenIndex, shardIndex, time, viewMode, speed, isCompleted, isMission, title };
+    }, [tokenIndex, shardIndex, time, viewMode, speed, isCompleted, isMission, title]);
 
     const save = useCallback(async (options: { isExiting?: boolean; force?: boolean; isOpening?: boolean } = {}) => {
         const { isExiting = false, force = false, isOpening = false } = options;
-        const { tokenIndex: tIdx, shardIndex: sIdx, time: tTime, viewMode: tView, speed: tSpeed, isCompleted: tCompleted } = currentValuesRef.current;
+        const { tokenIndex: tIdx, shardIndex: sIdx, time: tTime, viewMode: tView, speed: tSpeed, isCompleted: tCompleted, isMission: tMission, title: tTitle } = currentValuesRef.current;
 
         // Prevent double-logging the "open" event in Strict Mode or re-renders
         if (isOpening) {
-            if (hasLoggedOpenRef.current) return;
+            if (hasLoggedOpenRef.current) return null;
             hasLoggedOpenRef.current = true;
         }
 
         // CRITICAL: Don't save if tokenIndex is null (meaning progress not yet loaded/initialized)
         // EXCEPT: Allow forced saves (e.g., "save on open") even if tokenIndex is null
-        if (tIdx === null && !force && !isOpening) return;
+        if (tIdx === null && !force && !isOpening) return null;
 
         // Only save if meaningful change OR forced (e.g. pause/stop/manual/opening)
         const effectiveIdx = tIdx ?? 0;
@@ -69,11 +73,11 @@ export function useReaderPersistence({
         // Special guard: if we are at the very beginning (0,0,0) and not forcing it, 
         // skip saving to avoid overwriting existing progress during initial load glitched state.
         const isInitialState = (tIdx === 0 || tIdx === null) && sIdx === 0 && tTime === 0 && !tCompleted;
-        if (isInitialState && !force && !isExiting && !isOpening) return;
+        if (isInitialState && !force && !isExiting && !isOpening) return null;
 
         // For auditing (isOpening), we don't need childId or meaningful changes 
         // (the de-dupe logic above handles it). But for actual progress saves, we do.
-        if (!bookId || (!isOpening && !childId) || !isMeaningful) return;
+        if (!bookId || (!isOpening && !childId) || !isMeaningful) return null;
 
         try {
             const payload = {
@@ -81,11 +85,16 @@ export function useReaderPersistence({
                 tokenIndex: tIdx,
                 shardIndex: sIdx,
                 time: tTime,
+                playbackState, // Informative
                 viewMode: tView,
                 speed: tSpeed,
                 isCompleted: tCompleted,
+                isMission: tMission,
+                title: tTitle,
                 isOpening // Pass flag to API to trigger audit log
             };
+
+            let responseData: any = null;
 
             // Use fetch with keepalive for exit saves to ensure delivery
             if (isExiting) {
@@ -107,8 +116,10 @@ export function useReaderPersistence({
                     }).catch(() => { }); // Fire and forget
                 }
             } else {
-                await axios.post(`/api/books/${bookId}/progress`, payload);
+                const res = await axios.post(`/api/books/${bookId}/progress`, payload);
+                responseData = res.data;
             }
+
             lastSavedRef.current = {
                 tokenIndex: effectiveIdx,
                 time: tTime,
@@ -116,8 +127,11 @@ export function useReaderPersistence({
                 speed: tSpeed,
                 isCompleted: tCompleted
             };
+
+            return responseData;
         } catch (err) {
             console.error("Failed to save progress:", err);
+            return null;
         }
     }, [bookId, childId]);
 
@@ -170,7 +184,12 @@ export function useReaderPersistence({
     }, [save, debouncedSave]);
 
     const saveProgress = useCallback((options: { force?: boolean; isExiting?: boolean; isOpening?: boolean } = {}) => {
-        return options.force || options.isOpening ? save(options) : debouncedSave();
+        if (options.force || options.isOpening) {
+            return save(options);
+        } else {
+            debouncedSave();
+            return Promise.resolve(null);
+        }
     }, [save, debouncedSave]);
 
     return useMemo(() => ({

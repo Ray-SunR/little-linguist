@@ -31,6 +31,20 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'childId is required' }, { status: 400 });
         }
 
+        // 0. Ownership Validation: Ensure the child belongs to the authenticated user
+        if (childId) {
+             const { data: child, error: childCheckError } = await supabase
+                .from('children')
+                .select('id')
+                .eq('id', childId)
+                .eq('owner_user_id', user.id)
+                .single();
+
+            if (childCheckError || !child) {
+                return NextResponse.json({ error: 'Forbidden: You do not own this child profile' }, { status: 403 });
+            }
+        }
+
         // 1. Build query
         const selectFields = `
             status,
@@ -205,6 +219,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Word and childId are required' }, { status: 400 });
         }
 
+        // 0. Ownership Validation: Ensure the child belongs to the authenticated user
+        // We explicitly check owner_user_id to prevent any ID guessing or leakage
+        const { data: child, error: childCheckError } = await userClient
+            .from('children')
+            .select('id')
+            .eq('id', childId)
+            .eq('owner_user_id', user.id) // CRITICAL: Enforce ownership
+            .single();
+
+        if (childCheckError || !child) {
+            console.warn(`[Words API] Unauthorized attempt to add word to child ${childId} by user ${user.id}`);
+            return NextResponse.json({ error: 'Forbidden: You do not own this child profile' }, { status: 403 });
+        }
+
         const validWord = rawWord; // Use rawWord directly or normalized slightly but lookup against 'word'
         const normalized = sanitizeWord(rawWord);
 
@@ -249,19 +277,32 @@ export async function POST(request: NextRequest) {
 
         if (error) throw error;
 
-        // Audit: Word Added
-        await AuditService.log({
-            action: AuditAction.WORD_ADDED,
-            entityType: EntityType.WORD,
-            entityId: normalized,
-            userId: user.id,
-            childId: childId,
-            details: {
+        // D. Audit & Rewards: Word Added
+        const { data: recordResult, error: recordError } = await adminClient.rpc('record_activity', {
+            p_child_id: childId,
+            p_action_type: AuditAction.WORD_ADDED,
+            p_entity_type: EntityType.WORD,
+            p_entity_id: normalized,
+            p_details: {
                 word: rawWord,
                 bookId: bookId,
                 insightGenerated: !!insight
-            }
+            },
+            p_xp_reward: 10 // Reward for and adding a word to their collection
         });
+
+        if (recordError) {
+            console.error("[Words API] Failed to record activity:", recordError);
+            // Fallback to basic audit
+            await AuditService.log({
+                action: AuditAction.WORD_ADDED,
+                entityType: EntityType.WORD,
+                entityId: normalized,
+                userId: user.id,
+                childId: childId,
+                details: { word: rawWord, bookId: bookId }
+            });
+        }
 
         return NextResponse.json({ success: true, word: normalized, entry: finalTerm });
     } catch (error: any) {
@@ -299,6 +340,18 @@ export async function DELETE(request: NextRequest) {
 
         if (wordsToDelete.length === 0 || !targetChildId) {
             return NextResponse.json({ error: 'Words and childId are required' }, { status: 400 });
+        }
+
+        // 0. Ownership Validation
+        const { data: child, error: childCheckError } = await supabase
+            .from('children')
+            .select('id')
+            .eq('id', targetChildId)
+            .eq('owner_user_id', user.id)
+            .single();
+
+        if (childCheckError || !child) {
+            return NextResponse.json({ error: 'Forbidden: You do not own this child profile' }, { status: 403 });
         }
 
         const normalizedWords = wordsToDelete.map(w => sanitizeWord(w));

@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { BookOpen, Sparkles, Wand2, Star, TrendingUp, Clock, ChevronRight } from "lucide-react";
+import { BookOpen, Sparkles, Wand2, Star, TrendingUp, Clock, ChevronRight, History, Info } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import type { ChildProfile } from "@/app/actions/profiles";
 import type { DashboardStats } from "@/app/actions/dashboard";
@@ -20,6 +20,7 @@ interface Props {
 export default function DashboardUI({ activeChild, stats }: Props) {
     const { refreshProfiles } = useAuth();
     const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
+    const [showCoinsGuide, setShowCoinsGuide] = useState(false);
     const [optimisticInterests, setOptimisticInterests] = useState<string[] | null>(null);
     const childName = activeChild?.first_name || "Captain";
     const level = stats?.level || activeChild?.level || 1;
@@ -97,42 +98,99 @@ export default function DashboardUI({ activeChild, stats }: Props) {
             {/* DAILY QUEST & STATUS BAR */}
             <div className="w-full max-w-4xl grid md:grid-cols-3 gap-6 mb-12">
 
-                {/* Daily Quest Card (Takes up 2/3) */}
+                {/* Missions Section (Takes up 2/3) */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="md:col-span-2 clay-card p-6 md:p-8 bg-gradient-to-br from-amber-400 to-orange-500 text-white relative overflow-hidden group cursor-pointer"
+                    className="md:col-span-2 flex flex-col gap-4"
                 >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                    <div className="relative z-10 flex flex-col h-full justify-between">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black uppercase tracking-wider border border-white/30">
-                                    Daily Mission
-                                </span>
-                                <span className="text-amber-100 font-bold text-xs flex items-center gap-1">
-                                    <Clock className="w-3 h-3" /> Expires in 12h
-                                </span>
-                            </div>
-                            <h2 className="text-3xl font-black font-fredoka leading-tight mb-2 group-hover:scale-[1.02] transition-transform origin-left">
-                                Read &quot;The Lost Star&quot;
-                            </h2>
-                            <p className="text-amber-100 font-medium font-nunito max-w-sm">
-                                Find out where the little star went! Earn +50 XP and unlock the &quot;Stargazer&quot; badge.
-                            </p>
-                        </div>
-
-                        <div className="mt-6 flex items-center justify-between">
-                            <Link href="/library" className="px-6 py-3 rounded-xl bg-white text-orange-600 font-black font-fredoka shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
-                                Start Mission <ChevronRight className="w-5 h-5" />
-                            </Link>
-                            <div className="text-center">
-                                <div className="text-2xl font-black transform rotate-6">+50</div>
-                                <div className="text-xs font-bold uppercase opacity-80">XP Reward</div>
-                            </div>
-                        </div>
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xl font-black font-fredoka text-ink flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-amber-500" />
+                            Active Missions
+                        </h3>
+                        <span className="text-xs font-black text-amber-600 bg-amber-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                            {stats?.recommendations?.length || 0} Available
+                        </span>
                     </div>
+
+                    {stats?.recommendations && stats.recommendations.length > 0 ? (
+                        <div className="grid gap-4">
+                            {stats.recommendations.slice(0, 3).map((mission, idx) => (
+                                <motion.div
+                                    key={mission.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 + idx * 0.1 }}
+                                    className={`clay-card group relative overflow-hidden p-4 md:p-6 bg-gradient-to-br ${
+                                        idx === 0 ? 'from-amber-400 to-orange-500' : 
+                                        idx === 1 ? 'from-indigo-500 to-purple-600' : 
+                                        'from-emerald-500 to-teal-600'
+                                    } text-white`}
+                                >
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
+                                    
+                                    <div className="relative z-10 flex gap-4 md:gap-6">
+                                        <div className="hidden sm:block w-24 shrink-0 aspect-[3/4] relative rounded-xl overflow-hidden shadow-xl border-2 border-white/20 group-hover:scale-105 transition-transform duration-500">
+                                            <CachedImage
+                                                src={mission.coverImageUrl || ""}
+                                                storagePath={mission.coverPath}
+                                                alt={mission.title}
+                                                fill
+                                                className="object-cover"
+                                                bucket="book-assets"
+                                            />
+                                        </div>
+                                        <div className="flex-1 flex flex-col justify-between">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-black uppercase tracking-wider border border-white/30">
+                                                        {idx === 0 ? 'Primary' : 'Side Quest'}
+                                                    </span>
+                                                    <span className="text-white/80 font-bold text-[10px] flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" /> {mission.estimatedReadingTime || 5} min
+                                                    </span>
+                                                </div>
+                                                <h2 className={`${idx === 0 ? 'text-2xl' : 'text-xl'} font-black font-fredoka leading-tight mb-1 group-hover:text-white/90 transition-colors`}>
+                                                    {mission.title}
+                                                </h2>
+                                                <p className="text-white/80 font-medium font-nunito text-xs line-clamp-2">
+                                                    {mission.description || `Embark on a new adventure with "${mission.title}"!`}
+                                                </p>
+                                            </div>
+
+                                            <div className="mt-4 flex items-center justify-between gap-4">
+                                                <Link 
+                                                    href={`/reader/${mission.id}?mission=true`} 
+                                                    className="px-6 py-2 rounded-xl bg-white text-ink font-black font-fredoka shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group/btn text-sm"
+                                                >
+                                                    Start <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                                </Link>
+                                                <div className="flex flex-col items-end">
+                                                    <div className="text-xl font-black transform rotate-2">+{idx === 0 ? 100 : 50}</div>
+                                                    <div className="text-[10px] font-bold uppercase opacity-80 whitespace-nowrap">Coins</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <motion.div 
+                            className="clay-card p-10 bg-slate-50 border-2 border-dashed border-slate-200 text-center"
+                        >
+                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                <BookOpen className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-xl font-black font-fredoka text-slate-400">All Missions Clear!</h3>
+                            <p className="text-slate-400 font-medium text-sm mt-2">Visit the library to find something new to read.</p>
+                            <Link href="/library" className="inline-flex items-center gap-2 px-6 py-2 mt-6 rounded-xl bg-purple-600 text-white font-black font-fredoka shadow-lg hover:bg-purple-700 transition-all">
+                                Go to Library <ChevronRight className="w-4 h-4" />
+                            </Link>
+                        </motion.div>
+                    )}
                 </motion.div>
 
                 {/* Explorer Status (Takes up 1/3) */}
@@ -143,15 +201,25 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                     className="clay-card p-6 bg-white border-2 border-purple-100 flex flex-col justify-between"
                 >
                     <div>
-                        <h3 className="text-lg font-black font-fredoka text-ink mb-4 flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-purple-500" />
-                            Explorer Status
+                        <h3 className="text-lg font-black font-fredoka text-ink mb-4 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                                <TrendingUp className="w-5 h-5 text-purple-500" />
+                                Explorer Status
+                            </div>
+                            <button 
+                                onClick={() => setShowCoinsGuide(!showCoinsGuide)}
+                                className="w-6 h-6 rounded-full bg-purple-50 text-purple-400 hover:bg-purple-100 hover:text-purple-600 transition-colors flex items-center justify-center"
+                            >
+                                <Info className="w-4 h-4" />
+                            </button>
                         </h3>
 
                         {/* Level Info */}
                         <div className="flex items-end gap-2 mb-2">
-                            <span className="text-4xl font-black text-purple-600 font-fredoka leading-none">Lvl 3</span>
-                            <span className="text-sm font-bold text-purple-400 mb-1">Cadet</span>
+                            <span className="text-4xl font-black text-purple-600 font-fredoka leading-none">Lvl {level}</span>
+                            <span className="text-sm font-bold text-purple-400 mb-1">
+                                {level >= 10 ? 'Elite' : level >= 5 ? 'Veteran' : 'Cadet'}
+                            </span>
                         </div>
 
                         {/* XP Bar */}
@@ -172,10 +240,43 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                             )}
                         </div>
                         <div className="flex justify-between text-xs font-black text-purple-700/70 uppercase tracking-wider">
-                            <span>{activeChild ? `${xp} XP` : "0 XP"}</span>
-                            <span>{nextLevelXp} XP</span>
+                            <span>{activeChild ? `${xp} Coins` : "0 Coins"}</span>
+                            <span>{nextLevelXp} Coins</span>
                         </div>
                     </div>
+
+                    <AnimatePresence>
+                        {showCoinsGuide && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="overflow-hidden"
+                            >
+                                <div className="mt-4 p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100 text-[11px] font-bold text-amber-900/80 space-y-2">
+                                    <div className="flex items-center justify-between text-amber-600 font-black uppercase tracking-tighter">
+                                        <span>How to Earn</span>
+                                        <Sparkles className="w-3 h-3" />
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span>📖 Open a new book</span>
+                                        <span className="text-amber-600">+10</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span>🎉 Finish a book</span>
+                                        <span className="text-amber-600">+50</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span>🚀 Mission book reward</span>
+                                        <span className="text-amber-600">+100</span>
+                                    </div>
+                                    <div className="pt-1 text-[9px] text-amber-500 italic opacity-80 leading-tight">
+                                        Use Coins soon to redeem AI credits for your stories!
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Streak / Guest Join CTA */}
                     <div className="mt-6 pt-6 border-t border-dashed border-purple-100">
@@ -185,8 +286,10 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                                     <Star className="w-6 h-6 fill-current" />
                                 </div>
                                 <div>
-                                    <div className="text-lg font-black text-ink font-fredoka">5 Day Streak</div>
-                                    <div className="text-xs text-ink-muted font-bold">Keep it up, {childName}!</div>
+                                    <div className="text-lg font-black text-ink font-fredoka">{stats?.streakCount || 0} Day Streak</div>
+                                    <div className="text-xs text-ink-muted font-bold">
+                                        {(stats?.streakCount || 0) > 0 ? `Keep it up, ${childName}!` : `Start your first mission!`}
+                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -277,6 +380,115 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                 </div>
             </motion.div>
 
+            {/* RECENT ACHIEVEMENTS (XP History) */}
+            {stats?.xpHistory && stats.xpHistory.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                    className="w-full max-w-4xl mt-12"
+                >
+                    <h3 className="text-xl font-black font-fredoka text-ink-muted mb-6 px-2 flex items-center gap-2">
+                        <History className="w-5 h-5 text-purple-500" />
+                        Recent Achievements
+                    </h3>
+                    
+                    <div className="grid gap-3">
+                        {stats.xpHistory.map((tx) => (
+                            <div key={tx.id} className="clay-card p-4 bg-white border border-slate-100 flex items-center justify-between group hover:border-purple-200 transition-all active:scale-[0.99]">
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                    {tx.book_cover_path ? (
+                                        <div className="w-10 h-12 shrink-0 relative rounded-lg overflow-hidden shadow-sm border border-slate-50">
+                                            <CachedImage 
+                                                src={tx.book_cover_path}
+                                                alt={tx.book_title || 'Book cover'}
+                                                fill
+                                                className="object-cover"
+                                                bucket="book-assets"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-100 transition-colors shadow-inner-sm">
+                                            <Star className="w-5 h-5 fill-current" />
+                                        </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <div className="font-fredoka font-black text-ink leading-tight line-clamp-1">
+                                            {tx.reason === 'book.completed' ? `Finished "${tx.book_title || 'a book'}"` : 
+                                             tx.reason === 'book.opened' ? `Started Reading "${tx.book_title || 'a book'}"` : 
+                                             tx.reason}
+                                        </div>
+                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                                            {new Date(tx.created_at).toLocaleDateString(undefined, { 
+                                                month: 'short', 
+                                                day: 'numeric', 
+                                                hour: '2-digit', 
+                                                minute: '2-digit' 
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="px-3 py-1.5 rounded-full bg-amber-400 text-white font-fredoka font-black text-[10px] sm:text-xs shadow-clay-orange border-2 border-white transform rotate-2 whitespace-nowrap">
+                                    +{tx.amount} Coins
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+
+            {/* RECOMMENDED FOR YOU (If more than 1) */}
+            {stats?.recommendations && stats.recommendations.length > 1 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="w-full max-w-4xl mt-12"
+                >
+                    <div className="flex items-center justify-between mb-6 px-2">
+                        <h3 className="text-xl font-black font-fredoka text-ink-muted">
+                            More for {childName}
+                        </h3>
+                        <Link href="/library" className="text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors flex items-center gap-1">
+                            Go to Library <ChevronRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {stats.recommendations.slice(1, 4).map((book, idx) => (
+                            <Link key={book.id} href={`/reader/${book.id}`} className="group relative block">
+                                <div className="clay-card p-4 bg-white border-2 border-slate-50 hover:border-purple-200 transition-all flex gap-4 overflow-hidden">
+                                     <div className="w-20 shrink-0 aspect-[3/4] relative rounded-lg overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-500">
+                                        <CachedImage
+                                            src={book.coverImageUrl || ""}
+                                            storagePath={book.coverPath}
+                                            alt={book.title}
+                                            fill
+                                            className="object-cover"
+                                            bucket="book-assets"
+                                        />
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-center min-w-0">
+                                        <h4 className="font-fredoka text-lg font-black text-ink line-clamp-1 group-hover:text-purple-600 transition-colors">
+                                            {book.title}
+                                        </h4>
+                                        <p className="text-xs text-ink-muted font-bold mt-1 line-clamp-2">
+                                            {book.description || `Read "${book.title}" to learn more!`}
+                                        </p>
+                                        <div className="flex items-center gap-3 mt-2">
+                                            <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest px-2 py-0.5 bg-purple-50 rounded-md border border-purple-100">
+                                                {book.level}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{book.estimatedReadingTime} min</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+
             {/* BADGE SHOWCASE */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -289,86 +501,80 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                         Earned Badges
                     </h3>
                     <span className="text-sm font-black text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
-                        {stats?.badges?.length || 0} Unlocked
+                        {stats?.badges?.filter(b => b.is_earned)?.length || 0} Unlocked
                     </span>
                 </div>
 
-                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-2">
-                    {stats?.badges && stats.badges.length > 0 ? (
-                        stats.badges.map((badgeEntry: any) => {
-                            const badge = badgeEntry.badges;
-                            return (
-                                <motion.div
-                                    key={badge.id}
-                                    whileHover={{ scale: 1.05 }}
-                                    className="flex-shrink-0 w-32 h-40 clay-card bg-white border-2 border-purple-50 p-4 flex flex-col items-center justify-center text-center group cursor-help relative"
-                                >
-                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-sm
-                                        ${badge.rarity === 'legendary' ? 'bg-amber-100 text-amber-600 shadow-amber-200' : 
-                                          badge.rarity === 'epic' ? 'bg-purple-100 text-purple-600 shadow-purple-200' : 
-                                          badge.rarity === 'rare' ? 'bg-blue-100 text-blue-600 shadow-blue-200' : 
-                                          'bg-slate-100 text-slate-600 shadow-slate-200'}`}
-                                    >
-                                        <Star className={`w-8 h-8 ${badge.rarity !== 'basic' ? 'fill-current' : ''}`} />
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                    {stats?.badges && stats.badges.length > 0 && stats.badges.map((badge) => (
+                        <motion.div
+                            key={badge.id}
+                            whileHover={{ scale: 1.05 }}
+                            className={`flex-shrink-0 clay-card border-2 p-4 flex flex-col items-center justify-center text-center group cursor-help relative min-h-[160px] ${
+                                badge.is_earned ? 'bg-white border-purple-100' : 'bg-slate-50/50 border-slate-100 opacity-60 grayscale-[0.5]'
+                            }`}
+                        >
+                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-3 relative
+                                ${badge.rarity === 'legendary' ? 'bg-amber-100 text-amber-600 shadow-amber-200' : 
+                                  badge.rarity === 'epic' ? 'bg-purple-100 text-purple-600 shadow-purple-200' : 
+                                  badge.rarity === 'rare' ? 'bg-blue-100 text-blue-600 shadow-blue-200' : 
+                                  'bg-slate-100 text-slate-600 shadow-slate-200'}`}
+                            >
+                                {badge.icon_path ? (
+                                    <div className="w-full h-full relative p-2">
+                                        <CachedImage 
+                                            src={badge.icon_path}
+                                            alt={badge.name}
+                                            fill
+                                            className="object-contain"
+                                        />
                                     </div>
-                                    <div className="text-xs font-black text-ink font-fredoka leading-tight">{badge.name}</div>
-                                    
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 p-3 bg-ink text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
-                                        <div className="font-black mb-1">{badge.description}</div>
-                                        <div className="text-ink-muted-light font-bold">Earned: {new Date(badgeEntry.earned_at).toLocaleDateString()}</div>
-                                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-ink"></div>
+                                ) : (
+                                    <Star className={`w-10 h-10 ${badge.rarity !== 'basic' ? 'fill-current' : ''}`} />
+                                )}
+
+                                {!badge.is_earned && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10 rounded-2xl backdrop-blur-[1px]">
+                                        <Clock className="w-6 h-6 text-slate-400" />
                                     </div>
-                                </motion.div>
-                            );
-                        })
-                    ) : (
-                        <div className="w-full py-8 text-center bg-purple-50/50 rounded-3xl border-2 border-dashed border-purple-100">
-                            <p className="text-purple-400 font-bold">No badges yet. Start your first mission to earn one!</p>
-                        </div>
-                    )}
-                </div>
-            </motion.div>
-
-            {/* WEEKLY PROGRESS */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="w-full max-w-4xl mt-12 mb-12"
-            >
-                <div className="clay-card p-8 bg-white border-2 border-purple-100">
-                    <h3 className="text-xl font-black font-fredoka text-ink mb-6 flex items-center gap-2">
-                        <TrendingUp className="w-6 h-6 text-green-500" />
-                        Weekly Reading Activity
-                    </h3>
-
-                    <div className="flex items-end justify-between h-48 gap-2 mt-4 px-2">
-                        {stats?.weeklyActivity?.map((day, idx) => {
-                            const maxMins = Math.max(...(stats?.weeklyActivity?.map(d => d.minutes) || [30]));
-                            const height = Math.max((day.minutes / (maxMins || 1)) * 100, 10);
-                            const dayName = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' });
-                            const colors = ['bg-mint-400', 'bg-sky-400', 'bg-peach-400', 'bg-purple-400', 'bg-amber-400', 'bg-rose-400', 'bg-indigo-400'];
+                                )}
+                            </div>
+                            <div className="text-xs font-black text-ink font-fredoka leading-tight line-clamp-2">{badge.name}</div>
                             
-                            return (
-                                <div key={day.date} className="flex-1 flex flex-col items-center group relative">
-                                    <motion.div 
-                                        initial={{ height: 0 }}
-                                        animate={{ height: `${height}%` }}
-                                        transition={{ delay: 0.7 + idx * 0.1, duration: 0.5 }}
-                                        className={`w-full max-w-[40px] rounded-t-xl shadow-inner ${colors[idx % colors.length]} relative group-hover:brightness-110 transition-all`}
-                                    >
-                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-ink text-white text-[10px] font-black px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {day.minutes}m
-                                        </div>
-                                    </motion.div>
-                                    <div className="mt-4 text-xs font-black text-ink-muted uppercase tracking-tighter">{dayName}</div>
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-56 p-4 bg-ink text-white text-[10px] rounded-2xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 shadow-2xl scale-95 group-hover:scale-100">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                                        badge.rarity === 'legendary' ? 'bg-amber-500' : 
+                                        badge.rarity === 'epic' ? 'bg-purple-500' : 
+                                        badge.rarity === 'rare' ? 'bg-blue-500' : 
+                                        'bg-slate-600'
+                                    }`}>
+                                        {badge.rarity}
+                                    </span>
+                                    {badge.is_earned && <span className="text-green-400 font-bold">UNLOCKED</span>}
                                 </div>
-                            );
-                        })}
-                    </div>
+                                <div className="font-bold text-xs mb-1 text-white">{badge.name}</div>
+                                <p className="text-white/70 font-medium mb-3 leading-relaxed">
+                                    {badge.description}
+                                </p>
+                                <div className="pt-2 border-t border-white/10">
+                                    <div className="text-[8px] font-black text-white/40 uppercase mb-1">How to unlock</div>
+                                    <div className="text-amber-300 font-bold">{badge.criteria}</div>
+                                </div>
+                                {badge.is_earned && badge.earned_at && (
+                                    <div className="mt-2 pt-2 border-t border-white/10 text-white/40">
+                                        Earned: {new Date(badge.earned_at).toLocaleDateString()}
+                                    </div>
+                                )}
+                                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-ink"></div>
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
             </motion.div>
+
+
 
 
             {activeChild && (

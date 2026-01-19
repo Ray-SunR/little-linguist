@@ -22,24 +22,22 @@ class AssetCache {
         const cacheKey = `https://local.raiden.ai/assets/${objectKey}`;
 
         // 1. Check if we need to invalidate based on timestamp
-        if (updatedAt) {
-            try {
-                const metadata = await raidenCache.get<{ id: string; cachedAt: number }>(CacheStore.ASSET_METADATA, objectKey);
+        // 1. Check TTL (1 day) and Invalidation
+        try {
+            const metadata = await raidenCache.get<{ id: string; cachedAt: number }>(CacheStore.ASSET_METADATA, objectKey);
 
-                if (metadata) {
-                    const updatedTime = typeof updatedAt === 'string' ? new Date(updatedAt).getTime() : updatedAt;
+            if (metadata) {
+                const isExpired = Date.now() - metadata.cachedAt > this.TTL;
+                const updatedTime = updatedAt && (typeof updatedAt === 'string' ? new Date(updatedAt).getTime() : updatedAt);
+                const isStale = updatedTime && updatedTime > metadata.cachedAt;
 
-                    // 1a. Check TTL (1 day)
-                    const isExpired = Date.now() - metadata.cachedAt > this.TTL;
-
-                    if (isExpired || updatedTime > metadata.cachedAt) {
-                        console.debug(`[AssetCache] ${isExpired ? 'TTL EXPIRED' : 'INVALIDATING stale'} asset: ${objectKey}`);
-                        await this.purge(objectKey);
-                    }
+                if (isExpired || isStale) {
+                    console.debug(`[AssetCache] ${isExpired ? 'TTL EXPIRED' : 'INVALIDATING stale'} asset: ${objectKey}`);
+                    await this.purge(objectKey);
                 }
-            } catch (err) {
-                console.warn(`[AssetCache] Metadata check failed for ${objectKey}:`, err);
             }
+        } catch (err) {
+            console.warn(`[AssetCache] Metadata check failed for ${objectKey}:`, err);
         }
 
         // 2. Check registry
@@ -66,7 +64,14 @@ class AssetCache {
 
                     // Perform fetch WITHOUT the caller's signal (to populate cache for all)
                     const response = await fetch(signedUrl);
-                    if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
+                    if (!response.ok) {
+                        const errorMsg = `Fetch failed: ${response.status} ${response.statusText} for ${objectKey}`;
+                        console.error(`[AssetCache] ${errorMsg}`);
+                        if (response.status === 401 || response.status === 403 || response.status === 400) {
+                            console.warn(`[AssetCache] Potential expired or invalid signed URL for ${objectKey}`);
+                        }
+                        throw new Error(errorMsg);
+                    }
 
                     const responseToCache = response.clone();
                     await cache.put(cacheKey, responseToCache);

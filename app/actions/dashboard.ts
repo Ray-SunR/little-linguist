@@ -1,17 +1,44 @@
 'use server';
-
+ 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { BookRepository } from '@/lib/core/books/repository.server';
+import { LibraryBookCard } from '@/lib/core/books/library-types';
+ 
+export interface XpTransaction {
+  id: string;
+  amount: number;
+  reason: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  metadata: any;
+  created_at: string;
+  book_title?: string;
+  book_cover_path?: string;
+  book_id?: string;
+}
 
 export interface DashboardStats {
   completedBooks: number;
   masteredWords: number;
   storiesCreated: number;
   magicSentencesCreated: number;
-  badges: any[];
-  weeklyActivity: { date: string; minutes: number }[];
+  badges: { 
+    id: string; 
+    name: string; 
+    description: string | null; 
+    rarity: string | null; 
+    icon_path: string | null; 
+    criteria: string | null;
+    is_earned: boolean;
+    earned_at?: string;
+  }[];
   totalXp: number;
   level: number;
+  streakCount: number;
+  maxStreak: number;
+  recommendations: LibraryBookCard[];
+  xpHistory: XpTransaction[];
 }
 
 export async function getDashboardStats(childId?: string) {
@@ -29,59 +56,152 @@ export async function getDashboardStats(childId?: string) {
       return { error: 'No active child profile' };
     }
 
-    // Fetch stats in parallel
+    // --- STEP 1: VALIDATE OWNERSHIP & GET CORE DATA ---
+    const { data: childData, error: childError } = await supabase
+        .from('children')
+        .select('total_xp, level, streak_count, max_streak, earned_badges')
+        .match({ id: targetChildId, owner_user_id: user.id })
+        .single();
+    
+    if (childError || !childData) {
+        return { error: 'Child profile not found or access denied' };
+    }
+
+    // --- STEP 2: PARALLEL EVERYTHING ELSE ---
+    // Use Settled or individual catches to ensure one failure doesn't kill the whole dashboard
+    const repo = new BookRepository();
     const [
       booksCount,
       vocabCount,
       storiesCount,
       sentencesCount,
-      badgesData,
-      childData,
-      auditLogs
+      recommendations,
+      xpTransactions
     ] = await Promise.all([
       supabase.from('child_books').select('*', { count: 'exact', head: true }).eq('child_id', targetChildId).eq('is_completed', true),
       supabase.from('child_vocab').select('*', { count: 'exact', head: true }).eq('child_id', targetChildId).eq('status', 'mastered'),
       supabase.from('stories').select('*', { count: 'exact', head: true }).eq('child_id', targetChildId),
       supabase.from('child_magic_sentences').select('*', { count: 'exact', head: true }).eq('child_id', targetChildId),
-      supabase.from('child_badges').select('earned_at, badges(*)').eq('child_id', targetChildId),
-      supabase.from('children').select('total_xp, level').eq('id', targetChildId).single(),
-      supabase.from('audit_logs').select('created_at, details').eq('child_id', targetChildId).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      repo.getRecommendedBooksWithCovers(user.id, targetChildId, 3).catch(err => {
+        console.error('[dashboard:getDashboardStats] Recommendations failed:', err);
+        return [] as LibraryBookCard[];
+      }),
+      supabase.from('point_transactions')
+        .select('*')
+        .eq('child_id', targetChildId)
+        .order('created_at', { ascending: false })
+        .limit(10)
     ]);
 
-    // Process weekly activity
-    const activityMap = new Map<string, number>();
-    // Pre-fill last 7 days
-    for (let i = 0; i < 7; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        activityMap.set(d.toISOString().split('T')[0], 0);
+    // Log warnings for partial failures
+    if (booksCount.error || vocabCount.error || storiesCount.error || sentencesCount.error || xpTransactions.error) {
+        console.warn('[dashboard:getDashboardStats] One or more sub-queries failed:', {
+            books: booksCount.error,
+            vocab: vocabCount.error,
+            stories: storiesCount.error,
+            sentences: sentencesCount.error,
+            xp: xpTransactions.error
+        });
     }
 
-    auditLogs.data?.forEach(log => {
-        const date = new Date(log.created_at).toISOString().split('T')[0];
-        if (activityMap.has(date)) {
-            // If the log detail has reading_time or similar, we use it, otherwise increment by a small amount or just count
-            const mins = (log.details as any)?.reading_time || 5; // default 5 mins for an activity
-            activityMap.set(date, (activityMap.get(date) || 0) + mins);
-        }
+    // Process badges
+    const earnedBadgesMap = (childData?.earned_badges as Record<string, string>) || {};
+    
+    // Fetch ALL available badges to show potential ones
+    const { data: allBadges, error: badgesError } = await supabase
+        .from('badges')
+        .select('*')
+        .order('rarity', { ascending: true }); // basic -> legendary
+    
+    if (badgesError) {
+        console.error('[dashboard:getDashboardStats] Failed to fetch badges metadata:', badgesError);
+    }
+
+    const badges = (allBadges || []).map(b => ({
+        ...b,
+        is_earned: !!earnedBadgesMap[b.id],
+        earned_at: earnedBadgesMap[b.id]
+    }));
+
+    // Enrich XP history with book titles
+    const bookIds = (xpTransactions.data || [])
+      .filter((t: any) => t.entity_type === 'book' && t.entity_id)
+      .map((t: any) => t.entity_id as string);
+    
+    let bookData: Record<string, { title: string; cover_image_path: string | null }> = {};
+    if (bookIds.length > 0) {
+      const { data: books } = await supabase
+        .from('books')
+        .select('id, title, cover_image_path')
+        .in('id', bookIds)
+        .or(`owner_user_id.eq.${user.id},owner_user_id.is.null`);
+      books?.forEach(b => {
+        bookData[b.id] = { title: b.title, cover_image_path: b.cover_image_path };
+      });
+    }
+
+    // Sign URLs for book covers
+    const coversToSign = Object.values(bookData)
+      .map(b => b.cover_image_path)
+      .filter((path): path is string => !!path && !path.startsWith('http'));
+
+    const signedUrlMap = new Map<string, string>();
+    if (coversToSign.length > 0) {
+      const { data: signedData } = await supabase.storage.from('book-assets').createSignedUrls(coversToSign, 3600);
+      signedData?.forEach(item => { if (item.path && item.signedUrl) signedUrlMap.set(item.path, item.signedUrl); });
+    }
+
+    const xpHistory: XpTransaction[] = (xpTransactions.data || []).map((t: any) => {
+      const isBook = t.entity_type === 'book' && t.entity_id;
+      const bData = isBook ? bookData[t.entity_id] : null;
+      let coverUrl = bData?.cover_image_path || undefined;
+      if (coverUrl && !coverUrl.startsWith('http')) {
+        coverUrl = signedUrlMap.get(coverUrl);
+      }
+
+      return {
+        ...t,
+        book_title: bData?.title,
+        book_cover_path: coverUrl,
+        book_id: t.entity_id
+      };
     });
 
-    const weeklyActivity = Array.from(activityMap.entries())
-        .map(([date, minutes]) => ({ date, minutes }))
-        .sort((a, b) => a.date.localeCompare(b.date));
+    const stats: DashboardStats = {
+      completedBooks: booksCount.count || 0,
+      masteredWords: vocabCount.count || 0,
+      storiesCreated: storiesCount.count || 0,
+      magicSentencesCreated: sentencesCount.count || 0,
+      badges,
+      totalXp: childData?.total_xp || 0,
+      level: childData?.level || 1,
+      streakCount: childData?.streak_count || 0,
+      maxStreak: childData?.max_streak || 0,
+      recommendations: (Array.isArray(recommendations) ? recommendations : []).map(b => ({
+          id: b.id,
+          title: b.title,
+          coverImageUrl: b.coverImageUrl,
+          coverPath: b.coverPath,
+          updated_at: b.updated_at,
+          createdAt: b.createdAt,
+          voice_id: b.voice_id,
+          owner_user_id: b.owner_user_id,
+          totalTokens: b.totalTokens,
+          estimatedReadingTime: b.estimatedReadingTime,
+          isRead: b.isRead,
+          lastOpenedAt: b.lastOpenedAt,
+          isFavorite: b.isFavorite,
+          level: b.level,
+          isNonFiction: b.isNonFiction,
+          origin: b.origin,
+          description: b.description
+      })),
+      xpHistory
+    };
 
     return {
       success: true,
-      data: {
-        completedBooks: booksCount.count || 0,
-        masteredWords: vocabCount.count || 0,
-        storiesCreated: storiesCount.count || 0,
-        magicSentencesCreated: sentencesCount.count || 0,
-        badges: badgesData.data || [],
-        totalXp: childData.data?.total_xp || 0,
-        level: childData.data?.level || 1,
-        weeklyActivity
-      } as DashboardStats
+      data: stats
     };
   } catch (err: any) {
     console.error('[dashboard:getDashboardStats] Unexpected error:', err);

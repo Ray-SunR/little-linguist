@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, Wand2, Languages, User, LogOut, Mail, Rocket, Sparkles, Users, Settings, ShieldCheck } from "lucide-react";
+import { BookOpen, Wand2, Languages, User, LogOut, Mail, MessageCircle, Rocket, Sparkles, Users, Settings, ShieldCheck } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
 import { memo, useEffect, useState, useRef } from "react";
@@ -98,6 +98,18 @@ export function ClayNav() {
     const prefersReducedMotion = useReducedMotion();
     const { user, isStoryGenerating, activeChild, logout } = useAuth();
     const [isHubOpen, setIsHubOpen] = useState(false);
+    const [activeReward, setActiveReward] = useState<{ xp_earned: number; streak_days?: number } | null>(null);
+
+    useEffect(() => {
+        const handleXpEarned = (e: any) => {
+            setActiveReward(e.detail);
+            // Auto-clear after animation
+            setTimeout(() => setActiveReward(null), 4000);
+        };
+
+        window.addEventListener('xp-earned' as any, handleXpEarned);
+        return () => window.removeEventListener('xp-earned' as any, handleXpEarned);
+    }, []);
     const [pendingHref, setPendingHref] = useState<string | null>(null);
     const [libraryHref, setLibraryHref] = useState("/library");
 
@@ -375,19 +387,43 @@ export function ClayNav() {
                         exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0, opacity: 0 }}
                         className="fixed bottom-[env(safe-area-inset-bottom,24px)] left-0 right-0 mx-auto w-max z-50 pointer-events-auto"
                     >
-                        <button
-                            onClick={() => {
-                                setIsExpanded(true);
-                                completeStep('nav-item-lumo');
-                            }}
-                            data-tour-target="nav-item-lumo-character"
-                            className="group relative flex items-center justify-center w-20 h-20 hover:scale-110 active:scale-90 transition-all duration-500 pointer-events-auto"
-                        >
-                            <LumoCharacter size="lg" />
-                            <div className="absolute -top-1 -right-1 bg-accent text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Rocket className="w-3 h-3" />
-                            </div>
-                        </button>
+                        <div className="relative">
+                            <AnimatePresence>
+                                {activeReward && activeReward.xp_earned > 0 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.5 }}
+                                        animate={{ opacity: 1, y: -80, scale: 1.2 }}
+                                        exit={{ opacity: 0, y: -100, scale: 0.8 }}
+                                        className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-[100]"
+                                    >
+                                        <div className="flex flex-col items-center">
+                                            <div className="bg-amber-400 text-ink font-fredoka font-black text-sm px-3 py-1.5 rounded-full shadow-clay-orange whitespace-nowrap border-2 border-white">
+                                                +{activeReward.xp_earned} Lumo Coins
+                                            </div>
+                                            {activeReward.streak_days && activeReward.streak_days > 0 && (
+                                                <div className="bg-orange-500 text-white font-fredoka font-black text-[10px] px-2 py-1 rounded-full shadow-sm mt-1.5 border border-white">
+                                                    {activeReward.streak_days} DAY STREAK! 🔥
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <button
+                                onClick={() => {
+                                    setIsExpanded(true);
+                                    completeStep('nav-item-lumo');
+                                }}
+                                data-tour-target="nav-item-lumo-character"
+                                className="group relative flex items-center justify-center w-20 h-20 hover:scale-110 active:scale-90 transition-all duration-500 pointer-events-auto"
+                            >
+                                <LumoCharacter size="lg" />
+                                <div className="absolute -top-1 -right-1 bg-accent text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Rocket className="w-3 h-3" />
+                                </div>
+                            </button>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -541,6 +577,16 @@ export function ClayNav() {
                                                 <span className="text-[10px] font-black font-fredoka text-ink uppercase leading-tight tracking-wider">Subscription</span>
                                             </ParentalLink>
 
+                                            <ParentalLink
+                                                href="/support/contact"
+                                                className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-white border border-slate-100/50 hover:bg-blue-50 transition-all shadow-clay-sm active:scale-95 cursor-pointer"
+                                            >
+                                                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0 shadow-inner-sm">
+                                                    <MessageCircle className="w-6 h-6 text-blue-600" />
+                                                </div>
+                                                <span className="text-[10px] font-black font-fredoka text-ink uppercase leading-tight tracking-wider">Feedback</span>
+                                            </ParentalLink>
+
                                             <button
                                                 onClick={handleLogout}
                                                 className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-rose-50 border border-rose-100/50 hover:bg-rose-100 transition-all shadow-clay-sm active:scale-95 cursor-pointer"
@@ -550,17 +596,15 @@ export function ClayNav() {
                                                 </div>
                                                 <span className="text-[10px] font-black font-fredoka text-rose-600 uppercase leading-tight tracking-wider">Log Out</span>
                                             </button>
-
-                                            <button
-                                                onClick={() => setIsHubOpen(false)}
-                                                className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-clay-md active:scale-95 cursor-pointer"
-                                            >
-                                                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                                                    <Rocket className="w-6 h-6" />
-                                                </div>
-                                                <span className="text-[10px] font-black font-fredoka uppercase leading-tight tracking-wider">Return</span>
-                                            </button>
                                         </div>
+
+                                        <button
+                                            onClick={() => setIsHubOpen(false)}
+                                            className="w-full flex items-center justify-center gap-3 p-5 rounded-3xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-clay-md active:scale-95 cursor-pointer mt-4"
+                                        >
+                                            <Rocket className="w-6 h-6" />
+                                            <span className="text-[10px] font-black font-fredoka uppercase leading-tight tracking-wider">Return to Adventure</span>
+                                        </button>
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center py-6">

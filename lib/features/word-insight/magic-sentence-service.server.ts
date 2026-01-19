@@ -145,15 +145,30 @@ export class MagicSentenceService {
 
             generationSuccessful = true;
 
-            // D. Audit
-            await AuditService.log({
-                action: AuditAction.MAGIC_SENTENCE_GENERATED,
-                entityType: EntityType.MAGIC_SENTENCE,
-                entityId: sentenceId,
-                userId: this.userId,
-                childId: activeChildId,
-                details: { word_count: words.length, has_image: generateImage }
+            // D. Audit & Rewards
+            const { data: recordResult, error: recordError } = await this.adminSupabase.rpc('record_activity', {
+                p_child_id: activeChildId,
+                p_action_type: AuditAction.MAGIC_SENTENCE_GENERATED,
+                p_entity_type: EntityType.MAGIC_SENTENCE,
+                p_entity_id: sentenceId,
+                p_details: { word_count: words.length, has_image: generateImage },
+                p_xp_reward: 20 // Reward for engagement with words
             });
+
+            if (recordError) {
+                console.error("[MagicSentenceService] Failed to record activity:", recordError);
+                // Fallback to basic audit
+                await AuditService.log({
+                    action: AuditAction.MAGIC_SENTENCE_GENERATED,
+                    entityType: EntityType.MAGIC_SENTENCE,
+                    entityId: sentenceId,
+                    userId: this.userId,
+                    childId: activeChildId,
+                    details: { word_count: words.length, has_image: generateImage, message: "RPC failed" }
+                });
+            } else {
+                console.info(`[MagicSentenceService] Magic sentence recorded. XP: ${recordResult?.xp_earned}`);
+            }
 
             // E. Hydrate URLs
             return this.hydrateAssets({

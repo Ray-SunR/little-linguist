@@ -3,7 +3,7 @@
 import { useUsage } from "@/lib/hooks/use-usage";
 import { useEffect, useState } from "react";
 import { getUsageHistory, UsageEvent } from "@/app/actions/usage";
-import { Sparkles, Zap, Image as ImageIcon, BookOpen, Clock, ArrowUpRight, CheckCircle2, Search, X } from "lucide-react";
+import { Sparkles, Zap, Image as ImageIcon, BookOpen, Clock, ArrowUpRight, CheckCircle2, Search, X, Star } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
 import { CachedImage } from "@/components/ui/cached-image";
 import Link from "next/link";
@@ -231,15 +231,16 @@ export default function SubscriptionUI() {
                         <table className="w-full">
                             <thead className="bg-slate-50/50 backdrop-blur-sm border-b border-slate-100">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-[10px] font-black font-fredoka text-slate-400 uppercase tracking-widest">Activity</th>
-                                    <th className="px-6 py-3 text-left text-[10px] font-black font-fredoka text-slate-400 uppercase tracking-widest">Date</th>
-                                    <th className="px-6 py-3 text-right text-[10px] font-black font-fredoka text-slate-400 uppercase tracking-widest">Amount</th>
+                                    <th className="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Activity Info</th>
+                                    <th className="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Profile</th>
+                                    <th className="px-6 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Timestamp</th>
+                                    <th className="px-6 py-3 text-right text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Usage</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {filteredHistory.length === 0 && (
                                     <tr>
-                                        <td colSpan={3} className="px-6 py-12 text-center text-slate-400 font-nunito font-bold">
+                                        <td colSpan={4} className="px-6 py-12 text-center text-slate-400 font-nunito font-bold">
                                             {searchQuery ? "No matching activity found." : "No activity found yet. Start your journey!"}
                                         </td>
                                     </tr>
@@ -294,6 +295,26 @@ export default function SubscriptionUI() {
                                                         )}
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td className="px-6 py-2.5">
+                                                {event.childId ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
+                                                            {event.childAvatar ? (
+                                                                <CachedImage src={event.childAvatar} alt={event.childName || 'Child'} width={24} height={24} className="w-full h-full object-cover" bucket="user-assets" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-purple-50 text-purple-400">
+                                                                    <Star className="w-3 h-3 fill-current" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-slate-600 truncate max-w-[80px]">
+                                                            {event.childName}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[10px] font-bold text-slate-400 italic">System</span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-2.5">
                                                 <p className="text-[10px] font-bold text-slate-500 font-nunito leading-tight" suppressHydrationWarning>
@@ -364,7 +385,15 @@ export default function SubscriptionUI() {
                                                     <p className="font-bold font-nunito text-ink text-sm line-clamp-1">
                                                         {event.action} {event.isDeleted && <span className="text-slate-400 font-normal opacity-70 ml-1">(Deleted)</span>}
                                                     </p>
-                                                    <p className="text-[10px] font-semibold text-slate-400 line-clamp-2 mt-0.5">{event.description}</p>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <p className="text-[10px] font-semibold text-slate-400 line-clamp-2">{event.description}</p>
+                                                        {event.childName && (
+                                                            <>
+                                                                <span className="text-slate-300">•</span>
+                                                                <span className="text-[10px] font-bold text-purple-500/70">{event.childName}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </>
                                             )}
                                         </div>
@@ -422,6 +451,8 @@ function AmountDisplay({ event, mobile = false }: { event: UsageEvent, mobile?: 
             individualLabel = "IMAGE";
         } else if (actionLower.includes("magic sentence")) {
             individualLabel = "MAGIC";
+        } else if (event.type === 'credit') {
+            individualLabel = "COINS";
         }
     }
 

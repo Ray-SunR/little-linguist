@@ -49,6 +49,7 @@ interface BookWithCover {
         total_read_seconds?: number;
         last_read_at?: string;
     };
+    createdAt?: string;
 }
 
 /**
@@ -757,5 +758,47 @@ export class BookRepository {
 
         if (error) throw error;
         return data || [];
+    }
+
+    /**
+     * Combines semantic recommendations with full UI metadata (covers, progress).
+     * Falls back to newest books if no recommendations are found.
+     */
+    async getRecommendedBooksWithCovers(
+        userId: string,
+        childId: string,
+        limit: number = 3
+    ): Promise<BookWithCover[]> {
+        try {
+            // 1. Get semantic recommendations based on interests
+            const recommendations = await this.recommendBooksForChild(childId, { limit });
+            const recommendedIds = recommendations.map(r => r.id);
+
+            // 2. Fetch full metadata including covers
+            // If we have recommended IDs, fetch them specifically.
+            // Otherwise, get the newest available books.
+            const books = await this.getAvailableBooksWithCovers(
+                userId,
+                childId,
+                recommendedIds.length > 0 
+                    ? { ids: recommendedIds, limit } 
+                    : { limit, sortBy: 'newest' }
+            );
+
+            // 3. Re-sort based on the semantic search order if we have IDs
+            if (recommendedIds.length > 0) {
+                return books.sort((a, b) => {
+                    const indexA = recommendedIds.indexOf(a.id);
+                    const indexB = recommendedIds.indexOf(b.id);
+                    return indexA - indexB;
+                });
+            }
+
+            return books;
+        } catch (err) {
+            console.error('[BookRepository.getRecommendedBooksWithCovers] Error:', err);
+            // Fallback to safest possible fetch
+            return await this.getAvailableBooksWithCovers(userId, childId, { limit, sortBy: 'newest' });
+        }
     }
 }

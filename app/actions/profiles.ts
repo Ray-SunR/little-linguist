@@ -35,6 +35,7 @@ export interface ChildProfile extends ChildProfilePayload {
   library_settings?: LibrarySettings;
   total_xp?: number;
   level?: number;
+  earned_badges?: Record<string, string>;
 }
 
 import { BUCKETS } from "@/lib/constants/storage";

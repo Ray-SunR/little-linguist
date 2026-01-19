@@ -26,6 +26,7 @@ export enum AuditAction {
     BOOK_FAVORITED = 'book.favorited',
     BOOK_UNFAVORITED = 'book.unfavorited',
     BOOK_OPENED = 'book.opened',
+    BOOK_COMPLETED = 'book.completed',
 
     // Vocabulary
     WORD_ADDED = 'word.added',

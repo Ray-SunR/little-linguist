@@ -43,64 +43,88 @@ export function CachedImage({
     // This allows us to keep showing the old image while the new signed URL is validated/cached
     const prevStorageKeyRef = React.useRef<string | undefined>();
 
+    // Detection logic moved here for reuse in props
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const isSupabaseUrl = !!supabaseUrl && (src.includes(supabaseUrl) || src.includes('.supabase.co'));
+    // A path is a storage path if it has slashes but DOES NOT start with one (avoids local /images/...)
+    const looksLikeStoragePath = src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('/') && src.includes('/');
+    const activePath = storagePath || (looksLikeStoragePath ? src : undefined);
+    
+    // We treat it as Supabase if it's a Supabase URL OR if it's an active storage path from our known buckets
+    const isSupabase = isSupabaseUrl || (!!activePath && (activePath.startsWith(BUCKETS.BOOK_ASSETS + '/') || activePath.startsWith(BUCKETS.USER_ASSETS + '/')));
+
     useEffect(() => {
         let isMounted = true;
         const controller = new AbortController();
 
         // Stable check: If storagePath and updatedAt match, we assume it's the same image.
         // Even if 'src' (signed URL) changes, we don't want to flash to transparent.
-        const storageKey = storagePath ? `${storagePath}:${updatedAt}` : undefined;
+        const storageKey = activePath ? `${activePath}:${updatedAt}` : undefined;
         const isSameAsset = storageKey && storageKey === prevStorageKeyRef.current;
 
         prevStorageKeyRef.current = storageKey;
 
         if (!isSameAsset && isMounted) {
             setIsLoaded(false);
-            if (storagePath) setDisplayUrl(TRANSPARENT_PIXEL);
+            if (activePath) setDisplayUrl(TRANSPARENT_PIXEL);
         }
 
         async function resolveUrl() {
-            if (!storagePath) {
+            if (!activePath) {
                 if (isMounted) setDisplayUrl(safeSrc);
                 return;
             }
 
-            // If it's the same asset, we keep the current displayUrl while we re-verify in background.
-            // If it's different, we already set it to transparent above.
-
-            // Optimization: If 'src' is already a signed URL (contains http/https), we should trust it for the first attempt.
-            // Only sign if we strictly only have a storage path and src is NOT a usable URL.
-            // OR if the implementation specifically requires ensuring a fresh token (but standard behavior should trust props).
-            
             try {
                 let fetchUrl = src;
                 const isSignedUrl = src.startsWith('http');
+                let shouldSignFirst = false;
 
-                // Logic: If 'src' doesn't look like a URL but looks like a storage path (contains slashes like uid/path),
-                // we treat it as a storage path if storagePath wasn't explicitly passed.
-                const looksLikeStoragePath = src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && src.includes('/');
-                const activePath = storagePath || (looksLikeStoragePath ? src : undefined);
+                // Guard: If src is empty (likely just a placeholder from parent) but we have a storage path
+                // WE MUST NOT fetch(src) or it returns the current page HTML.
+                if (!isSignedUrl && !src.startsWith('blob:') && !src.startsWith('data:') && activePath) {
+                   shouldSignFirst = true;
+                }
+
+                // Determine bucket. We default to 'user-assets' for user-uploaded content.
+                const bucket = explicitBucket || (src.includes(BUCKETS.BOOK_ASSETS) || (activePath && activePath.includes(BUCKETS.BOOK_ASSETS)) ? BUCKETS.BOOK_ASSETS : BUCKETS.USER_ASSETS);
+
+                let cachedUrl: string | undefined;
+
+                if (!shouldSignFirst) {
+                    // Phase 1: Try to get from cache using provided URL
+                    cachedUrl = await assetCache.getAsset(activePath, fetchUrl, updatedAt, controller.signal);
+                }
+
+                // Phase 2: If we didn't try cache yet (empty src) OR cache returned the original URL (fetch failed)
+                // AND it looked like a Supabase signed URL or we need to sign, try to re-sign.
+                const cacheMissed = !shouldSignFirst && cachedUrl === fetchUrl;
                 
-                // CRITICAL FIX: Only sign if we DON'T have a valid signed URL yet.
-                // If the parent component passed a signed URL in `src`, use it directly to avoid N+1.
-                if (activePath && !isSignedUrl) {
-                    // Always try to sign if it's not a URL yet, or if it was explicitly requested via storagePath
-                    const supabase = createClient();
-                    
-                    // Determine bucket. We default to 'user-assets' for user-uploaded content.
-                    // If an explicit bucket is passed, we use it.
-                    const bucket = explicitBucket || (src.includes(BUCKETS.BOOK_ASSETS) ? BUCKETS.BOOK_ASSETS : BUCKETS.USER_ASSETS);
-
-                    const { data, error } = await supabase.storage
+                if (shouldSignFirst || (cacheMissed && isSignedUrl && isSupabase) || (cacheMissed && !isSignedUrl && isSupabase)) {
+                     if (cacheMissed && isSignedUrl) {
+                        console.debug(`[CachedImage] Supabase URL likely expired or failed, re-signing: ${activePath}`);
+                     }
+                     
+                     const supabase = createClient();
+                     const { data } = await supabase.storage
                         .from(bucket)
                         .createSignedUrl(activePath, 3600);
 
-                    if (data?.signedUrl) {
-                        fetchUrl = data.signedUrl;
-                    }
+                     if (data?.signedUrl) {
+                        // Retry cache with fresh signed URL
+                        cachedUrl = await assetCache.getAsset(activePath, data.signedUrl, updatedAt, controller.signal);
+                     }
                 }
 
-                const cachedUrl = await assetCache.getAsset(storagePath || fetchUrl, fetchUrl, updatedAt, controller.signal);
+                // Final fallback if we still don't have a cached URL and we skipped the initial fetch
+                if (!cachedUrl && shouldSignFirst) {
+                   // If we failed to sign and didn't have a src, we have nothing.
+                   // But if valid src was passed originally, cachedUrl would be set in Phase 1 or 2.
+                   cachedUrl = TRANSPARENT_PIXEL; 
+                } else if (!cachedUrl) {
+                   cachedUrl = fetchUrl;
+                }
+
                 if (isMounted) {
                     setDisplayUrl(cachedUrl);
                 }
@@ -118,9 +142,9 @@ export function CachedImage({
         return () => {
             isMounted = false;
             controller.abort();
-            if (storagePath) assetCache.releaseAsset(storagePath);
+            if (activePath) assetCache.releaseAsset(activePath);
         };
-    }, [src, storagePath, updatedAt, safeSrc, explicitBucket]);
+    }, [src, activePath, updatedAt, safeSrc, explicitBucket, isSupabase]);
 
     const isBlobOrData = displayUrl.startsWith("blob:") || displayUrl.startsWith("data:");
     const effectiveFill = !!props.fill || !(props.width && props.height);
@@ -151,7 +175,7 @@ export function CachedImage({
                 sizes={effectiveFill ? (props.sizes || "100vw") : props.sizes}
                 onLoad={handleLoad}
                 onError={handleError}
-                unoptimized={!!storagePath || isBlobOrData || props.unoptimized}
+                unoptimized={!!activePath || isBlobOrData || props.unoptimized || isSupabase}
                 className={cn(
                     className,
                     "transition-opacity duration-300",

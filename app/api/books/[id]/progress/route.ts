@@ -81,76 +81,76 @@ export async function POST(
             return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
         }
 
-        const { childId, isOpening, ...payload } = body;
+        const { childId, isOpening, isMission, ...payload } = body;
+        const isCompleted = payload.tokenIndex !== undefined && (payload.isCompleted ?? payload.isRead);
 
-        // 1. Handle Audit Logging (Best Effort)
-        if (isOpening) {
+        console.info(`[Progress API] Request: user=${user?.id}, childId=${childId}, isOpening=${isOpening}, isCompleted=${isCompleted}`);
+
+        // 1. Handle Audit Logging / Rewards
+        let rewardResult: any = null;
+
+        if (user && childId) {
+            console.info(`[Progress API] Auth flow: User=${user.id}, Child=${childId}, isOpening=${isOpening}, isCompleted=${isCompleted}`);
+            
+            // AUTH FLOW: Use the record_activity RPC for atomic updates & rewards
             try {
-                // Determine identity for logging
-                const cookieStore = cookies();
-                const identityKey = cookieStore.get('identity_key')?.value ||
-                    cookieStore.get('guest_id')?.value ||
-                    'unknown';
-                const userId = user?.id;
+                // Determine reward
+                let xpReward = 0;
+                let action = isOpening ? AuditAction.BOOK_OPENED : null;
 
-                if (userId || identityKey) {
-                    // Security/Accuracy: Check book existence and access
+                // Priority: Completion XP
+                if (isCompleted) {
                     const repo = new BookRepository();
-                    // Include basic metadata, no tokens needed for audit
-                    const book = await repo.getBookById(bookId, {
-                        includeTokens: false,
-                        includeContent: false,
-                        userId: userId
-                    });
-
-                    if (book) {
-                        // DB Side De-dupe: prevent spam
-                        const dedupeKey = `${userId || identityKey}:${bookId}`;
-                        const now = Date.now();
-                        const lastOpen = recentOpens.get(dedupeKey);
-
-                        if (!lastOpen || (now - lastOpen > DEDUPE_WINDOW_MS)) {
-                            recentOpens.set(dedupeKey, now);
-
-                            // Log the open event (independent of progress save)
-                            await AuditService.log({
-                                action: AuditAction.BOOK_OPENED,
-                                entityType: EntityType.BOOK,
-                                entityId: bookId,
-                                userId: userId,
-                                identityKey: identityKey,
-                                childId: childId,
-                                details: {
-                                    title: book.title,
-                                    source: 'client_mount'
-                                }
-                            });
+                    const currentProgress = await repo.getProgress(childId, bookId);
+                    
+                    if (!currentProgress?.is_completed) {
+                        console.info(`[Progress API] New completion detected for child=${childId}, book=${bookId}. isMission=${isMission}`);
+                        action = AuditAction.BOOK_COMPLETED;
+                        xpReward = isMission ? 100 : 50;
+                    } else {
+                        console.info(`[Progress API] Reward skipped: Book already marked as completed for child=${childId}`);
+                        if (isOpening) {
+                            action = AuditAction.BOOK_OPENED;
+                            xpReward = 10;
                         }
                     }
+                } else if (isOpening) {
+                    xpReward = 10;
                 }
-            } catch (auditErr) {
-                console.error("[Progress API] Best-effort audit failed:", auditErr);
-                // Continue to progress saving even if audit fails
+
+                if (action) {
+                    const { data: record, error: recordError } = await supabase.rpc('record_activity', {
+                        p_child_id: childId,
+                        p_action_type: action,
+                        p_entity_type: EntityType.BOOK,
+                        p_entity_id: bookId,
+                        p_details: { 
+                            isMission: !!isMission,
+                            tokenIndex: payload.tokenIndex,
+                            title: body.title 
+                        },
+                        p_xp_reward: xpReward
+                    });
+
+                    if (recordError) {
+                        console.error("[Progress API] record_activity RPC failed:", recordError);
+                    } else if (record?.success) {
+                        console.info(`[Progress API] record_activity result: success=${record.success}, xp_earned=${record.xp_earned}, is_new=${record.is_new_activity}`);
+                        rewardResult = record;
+                    }
+                }
+            } catch (err) {
+                console.error("[Progress API] Reward logic failed:", err);
             }
-        }
-
-        // 2. Handle Progress Saving (Requires Auth)
-        if (!user) {
-            // For isOpening only calls from guests, we've already done the audit (best effort)
-            // But we can't save progress without a user.
+        } 
+        
+        // 2. Handle Progress Saving (Requires Auth + Child)
+        if (!user || !childId) {
             return NextResponse.json({
-                success: isOpening,
-                audited: isOpening,
-                message: !user && isOpening ? 'Audited guest open, but progress requires auth' : 'Unauthorized'
-            }, { status: user ? 200 : 401 });
-        }
-
-
-        if (!childId) {
-            // If it was just an opening signal for an auth'd user without a child yet,
-            // we return success since the audit happened above.
-            if (isOpening) return NextResponse.json({ success: true, audited: true });
-            return NextResponse.json({ error: 'childId is required for progress saving' }, { status: 400 });
+                success: true,
+                reward: rewardResult,
+                message: 'No progress saved (unauthorized or no childId)'
+            });
         }
 
         const repo = new BookRepository();
@@ -162,7 +162,7 @@ export async function POST(
             playback_speed: payload.speed
         });
 
-        return NextResponse.json({ ...result, audited: isOpening });
+        return NextResponse.json({ ...result, reward: rewardResult, audited: true });
     } catch (error: any) {
         console.error("POST progress error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });

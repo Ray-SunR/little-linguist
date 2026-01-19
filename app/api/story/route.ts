@@ -694,25 +694,40 @@ FINAL RECAP:
                 }
             })());
 
-            // Audit: Generation Success (Text phase)
+            // Audit & Rewards: Generation Success (Text phase)
             const totalSections = data.sections.length;
-            console.info("[StoryAPI] Logging STORY_GENERATED...");
-            await AuditService.log({
-                action: AuditAction.STORY_GENERATED,
-                entityType: EntityType.STORY,
-                entityId: bookId,
-                userId: ownerUserId,
-                identityKey: identity?.identity_key,
-                childId: childId,
-                details: {
+            console.info("[StoryAPI] Recording activity & award XP for STORY_GENERATED...");
+            
+            const { data: recordResult, error: recordError } = await supabase.rpc('record_activity', {
+                p_child_id: childId,
+                p_action_type: AuditAction.STORY_GENERATED,
+                p_entity_type: EntityType.STORY,
+                p_entity_id: bookId,
+                p_details: {
                     title: data.sections[0]?.title || "Untitled",
                     sectionCount: data.sections.length,
                     sceneCount: totalSections,
                     imageCount: actualImageCount,
-                    totalTokens: data.total_tokens || 0
-                }
+                    totalTokens: tokens.length
+                },
+                p_xp_reward: 200 // Big reward for creating a story!
             });
-            console.info("[StoryAPI] STORY_GENERATED logged.");
+
+            if (recordError) {
+                console.error("[StoryAPI] Failed to record activity:", recordError);
+                // Fallback to basic audit if RPC fails
+                await AuditService.log({
+                    action: AuditAction.STORY_GENERATED,
+                    entityType: EntityType.STORY,
+                    entityId: bookId,
+                    userId: ownerUserId,
+                    identityKey: identity?.identity_key,
+                    childId: childId,
+                    details: { message: "RPC failed, fallback to basic audit" }
+                });
+            } else {
+                console.info(`[StoryAPI] Story activity recorded. XP Earned: ${recordResult?.xp_earned}`);
+            }
 
             return NextResponse.json({
                 ...data,

@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FastForward, ArrowLeft, RotateCcw, Heart } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from 'next/link';
 import { useNarrationEngine, type NarrationShard } from "@/hooks/use-narration-engine";
 import { useReaderPersistence } from "@/hooks/use-reader-persistence";
@@ -119,6 +119,11 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         setSpeed(playbackSpeed);
     }, [playbackSpeed, setSpeed]);
 
+    const searchParams = useSearchParams();
+    const isMission = searchParams.get('mission') === 'true';
+
+    const isCompleted = wordTokens.length > 0 && currentWordIndex !== null && currentWordIndex >= Math.floor(wordTokens.length * 0.95);
+
     const { saveProgress } = useReaderPersistence({
         bookId: selectedBook?.id || "",
         childId,
@@ -128,14 +133,38 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         playbackState,
         viewMode,
         speed: playbackSpeed,
-        // Mark as completed when user has reached ~99% of the book
-        isCompleted: wordTokens.length > 0 && currentWordIndex !== null && currentWordIndex >= wordTokens.length - 1
+        isMission,
+        // Mark as completed when user has reached >= 95% of the book
+        isCompleted,
+        title: selectedBook?.title || ""
     });
 
-    // Trigger initial save to update "last opened" timestamp
+    // Use a custom event to notify the global navigation (ClayNav) about XP rewards
+    const dispatchXpEvent = useCallback((reward: any) => {
+        if (reward?.xp_earned > 0) {
+            window.dispatchEvent(new CustomEvent('xp-earned', { detail: reward }));
+        }
+    }, []);
+
+    // Watch for completion status to trigger reward check
+    const lastCompletedRef = useRef(false);
+
+    useEffect(() => {
+        if (isCompleted && !lastCompletedRef.current) {
+            // Transitions to completed! Trigger a forced save to get the reward
+            saveProgress({ force: true }).then((res: any) => {
+                dispatchXpEvent(res?.reward);
+            });
+        }
+        lastCompletedRef.current = isCompleted;
+    }, [isCompleted, saveProgress]);
+
+    // Handle opening reward too
     useEffect(() => {
         if (selectedBookId && isMounted) {
-            saveProgress({ force: true, isOpening: true });
+            saveProgress({ force: true, isOpening: true }).then((res: any) => {
+                dispatchXpEvent(res?.reward);
+            });
         }
     }, [selectedBookId, isMounted, saveProgress]);
 
@@ -361,7 +390,9 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                     </button>
 
                     <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-                        <LumoCharacter size="sm" className="hidden sm:flex flex-shrink-0" />
+                        <div className="relative">
+                            <LumoCharacter size="sm" className="flex flex-shrink-0" />
+                        </div>
                         <div className="flex-1 min-w-0">
                             <h1 className="text-lg sm:text-xl font-fredoka font-bold text-ink truncate leading-none">
                                 {selectedBook?.title || "Book Reader"}

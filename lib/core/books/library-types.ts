@@ -24,4 +24,5 @@ export interface LibraryBookCard {
     level?: string;
     isNonFiction?: boolean;
     origin?: string;
+    description?: string;
 }

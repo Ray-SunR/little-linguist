@@ -19,6 +19,13 @@ export default function DashboardContent({ serverProfiles = [], stats = null }: 
   // effectiveProfiles combines server data + client data (client wins if populated)
   const effectiveProfiles = profiles.length > 0 ? profiles : serverProfiles;
 
+  // Refresh stats on mount or when activeChild changes to ensure up-to-date points
+  useEffect(() => {
+    if (activeChild) {
+      router.refresh();
+    }
+  }, [activeChild?.id, router]);
+
   // DashboardUI handles its own empty states, we just pass activeChild
   return (
     <DashboardUI activeChild={activeChild} stats={stats} />
