@@ -20,7 +20,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   profiles: ChildProfile[];
   activeChild: ChildProfile | null;
@@ -39,7 +39,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);

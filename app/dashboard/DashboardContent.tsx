@@ -1,28 +1,29 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import DashboardUI from "@/components/dashboard/DashboardUI";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useRouter } from "next/navigation";
-import { ChildProfile } from "@/app/actions/profiles";
 import type { DashboardStats } from "@/app/actions/dashboard";
 
 interface DashboardContentProps {
-  serverProfiles?: ChildProfile[];
   stats?: DashboardStats | null;
 }
 
-export default function DashboardContent({ serverProfiles = [], stats = null }: DashboardContentProps) {
-  const { user, profiles, activeChild, isLoading, status } = useAuth();
+export default function DashboardContent({ stats = null }: DashboardContentProps) {
+  const { activeChild } = useAuth();
   const router = useRouter();
 
-  // effectiveProfiles combines server data + client data (client wins if populated)
-  const effectiveProfiles = profiles.length > 0 ? profiles : serverProfiles;
+  const initialActiveChildId = useRef(activeChild?.id);
 
-  // Refresh stats on mount or when activeChild changes to ensure up-to-date points
+  // Refresh stats when activeChild changes to ensure up-to-date points/progress
   useEffect(() => {
-    if (activeChild) {
+    // Only refresh if activeChild exists AND it's different from what we had at mount
+    // This avoids the double-refresh on initial page load
+    if (activeChild?.id && activeChild.id !== initialActiveChildId.current) {
+      console.log("[DashboardContent] Active child changed, refreshing route...");
       router.refresh();
+      initialActiveChildId.current = activeChild.id;
     }
   }, [activeChild?.id, router]);
 

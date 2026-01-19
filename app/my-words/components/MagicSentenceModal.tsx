@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Volume2, Sparkles, Wand2, Info } from "lucide-react";
 import { cn } from "@/lib/core/utils/cn";
 import { CachedImage } from "@/components/ui/cached-image";
-import Image from "next/image";
 
 interface TimingMarker {
     wordIndex: number;
@@ -80,12 +79,12 @@ function MagicLoadingState() {
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     className="relative w-32 h-32 md:w-40 md:h-40"
                 >
-                    <Image 
+                    <CachedImage 
                         src="/lumo-mascot.png" 
                         alt="Lumo" 
-                        width={160}
-                        height={160}
-                        className="w-full h-full object-contain filter drop-shadow-xl"
+                        fill
+                        className="object-contain filter drop-shadow-xl"
+                        unoptimized={true}
                     />
                     
                     {/* Floating Sparkles */}

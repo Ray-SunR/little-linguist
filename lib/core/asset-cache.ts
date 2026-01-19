@@ -63,18 +63,31 @@ class AssetCache {
                     }
 
                     // Perform fetch WITHOUT the caller's signal (to populate cache for all)
-                    const response = await fetch(signedUrl);
-                    if (!response.ok) {
-                        const errorMsg = `Fetch failed: ${response.status} ${response.statusText} for ${objectKey}`;
+                    const fetchResponse = await fetch(signedUrl);
+                    
+                    if (!fetchResponse.ok) {
+                        const errorMsg = `Fetch failed: ${fetchResponse.status} ${fetchResponse.statusText} for ${objectKey}`;
                         console.error(`[AssetCache] ${errorMsg}`);
-                        if (response.status === 401 || response.status === 403 || response.status === 400) {
-                            console.warn(`[AssetCache] Potential expired or invalid signed URL for ${objectKey}`);
+                        
+                        // Log specific details for common Supabase Storage failures
+                        if (fetchResponse.status === 401 || fetchResponse.status === 403 || fetchResponse.status === 400) {
+                            console.warn(`[AssetCache] Potential expired or invalid signed URL for ${objectKey}. Status: ${fetchResponse.status}`);
+                            try {
+                                const errorBody = await fetchResponse.text();
+                                console.warn(`[AssetCache] Error body: ${errorBody.substring(0, 200)}`);
+                            } catch {
+                                // Ignore body parsing errors
+                            }
                         }
                         throw new Error(errorMsg);
                     }
 
-                    const responseToCache = response.clone();
-                    await cache.put(cacheKey, responseToCache);
+                    // CRITICAL: Clone for cache before consuming body
+                    const cacheResponse = fetchResponse.clone();
+                    
+                    // We don't await cache.put if we want to return the asset immediately, 
+                    // but awaiting here is safer to ensure cache integrity before returning.
+                    await cache.put(cacheKey, cacheResponse);
 
                     // Update metadata
                     await raidenCache.put(CacheStore.ASSET_METADATA, {
@@ -82,14 +95,15 @@ class AssetCache {
                         cachedAt: Date.now()
                     });
 
-                    const blob = await response.blob();
+                    // Consume the original response body
+                    const blob = await fetchResponse.blob();
                     const url = URL.createObjectURL(blob);
                     this.registry.set(cacheKey, { url, count: 0 });
                     return url;
                 } catch (err) {
                     const isAbort = err instanceof Error && (err.name === 'AbortError' || err.message === 'Aborted');
                     if (!isAbort) {
-                        console.debug(`[AssetCache] Background fetch failed for ${objectKey} (falling back to network):`, err);
+                        console.error(`[AssetCache] Background fetch failed for ${objectKey} (falling back to network):`, err);
                     }
                     throw err;
                 } finally {

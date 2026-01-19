@@ -41,17 +41,43 @@ export function CachedImage({
 
     // Use a ref to track the previous storage token to avoid unnecessary resets
     // This allows us to keep showing the old image while the new signed URL is validated/cached
-    const prevStorageKeyRef = React.useRef<string | undefined>();
+    const storageKey = (storagePath || (src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('/') && src.includes('/') ? src : undefined)) ? `${storagePath || (src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('/') && src.includes('/') ? src : undefined)}:${updatedAt}` : undefined;
+    const prevStorageKeyRef = React.useRef<string | undefined>(storageKey);
 
-    // Detection logic moved here for reuse in props
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const isSupabaseUrl = !!supabaseUrl && (src.includes(supabaseUrl) || src.includes('.supabase.co'));
+    const supabaseHostname = (() => {
+        try { return supabaseUrl ? new URL(supabaseUrl).hostname : undefined; } 
+        catch { return undefined; }
+    })();
+
+    const isSupabaseUrl = (url: string) => {
+        if (!url || !url.startsWith('http')) return false;
+        try {
+            const hostname = new URL(url).hostname;
+            return hostname.endsWith('.supabase.co') || (!!supabaseHostname && hostname === supabaseHostname);
+        } catch {
+            return false;
+        }
+    };
+
     // A path is a storage path if it has slashes but DOES NOT start with one (avoids local /images/...)
     const looksLikeStoragePath = src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('/') && src.includes('/');
     const activePath = storagePath || (looksLikeStoragePath ? src : undefined);
     
-    // We treat it as Supabase if it's a Supabase URL OR if it's an active storage path from our known buckets
-    const isSupabase = isSupabaseUrl || (!!activePath && (activePath.startsWith(BUCKETS.BOOK_ASSETS + '/') || activePath.startsWith(BUCKETS.USER_ASSETS + '/')));
+    // We treat it as Supabase if:
+    // 1. It's a Supabase URL (signed URL)
+    // 2. It's an active storage path from our known buckets
+    // 3. it's a guest path (which we know belongs to user-assets)
+    // 4. An explicit bucket was provided
+    const isSupabase = !!(
+        isSupabaseUrl(src) || 
+        (activePath && (
+            activePath.startsWith(BUCKETS.BOOK_ASSETS + '/') || 
+            activePath.startsWith(BUCKETS.USER_ASSETS + '/') ||
+            activePath.startsWith('guests/') ||
+            !!explicitBucket
+        ))
+    );
 
     useEffect(() => {
         let isMounted = true;
@@ -62,12 +88,13 @@ export function CachedImage({
         const storageKey = activePath ? `${activePath}:${updatedAt}` : undefined;
         const isSameAsset = storageKey && storageKey === prevStorageKeyRef.current;
 
-        prevStorageKeyRef.current = storageKey;
-
         if (!isSameAsset && isMounted) {
             setIsLoaded(false);
             if (activePath) setDisplayUrl(TRANSPARENT_PIXEL);
         }
+        
+        // Update ref after check
+        prevStorageKeyRef.current = storageKey;
 
         async function resolveUrl() {
             if (!activePath) {
@@ -77,17 +104,23 @@ export function CachedImage({
 
             try {
                 let fetchUrl = src;
-                const isSignedUrl = src.startsWith('http');
+                const isSignedUrl = src && src.startsWith('http');
                 let shouldSignFirst = false;
 
-                // Guard: If src is empty (likely just a placeholder from parent) but we have a storage path
-                // WE MUST NOT fetch(src) or it returns the current page HTML.
+                // Guard: If src is empty (placeholder) but we have a storage path
                 if (!isSignedUrl && !src.startsWith('blob:') && !src.startsWith('data:') && activePath) {
                    shouldSignFirst = true;
                 }
 
-                // Determine bucket. We default to 'user-assets' for user-uploaded content.
-                const bucket = explicitBucket || (src.includes(BUCKETS.BOOK_ASSETS) || (activePath && activePath.includes(BUCKETS.BOOK_ASSETS)) ? BUCKETS.BOOK_ASSETS : BUCKETS.USER_ASSETS);
+                // Determine bucket. 
+                let bucket = explicitBucket;
+                if (!bucket) {
+                    if (src.includes(BUCKETS.BOOK_ASSETS) || activePath.startsWith(BUCKETS.BOOK_ASSETS)) {
+                        bucket = BUCKETS.BOOK_ASSETS;
+                    } else {
+                        bucket = BUCKETS.USER_ASSETS;
+                    }
+                }
 
                 let cachedUrl: string | undefined;
 
@@ -100,26 +133,28 @@ export function CachedImage({
                 // AND it looked like a Supabase signed URL or we need to sign, try to re-sign.
                 const cacheMissed = !shouldSignFirst && cachedUrl === fetchUrl;
                 
-                if (shouldSignFirst || (cacheMissed && isSignedUrl && isSupabase) || (cacheMissed && !isSignedUrl && isSupabase)) {
+                if (shouldSignFirst || (cacheMissed && isSupabase)) {
                      if (cacheMissed && isSignedUrl) {
                         console.debug(`[CachedImage] Supabase URL likely expired or failed, re-signing: ${activePath}`);
+                     } else if (shouldSignFirst) {
+                        console.debug(`[CachedImage] No signed URL provided for ${activePath}, signing now...`);
                      }
                      
                      const supabase = createClient();
-                     const { data } = await supabase.storage
+                     const { data, error } = await supabase.storage
                         .from(bucket)
                         .createSignedUrl(activePath, 3600);
 
-                     if (data?.signedUrl) {
+                     if (error) {
+                        console.error(`[CachedImage] Re-signing failed for ${activePath} in bucket ${bucket}:`, error);
+                     } else if (data?.signedUrl) {
                         // Retry cache with fresh signed URL
                         cachedUrl = await assetCache.getAsset(activePath, data.signedUrl, updatedAt, controller.signal);
                      }
                 }
 
-                // Final fallback if we still don't have a cached URL and we skipped the initial fetch
+                // Final fallback if we still don't have a cached URL
                 if (!cachedUrl && shouldSignFirst) {
-                   // If we failed to sign and didn't have a src, we have nothing.
-                   // But if valid src was passed originally, cachedUrl would be set in Phase 1 or 2.
                    cachedUrl = TRANSPARENT_PIXEL; 
                 } else if (!cachedUrl) {
                    cachedUrl = fetchUrl;
@@ -132,7 +167,7 @@ export function CachedImage({
                 const isAbort = err instanceof Error && (err.name === 'AbortError' || err.message === 'Aborted');
                 if (isAbort) return;
 
-                console.warn("[CachedImage] Resolution failed:", err);
+                console.warn("[CachedImage] Resolution failed for:", activePath || src, err);
                 if (isMounted) setDisplayUrl(safeSrc);
             }
         }
@@ -175,7 +210,7 @@ export function CachedImage({
                 sizes={effectiveFill ? (props.sizes || "100vw") : props.sizes}
                 onLoad={handleLoad}
                 onError={handleError}
-                unoptimized={!!activePath || isBlobOrData || props.unoptimized || isSupabase}
+                unoptimized={!!activePath || isBlobOrData || !!props.unoptimized || isSupabase || isSupabaseUrl(displayUrl)}
                 className={cn(
                     className,
                     "transition-opacity duration-300",
