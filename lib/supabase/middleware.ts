@@ -87,11 +87,6 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
     // If no user, handle protection and cleanup
     if (!user) {
-        // Clear activeChildId cookie if it exists but no user session exists
-        if (request.cookies.has('activeChildId')) {
-            supabaseResponse.cookies.set('activeChildId', '', { maxAge: -1, path: '/' })
-        }
-
         const isPublic = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'))
         
         if (!isPublic) {

@@ -167,12 +167,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
               window.localStorage.removeItem(key);
             }
           });
-          // Clear common cookies
+          // Clear common cookies, preserving activeChildId
           document.cookie.split(";").forEach((c) => {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            const cookieName = c.split("=")[0].trim();
+            if (cookieName !== "activeChildId") {
+              document.cookie = cookieName + "=;expires=" + new Date().toUTCString() + ";path=/";
+            }
           });
           // Clear specific cookies managed by cookies-next if possible
-          deleteCookie('activeChildId', { path: '/' });
+          // deleteCookie('activeChildId', { path: '/' }); - Preserving for per-device persistence
         } catch (cleanupErr) {
           Log.warn("Manual cleanup had issues:", cleanupErr);
         }
@@ -447,7 +450,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         secure: process.env.NODE_ENV === 'production'
       });
     } else {
-      deleteCookie('activeChildId');
+      // deleteCookie('activeChildId'); - Preserving for per-device persistence
     }
   }
 
