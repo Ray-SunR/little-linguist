@@ -40,6 +40,7 @@ import TutorialOverlay from "@/components/tutorial/tutorial-overlay";
 
 import { CookieConsent } from "@/components/ui/cookie-consent";
 import { DeepLinkHandler } from "@/components/auth/DeepLinkHandler";
+import { NativeIntegrations } from "@/components/layout/native-integrations";
 
 export default function RootLayout({
   children,
@@ -49,6 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${fredoka.variable} ${nunito.variable}`}>
       <body className="min-h-shell bg-shell text-ink font-nunito antialiased">
+        <NativeIntegrations />
         <AuthProvider>
           <DeepLinkHandler />
           <RouteGuard>

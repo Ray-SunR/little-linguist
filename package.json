@@ -11,7 +11,8 @@
     "mobile:build": "next build",
     "mobile:sync": "npx cap sync",
     "mobile:dev": "NODE_ENV=development npx cap sync",
-    "mobile:open": "npx cap open ios"
+    "mobile:open": "npx cap open ios",
+    "ios": "npm run mobile:dev && npm run mobile:open && npm run dev"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -23,6 +24,9 @@
     "@capacitor/app": "^8.0.0",
     "@capacitor/browser": "^8.0.0",
     "@capacitor/haptics": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0",
     "@google-cloud/vertexai": "^1.10.0",
     "@google/genai": "^1.34.0",
     "@radix-ui/react-dialog": "^1.1.15",

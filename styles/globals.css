@@ -124,6 +124,7 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -135,6 +136,16 @@ body {
     radial-gradient(circle at 82% 18%, rgba(10, 163, 255, 0.12), transparent 36%),
     linear-gradient(180deg, #f5f9ff 0%, var(--shell) 38%, #dff1ff 100%);
   transition: background 0.3s ease, color 0.3s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.book-page-text, 
+.word-token,
+input, 
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 h1,

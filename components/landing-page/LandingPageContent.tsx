@@ -12,6 +12,8 @@ import confetti from "canvas-confetti";
 import { CachedImage } from "@/components/ui/cached-image";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
+import { Capacitor } from "@capacitor/core";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 // Dynamic Imports for Below-the-Fold components
 const SocialProof = dynamic(() => import("@/components/landing-page/SocialProof"), { ssr: true });
@@ -75,6 +77,13 @@ export default function LandingPageContent() {
     const [hasSearched, setHasSearched] = useState(false);
     const [particles, setParticles] = useState<{ top: string, left: string, scale: number, duration: number, delay: number, size: string }[]>([]);
     const lastRequestId = useRef(0);
+    const [isNative, setIsNative] = useState(false);
+    const [hasMounted, setHasMounted] = useState(false);
+
+    useEffect(() => {
+        setHasMounted(true);
+        setIsNative(Capacitor.isNativePlatform());
+    }, []);
 
     const fetchBooks = useCallback(async (query: string, signal?: AbortSignal) => {
         const requestId = ++lastRequestId.current;
@@ -169,6 +178,14 @@ export default function LandingPageContent() {
         const x = e.clientX / window.innerWidth;
         const y = e.clientY / window.innerHeight;
 
+        try {
+            Haptics.impact({ style: ImpactStyle.Medium });
+        } catch (err) {
+            if (process.env.NODE_ENV === 'development') {
+                console.warn("Haptics impact failed:", err);
+            }
+        }
+
         confetti({
             origin: { x, y },
             particleCount: 100,
@@ -183,14 +200,20 @@ export default function LandingPageContent() {
     };
 
     return (
-        <main className="min-h-screen page-story-maker overflow-x-hidden bg-[--shell]">
-            <ScrollProgressBar />
+        <main className={cn(
+            "min-h-screen page-story-maker overflow-x-hidden bg-[--shell] transition-opacity duration-500",
+            !hasMounted ? "opacity-0" : "opacity-100"
+        )}>
+            {!isNative && hasMounted && <ScrollProgressBar />}
             {/* 
         HERO SECTION 
         Split Layout: Text Left, Image Right
         Compacted padding
       */}
-            <section className="relative min-h-[85vh] flex items-center px-6 lg:pl-28 py-12 md:py-8 lg:py-0 pb-32 overflow-hidden">
+            <section className={cn(
+                "relative flex items-center px-6 lg:pl-28 py-12 md:py-8 lg:py-0 overflow-hidden",
+                isNative ? "min-h-[100dvh] pb-12" : "min-h-[85vh] pb-32"
+            )}>
                 {/* Background Decorative Blobs & Aurora & Path */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
                     {/* Noise Texture */}
@@ -345,6 +368,15 @@ export default function LandingPageContent() {
                         <div className="flex flex-wrap items-center gap-4">
                             <motion.a
                                 href="/library"
+                                onClick={() => {
+                                    try {
+                                        Haptics.impact({ style: ImpactStyle.Heavy });
+                                    } catch (e) {
+                                        if (process.env.NODE_ENV === 'development') {
+                                            console.warn("Haptics impact failed:", e);
+                                        }
+                                    }
+                                }}
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.98 }}
                                 className="flex items-center gap-3 px-8 py-4 rounded-[2rem] bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-clay-orange border-2 border-white/30 text-lg font-black font-fredoka transition-all cursor-pointer no-underline"
@@ -478,489 +510,495 @@ export default function LandingPageContent() {
                 </div>
 
                 {/* Organic Wave Divider Bottom */}
-                <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
-                    <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block h-[60px] md:h-[100px] w-[calc(100%+1.3px)] fill-white/40">
-                        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-                    </svg>
-                </div>
+                {!isNative && (
+                    <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+                        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block h-[60px] md:h-[100px] w-[calc(100%+1.3px)] fill-white/40">
+                            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
+                        </svg>
+                    </div>
+                )}
             </section>
 
-            {/* Social Proof Strip */}
-            <SocialProof />
+            {!isNative && (
+                <>
+                    {/* Social Proof Strip */}
+                    <SocialProof />
 
-            {/* Interactive Reader Demo */}
-            <ReaderDemo />
+                    {/* Interactive Reader Demo */}
+                    <ReaderDemo />
 
-            {/* Personalized Recommendations Section */}
-            <section className="relative py-16 md:py-24 px-6 lg:pl-28 bg-white overflow-hidden">
-                <div className="max-w-7xl mx-auto relative z-10">
-                    <div className="text-center mb-12">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-50 text-purple-600 font-fredoka font-bold text-sm mb-4"
-                        >
-                            <Star className="w-4 h-4 fill-current" />
-                            Personalized for You
-                        </motion.div>
-                        <h2 className="text-4xl md:text-5xl font-black text-ink font-fredoka mb-4">
-                            Stories They&apos;ll <span className="text-purple-500">Love</span>
-                        </h2>
-                        <p className="text-lg text-ink-muted font-nunito max-w-2xl mx-auto">
-                            LumoMind learns what your child enjoys and recommends the perfect stories to keep them engaged.
-                        </p>
-                    </div>
+                    {/* Personalized Recommendations Section */}
+                    <section className="relative py-16 md:py-24 px-6 lg:pl-28 bg-white overflow-hidden">
+                        <div className="max-w-7xl mx-auto relative z-10">
+                            <div className="text-center mb-12">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-50 text-purple-600 font-fredoka font-bold text-sm mb-4"
+                                >
+                                    <Star className="w-4 h-4 fill-current" />
+                                    Personalized for You
+                                </motion.div>
+                                <h2 className="text-4xl md:text-5xl font-black text-ink font-fredoka mb-4">
+                                    Stories They&apos;ll <span className="text-purple-500">Love</span>
+                                </h2>
+                                <p className="text-lg text-ink-muted font-nunito max-w-2xl mx-auto">
+                                    LumoMind learns what your child enjoys and recommends the perfect stories to keep them engaged.
+                                </p>
+                            </div>
 
-                    {/* Search Bar & Interest Tabs */}
-                    <div className="flex flex-col items-center gap-8 mb-12">
-                        {/* Claymorphic Search Bar */}
-                        <div className="relative w-full max-w-2xl group">
-                            <div className="absolute inset-0 bg-purple-100 rounded-[2rem] translate-y-2 translate-x-1 group-focus-within:translate-y-1 transition-transform" />
-                            <div className="relative flex items-center bg-white border-4 border-purple-200 rounded-[2rem] px-6 py-4 shadow-clay-sm group-focus-within:border-purple-400 transition-all">
-                                <Search className="w-6 h-6 text-purple-400 mr-4" />
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Search for 'Magic', 'Dragons', or 'Deep Sea'..."
-                                    className="flex-1 bg-transparent border-none outline-none font-fredoka text-lg text-ink placeholder:text-slate-300"
-                                />
-                                {isLoading && (
-                                    <Loader2 className="w-6 h-6 text-purple-600 animate-spin ml-4" />
-                                )}
+                            {/* Search Bar & Interest Tabs */}
+                            <div className="flex flex-col items-center gap-8 mb-12">
+                                {/* Claymorphic Search Bar */}
+                                <div className="relative w-full max-w-2xl group">
+                                    <div className="absolute inset-0 bg-purple-100 rounded-[2rem] translate-y-2 translate-x-1 group-focus-within:translate-y-1 transition-transform" />
+                                    <div className="relative flex items-center bg-white border-4 border-purple-200 rounded-[2rem] px-6 py-4 shadow-clay-sm group-focus-within:border-purple-400 transition-all">
+                                        <Search className="w-6 h-6 text-purple-400 mr-4" />
+                                        <input
+                                            type="text"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            placeholder="Search for 'Magic', 'Dragons', or 'Deep Sea'..."
+                                            className="flex-1 bg-transparent border-none outline-none font-fredoka text-lg text-ink placeholder:text-slate-300"
+                                        />
+                                        {isLoading && (
+                                            <Loader2 className="w-6 h-6 text-purple-600 animate-spin ml-4" />
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Interest Pills */}
+                                <div className="flex flex-wrap justify-center gap-3">
+                                    {INTERESTS.map((interest) => (
+                                        <button
+                                            key={interest.name}
+                                            onClick={() => {
+                                                setSelectedInterest(interest.name);
+                                                setSearchQuery(""); // Clear custom search when clicking pill
+                                            }}
+                                            className={cn(
+                                                "flex items-center gap-2 px-6 py-3 rounded-2xl font-fredoka font-bold transition-all transform active:scale-95 border-b-4",
+                                                selectedInterest === interest.name && !searchQuery
+                                                    ? "bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:-translate-y-0.5 shadow-clay-sm"
+                                            )}
+                                        >
+                                            <interest.icon className={cn("w-5 h-5", (selectedInterest === interest.name && !searchQuery) ? "text-white" : interest.color)} />
+                                            {interest.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Book Cards Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]">
+                                <AnimatePresence mode="wait">
+                                    {isLoading && books.length === 0 ? (
+                                        // Skeleton Loaders
+                                        Array.from({ length: 3 }).map((_, idx) => (
+                                            <motion.div
+                                                key={`skeleton-${idx}`}
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                className="p-6 rounded-[2.5rem] border-4 border-slate-100 bg-slate-50 animate-pulse h-[450px]"
+                                            />
+                                        ))
+                                    ) : books.length > 0 ? (
+                                        books.map((book, idx) => (
+                                            <motion.div
+                                                key={book.id}
+                                                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                transition={{ delay: idx * 0.1 }}
+                                                className="group relative"
+                                            >
+                                                <Link href={`/reader/${encodeURIComponent(book.id)}`} className="block">
+                                                    <div className={cn(
+                                                        "p-6 rounded-[2.5rem] border-4 border-white shadow-clay-lg transition-all hover:shadow-magic-glow hover:-translate-y-2 bg-gradient-to-br",
+                                                        idx % 3 === 0 ? "from-purple-50 to-indigo-50" :
+                                                            idx % 3 === 1 ? "from-blue-50 to-cyan-50" :
+                                                                "from-pink-50 to-rose-50"
+                                                    )}>
+                                                        <div className="relative aspect-[3/4] mb-6 rounded-2xl overflow-hidden shadow-clay-inset bg-white/80 border-2 border-white/50">
+                                                            {book.coverImageUrl ? (
+                                                                <CachedImage
+                                                                    src={book.coverImageUrl}
+                                                                    storagePath={book.coverPath}
+                                                                    alt={book.title}
+                                                                    fill
+                                                                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                                                    bucket="book-assets"
+                                                                />
+                                                            ) : (
+                                                                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-100">
+                                                                    <BookOpen className="w-16 h-16 mb-4 text-slate-300" />
+                                                                </div>
+                                                            )}
+
+                                                            {/* Premium Badge */}
+                                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-clay-sm border border-purple-100">
+                                                                <span className="text-[10px] font-black font-fredoka text-purple-600 uppercase tracking-wider">
+                                                                    {book.level || "Explorer"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <h3 className="text-xl font-black font-fredoka text-ink mb-4 line-clamp-1 group-hover:text-purple-600 transition-colors">
+                                                            {book.title}
+                                                        </h3>
+
+                                                        <div className="flex items-center justify-between text-xs font-bold font-nunito text-slate-500">
+                                                            <div className="flex items-center gap-4">
+                                                                <span className="flex items-center gap-1.5">
+                                                                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                                                    {book.totalTokens || 0} words
+                                                                </span>
+                                                                <span className="flex items-center gap-1.5">
+                                                                    <Volume2 className="w-3.5 h-3.5 text-blue-500" />
+                                                                    ~{book.estimatedReadingTime || 1}m
+                                                                </span>
+                                                            </div>
+                                                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-clay-sm border-2 border-slate-50 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                                                <ArrowRight className="w-5 h-5" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            </motion.div>
+                                        ))
+                                    ) : hasSearched && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="col-span-full flex flex-col items-center justify-center py-20 text-center"
+                                        >
+                                            <div className="w-24 h-24 rounded-3xl bg-slate-50 flex items-center justify-center mb-6 shadow-clay-inset">
+                                                <Sparkles className="w-12 h-12 text-slate-300" />
+                                            </div>
+                                            <h3 className="text-2xl font-black font-fredoka text-slate-800 mb-2">No Magic Found</h3>
+                                            <p className="text-slate-500 font-nunito font-medium max-w-md">
+                                                We couldn&apos;t find any books for &quot;{searchQuery || selectedInterest}&quot;.<br />
+                                                Try searching for <strong>&quot;Magic&quot;</strong>, <strong>&quot;Space&quot;</strong>, or <strong>&quot;Animals&quot;</strong>!
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            <div className="text-center mt-12">
+                                <Link
+                                    href="/library"
+                                    className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-slate-900 text-white font-fredoka font-bold hover:bg-slate-800 transition-all shadow-lg"
+                                >
+                                    Explore Full Library
+                                    <Library className="w-5 h-5" />
+                                </Link>
                             </div>
                         </div>
 
-                        {/* Interest Pills */}
-                        <div className="flex flex-wrap justify-center gap-3">
-                            {INTERESTS.map((interest) => (
-                                <button
-                                    key={interest.name}
-                                    onClick={() => {
-                                        setSelectedInterest(interest.name);
-                                        setSearchQuery(""); // Clear custom search when clicking pill
-                                    }}
-                                    className={cn(
-                                        "flex items-center gap-2 px-6 py-3 rounded-2xl font-fredoka font-bold transition-all transform active:scale-95 border-b-4",
-                                        selectedInterest === interest.name && !searchQuery
-                                            ? "bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
-                                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:-translate-y-0.5 shadow-clay-sm"
-                                    )}
-                                >
-                                    <interest.icon className={cn("w-5 h-5", (selectedInterest === interest.name && !searchQuery) ? "text-white" : interest.color)} />
-                                    {interest.name}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                        {/* Decorative BG Elements */}
+                        <div className="absolute -top-24 -left-24 w-64 h-64 bg-purple-100/50 rounded-full blur-3xl" />
+                        <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-amber-100/50 rounded-full blur-3xl" />
+                    </section>
 
-                    {/* Book Cards Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]">
-                        <AnimatePresence mode="wait">
-                            {isLoading && books.length === 0 ? (
-                                // Skeleton Loaders
-                                Array.from({ length: 3 }).map((_, idx) => (
-                                    <motion.div
-                                        key={`skeleton-${idx}`}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="p-6 rounded-[2.5rem] border-4 border-slate-100 bg-slate-50 animate-pulse h-[450px]"
-                                    />
-                                ))
-                            ) : books.length > 0 ? (
-                                books.map((book, idx) => (
-                                    <motion.div
-                                        key={book.id}
-                                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        transition={{ delay: idx * 0.1 }}
-                                        className="group relative"
-                                    >
-                                        <Link href={`/reader/${encodeURIComponent(book.id)}`} className="block">
-                                            <div className={cn(
-                                                "p-6 rounded-[2.5rem] border-4 border-white shadow-clay-lg transition-all hover:shadow-magic-glow hover:-translate-y-2 bg-gradient-to-br",
-                                                idx % 3 === 0 ? "from-purple-50 to-indigo-50" :
-                                                    idx % 3 === 1 ? "from-blue-50 to-cyan-50" :
-                                                        "from-pink-50 to-rose-50"
-                                            )}>
-                                                <div className="relative aspect-[3/4] mb-6 rounded-2xl overflow-hidden shadow-clay-inset bg-white/80 border-2 border-white/50">
-                                                    {book.coverImageUrl ? (
-                                                        <CachedImage
-                                                            src={book.coverImageUrl}
-                                                            storagePath={book.coverPath}
-                                                            alt={book.title}
-                                                            fill
-                                                            className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                                            bucket="book-assets"
-                                                        />
-                                                    ) : (
-                                                        <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-100">
-                                                            <BookOpen className="w-16 h-16 mb-4 text-slate-300" />
-                                                        </div>
-                                                    )}
-
-                                                    {/* Premium Badge */}
-                                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-clay-sm border border-purple-100">
-                                                        <span className="text-[10px] font-black font-fredoka text-purple-600 uppercase tracking-wider">
-                                                            {book.level || "Explorer"}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <h3 className="text-xl font-black font-fredoka text-ink mb-4 line-clamp-1 group-hover:text-purple-600 transition-colors">
-                                                    {book.title}
-                                                </h3>
-
-                                                <div className="flex items-center justify-between text-xs font-bold font-nunito text-slate-500">
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="flex items-center gap-1.5">
-                                                            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                                            {book.totalTokens || 0} words
-                                                        </span>
-                                                        <span className="flex items-center gap-1.5">
-                                                            <Volume2 className="w-3.5 h-3.5 text-blue-500" />
-                                                            ~{book.estimatedReadingTime || 1}m
-                                                        </span>
-                                                    </div>
-                                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-clay-sm border-2 border-slate-50 group-hover:bg-purple-600 group-hover:text-white transition-all">
-                                                        <ArrowRight className="w-5 h-5" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </motion.div>
-                                ))
-                            ) : hasSearched && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="col-span-full flex flex-col items-center justify-center py-20 text-center"
-                                >
-                                    <div className="w-24 h-24 rounded-3xl bg-slate-50 flex items-center justify-center mb-6 shadow-clay-inset">
-                                        <Sparkles className="w-12 h-12 text-slate-300" />
-                                    </div>
-                                    <h3 className="text-2xl font-black font-fredoka text-slate-800 mb-2">No Magic Found</h3>
-                                    <p className="text-slate-500 font-nunito font-medium max-w-md">
-                                        We couldn&apos;t find any books for &quot;{searchQuery || selectedInterest}&quot;.<br />
-                                        Try searching for <strong>&quot;Magic&quot;</strong>, <strong>&quot;Space&quot;</strong>, or <strong>&quot;Animals&quot;</strong>!
-                                    </p>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    <div className="text-center mt-12">
-                        <Link
-                            href="/library"
-                            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-slate-900 text-white font-fredoka font-bold hover:bg-slate-800 transition-all shadow-lg"
-                        >
-                            Explore Full Library
-                            <Library className="w-5 h-5" />
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Decorative BG Elements */}
-                <div className="absolute -top-24 -left-24 w-64 h-64 bg-purple-100/50 rounded-full blur-3xl" />
-                <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-amber-100/50 rounded-full blur-3xl" />
-            </section>
-
-            {/* 
+                    {/* 
         FEATURE DEEP DIVE (ZIG-ZAG)
         Showcasing specific app capabilities
       */}
-            <section className="relative py-12 md:py-16 px-6 lg:pl-28 bg-white/40 pt-24 md:pt-32">
-                {/* Organic Wave Top (Inverted or Matching flow) */}
-                <div className="absolute top-0 left-0 w-full overflow-hidden leading-[0] rotate-180">
-                    <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block h-[60px] md:h-[100px] w-[calc(100%+1.3px)] fill-white/10">
-                        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-                    </svg>
-                </div>
-
-                <div className="max-w-7xl mx-auto space-y-16 md:space-y-24">
-
-                    {/* Feature 1: Library */}
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        <div className="order-1 perspective-1000">
-                            <motion.div
-                                whileHover={{ rotateY: -5, scale: 1.02 }}
-                                className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-blue-50/50 p-4 md:p-8"
-                            >
-                                <div className="relative w-full h-[320px] md:h-full">
-                                    <CachedImage
-                                        src="/images/feature-library.png"
-                                        alt="Library Interface"
-                                        fill
-                                        className="object-contain"
-                                    />
-                                </div>
-                            </motion.div>
+                    <section className="relative py-12 md:py-16 px-6 lg:pl-28 bg-white/40 pt-24 md:pt-32">
+                        {/* Organic Wave Top (Inverted or Matching flow) */}
+                        <div className="absolute top-0 left-0 w-full overflow-hidden leading-[0] rotate-180">
+                            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block h-[60px] md:h-[100px] w-[calc(100%+1.3px)] fill-white/10">
+                                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
+                            </svg>
                         </div>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="order-2 px-4 md:px-0"
-                        >
-                            <div className="inline-block p-3 rounded-2xl bg-blue-100 text-blue-600 mb-4 shadow-sm">
-                                <Library className="w-6 h-6" />
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
-                                Magical <span className="text-blue-500">Goal Tracking</span>
-                            </h2>
-                            <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
-                                LumoMind helps you set personalized reading goals. Watch your child&apos;s confidence grow as they unlock new levels and badges.
-                            </p>
-                            <ul className="space-y-3 mb-8">
-                                {["AI-recommended stories", "Personalized difficulty levels", "Growth progress & rewards"].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-ink-muted font-bold font-nunito">
-                                        <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
-                    </div>
 
-                    {/* Feature 2: Reader (Reversed on Desktop) */}
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        <div className="order-1 lg:order-2 perspective-1000 relative">
-                            {/* Lumo Peeking - Interactive Reading Buddy Feature */}
-                            <motion.div
-                                className="absolute -top-12 -right-8 z-20 hidden lg:block"
-                                initial={{ y: 50, opacity: 0 }}
-                                whileInView={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.5, type: "spring" }}
-                                viewport={{ once: true }}
-                            >
-                                <LumoCharacter className="w-32 h-32" />
-                            </motion.div>
+                        <div className="max-w-7xl mx-auto space-y-16 md:space-y-24">
 
-                            <motion.div
-                                whileHover={{ rotateY: 5, scale: 1.02 }}
-                                className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-amber-50/50 p-4 md:p-8"
-                            >
-                                <div className="relative w-full h-[320px] md:h-full">
-                                    <CachedImage
-                                        src="/images/feature-reader.png"
-                                        alt="Reader Interface"
-                                        fill
-                                        className="object-contain"
-                                    />
+                            {/* Feature 1: Library */}
+                            <div className="grid lg:grid-cols-2 gap-12 items-center">
+                                <div className="order-1 perspective-1000">
+                                    <motion.div
+                                        whileHover={{ rotateY: -5, scale: 1.02 }}
+                                        className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-blue-50/50 p-4 md:p-8"
+                                    >
+                                        <div className="relative w-full h-[320px] md:h-full">
+                                            <CachedImage
+                                                src="/images/feature-library.png"
+                                                alt="Library Interface"
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    </motion.div>
                                 </div>
-                            </motion.div>
-                        </div>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="order-2 lg:order-1 px-4 md:px-0"
-                        >
-                            <div className="inline-block p-3 rounded-2xl bg-amber-100 text-amber-600 mb-4 shadow-sm">
-                                <Volume2 className="w-6 h-6" />
-                            </div>
-                            <div className="relative">
-                                <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
-                                    Interactive <span className="text-amber-500">Reading Buddy</span>
-                                </h2>
-                            </div>
-                            <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
-                                More than just text. Our AI companion listens, narrates, and explains tricky words instantly, making every story a learning moment.
-                            </p>
-                            <ul className="space-y-3 mb-8">
-                                {["Natural AI voice narration", "Instant 'Magic Word' definitions", "Smart vocabulary highlighting"].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-ink-muted font-bold font-nunito">
-                                        <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs">✓</div>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
-                    </div>
-
-                    {/* Feature 3: Story Maker */}
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        <div className="order-1 perspective-1000">
-                            <motion.div
-                                whileHover={{ rotateY: -5, scale: 1.02 }}
-                                className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-purple-50/50 p-4 md:p-8"
-                            >
-                                <div className="relative w-full h-[320px] md:h-full">
-                                    <CachedImage
-                                        src="/images/feature-storymaker.png"
-                                        alt="Story Maker Interface"
-                                        fill
-                                        className="object-contain"
-                                    />
-                                </div>
-                            </motion.div>
-                        </div>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="order-2 px-4 md:px-0"
-                        >
-                            <div className="inline-block p-3 rounded-2xl bg-purple-100 text-purple-600 mb-4 shadow-sm">
-                                <PenTool className="w-6 h-6" />
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
-                                Create <span className="text-purple-500">Your Own World</span>
-                            </h2>
-                            <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
-                                Spark creativity by co-writing stories with AI. Your child becomes the hero, choosing themes and characters for endless unique adventures.
-                            </p>
-                            <ul className="space-y-3 mb-8">
-                                {["Custom avatars & themes", "AI-generated illustrations", "Save & share your creations"].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-ink-muted font-bold font-nunito">
-                                        <div className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">✓</div>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                            <motion.div className="flex gap-4">
-                                <Link
-                                    href="/story-maker"
-                                    className="px-8 py-3 rounded-2xl bg-purple-500 text-white font-black font-fredoka shadow-clay-purple hover:scale-105 transition-transform"
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    className="order-2 px-4 md:px-0"
                                 >
-                                    Try Story Maker
-                                </Link>
-                            </motion.div>
-                        </motion.div>
-                    </div>
+                                    <div className="inline-block p-3 rounded-2xl bg-blue-100 text-blue-600 mb-4 shadow-sm">
+                                        <Library className="w-6 h-6" />
+                                    </div>
+                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
+                                        Magical <span className="text-blue-500">Goal Tracking</span>
+                                    </h2>
+                                    <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
+                                        LumoMind helps you set personalized reading goals. Watch your child&apos;s confidence grow as they unlock new levels and badges.
+                                    </p>
+                                    <ul className="space-y-3 mb-8">
+                                        {["AI-recommended stories", "Personalized difficulty levels", "Growth progress & rewards"].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-ink-muted font-bold font-nunito">
+                                                <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </motion.div>
+                            </div>
 
-                    {/* Missing Feature / Coming Soon */}
-                    <div className="text-center pt-4 md:pt-8 pb-4">
-                        <p className="text-lg text-ink-muted font-medium">
-                            Plus: <span className="font-bold text-ink">Word Collection</span> to review what you&apos;ve learned, and even <span className="text-purple-500 font-bold">More AI Features</span> coming soon!
-                        </p>
-                    </div>
+                            {/* Feature 2: Reader (Reversed on Desktop) */}
+                            <div className="grid lg:grid-cols-2 gap-12 items-center">
+                                <div className="order-1 lg:order-2 perspective-1000 relative">
+                                    {/* Lumo Peeking - Interactive Reading Buddy Feature */}
+                                    <motion.div
+                                        className="absolute -top-12 -right-8 z-20 hidden lg:block"
+                                        initial={{ y: 50, opacity: 0 }}
+                                        whileInView={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.5, type: "spring" }}
+                                        viewport={{ once: true }}
+                                    >
+                                        <LumoCharacter className="w-32 h-32" />
+                                    </motion.div>
+
+                                    <motion.div
+                                        whileHover={{ rotateY: 5, scale: 1.02 }}
+                                        className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-amber-50/50 p-4 md:p-8"
+                                    >
+                                        <div className="relative w-full h-[320px] md:h-full">
+                                            <CachedImage
+                                                src="/images/feature-reader.png"
+                                                alt="Reader Interface"
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    </motion.div>
+                                </div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    className="order-2 lg:order-1 px-4 md:px-0"
+                                >
+                                    <div className="inline-block p-3 rounded-2xl bg-amber-100 text-amber-600 mb-4 shadow-sm">
+                                        <Volume2 className="w-6 h-6" />
+                                    </div>
+                                    <div className="relative">
+                                        <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
+                                            Interactive <span className="text-amber-500">Reading Buddy</span>
+                                        </h2>
+                                    </div>
+                                    <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
+                                        More than just text. Our AI companion listens, narrates, and explains tricky words instantly, making every story a learning moment.
+                                    </p>
+                                    <ul className="space-y-3 mb-8">
+                                        {["Natural AI voice narration", "Instant 'Magic Word' definitions", "Smart vocabulary highlighting"].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-ink-muted font-bold font-nunito">
+                                                <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs">✓</div>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </motion.div>
+                            </div>
+
+                            {/* Feature 3: Story Maker */}
+                            <div className="grid lg:grid-cols-2 gap-12 items-center">
+                                <div className="order-1 perspective-1000">
+                                    <motion.div
+                                        whileHover={{ rotateY: -5, scale: 1.02 }}
+                                        className="relative aspect-auto md:aspect-[4/3] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform transition-transform bg-purple-50/50 p-4 md:p-8"
+                                    >
+                                        <div className="relative w-full h-[320px] md:h-full">
+                                            <CachedImage
+                                                src="/images/feature-storymaker.png"
+                                                alt="Story Maker Interface"
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    </motion.div>
+                                </div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    className="order-2 px-4 md:px-0"
+                                >
+                                    <div className="inline-block p-3 rounded-2xl bg-purple-100 text-purple-600 mb-4 shadow-sm">
+                                        <PenTool className="w-6 h-6" />
+                                    </div>
+                                    <h2 className="text-3xl md:text-4xl font-black text-ink font-fredoka mb-4">
+                                        Create <span className="text-purple-500">Your Own World</span>
+                                    </h2>
+                                    <p className="text-lg md:text-xl text-ink-muted font-medium mb-6">
+                                        Spark creativity by co-writing stories with AI. Your child becomes the hero, choosing themes and characters for endless unique adventures.
+                                    </p>
+                                    <ul className="space-y-3 mb-8">
+                                        {["Custom avatars & themes", "AI-generated illustrations", "Save & share your creations"].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-ink-muted font-bold font-nunito">
+                                                <div className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">✓</div>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <motion.div className="flex gap-4">
+                                        <Link
+                                            href="/story-maker"
+                                            className="px-8 py-3 rounded-2xl bg-purple-500 text-white font-black font-fredoka shadow-clay-purple hover:scale-105 transition-transform"
+                                        >
+                                            Try Story Maker
+                                        </Link>
+                                    </motion.div>
+                                </motion.div>
+                            </div>
+
+                            {/* Missing Feature / Coming Soon */}
+                            <div className="text-center pt-4 md:pt-8 pb-4">
+                                <p className="text-lg text-ink-muted font-medium">
+                                    Plus: <span className="font-bold text-ink">Word Collection</span> to review what you&apos;ve learned, and even <span className="text-purple-500 font-bold">More AI Features</span> coming soon!
+                                </p>
+                            </div>
 
 
-                </div>
-            </section>
+                        </div>
+                    </section>
 
-            {/* Interactive Story Maker Demo */}
-            <StoryDemo />
+                    {/* Interactive Story Maker Demo */}
+                    <StoryDemo />
 
 
-            {/* 
+                    {/* 
         HOW IT WORKS 
         Horizontal Step Flow
         Compacted padding
       */}
-            <section className="relative py-12 md:py-16 px-6 lg:pl-28 overflow-hidden">
-                <div className="max-w-7xl mx-auto relative z-10">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl md:text-5xl font-black text-ink font-fredoka mb-4">
-                            How <span className="text-amber-500">LumoMind Works</span>
-                        </h2>
-                        <p className="max-w-2xl mx-auto text-xl text-ink-muted">
-                            Four simple steps to transform reading into an enchanting journey.
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-4 gap-6 relative">
-                        {/* Connecting Line (Desktop) */}
-                        <div className="absolute top-12 left-0 w-full h-1 bg-gradient-to-r from-orange-200 via-purple-200 to-blue-200 hidden md:block rounded-full opacity-50" />
-
-                        {[
-                            { label: "01", title: "Set a Goal", icon: Brain, color: "bg-blue-500" },
-                            { label: "02", title: "Read & Listen", icon: Volume2, color: "bg-purple-500" },
-                            { label: "03", title: "Discover Words", icon: Sparkles, color: "bg-amber-500" },
-                            { label: "04", title: "Grow Together", icon: BookOpen, color: "bg-rose-500" },
-                        ].map((step, i) => (
-                            <div key={i} className="relative flex flex-col items-center text-center">
-                                {/* Icon Container */}
-                                <div className="relative mb-6">
-                                    <motion.div
-                                        whileHover={{ scale: 1.1, rotate: 5 }}
-                                        className="w-24 h-24 clay-card rounded-[2rem] flex items-center justify-center bg-white border-4 border-white relative z-10"
-                                    >
-                                        <step.icon className="w-10 h-10 text-ink" strokeWidth={1.5} />
-                                    </motion.div>
-
-                                    {/* Number Badge */}
-                                    <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full ${step.color} text-white font-black font-fredoka flex items-center justify-center text-xs shadow-md border-2 border-white z-20`}>
-                                        {step.label}
-                                    </div>
-                                </div>
-
-                                <h3 className="text-xl font-black font-fredoka text-ink mb-2">{step.title}</h3>
-                                <p className="text-sm text-ink-muted font-medium max-w-[200px]">
-                                    {i === 0 && "Your AI companion helps pick the perfect story for your level."}
-                                    {i === 1 && "Follow along with natural narration or read at your own pace."}
-                                    {i === 2 && "Tap magic words to unlock meanings and build vocabulary."}
-                                    {i === 3 && "Track progress and celebrate milestones with your AI buddy."}
+                    <section className="relative py-12 md:py-16 px-6 lg:pl-28 overflow-hidden">
+                        <div className="max-w-7xl mx-auto relative z-10">
+                            <div className="text-center mb-12">
+                                <h2 className="text-4xl md:text-5xl font-black text-ink font-fredoka mb-4">
+                                    How <span className="text-amber-500">LumoMind Works</span>
+                                </h2>
+                                <p className="max-w-2xl mx-auto text-xl text-ink-muted">
+                                    Four simple steps to transform reading into an enchanting journey.
                                 </p>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
-            {/* 
+                            <div className="grid md:grid-cols-4 gap-6 relative">
+                                {/* Connecting Line (Desktop) */}
+                                <div className="absolute top-12 left-0 w-full h-1 bg-gradient-to-r from-orange-200 via-purple-200 to-blue-200 hidden md:block rounded-full opacity-50" />
+
+                                {[
+                                    { label: "01", title: "Set a Goal", icon: Brain, color: "bg-blue-500" },
+                                    { label: "02", title: "Read & Listen", icon: Volume2, color: "bg-purple-500" },
+                                    { label: "03", title: "Discover Words", icon: Sparkles, color: "bg-amber-500" },
+                                    { label: "04", title: "Grow Together", icon: BookOpen, color: "bg-rose-500" },
+                                ].map((step, i) => (
+                                    <div key={i} className="relative flex flex-col items-center text-center">
+                                        {/* Icon Container */}
+                                        <div className="relative mb-6">
+                                            <motion.div
+                                                whileHover={{ scale: 1.1, rotate: 5 }}
+                                                className="w-24 h-24 clay-card rounded-[2rem] flex items-center justify-center bg-white border-4 border-white relative z-10"
+                                            >
+                                                <step.icon className="w-10 h-10 text-ink" strokeWidth={1.5} />
+                                            </motion.div>
+
+                                            {/* Number Badge */}
+                                            <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full ${step.color} text-white font-black font-fredoka flex items-center justify-center text-xs shadow-md border-2 border-white z-20`}>
+                                                {step.label}
+                                            </div>
+                                        </div>
+
+                                        <h3 className="text-xl font-black font-fredoka text-ink mb-2">{step.title}</h3>
+                                        <p className="text-sm text-ink-muted font-medium max-w-[200px]">
+                                            {i === 0 && "Your AI companion helps pick the perfect story for your level."}
+                                            {i === 1 && "Follow along with natural narration or read at your own pace."}
+                                            {i === 2 && "Tap magic words to unlock meanings and build vocabulary."}
+                                            {i === 3 && "Track progress and celebrate milestones with your AI buddy."}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* 
         BOTTOM CTA 
       */}
-            <section className="py-12 md:py-16 px-6 lg:pl-28">
-                <div className="max-w-5xl mx-auto clay-card p-10 md:p-16 bg-gradient-to-br from-purple-600 to-indigo-700 text-center relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-20" />
+                    <section className="py-12 md:py-16 px-6 lg:pl-28">
+                        <div className="max-w-5xl mx-auto clay-card p-10 md:p-16 bg-gradient-to-br from-purple-600 to-indigo-700 text-center relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-20" />
 
-                    {/* Animated Stars */}
-                    <div className="absolute top-10 left-10 text-4xl animate-pulse">✨</div>
-                    <div className="absolute bottom-10 right-10 text-4xl animate-pulse" style={{ animationDelay: "1s" }}>✨</div>
+                            {/* Animated Stars */}
+                            <div className="absolute top-10 left-10 text-4xl animate-pulse">✨</div>
+                            <div className="absolute bottom-10 right-10 text-4xl animate-pulse" style={{ animationDelay: "1s" }}>✨</div>
 
-                    {/* CTA Lumo Character */}
-                    <div className="absolute top-0 right-10 z-0 opacity-20 md:opacity-100 md:scale-100 scale-75 transform translate-y-10 md:translate-y-0">
-                        <motion.div
-                            animate={{ rotate: [0, 10, 0] }}
-                            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                        >
-                            <LumoCharacter className="w-48 h-48" />
-                        </motion.div>
-                    </div>
+                            {/* CTA Lumo Character */}
+                            <div className="absolute top-0 right-10 z-0 opacity-20 md:opacity-100 md:scale-100 scale-75 transform translate-y-10 md:translate-y-0">
+                                <motion.div
+                                    animate={{ rotate: [0, 10, 0] }}
+                                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                                >
+                                    <LumoCharacter className="w-48 h-48" />
+                                </motion.div>
+                            </div>
 
-                    <div className="relative z-10">
-                        <h2 className="text-4xl md:text-5xl font-black text-white font-fredoka mb-6 drop-shadow-md">
-                            Ready to Start?
-                        </h2>
-                        <p className="text-lg text-purple-100 font-medium mb-8 max-w-xl mx-auto">
-                            Join thousands of young readers on their AI-powered language adventure today.
-                        </p>
-                        <motion.a
-                            href="/library"
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="inline-flex items-center gap-3 px-10 py-5 rounded-[2rem] bg-white text-purple-600 shadow-xl border-4 border-purple-200 text-xl font-black font-fredoka transition-all cursor-pointer no-underline"
-                        >
-                            Explore Library Free
-                            <ArrowRight className="w-6 h-6" />
-                        </motion.a>
-                    </div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="py-8 px-6 lg:pl-28 border-t border-purple-100/50">
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-ink-muted font-medium">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 relative">
-                            <CachedImage src="/logo.png" alt="LumoMind Logo" fill className="object-contain" />
+                            <div className="relative z-10">
+                                <h2 className="text-4xl md:text-5xl font-black text-white font-fredoka mb-6 drop-shadow-md">
+                                    Ready to Start?
+                                </h2>
+                                <p className="text-lg text-purple-100 font-medium mb-8 max-w-xl mx-auto">
+                                    Join thousands of young readers on their AI-powered language adventure today.
+                                </p>
+                                <motion.a
+                                    href="/library"
+                                    whileHover={{ scale: 1.05, y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="inline-flex items-center gap-3 px-10 py-5 rounded-[2rem] bg-white text-purple-600 shadow-xl border-4 border-purple-200 text-xl font-black font-fredoka transition-all cursor-pointer no-underline"
+                                >
+                                    Explore Library Free
+                                    <ArrowRight className="w-6 h-6" />
+                                </motion.a>
+                            </div>
                         </div>
-                        <span className="font-fredoka font-bold text-ink">LumoMind</span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <span>© 2026 LumoMind</span>
-                        <Link href="/support/faq" className="hover:text-purple-600 transition-colors">Support</Link>
-                        <Link href="/support/contact" className="hover:text-purple-600 transition-colors">Contact</Link>
-                        <Link href="/legal/privacy" className="hover:text-purple-600 transition-colors">Privacy</Link>
-                        <Link href="/legal/terms" className="hover:text-purple-600 transition-colors">Terms</Link>
-                    </div>
-                </div>
-            </footer>
-            <StickyTrialCTA />
+                    </section>
+
+                    {/* Footer */}
+                    <footer className="py-8 px-6 lg:pl-28 border-t border-purple-100/50">
+                        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-ink-muted font-medium">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 relative">
+                                    <CachedImage src="/logo.png" alt="LumoMind Logo" fill className="object-contain" />
+                                </div>
+                                <span className="font-fredoka font-bold text-ink">LumoMind</span>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <span>© 2026 LumoMind</span>
+                                <Link href="/support/faq" className="hover:text-purple-600 transition-colors">Support</Link>
+                                <Link href="/support/contact" className="hover:text-purple-600 transition-colors">Contact</Link>
+                                <Link href="/legal/privacy" className="hover:text-purple-600 transition-colors">Privacy</Link>
+                                <Link href="/legal/terms" className="hover:text-purple-600 transition-colors">Terms</Link>
+                            </div>
+                        </div>
+                    </footer>
+                    <StickyTrialCTA />
+                </>
+            )}
         </main>
     );
 }

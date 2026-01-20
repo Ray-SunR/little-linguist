@@ -13,6 +13,7 @@ import { ParentalLink } from "@/components/ui/parental-gate";
 import { CachedImage } from "@/components/ui/cached-image";
 import { useUsage } from "@/lib/hooks/use-usage";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 const ME_PRIMARY_PATH = "/dashboard";
 const ME_PATHS = ["/dashboard", "/profiles"];
@@ -70,6 +71,13 @@ const MemoizedNavItem = memo(function NavItem({
             href={item.href}
             className="flex-1"
             onClick={() => {
+                try {
+                    Haptics.impact({ style: ImpactStyle.Light });
+                } catch (e) {
+                    if (process.env.NODE_ENV === 'development') {
+                        console.warn("Haptics impact failed:", e);
+                    }
+                }
                 onClick?.(item.href);
                 if (onComplete) onComplete((item as any).id);
             }}
@@ -248,7 +256,16 @@ export function ClayNav() {
                     >
                         <button
                             data-tour-target="nav-item-lumo-character"
-                            onClick={() => setIsExpanded(false)}
+                            onClick={() => {
+                                try {
+                                    Haptics.impact({ style: ImpactStyle.Medium });
+                                } catch (e) {
+                                    if (process.env.NODE_ENV === 'development') {
+                                        console.warn("Haptics impact failed:", e);
+                                    }
+                                }
+                                setIsExpanded(false);
+                            }}
                             className="flex items-center gap-3 group relative z-50 pl-2 shrink-0"
                             title="Fold Navigation"
                         >
@@ -267,7 +284,16 @@ export function ClayNav() {
                                 id="nav-item-profile"
                                 data-tour-target="nav-item-profile"
                                 className="flex-1"
-                                onClick={() => setPendingHref(ME_PRIMARY_PATH)}
+                                onClick={() => {
+                                    try {
+                                        Haptics.impact({ style: ImpactStyle.Light });
+                                    } catch (e) {
+                                        if (process.env.NODE_ENV === 'development') {
+                                            console.warn("Haptics impact failed:", e);
+                                        }
+                                    }
+                                    setPendingHref(ME_PRIMARY_PATH);
+                                }}
                             >
                                 <motion.div
                                     whileTap={{ scale: 0.8, y: -5 }}
@@ -412,6 +438,13 @@ export function ClayNav() {
 
                             <button
                                 onClick={() => {
+                                    try {
+                                        Haptics.impact({ style: ImpactStyle.Medium });
+                                    } catch (e) {
+                                        if (process.env.NODE_ENV === 'development') {
+                                            console.warn("Haptics impact failed:", e);
+                                        }
+                                    }
                                     setIsExpanded(true);
                                     completeStep('nav-item-lumo');
                                 }}

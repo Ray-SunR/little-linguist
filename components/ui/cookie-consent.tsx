@@ -4,18 +4,28 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cookie, X } from "lucide-react";
 import Link from "next/link";
+import { Capacitor } from "@capacitor/core";
 
 export function CookieConsent() {
     const [isVisible, setIsVisible] = useState(false);
+    const [isNative, setIsNative] = useState(false);
 
     useEffect(() => {
+        // Handle hydration and native check
+        setIsNative(Capacitor.isNativePlatform());
+    }, []);
+
+    useEffect(() => {
+        if (isNative) return;
+
         // Check if user has already made a choice
         const consent = localStorage.getItem("lumo-cookie-consent");
         if (!consent) {
+            // Delay showing to not overwhelm
             const timer = setTimeout(() => setIsVisible(true), 2000);
             return () => clearTimeout(timer);
         }
-    }, []);
+    }, [isNative]);
 
     const handleAccept = () => {
         localStorage.setItem("lumo-cookie-consent", "accepted");
@@ -26,6 +36,8 @@ export function CookieConsent() {
         localStorage.setItem("lumo-cookie-consent", "declined");
         setIsVisible(false);
     };
+
+    if (isNative) return null;
 
     return (
         <AnimatePresence>

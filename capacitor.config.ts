@@ -38,6 +38,9 @@ const config: CapacitorConfig = {
   webDir: 'public',
   server: {
     url: serverUrl,
+    hostname: localIP,
+    androidScheme: 'https',
+    allowNavigation: [localIP, 'lumomind.vercel.app', 'tawhvgzctlfavucdxwbt.supabase.co'],
     // Only allow cleartext (HTTP) for local dev URLs on private networks
     get cleartext() {
       try {
@@ -57,7 +60,23 @@ const config: CapacitorConfig = {
     }
   },
   ios: {
-    contentInset: 'always'
+    contentInset: 'always',
+    allowsBackForwardNavigationGestures: true
+  } as any,
+  plugins: {
+    Keyboard: {
+      resize: 'body' as any,
+      style: 'DARK' as any
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: false,
+      backgroundColor: "#e8f5ff",
+      showSpinner: true,
+      androidSpinnerStyle: "large",
+      iosSpinnerStyle: "small",
+      spinnerColor: "#8b4bff"
+    }
   }
 };
 
