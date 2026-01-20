@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
+import { generateUUID } from "@/lib/core/utils/uuid";
 
 export interface ChildProfilePayload {
   first_name: string;
@@ -58,18 +59,18 @@ export async function getAvatarUploadUrl(fileName: string) {
 
     const timestamp = Date.now();
     let prefix = user ? `${user.id}` : 'guests';
-    
+
     // If guest, use a persistent guest_id for isolation
     if (!user) {
       let guestId = cookies().get('guest_id')?.value;
       if (!guestId) {
-        guestId = crypto.randomUUID();
+        guestId = generateUUID();
         // Set for 30 days with production best practices
         const expires = new Date();
         expires.setDate(expires.getDate() + 30);
-        cookies().set('guest_id', guestId, { 
-          expires, 
-          path: '/', 
+        cookies().set('guest_id', guestId, {
+          expires,
+          path: '/',
           sameSite: 'lax',
           secure: process.env.NODE_ENV === 'production'
         });
@@ -77,7 +78,7 @@ export async function getAvatarUploadUrl(fileName: string) {
       prefix = `guests/${guestId}`;
     }
 
-    const storagePath = `${prefix}/avatars/${timestamp}-${crypto.randomUUID()}.${fileExt}`;
+    const storagePath = `${prefix}/avatars/${timestamp}-${generateUUID()}.${fileExt}`;
 
     const { data, error } = await supabase.storage
       .from(AVATAR_BUCKET)
@@ -114,12 +115,12 @@ async function validateAvatarPath(
     console.warn('[profiles:validateAvatarPath] Rejected external/dangerous/base64 URL:', path.slice(0, 50));
     return null;
   }
-  
+
   // Namespace isolation: Path MUST start with the user's ID or 'guests/'
   // Additionally enforce the '/avatars/' subfolder to prevent arbitrary object access
   const avatarsSubpath = '/avatars/';
   const isUserOwned = path.startsWith(`${userId}${avatarsSubpath}`);
-  
+
   // For guest paths, we MUST bind it to the current guest_id cookie to prevent cross-tenant access.
   let isGuestOwned = false;
   if (path.startsWith('guests/')) {
@@ -128,7 +129,7 @@ async function validateAvatarPath(
       isGuestOwned = true;
     }
   }
-  
+
   if (!isUserOwned && !isGuestOwned) {
     console.warn('[profiles:validateAvatarPath] Path isolation violation. Path must be in userId/avatars/ or current guest_id/avatars/:', { path, userId });
     return null;
@@ -150,18 +151,18 @@ export async function createChildProfile(data: ChildProfilePayload) {
     }
 
     // Generate a temporary ID for the avatar path
-    const tempChildId = crypto.randomUUID();
+    const tempChildId = generateUUID();
 
     // Handle avatar assignment
     let avatarPaths: string[] = [];
-    
+
     // 1. Prefer explicit avatar_paths from payload (e.g. from StoryMaker migration)
     if (data.avatar_paths && data.avatar_paths.length > 0) {
       for (const p of data.avatar_paths) {
         const validated = await validateAvatarPath(p, user.id);
         if (validated) avatarPaths.push(validated);
       }
-    } 
+    }
     // 2. Fallback to avatar_asset_path (legacy style or direct preview URL)
     else if (data.avatar_asset_path) {
       const storagePath = await validateAvatarPath(data.avatar_asset_path, user.id);

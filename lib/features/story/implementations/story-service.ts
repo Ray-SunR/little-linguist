@@ -3,6 +3,7 @@ import type { AIProvider } from "@/lib/core/integrations/ai";
 import { getAIProvider } from "@/lib/core/integrations/ai";
 import type { Book } from "@/lib/core";
 import { tokenizeText } from "@/lib/core/utils/tokenization";
+import { generateUUID } from "@/lib/core/utils/uuid";
 
 /**
  * Service for managing user stories.
@@ -62,7 +63,7 @@ export class StoryService implements IStoryService {
             const content = await this.generateStoryContent(words, userProfile, storyLengthMinutes, imageSceneCount, idempotencyKey);
 
             return {
-                id: crypto.randomUUID(),
+                id: generateUUID(),
                 book_id: content.book_id,
                 title: content.title,
                 content: content.content,

@@ -9,6 +9,8 @@ import { useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/core'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LumoCharacter } from '@/components/ui/lumo-character'
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
 
 // --- Cinematic Components ---
 
@@ -157,20 +159,39 @@ function LoginForm() {
         setError(null)
         setSuccess(null)
 
-        const callbackUrl = new URL(`${location.origin}/auth/callback`)
+        const isNative = Capacitor.isNativePlatform()
+
+        // Use custom URL scheme for native, web origin for web
+        const callbackUrl = isNative
+            ? 'com.lumomind.app://auth/callback'
+            : `${location.origin}/auth/callback`
+
+        const finalRedirectUrl = new URL(callbackUrl)
         if (redirectTo) {
-            callbackUrl.searchParams.set('next', redirectTo)
+            finalRedirectUrl.searchParams.set('next', redirectTo)
         }
 
-        const { error } = await supabase.auth.signInWithOAuth({
+        const { data, error } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: callbackUrl.toString(),
+                redirectTo: finalRedirectUrl.toString(),
+                skipBrowserRedirect: isNative,
             },
         })
+
         if (error) {
             setLoading(null)
             setError(error.message)
+            return
+        }
+
+        if (isNative && data?.url) {
+            // Open the OAuth URL in the in-app browser with a bottom-up sheet style
+            await Browser.open({
+                url: data.url,
+                windowName: '_self',
+                presentationStyle: 'popover'
+            })
         }
     }
 

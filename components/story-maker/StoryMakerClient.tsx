@@ -19,6 +19,7 @@ import { createChildProfile, switchActiveChild, getAvatarUploadUrl } from "@/app
 import { createClient } from "@/lib/supabase/client";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
 import { PageToolbar } from "@/components/layout/page-toolbar";
+import { generateUUID } from "@/lib/core/utils/uuid";
 
 type Step = "profile" | "words" | "generating" | "reading";
 
@@ -461,7 +462,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 selectedWords: finalWords,
                 storyLengthMinutes: finalStoryLengthMinutes,
                 imageSceneCount: imageSceneCount,
-                idempotencyKey: currentIdempotencyKey || crypto.randomUUID()
+                idempotencyKey: currentIdempotencyKey || generateUUID()
             });
             router.push("/login?returnTo=/story-maker&action=generate");
             return;
@@ -481,7 +482,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         const finalImageSceneCount = overrideImageSceneCount ?? imageSceneCount;
 
         // Idempotency: Use override, or current state, or generate new
-        const finalIdempotencyKey = overrideIdempotencyKey || currentIdempotencyKey || crypto.randomUUID();
+        const finalIdempotencyKey = overrideIdempotencyKey || currentIdempotencyKey || generateUUID();
 
         // Persist key immediately to handle reload/resume
         if (finalIdempotencyKey !== currentIdempotencyKey) {
@@ -612,7 +613,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             }
 
             const initialStory: Story = {
-                id: crypto.randomUUID(),
+                id: generateUUID(),
                 book_id: content.book_id,
                 title: content.title,
                 content: content.content,
