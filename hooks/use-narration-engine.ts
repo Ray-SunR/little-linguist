@@ -14,6 +14,7 @@ export interface NarrationShard {
     storagePath?: string; // Stable storage path for caching
     timings: Array<{
         time: number;
+        end?: number; // Optional end time for precise highlighting
         type: string;
         value: string;
         absIndex: number;
@@ -272,13 +273,20 @@ export function useNarrationEngine({
             if (!shard) return;
 
             // Find the active mark
-            const mark = shard.timings.reduce((prev, curr) => {
+            const activeMark = shard.timings.reduce((prev, curr) => {
                 return (curr.time <= timeMs && curr.time > (prev?.time || -1)) ? curr : prev;
             }, null as any);
 
-            if (mark && mark.absIndex !== currentWordIndexRef.current) {
-                setCurrentWordIndex(mark.absIndex);
-                onProgress?.(mark.absIndex, currentShardIndexRef.current, audio.currentTime);
+            // If we have end times, check if we are currently in a silence (past the end of the active mark)
+            const isSilenced = activeMark && activeMark.end !== undefined && timeMs > activeMark.end;
+            const finalMark = isSilenced ? null : activeMark;
+
+            if (finalMark?.absIndex !== currentWordIndexRef.current) {
+                const newIndex = finalMark?.absIndex ?? null;
+                setCurrentWordIndex(newIndex);
+                if (newIndex !== null) {
+                    onProgress?.(newIndex, currentShardIndexRef.current, audio.currentTime);
+                }
             }
             setCurrentTime(audio.currentTime);
         };

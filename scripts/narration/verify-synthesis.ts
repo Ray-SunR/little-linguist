@@ -1,5 +1,5 @@
-import { PollyNarrationService } from "../lib/features/narration/polly-service.server";
-import { NarrativeDirector } from "../lib/features/narration/narrative-director.server";
+import { PollyNarrationService } from "../../lib/features/narration/polly-service.server";
+import { NarrativeDirector } from "../../lib/features/narration/narrative-director.server";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";

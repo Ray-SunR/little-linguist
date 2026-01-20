@@ -87,17 +87,18 @@ export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: Intere
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
                     >
                         <motion.div
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            initial={{ y: "100%", opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: "100%", opacity: 0 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-[2rem] shadow-clay-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                            className="bg-white rounded-t-[2.5rem] sm:rounded-[2rem] shadow-clay-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90vh]"
                         >
                             {/* Header */}
-                            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50">
+                            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-start sm:items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-purple-600">
                                         <Sparkles className="w-6 h-6" />
@@ -120,19 +121,19 @@ export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: Intere
                             </div>
 
                             {/* Scrollable Content */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                                
+                            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 sm:space-y-8">
+
                                 {/* Current Selection */}
                                 <div className="space-y-3">
                                     <label className="text-sm font-bold text-slate-400 uppercase tracking-wider flex justify-between">
                                         Selected Topics
-                                        <span className={cn("text-xs font-normal normal-case px-2 py-0.5 rounded-full", 
+                                        <span className={cn("text-xs font-normal normal-case px-2 py-0.5 rounded-full",
                                             interests.length >= 10 ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-500"
                                         )}>
                                             {interests.length}/10
                                         </span>
                                     </label>
-                                    <div className="flex flex-wrap gap-2 min-h-[3rem] p-4 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
+                                    <div className="flex flex-wrap gap-2 min-h-[3rem] p-3 sm:p-4 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
                                         {interests.length === 0 ? (
                                             <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-medium italic">
                                                 Add topics below to explore new worlds...
@@ -171,7 +172,7 @@ export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: Intere
                                         <button
                                             onClick={() => handleAddInterest(customInput)}
                                             disabled={!customInput.trim()}
-                                            className="px-5 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            className="px-4 sm:px-5 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center shrink-0"
                                         >
                                             <Plus className="w-6 h-6" />
                                         </button>
@@ -193,9 +194,9 @@ export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: Intere
                                                             key={item}
                                                             onClick={isSelected ? () => handleRemoveInterest(item) : () => handleAddInterest(item)}
                                                             className={cn(
-                                                                "px-3 py-1.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center gap-1.5",
-                                                                isSelected 
-                                                                    ? "bg-purple-100 border-purple-200 text-purple-700 ring-2 ring-purple-50 ring-offset-1" 
+                                                                "px-3 py-2 sm:py-1.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center gap-1.5",
+                                                                isSelected
+                                                                    ? "bg-purple-100 border-purple-200 text-purple-700 ring-2 ring-purple-50 ring-offset-1"
                                                                     : "bg-white border-slate-200 text-slate-600 hover:border-purple-200 hover:text-purple-600 hover:bg-purple-50"
                                                             )}
                                                         >
@@ -212,7 +213,7 @@ export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: Intere
                             </div>
 
                             {/* Footer */}
-                            <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
+                            <div className="p-5 sm:p-6 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
                                 <button
                                     onClick={onClose}
                                     className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"

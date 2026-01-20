@@ -1,4 +1,4 @@
-import { NarrativeDirector } from "../lib/features/narration/narrative-director.server";
+import { NarrativeDirector } from "../../lib/features/narration/narrative-director.server";
 import dotenv from "dotenv";
 
 dotenv.config({ path: ".env.local" });
