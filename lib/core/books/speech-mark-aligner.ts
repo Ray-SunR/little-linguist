@@ -13,8 +13,13 @@ export interface PollyMark {
 
 /**
  * Aligned speech mark with the correct absolute word index.
+ * We omit 'start' and 'end' because Polly returns them as character offsets,
+ * but the reader reader interprets them as millisecond timestamps.
  */
-export interface AlignedMark extends PollyMark {
+export interface AlignedMark {
+    time: number;
+    type: 'word';
+    value: string;
     absIndex: number;
 }
 
@@ -68,9 +73,11 @@ export function alignSpeechMarksToTokens(
             const tokenWord = normalizeWord(wordTokens[i].t);
 
             // Exact match
-            if (tokenWord === pollyWord) {
+            if (wordTokens[i].i !== undefined && (tokenWord === pollyWord)) {
                 result.push({
-                    ...mark,
+                    time: mark.time,
+                    type: 'word',
+                    value: mark.value,
                     absIndex: wordTokens[i].i!
                 });
                 tokenCursor = i + 1;
@@ -79,9 +86,11 @@ export function alignSpeechMarksToTokens(
             }
 
             // Fuzzy match: prefix (e.g., "kid's" vs "kids")
-            if (tokenWord.startsWith(pollyWord) || pollyWord.startsWith(tokenWord)) {
+            if (wordTokens[i].i !== undefined && (tokenWord.startsWith(pollyWord) || pollyWord.startsWith(tokenWord))) {
                 result.push({
-                    ...mark,
+                    time: mark.time,
+                    type: 'word',
+                    value: mark.value,
                     absIndex: wordTokens[i].i!
                 });
                 tokenCursor = i + 1;
@@ -91,12 +100,17 @@ export function alignSpeechMarksToTokens(
 
             // Hyphenated word match: "B-U-R-P" contains "B", "U", "R", "P"
             // Assign all letters of the spelled-out word to the same token index
-            if (tokenWord.includes('-') && isPartOfHyphenatedWord(tokenWord, pollyWord)) {
+            if (wordTokens[i].i !== undefined && tokenWord.includes('-') && isPartOfHyphenatedWord(tokenWord, pollyWord)) {
                 result.push({
-                    ...mark,
+                    time: mark.time,
+                    type: 'word',
+                    value: mark.value,
                     absIndex: wordTokens[i].i!
                 });
-                // Don't advance cursor - next letters should also map to this token
+                // Advance cursor to this token to avoid matching earlier ones,
+                // but DON'T advance past it (i+1) because the next letter 
+                // might also belong to this same hyphenated token.
+                tokenCursor = i;
                 matched = true;
                 break;
             }
