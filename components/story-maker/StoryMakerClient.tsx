@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus, Zap } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService } from "@/lib/features/story";
 import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
@@ -162,9 +162,15 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const { activeChild, isLoading, user, profiles, refreshProfiles, setActiveChild, isStoryGenerating, setIsStoryGenerating } = useAuth();
     const { completeStep } = useTutorial();
     const router = useRouter();
+    const pathname = usePathname();
     const searchParams = useSearchParams();
     const service = getStoryService();
-    const [step, setStep] = useState<Step>("profile");
+
+    // Proactively detect resume intent to prevent UI flicker
+    const action = searchParams.get("action");
+    const isResumingIntent = action === "resume_story_maker" || action === "generate";
+
+    const [step, setStep] = useState<Step>(isResumingIntent ? "generating" : "profile");
     const [profile, setProfile] = useState<UserProfile>(initialProfile);
     const [selectedWords, setSelectedWords] = useState<string[]>([]);
     const [story, setStory] = useState<Story | null>(null);
@@ -229,8 +235,17 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     const { profile: savedProfile, selectedWords: savedWords, storyLengthMinutes: savedStoryLength, imageSceneCount: savedImageCount, idempotencyKey: savedKey } = savedDraft;
                     if (step === "profile" && (savedProfile || savedWords)) {
                         setProfile((prev: UserProfile) => {
-                            if (prev.name && !savedProfile?.name) return prev;
-                            return { ...prev, ...savedProfile };
+                            // If we have a fresh official profile from props (activeChild), prioritize its core metadata
+                            const merged = { ...prev, ...savedProfile };
+                            if (initialProfile.name) {
+                                merged.name = initialProfile.name;
+                                merged.age = initialProfile.age;
+                                merged.gender = initialProfile.gender;
+                                merged.avatarUrl = initialProfile.avatarUrl;
+                                merged.avatarStoragePath = initialProfile.avatarStoragePath;
+                                merged.id = initialProfile.id;
+                            }
+                            return merged;
                         });
                         if (savedWords) setSelectedWords(savedWords);
                         if (savedStoryLength) setStoryLengthMinutes(savedStoryLength);
@@ -269,14 +284,26 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     // Unified Effect for Resuming, Result Polling, and Cleanup
     useEffect(() => {
         async function resumeDraftIfNeeded() {
-            console.debug("[StoryMakerClient] resumeDraftIfNeeded triggered:", { hasUser: !!user, status, isLoading, step, processing: processingRef.current });
-            // Wait for user and hydration, but allow step === "profile"
-            if (!user || isLoading || step !== "profile" || processingRef.current) return;
-
             const action = searchParams.get("action");
             const isResuming = action === "resume_story_maker" || action === "generate";
-            console.debug("[StoryMakerClient] Action check:", { action, isResuming });
             if (!isResuming) return;
+
+            // Wait for user and hydration
+            // We allow step === "generating" here because we initialize to it proactively
+            if (!user || isLoading || (step !== "profile" && step !== "generating") || processingRef.current) return;
+
+            // LOCK IMMEDIATELY to prevent double-triggering during async operations
+            processingRef.current = true;
+
+            // Clear URL action parameters to prevent re-triggering on browser "Back"
+            router.replace(pathname, { scroll: false });
+
+            console.debug("[StoryMakerClient] resumeDraftIfNeeded triggered:", { 
+                hasUser: !!user, 
+                isLoading, 
+                profileCount: profiles.length,
+                action 
+            });
 
             const userDraftKey = `draft:${user.id}`;
             const childDraftKey = activeChild?.id ? `draft:${user.id}:${activeChild.id}` : null;
@@ -287,54 +314,50 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             }
 
             // Migration fallback
+            let guestDraftWasUsed = false;
             if (!draft && user.id) {
                 const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
                 if (guestDraft) {
-                    console.debug("[StoryMakerClient] Found guest draft to migrate. Profile count:", profiles.length);
-                    // If user already has children, don't auto-create. Instead, show the "pick a child" selection.
-                    if (profiles.length > 0) {
-                        setIsGuestOneOffFlow(true);
-                        setProfile(guestDraft.profile);
-                        if (guestDraft.selectedWords) setSelectedWords(guestDraft.selectedWords);
-                    } else {
-                        // Brand new user: proceed with auto-creation
-                        draft = guestDraft;
-                        if (!profile.name) {
-                            setProfile(guestDraft.profile);
-                            if (guestDraft.selectedWords) setSelectedWords(guestDraft.selectedWords);
-                        }
-                    }
-
-                    // Persist to user record and clean up guest
-                    await raidenCache.put(CacheStore.DRAFTS, { id: userDraftKey, ...guestDraft });
-                    await raidenCache.delete(CacheStore.DRAFTS, "draft:guest");
+                    console.debug("[StoryMakerClient] Found guest draft to migrate.");
+                    draft = guestDraft;
+                    guestDraftWasUsed = true;
                 }
             }
 
-            if (!draft) {
-                console.debug("[StoryMakerClient] No draft found to resume.");
+            // GATE: Only proceed if we have a draft AND it has the resume flag
+            // This prevents manual URL entry or "Back" button from re-triggering generation
+            if (!draft || !draft.resumeRequested) {
+                console.debug("[StoryMakerClient] Auto-resume skipped: no draft or resumeRequested flag is false.");
+                processingRef.current = false;
+                if (isResumingIntent) setStep("profile"); // Fallback to profile if auto-resume was optimistic
                 return;
+            }
+
+            // CLEANUP FLAG & MIGRATE IMMEDIATELY in storage
+            const finalDraft = { ...draft, resumeRequested: false };
+            await raidenCache.put(CacheStore.DRAFTS, { id: userDraftKey, ...finalDraft });
+            if (guestDraftWasUsed) {
+                await raidenCache.delete(CacheStore.DRAFTS, "draft:guest");
             }
 
             // Session check: Ensure draft belongs to current user
             const state = getGenerationState(user.id);
 
             // Update local state immediately to match draft
-            console.debug("[StoryMakerClient] Resuming with draft:", draft.profile.name);
-            setProfile(draft.profile);
-            setSelectedWords(draft.selectedWords);
+            console.debug("[StoryMakerClient] Resuming with draft:", finalDraft.profile.name);
+            setProfile(finalDraft.profile);
+            setSelectedWords(finalDraft.selectedWords);
 
-            const finalLength = draft.storyLengthMinutes || 5;
-            const finalImageCount = draft.imageSceneCount !== undefined ? draft.imageSceneCount : finalLength;
+            const finalLength = finalDraft.storyLengthMinutes || 5;
+            const finalImageCount = finalDraft.imageSceneCount !== undefined ? finalDraft.imageSceneCount : finalLength;
 
             setStoryLengthMinutes(finalLength);
             setImageSceneCount(finalImageCount);
-            if (draft.idempotencyKey) setCurrentIdempotencyKey(draft.idempotencyKey);
+            if (finalDraft.idempotencyKey) setCurrentIdempotencyKey(finalDraft.idempotencyKey);
 
             if (state.isGenerating) {
                 console.debug("[StoryMakerClient] Resuming: Background generation in progress.");
                 setStep("generating");
-                processingRef.current = true;
                 return;
             }
 
@@ -343,18 +366,17 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 const result = state.result;
                 state.result = null; // Consume
                 router.push(`/reader/${result.book_id}`);
-                processingRef.current = true;
                 return;
             }
 
             // Trigger generation
-            processingRef.current = true;
-            generateStory(draft.selectedWords, draft.profile, finalLength, finalImageCount, draft.idempotencyKey);
+            console.info("[StoryMakerClient] Starting auto-generation for resumed draft...");
+            generateStory(finalDraft.selectedWords, finalDraft.profile, finalLength, finalImageCount, finalDraft.idempotencyKey);
         }
 
         resumeDraftIfNeeded();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, isLoading, searchParams, step]);
+    }, [user, isLoading, searchParams, step, profiles]);
 
     // Polling effect for results (if unmounted/remounted into generating state)
     useEffect(() => {
@@ -462,7 +484,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 selectedWords: finalWords,
                 storyLengthMinutes: finalStoryLengthMinutes,
                 imageSceneCount: imageSceneCount,
-                idempotencyKey: currentIdempotencyKey || generateUUID()
+                idempotencyKey: currentIdempotencyKey || generateUUID(),
+                resumeRequested: true
             });
             router.push("/login?returnTo=/story-maker&action=generate");
             return;
@@ -475,9 +498,6 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
         if (overrideProfile) setProfile(finalProfile);
         if (overrideWords) setSelectedWords(finalWords);
-        if (overrideWords) setSelectedWords(finalWords);
-        if (overrideStoryLengthMinutes) setStoryLengthMinutes(finalStoryLengthMinutes);
-        // Note: imageSceneCount override support avoided for simplicity unless needed, assuming state matches
         if (overrideStoryLengthMinutes) setStoryLengthMinutes(finalStoryLengthMinutes);
         const finalImageSceneCount = overrideImageSceneCount ?? imageSceneCount;
 
@@ -1439,12 +1459,12 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     Making Magic...
                                 </h2>
                                 <motion.p
-                                    key={profile.name}
+                                    key={profile.name || "hero"}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="text-lg md:text-xl text-ink-muted font-bold font-nunito mb-2 px-4"
                                 >
-                                    Writing a special adventure for <span className="text-purple-600">{profile.name}</span>
+                                    Writing a special adventure for <span className="text-purple-600">{profile.name || "our hero"}</span>
                                 </motion.p>
 
                                 <div className="flex flex-col items-center gap-4 mt-8">

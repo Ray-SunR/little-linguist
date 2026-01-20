@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { BookOpen, Wand2, Languages, User, LogOut, Mail, MessageCircle, Rocket, Sparkles, Users, Settings, ShieldCheck } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { cn } from "@/lib/core/utils/cn";
-import { memo, useEffect, useState, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/components/auth/auth-provider";
 import { ParentalLink } from "@/components/ui/parental-gate";
@@ -13,6 +13,7 @@ import { ParentalLink } from "@/components/ui/parental-gate";
 import { CachedImage } from "@/components/ui/cached-image";
 import { useUsage } from "@/lib/hooks/use-usage";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
+import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 const ME_PRIMARY_PATH = "/dashboard";
@@ -54,38 +55,52 @@ const navItems = [
 const MemoizedNavItem = memo(function NavItem({
     item,
     isActive,
-    onClick,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onActivate,
     onComplete
 }: {
     item: typeof navItems[0],
     isActive: boolean,
-    onClick?: (href: string) => void,
+    onPointerDown?: (event: React.PointerEvent<HTMLAnchorElement>, href: string) => void,
+    onPointerUp?: (event: React.PointerEvent<HTMLAnchorElement>, href: string) => void,
+    onPointerCancel?: (event: React.PointerEvent<HTMLAnchorElement>, href: string) => void,
+    onActivate?: (href: string) => void,
     onComplete?: (id: string) => void
 }) {
     const Icon = item.icon;
+
+    const handleComplete = useCallback(() => {
+        if (!onComplete) return;
+        if (typeof window !== "undefined") {
+            requestAnimationFrame(() => onComplete((item as any).id));
+        } else {
+            onComplete((item as any).id);
+        }
+    }, [item, onComplete]);
 
     return (
         <Link
             id={(item as any).id}
             data-tour-target={(item as any).id}
             href={item.href}
-            className="flex-1"
+            className="flex-1 touch-manipulation"
+            onPointerDown={onPointerDown ? (event) => onPointerDown(event, item.href) : undefined}
+            onPointerUp={onPointerUp ? (event) => onPointerUp(event, item.href) : undefined}
+            onPointerCancel={onPointerCancel ? (event) => onPointerCancel(event, item.href) : undefined}
+            onPointerLeave={onPointerCancel ? (event) => {
+                if (event.pointerType === "touch") return;
+                onPointerCancel(event, item.href);
+            } : undefined}
             onClick={() => {
-                try {
-                    Haptics.impact({ style: ImpactStyle.Light });
-                } catch (e) {
-                    if (process.env.NODE_ENV === 'development') {
-                        console.warn("Haptics impact failed:", e);
-                    }
-                }
-                onClick?.(item.href);
-                if (onComplete) onComplete((item as any).id);
+                if (onActivate) onActivate(item.href);
+                handleComplete();
             }}
         >
             <motion.div
-                whileTap={{ scale: 0.8, y: -5 }}
                 className={cn(
-                    "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-colors duration-300 mx-1",
+                    "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-all duration-200 mx-1 active:scale-90 active:-translate-y-0.5",
                     isActive
                         ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
                         : "text-slate-500 hover:text-slate-700"
@@ -134,6 +149,41 @@ export function ClayNav() {
     const isLibraryView = pathname.startsWith("/library");
     const [isExpanded, setIsExpanded] = useState(true);
     const hubModalRef = useRef<HTMLDivElement>(null);
+    const pendingHrefRef = useRef<string | null>(null);
+    const triggerHaptics = useCallback((style: ImpactStyle) => {
+        if (!Capacitor.isNativePlatform()) return;
+        Haptics.impact({ style }).catch(() => {});
+    }, []);
+    const handleNavPointerDown = useCallback((event: React.PointerEvent<HTMLAnchorElement>, href: string) => {
+        if (!event.isPrimary) return;
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        if (pendingHrefRef.current === href) return;
+        pendingHrefRef.current = href;
+        setPendingHref(href);
+    }, []);
+    const handleNavPointerUp = useCallback((event: React.PointerEvent<HTMLAnchorElement>, href: string) => {
+        if (!event.isPrimary) return;
+        if (event.pointerType !== "touch") return;
+        if (pendingHrefRef.current === href) return;
+        pendingHrefRef.current = href;
+        setPendingHref(href);
+    }, []);
+    const handleNavPointerCancel = useCallback((event: React.PointerEvent<HTMLAnchorElement>, href: string) => {
+        if (!event.isPrimary) return;
+        if (pendingHrefRef.current !== href) return;
+        pendingHrefRef.current = null;
+        setPendingHref(null);
+    }, []);
+    const handleNavActivate = useCallback((href: string) => {
+        if (pendingHrefRef.current !== href) {
+            pendingHrefRef.current = href;
+            setPendingHref(href);
+        }
+        triggerHaptics(ImpactStyle.Light);
+    }, [triggerHaptics]);
+    const navItemsWithLibrary = useMemo(() => (
+        navItems.map((item) => (item.id === "nav-item-library" ? { ...item, href: libraryHref } : item))
+    ), [libraryHref]);
 
     // Auto-focus the hub modal when it opens
     useEffect(() => {
@@ -146,7 +196,8 @@ export function ClayNav() {
     useEffect(() => {
         navItems.forEach(item => router.prefetch(item.href));
         ME_PATHS.forEach(path => router.prefetch(path));
-    }, [router]);
+        if (libraryHref) router.prefetch(libraryHref);
+    }, [router, libraryHref]);
 
     // Auto-fold in reader view, auto-expand on all main navigation pages
     useEffect(() => {
@@ -164,10 +215,21 @@ export function ClayNav() {
             // Compare only the pathname part as pendingHref may contain search params
             const targetPath = pendingHref.split('?')[0];
             if (pathname === targetPath || (targetPath !== '/' && pathname.startsWith(targetPath))) {
+                pendingHrefRef.current = null;
                 setPendingHref(null);
             }
         }
     }, [pathname, pendingHref]);
+
+    useEffect(() => {
+        if (!pendingHref) return;
+        if (typeof window === "undefined") return;
+        const timeout = window.setTimeout(() => {
+            pendingHrefRef.current = null;
+            setPendingHref(null);
+        }, 6000);
+        return () => window.clearTimeout(timeout);
+    }, [pendingHref]);
 
     const handleLogout = async () => {
         setIsHubOpen(false);
@@ -183,7 +245,9 @@ export function ClayNav() {
 
     const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
     const isOnboarding = pathname === "/onboarding";
-    const isMeActive = ME_PATHS.some(path => isActive(path));
+    const pendingPath = pendingHref?.split("?")[0];
+    const isMePending = !!pendingPath && ME_PATHS.includes(pendingPath);
+    const isMeActive = pendingHref ? isMePending : ME_PATHS.some(path => isActive(path));
 
     // --- ONBOARDING VARIANT ---
     if (isOnboarding) {
@@ -242,31 +306,25 @@ export function ClayNav() {
             {/* Bottom Navigation - Unified for all screen sizes */}
             <AnimatePresence>
                 {isExpanded ? (
-                    <motion.nav
-                        key="nav-full"
-                        initial={prefersReducedMotion ? false : { y: 100, opacity: 0, scale: 0.95 }}
-                        animate={prefersReducedMotion ? { opacity: 1, y: 0, scale: 1 } : { y: 0, opacity: 1, scale: 1 }}
-                        exit={prefersReducedMotion ? { opacity: 0 } : { y: 100, opacity: 0, scale: 0.95 }}
-                        transition={prefersReducedMotion ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 30 }}
-                        style={{ transform: "translateZ(0)" }}
-                        className={cn(
-                            "fixed z-50 w-[calc(100%-1.5rem)] sm:w-[calc(100%-3rem)] max-w-2xl gap-1 flex items-center justify-between p-2 rounded-[3.5rem] bg-white/70 backdrop-blur-xl border-2 border-white/80 shadow-xl pointer-events-auto bottom-[env(safe-area-inset-bottom,24px)] left-0 right-0 mx-auto transition-shadow duration-200",
-                            isExpanded && "shadow-clay-purple"
-                        )}
-                    >
+                        <motion.nav
+                            key="nav-full"
+                            initial={prefersReducedMotion ? false : { y: 100, opacity: 0, scale: 0.95 }}
+                            animate={prefersReducedMotion ? { opacity: 1, y: 0, scale: 1 } : { y: 0, opacity: 1, scale: 1 }}
+                            exit={prefersReducedMotion ? { opacity: 0 } : { y: 100, opacity: 0, scale: 0.95 }}
+                            transition={prefersReducedMotion ? { duration: 0.12 } : { type: "spring", stiffness: 400, damping: 30 }}
+                            style={{ transform: "translateZ(0)" }}
+                            className={cn(
+                                "fixed z-50 w-[calc(100%-1.5rem)] sm:w-[calc(100%-3rem)] max-w-2xl gap-1 flex items-center justify-between p-2 rounded-[3.5rem] bg-white/70 backdrop-blur-lg sm:backdrop-blur-xl border-2 border-white/80 shadow-lg sm:shadow-xl pointer-events-auto bottom-[env(safe-area-inset-bottom,24px)] left-0 right-0 mx-auto transition-shadow duration-200",
+                                isExpanded && "shadow-clay-purple"
+                            )}
+                        >
                         <button
                             data-tour-target="nav-item-lumo-character"
                             onClick={() => {
-                                try {
-                                    Haptics.impact({ style: ImpactStyle.Medium });
-                                } catch (e) {
-                                    if (process.env.NODE_ENV === 'development') {
-                                        console.warn("Haptics impact failed:", e);
-                                    }
-                                }
+                                triggerHaptics(ImpactStyle.Medium);
                                 setIsExpanded(false);
                             }}
-                            className="flex items-center gap-3 group relative z-50 pl-2 shrink-0"
+                            className="flex items-center gap-3 group relative z-50 pl-2 shrink-0 touch-manipulation"
                             title="Fold Navigation"
                         >
                             <span className="relative w-12 h-12 group-hover:scale-110 transition-transform duration-300">
@@ -278,27 +336,23 @@ export function ClayNav() {
 
 
                             {/* Me Button (Active for Dashboard or Profiles) */}
-                            {/* Me Button (Active for Dashboard or Profiles) */}
                             <Link
                                 href={ME_PRIMARY_PATH}
                                 id="nav-item-profile"
                                 data-tour-target="nav-item-profile"
-                                className="flex-1"
-                                onClick={() => {
-                                    try {
-                                        Haptics.impact({ style: ImpactStyle.Light });
-                                    } catch (e) {
-                                        if (process.env.NODE_ENV === 'development') {
-                                            console.warn("Haptics impact failed:", e);
-                                        }
-                                    }
-                                    setPendingHref(ME_PRIMARY_PATH);
+                                className="flex-1 touch-manipulation"
+                                onPointerDown={(event) => handleNavPointerDown(event, ME_PRIMARY_PATH)}
+                                onPointerUp={(event) => handleNavPointerUp(event, ME_PRIMARY_PATH)}
+                                onPointerCancel={(event) => handleNavPointerCancel(event, ME_PRIMARY_PATH)}
+                                onPointerLeave={(event) => {
+                                    if (event.pointerType === "touch") return;
+                                    handleNavPointerCancel(event, ME_PRIMARY_PATH);
                                 }}
+                                onClick={() => handleNavActivate(ME_PRIMARY_PATH)}
                             >
                                 <motion.div
-                                    whileTap={{ scale: 0.8, y: -5 }}
                                     className={cn(
-                                        "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-colors duration-300 mx-1",
+                                        "flex flex-col items-center justify-center h-14 rounded-[2rem] transition-all duration-200 mx-1 active:scale-90 active:-translate-y-0.5",
                                         isMeActive
                                             ? "bg-white/60 text-purple-600 shadow-sm border-2 border-white/80"
                                             : "text-slate-500 hover:text-slate-700"
@@ -329,15 +383,17 @@ export function ClayNav() {
                                 </motion.div>
                             </Link>
 
-                            {navItems.map((item) => {
-                                const activeNow = isActive(item.href) || pendingHref === item.href;
-                                const finalItem = item.id === 'nav-item-library' ? { ...item, href: libraryHref } : item;
+                            {navItemsWithLibrary.map((item) => {
+                                const activeNow = pendingHref ? pendingHref === item.href : isActive(item.href);
                                 return (
                                     <MemoizedNavItem
                                         key={item.href}
-                                        item={finalItem}
+                                        item={item}
                                         isActive={activeNow}
-                                        onClick={(href) => setPendingHref(href)}
+                                        onPointerDown={handleNavPointerDown}
+                                        onPointerUp={handleNavPointerUp}
+                                        onPointerCancel={handleNavPointerCancel}
+                                        onActivate={handleNavActivate}
                                         onComplete={completeStep}
                                     />
                                 );
@@ -346,9 +402,11 @@ export function ClayNav() {
                             <div className="flex items-center gap-4 ml-1">
                                 {user ? (
                                     <motion.button
-                                        whileTap={prefersReducedMotion ? undefined : { scale: 0.8 }}
-                                        onClick={() => setIsHubOpen(true)}
-                                        className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-orange-500 overflow-hidden bg-white/40 border-2 border-white shadow-sm active:bg-orange-100/50"
+                                        onClick={() => {
+                                            triggerHaptics(ImpactStyle.Light);
+                                            setIsHubOpen(true);
+                                        }}
+                                        className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-orange-500 overflow-hidden bg-white/40 border-2 border-white shadow-sm active:bg-orange-100/50 active:scale-95 transition-transform touch-manipulation"
                                         aria-label="Open Adventure Hub"
                                     >
                                         <div className="relative">
@@ -385,9 +443,11 @@ export function ClayNav() {
                                     </motion.button>
                                 ) : (
                                     <motion.button
-                                        whileTap={prefersReducedMotion ? undefined : { scale: 0.9 }}
-                                        onClick={() => setIsHubOpen(true)}
-                                        className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg border-2 border-white/50 hover:scale-105 active:scale-95 transition-all"
+                                        onClick={() => {
+                                            triggerHaptics(ImpactStyle.Light);
+                                            setIsHubOpen(true);
+                                        }}
+                                        className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg border-2 border-white/50 hover:scale-105 active:scale-95 transition-transform touch-manipulation"
                                         aria-label="Join the Adventure"
                                     >
                                         <User className="w-6 h-6" />
@@ -438,18 +498,16 @@ export function ClayNav() {
 
                             <button
                                 onClick={() => {
-                                    try {
-                                        Haptics.impact({ style: ImpactStyle.Medium });
-                                    } catch (e) {
-                                        if (process.env.NODE_ENV === 'development') {
-                                            console.warn("Haptics impact failed:", e);
-                                        }
-                                    }
+                                    triggerHaptics(ImpactStyle.Medium);
                                     setIsExpanded(true);
-                                    completeStep('nav-item-lumo');
+                                    if (typeof window !== "undefined") {
+                                        requestAnimationFrame(() => completeStep('nav-item-lumo'));
+                                    } else {
+                                        completeStep('nav-item-lumo');
+                                    }
                                 }}
                                 data-tour-target="nav-item-lumo-character"
-                                className="group relative flex items-center justify-center w-20 h-20 hover:scale-110 active:scale-90 transition-all duration-500 pointer-events-auto"
+                                className="group relative flex items-center justify-center w-20 h-20 hover:scale-110 active:scale-90 transition-transform duration-500 pointer-events-auto touch-manipulation"
                             >
                                 <LumoCharacter size="lg" />
                                 <div className="absolute -top-1 -right-1 bg-accent text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">

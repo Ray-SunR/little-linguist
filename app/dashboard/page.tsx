@@ -11,25 +11,42 @@ export default async function DashboardPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  if (!user) {
+    return <DashboardGuestPrompt />;
+  }
+
+  // Parallelize data fetches for faster page load
+  // Use allSettled to handle partial failures gracefully
+  const [profilesSettled, statsSettled] = await Promise.allSettled([
+    getChildren(),
+    getDashboardStats()
+  ]);
+
   let initialProfiles: ChildProfile[] = [];
   let fetchError = false;
 
-  if (user) {
-    const { data, error } = await getChildren();
-    if (error) {
-      console.error("[Dashboard] Server-side profile fetch failed:", error);
+  if (profilesSettled.status === 'fulfilled') {
+    const profilesResult = profilesSettled.value;
+    if (profilesResult.error) {
+      console.error("[Dashboard] Server-side profile fetch failed:", profilesResult.error);
       fetchError = true;
     }
-    if (!error && data) {
-      initialProfiles = data;
+    if (!profilesResult.error && profilesResult.data) {
+      initialProfiles = profilesResult.data;
     }
+  } else {
+    console.error("[Dashboard] Profile fetch rejected:", profilesSettled.reason);
+    fetchError = true;
   }
 
-  const statsResponse = user ? await getDashboardStats() : null;
-  const stats = statsResponse?.success ? statsResponse.data : null;
-
-  if (!user) {
-    return <DashboardGuestPrompt />;
+  let stats = null;
+  if (statsSettled.status === 'fulfilled') {
+    const statsResult = statsSettled.value;
+    if (statsResult?.success) {
+      stats = statsResult.data;
+    }
+  } else {
+    console.error("[Dashboard] Stats fetch rejected:", statsSettled.reason);
   }
 
   return (

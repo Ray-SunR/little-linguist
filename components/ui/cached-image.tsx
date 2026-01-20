@@ -36,17 +36,23 @@ export function CachedImage({
     const safeSrc = isValidSrc ? src : TRANSPARENT_PIXEL;
 
     const isImmediateUrl = src.startsWith('blob:') || src.startsWith('data:');
-    const [displayUrl, setDisplayUrl] = useState<string>((storagePath && !isImmediateUrl) ? TRANSPARENT_PIXEL : safeSrc);
+    // Start with safeSrc (the signed URL) immediately to avoid UI flash.
+    // resolveUrl will then attempt to swap it for a cached version.
+    const [displayUrl, setDisplayUrl] = useState<string>(safeSrc);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // Use a ref to track the previous storage token to avoid unnecessary resets
-    // This allows us to keep showing the old image while the new signed URL is validated/cached
-    const storageKey = (storagePath || (src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('/') && src.includes('/') ? src : undefined)) ? `${storagePath || (src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('/') && src.includes('/') ? src : undefined)}:${updatedAt}` : undefined;
-    const prevStorageKeyRef = React.useRef<string | undefined>(storageKey);
+    // Sync state with prop if safeSrc changes (e.g. during hydration)
+    // This ensures we show the new signed URL immediately while resolveUrl runs in background.
+    const lastSafeSrcRef = React.useRef(safeSrc);
+    if (safeSrc !== lastSafeSrcRef.current) {
+        lastSafeSrcRef.current = safeSrc;
+        setDisplayUrl(safeSrc);
+        if (safeSrc === TRANSPARENT_PIXEL) setIsLoaded(false);
+    }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseHostname = (() => {
-        try { return supabaseUrl ? new URL(supabaseUrl).hostname : undefined; } 
+        try { return supabaseUrl ? new URL(supabaseUrl).hostname : undefined; }
         catch { return undefined; }
     })();
 
@@ -63,21 +69,26 @@ export function CachedImage({
     // A path is a storage path if it has slashes but DOES NOT start with one (avoids local /images/...)
     const looksLikeStoragePath = src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('/') && src.includes('/');
     const activePath = storagePath || (looksLikeStoragePath ? src : undefined);
-    
+
     // We treat it as Supabase if:
     // 1. It's a Supabase URL (signed URL)
     // 2. It's an active storage path from our known buckets
     // 3. it's a guest path (which we know belongs to user-assets)
     // 4. An explicit bucket was provided
     const isSupabase = !!(
-        isSupabaseUrl(src) || 
+        isSupabaseUrl(src) ||
         (activePath && (
-            activePath.startsWith(BUCKETS.BOOK_ASSETS + '/') || 
+            activePath.startsWith(BUCKETS.BOOK_ASSETS + '/') ||
             activePath.startsWith(BUCKETS.USER_ASSETS + '/') ||
             activePath.startsWith('guests/') ||
             !!explicitBucket
         ))
     );
+
+    // Use a ref to track the previous storage token to avoid unnecessary resets
+    // This allows us to keep showing the old image while the new signed URL is validated/cached
+    const storageKey = activePath ? `${activePath}:${updatedAt}` : undefined;
+    const prevStorageKeyRef = React.useRef<string | undefined>(storageKey);
 
     useEffect(() => {
         let isMounted = true;
@@ -85,16 +96,20 @@ export function CachedImage({
 
         // Stable check: If storagePath and updatedAt match, we assume it's the same image.
         // Even if 'src' (signed URL) changes, we don't want to flash to transparent.
-        const storageKey = activePath ? `${activePath}:${updatedAt}` : undefined;
-        const isSameAsset = storageKey && storageKey === prevStorageKeyRef.current;
+        const currentStorageKey = activePath ? `${activePath}:${updatedAt}` : undefined;
+        const isSameAsset = currentStorageKey && currentStorageKey === prevStorageKeyRef.current;
 
+        // If it's a new asset and we have a storage path, we can optionally flash to transparent 
+        // IF the new safeSrc is transparent. Otherwise, we just let Next.js handle the swap.
         if (!isSameAsset && isMounted) {
-            setIsLoaded(false);
-            if (activePath) setDisplayUrl(TRANSPARENT_PIXEL);
+            if (safeSrc === TRANSPARENT_PIXEL) {
+                setIsLoaded(false);
+                setDisplayUrl(TRANSPARENT_PIXEL);
+            }
         }
         
         // Update ref after check
-        prevStorageKeyRef.current = storageKey;
+        prevStorageKeyRef.current = currentStorageKey;
 
         async function resolveUrl() {
             if (!activePath) {
@@ -186,16 +201,21 @@ export function CachedImage({
 
     function handleLoad() {
         if (displayUrl !== TRANSPARENT_PIXEL) {
+            console.debug(`[CachedImage] Loaded: ${activePath || displayUrl.substring(0, 30)}...`);
             setIsLoaded(true);
         }
     }
 
     function handleError() {
-        setIsLoaded(true);
+        console.warn(`[CachedImage] Load error: ${activePath || displayUrl.substring(0, 30)}...`);
+        setIsLoaded(true); // Don't stay hidden forever
         if (onLoadFailure && displayUrl !== TRANSPARENT_PIXEL) {
             onLoadFailure();
         }
     }
+
+    // Force visible if it's a blob/data URL or if we have a non-transparent display URL
+    const isVisible = isLoaded || isBlobOrData || (displayUrl !== TRANSPARENT_PIXEL);
 
     return (
         <div className={cn(
@@ -214,10 +234,10 @@ export function CachedImage({
                 className={cn(
                     className,
                     "transition-opacity duration-300",
-                    isLoaded ? "opacity-100" : "opacity-0"
+                    isVisible ? "opacity-100" : "opacity-0"
                 )}
             />
-            {!isLoaded && src !== TRANSPARENT_PIXEL && (
+            {!isVisible && displayUrl !== TRANSPARENT_PIXEL && (
                 <div className="absolute inset-0 bg-slate-100 animate-pulse flex items-center justify-center">
                     <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-slate-400 animate-spin" />
                 </div>

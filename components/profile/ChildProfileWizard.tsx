@@ -165,7 +165,8 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                 selectedWords: formData.selectedWords,
                 storyLengthMinutes: 5, // Default for guest
                 imageSceneCount: 5,    // Default for guest
-                isGuestFlow: true
+                isGuestFlow: true,
+                resumeRequested: true
             };
 
             await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", ...draft });

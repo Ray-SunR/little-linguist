@@ -37,6 +37,8 @@ export interface AuthContextType {
   setStatus: (status: AuthStatus) => void;
   profileError: string | null;
   logout: () => Promise<void>;
+  /** True once initial auth check has definitively resolved (user or no user). */
+  authResolved: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,11 +53,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [librarySettings, setLibrarySettings] = useState<any>({});
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeFetchIdRef = useRef<number>(0);
+  const inFlightFetchRef = useRef<string | null>(null);
+  const lastFetchTimestampRef = useRef<Record<string, number>>({});
   const isLoggingOutRef = useRef(false);
   const userRef = useRef<User | null>(user);
   const eventRef = useRef<string>("INITIAL");
   const [profileError, setProfileError] = useState<string | null>(null);
   const authListenerFiredRef = useRef<boolean>(false);
+  const [authResolved, setAuthResolved] = useState(false);
+  const authResolvedRef = useRef(false);
 
   const pathname = usePathname();
 
@@ -167,10 +173,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
               window.localStorage.removeItem(key);
             }
           });
-          // Clear common cookies, preserving activeChildId
+          // Clear common cookies, preserving critical session IDs
           document.cookie.split(";").forEach((c) => {
             const cookieName = c.split("=")[0].trim();
-            if (cookieName !== "activeChildId") {
+            if (cookieName !== "activeChildId" && cookieName !== "guest_id") {
               document.cookie = cookieName + "=;expires=" + new Date().toUTCString() + ";path=/";
             }
           });
@@ -186,9 +192,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [supabase]);
 
   const fetchProfiles = useCallback(async (uid: string, silent = false, retryCount = 0): Promise<void> => {
+    // Deduplicate identical requests in-flight
+    if (inFlightFetchRef.current === uid && retryCount === 0) {
+      Log.info(`fetchProfiles: Request for ${uid} already in flight, skipping.`);
+      return;
+    }
+
+    // Prevent excessive re-fetching if we already have data for this user from a very recent fetch (< 2s)
+    const now = Date.now();
+    if (retryCount === 0 && !silent && lastFetchTimestampRef.current[uid] && now - lastFetchTimestampRef.current[uid] < 2000) {
+      Log.info(`fetchProfiles: Data for ${uid} is very fresh, skipping non-silent fetch.`);
+      return;
+    }
+
     const requestId = ++activeFetchIdRef.current;
     if (!silent && retryCount === 0) setStatus('loading');
     setProfileError(null);
+    inFlightFetchRef.current = uid;
 
     Log.info(`fetchProfiles starting: req=${requestId} uid=${uid} silent=${silent} retry=${retryCount}`);
 
@@ -217,6 +237,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setProfileError(typeof error === 'string' ? error : 'Fetch failed');
         setStatus('error');
       } else if (data) {
+        lastFetchTimestampRef.current[uid] = Date.now();
         const prevCount = profilesRef.current.length;
         const newCount = data.length;
 
@@ -241,6 +262,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setProfileError('Unexpected error');
       setStatus('error');
     } finally {
+      if (inFlightFetchRef.current === uid) inFlightFetchRef.current = null;
       if (requestId === activeFetchIdRef.current && !isLoggingOutRef.current) {
         setStatus('ready');
         Log.info(`fetchProfiles finished, cleared loading for req ${requestId}`);
@@ -295,6 +317,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let mounted = true;
 
+    // Fallback timeout: force authResolved after 5s to prevent indefinite waiting
+    const authResolvedTimeoutId = setTimeout(() => {
+      if (mounted && !authResolvedRef.current) {
+        Log.warn("Auth resolution fallback triggered (5s)");
+        authResolvedRef.current = true;
+        setAuthResolved(true);
+      }
+    }, 5000);
+
     async function init() {
       if (isLoggingOutRef.current) return;
       console.info("[RAIDEN_DIAG][Auth] User initialization starting...");
@@ -322,6 +353,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // we skip the init fetch to avoid race condition double-calls.
         if (authListenerFiredRef.current && userRef.current) {
           Log.info("Init: auth listener already handled user, skipping init fetch.");
+          authResolvedRef.current = true;
+          setAuthResolved(true); // Ensure authResolved is set even on early return
           return;
         }
 
@@ -332,6 +365,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (!userRef.current) {
             setUser(session?.user ?? null);
           }
+          authResolvedRef.current = true;
+          setAuthResolved(true); // Auth resolved: user found
           Log.info("Hydrating profiles for:", uid);
           setStatus('hydrating');
           await hydrateFromCache(uid); // Internal check for session consistency exists inside
@@ -339,6 +374,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           await fetchProfiles(uid, true);
         } else {
           Log.info("No session found, skipping profile hydration.");
+          authResolvedRef.current = true;
+          setAuthResolved(true); // Auth resolved: no user
           setStatus('ready');
         }
       } catch (err) {
@@ -377,6 +414,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (event === 'SIGNED_IN') setStatus('loading');
           setUser(newUser);
 
+          // Mark auth as resolved once we have a definitive answer
+          authResolvedRef.current = true;
+          setAuthResolved(true);
+
           // Invalidate cache on explicit sign-in to ensure fresh data
           if (event === 'SIGNED_IN') {
             import("@/lib/core/cache").then(({ raidenCache, CacheStore }) => {
@@ -391,48 +432,59 @@ export function AuthProvider({ children }: AuthProviderProps) {
           refreshProfiles(true);
         }
       } else if (!newUser) {
-        setUser(null);
-        setProfiles([]);
-        handleSetActiveChild(null);
-        setLibrarySettings({});
+        authResolvedRef.current = true;
+        setAuthResolved(true); // Auth resolved: definitely no user
 
-        // Clear Story Maker Globals and Drafts here
-        const { clearStoryMakerGlobals } = await import("@/components/story-maker/StoryMakerClient");
-        clearStoryMakerGlobals();
+        if (prevUser) {
+          // Real logout transition: Clear user-specific data
+          setUser(null);
+          setProfiles([]);
+          handleSetActiveChild(null);
+          setLibrarySettings({});
 
-        // Clear cache in background
-        import("@/lib/core/cache").then(async ({ raidenCache, CacheStore }) => {
-          try {
-            // Clear all user-specific drafts and guest drafts
-            const keys = await raidenCache.getAllKeys(CacheStore.DRAFTS);
-            for (const key of keys) {
-              if (typeof key === 'string' && (key.startsWith('draft:') || key === 'current')) {
-                await raidenCache.delete(CacheStore.DRAFTS, key);
+          // Clear Story Maker Globals and Drafts here
+          const { clearStoryMakerGlobals } = await import("@/components/story-maker/StoryMakerClient");
+          clearStoryMakerGlobals();
+
+          // Clear cache in background
+          import("@/lib/core/cache").then(async ({ raidenCache, CacheStore }) => {
+            try {
+              const keys = await raidenCache.getAllKeys(CacheStore.DRAFTS);
+              for (const key of keys) {
+                // Clear user-specific drafts and current book on logout
+                // DO NOT clear draft:guest here as it belongs to the device session
+                if (typeof key === 'string' && ((key.startsWith('draft:') && key !== 'draft:guest') || key === 'current')) {
+                  await raidenCache.delete(CacheStore.DRAFTS, key);
+                }
               }
-            }
-            // Explicitly clear profile cache on logout
-            const profileKeys = await raidenCache.getAllKeys(CacheStore.PROFILES);
-            for (const pk of profileKeys) {
-              if (typeof pk === 'string' || typeof pk === 'number') {
-                await raidenCache.delete(CacheStore.PROFILES, pk);
+              const profileKeys = await raidenCache.getAllKeys(CacheStore.PROFILES);
+              for (const pk of profileKeys) {
+                if (typeof pk === 'string' || typeof pk === 'number') {
+                  await raidenCache.delete(CacheStore.PROFILES, pk);
+                }
               }
-            }
-          } catch (err) { }
-        }).catch(() => { });
+            } catch (err) { }
+          }).catch(() => { });
 
-        if (typeof window !== "undefined") {
-          Object.keys(window.localStorage).forEach(key => {
-            if (key.startsWith('raiden:has_profiles_cache:')) {
-              window.localStorage.removeItem(key);
-            }
-          });
+          if (typeof window !== "undefined") {
+            Object.keys(window.localStorage).forEach(key => {
+              if (key.startsWith('raiden:has_profiles_cache:')) {
+                window.localStorage.removeItem(key);
+              }
+            });
+          }
         }
-        setStatus('ready');
+        
+        // Ensure status isn't stuck in loading/hydrating for guests
+        if (statusRef.current === 'loading' || statusRef.current === 'hydrating') {
+          setStatus('ready');
+        }
       }
     });
 
     return () => {
       mounted = false;
+      clearTimeout(authResolvedTimeoutId);
       if (abortControllerRef.current) abortControllerRef.current.abort();
       subscription.unsubscribe();
     };
@@ -498,7 +550,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setProfiles,
       setStatus,
       profileError,
-      logout
+      logout,
+      authResolved
     }}>
       {children}
     </AuthContext.Provider>

@@ -210,8 +210,22 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         wordsRef.current = words;
     }, [words]);
 
+    const lastChildIdRef = useRef<string | null>(null);
+    const lastUserIdRef = useRef<string | null>(null);
+
     // Load initial words and refresh on auth change
     useEffect(() => {
+        const currentChildId = activeChild?.id || null;
+        const currentUserId = user?.id || null;
+
+        // Skip if nothing changed and we already have words
+        if (currentChildId === lastChildIdRef.current && currentUserId === lastUserIdRef.current && words.length > 0) {
+            return;
+        }
+
+        lastChildIdRef.current = currentChildId;
+        lastUserIdRef.current = currentUserId;
+
         setWords([]); 
         setTotalWords(0); // Reset total count too!
         if (fetchOnMount) {

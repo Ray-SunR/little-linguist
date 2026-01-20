@@ -17,6 +17,7 @@ import {
     UsageIdentity
 } from "@/lib/features/usage/usage-service.server";
 import { BedrockEmbeddingService } from "@/lib/features/bedrock/bedrock-embedding.server";
+import { cookies } from "next/headers";
 
 export const dynamic = 'force-dynamic';
 
@@ -136,8 +137,17 @@ export async function POST(req: Request) {
             // SECURITY: Validate that the avatar belongs to the user or the child
             const isOwnedByUser = childAvatar.startsWith(`${ownerUserId}/`);
             const isChildAsset = avatarPaths?.includes(childAvatar);
+            
+            // Also allow guest avatars if they match the current session's guest_id
+            let isGuestOwned = false;
+            if (childAvatar.startsWith('guests/')) {
+                const currentGuestId = cookies().get('guest_id')?.value;
+                if (currentGuestId && childAvatar.startsWith(`guests/${currentGuestId}/`)) {
+                    isGuestOwned = true;
+                }
+            }
 
-            if (!isOwnedByUser && !isChildAsset) {
+            if (!isOwnedByUser && !isChildAsset && !isGuestOwned) {
                 console.warn(`[Security] Invalid avatar path attempted: ${childAvatar}. User: ${ownerUserId}`);
                 childAvatar = null;
             }
