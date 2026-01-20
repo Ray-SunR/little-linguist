@@ -770,34 +770,49 @@ export class BookRepository {
         limit: number = 3
     ): Promise<BookWithCover[]> {
         try {
-            // 1. Get semantic recommendations based on interests
-            const recommendations = await this.recommendBooksForChild(childId, { limit });
+            // 1. Get a larger pool of semantic recommendations
+            const recommendations = await this.recommendBooksForChild(childId, { limit: 12 });
             const recommendedIds = recommendations.map(r => r.id);
 
-            // 2. Fetch full metadata including covers
-            // If we have recommended IDs, fetch them specifically.
-            // Otherwise, get the newest available books.
+            // 2. Fetch full metadata including covers and progress
             const books = await this.getAvailableBooksWithCovers(
                 userId,
                 childId,
                 recommendedIds.length > 0 
-                    ? { ids: recommendedIds, limit } 
-                    : { limit, sortBy: 'newest' }
+                    ? { ids: recommendedIds, limit: 12 } 
+                    : { limit: 12, sortBy: 'newest' }
             );
 
-            // 3. Re-sort based on the semantic search order if we have IDs
-            if (recommendedIds.length > 0) {
-                return books.sort((a, b) => {
-                    const indexA = recommendedIds.indexOf(a.id);
-                    const indexB = recommendedIds.indexOf(b.id);
-                    return indexA - indexB;
-                });
+            // 3. Prioritize Unread -> Read
+            const unread = books.filter(b => !b.isRead);
+            const read = books.filter(b => b.isRead);
+
+            // Sort based on original semantic relevance
+            const sortByRelevance = (a: BookWithCover, b: BookWithCover) => {
+                const indexA = recommendedIds.indexOf(a.id);
+                const indexB = recommendedIds.indexOf(b.id);
+                return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+            };
+
+            const sortedUnread = unread.sort(sortByRelevance);
+            const sortedRead = read.sort(sortByRelevance);
+
+            // Construct final list: Start with unread, fill with read if needed
+            let finalSelection = [...sortedUnread];
+            if (finalSelection.length < limit) {
+                finalSelection = [...finalSelection, ...sortedRead].slice(0, limit);
+            } else {
+                finalSelection = finalSelection.slice(0, limit);
             }
 
-            return books;
+            // Fallback: If still empty, get anything newest
+            if (finalSelection.length === 0) {
+                return await this.getAvailableBooksWithCovers(userId, childId, { limit, sortBy: 'newest' });
+            }
+
+            return finalSelection;
         } catch (err) {
             console.error('[BookRepository.getRecommendedBooksWithCovers] Error:', err);
-            // Fallback to safest possible fetch
             return await this.getAvailableBooksWithCovers(userId, childId, { limit, sortBy: 'newest' });
         }
     }

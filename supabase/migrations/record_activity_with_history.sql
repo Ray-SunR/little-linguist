@@ -98,56 +98,62 @@ BEGIN
       p_entity_id,
       p_details
     );
-
-    -- Calculate Streaks
-    IF v_last_activity IS NULL THEN
-      v_streak_count := 1;
-    ELSE
-      v_last_date := (v_last_activity AT TIME ZONE 'UTC')::DATE;
-      
-      IF v_last_date = v_current_date THEN
-        -- Already active today, streak remains the same
-      ELSIF v_last_date = (v_current_date - INTERVAL '1 day')::DATE THEN
-        -- Consecutive day
-        v_streak_count := v_streak_count + 1;
-      ELSE
-        -- Broke streak
-        v_streak_count := 1;
-      END IF;
-    END IF;
-
-    IF v_streak_count > v_max_streak THEN
-      v_max_streak := v_streak_count;
-    END IF;
-
-    -- Update child stats (XP, Level, Streak)
-    UPDATE public.children
-    SET 
-      total_xp = COALESCE(total_xp, 0) + p_xp_reward,
-      level = floor((COALESCE(total_xp, 0) + p_xp_reward) / 1000) + 1,
-      streak_count = v_streak_count,
-      max_streak = v_max_streak,
-      last_activity_at = NOW(),
-      updated_at = NOW()
-    WHERE id = p_child_id
-    RETURNING total_xp, level INTO v_new_xp, v_new_level;
-
-    v_result := jsonb_build_object(
-      'success', true,
-      'xp_earned', p_xp_reward,
-      'total_xp', v_new_xp,
-      'level', v_new_level,
-      'streak_count', v_streak_count,
-      'max_streak', v_max_streak,
-      'is_new_activity', true
-    );
-  ELSE
-    v_result := jsonb_build_object(
-      'success', true,
-      'is_new_activity', false,
-      'message', 'Activity already recorded and deduped'
-    );
   END IF;
+
+  -- 4. Calculate Streaks (ALWAYS update last_activity_at even if duplicate award)
+  IF v_last_activity IS NULL THEN
+    v_streak_count := 1;
+  ELSE
+    v_last_date := (v_last_activity AT TIME ZONE 'UTC')::DATE;
+    
+    IF v_last_date = v_current_date THEN
+      -- Already active today, streak remains the same
+    ELSIF v_last_date = (v_current_date - INTERVAL '1 day')::DATE THEN
+      -- Consecutive day
+      v_streak_count := v_streak_count + 1;
+    ELSE
+      -- Broke streak
+      v_streak_count := 1;
+    END IF;
+  END IF;
+
+  IF v_streak_count > v_max_streak THEN
+    v_max_streak := v_streak_count;
+  END IF;
+
+  -- 5. Update child stats (XP, Level, Streak)
+  IF v_duplicate_count = 0 THEN
+      UPDATE public.children
+      SET 
+        total_xp = COALESCE(total_xp, 0) + p_xp_reward,
+        level = floor((COALESCE(total_xp, 0) + p_xp_reward) / 1000) + 1,
+        streak_count = v_streak_count,
+        max_streak = v_max_streak,
+        last_activity_at = NOW(),
+        updated_at = NOW()
+      WHERE id = p_child_id
+      RETURNING total_xp, level INTO v_new_xp, v_new_level;
+  ELSE
+      -- Just update streak and activity time
+      UPDATE public.children
+      SET 
+        streak_count = v_streak_count,
+        max_streak = v_max_streak,
+        last_activity_at = NOW(),
+        updated_at = NOW()
+      WHERE id = p_child_id
+      RETURNING total_xp, level INTO v_new_xp, v_new_level;
+  END IF;
+
+  v_result := jsonb_build_object(
+    'success', true,
+    'xp_earned', CASE WHEN v_duplicate_count = 0 THEN p_xp_reward ELSE 0 END,
+    'total_xp', v_new_xp,
+    'level', v_new_level,
+    'streak_count', v_streak_count,
+    'max_streak', v_max_streak,
+    'is_new_activity', v_duplicate_count = 0
+  );
 
   RETURN v_result;
 EXCEPTION

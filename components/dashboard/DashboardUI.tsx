@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { BookOpen, Sparkles, Wand2, Star, TrendingUp, Clock, ChevronRight, History, Info } from "lucide-react";
+import { BookOpen, Sparkles, Wand2, Star, TrendingUp, Clock, ChevronRight, History, Info, CheckCircle2, Trophy } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import type { ChildProfile } from "@/app/actions/profiles";
 import type { DashboardStats } from "@/app/actions/dashboard";
@@ -11,6 +11,7 @@ import { InterestEditorModal } from "@/components/dashboard/InterestEditorModal"
 import { useState } from "react";
 import { Edit2 } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { useRouter } from "next/navigation";
 
 interface Props {
     activeChild: ChildProfile | null;
@@ -19,9 +20,19 @@ interface Props {
 
 export default function DashboardUI({ activeChild, stats }: Props) {
     const { refreshProfiles } = useAuth();
+    const router = useRouter();
     const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
     const [showCoinsGuide, setShowCoinsGuide] = useState(false);
     const [optimisticInterests, setOptimisticInterests] = useState<string[] | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    
+    const handleRefreshMissions = async () => {
+        setIsRefreshing(true);
+        router.refresh();
+        // Give it a moment for the animation
+        setTimeout(() => setIsRefreshing(false), 800);
+    };
+
     const childName = activeChild?.first_name || "Captain";
     const level = stats?.level || activeChild?.level || 1;
     const xp = stats?.totalXp || activeChild?.total_xp || 0;
@@ -110,9 +121,21 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                             <Sparkles className="w-5 h-5 text-amber-500" />
                             Active Missions
                         </h3>
-                        <span className="text-xs font-black text-amber-600 bg-amber-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                            {stats?.recommendations?.length || 0} Available
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={handleRefreshMissions}
+                                disabled={isRefreshing}
+                                className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                    isRefreshing ? 'bg-slate-100 text-slate-400' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+                                }`}
+                            >
+                                <History className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+                                Refresh
+                            </button>
+                            <span className="text-[10px] font-black text-amber-600 bg-amber-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                                {stats?.recommendations?.length || 0} Available
+                            </span>
+                        </div>
                     </div>
 
                     {stats?.recommendations && stats.recommendations.length > 0 ? (
@@ -123,15 +146,58 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 + idx * 0.1 }}
-                                    className={`clay-card group relative overflow-hidden p-4 md:p-6 bg-gradient-to-br ${
-                                        idx === 0 ? 'from-amber-400 to-orange-500' : 
-                                        idx === 1 ? 'from-indigo-500 to-purple-600' : 
-                                        'from-emerald-500 to-teal-600'
-                                    } text-white`}
+                                    className={`clay-card group relative overflow-hidden p-4 md:p-6 transition-all duration-500 ${
+                                        mission.isRead 
+                                            ? 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-200' 
+                                            : `bg-gradient-to-br ${
+                                                idx === 0 ? 'from-amber-400 to-orange-500 shadow-clay-orange' : 
+                                                idx === 1 ? 'from-indigo-500 to-purple-600 shadow-clay-purple' : 
+                                                'from-emerald-500 to-teal-600 shadow-clay-emerald'
+                                            } text-white`
+                                    }`}
                                 >
                                     <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
                                     
-                                    <div className="relative z-10 flex gap-4 md:gap-6">
+                                    {mission.isRead && (
+                                        <div className="absolute inset-0 bg-slate-400/5 backdrop-blur-[1px] z-20 pointer-events-none flex items-center justify-center">
+                                            {/* SKEUOMORPHIC STAMP */}
+                                            <motion.div 
+                                                initial={{ scale: 3, opacity: 0, rotate: -20 }}
+                                                animate={{ scale: 1, opacity: 1, rotate: -12 }}
+                                                transition={{ 
+                                                    type: "spring", 
+                                                    stiffness: 300, 
+                                                    damping: 15,
+                                                    delay: 0.5 + (idx * 0.1)
+                                                }}
+                                                className="relative"
+                                            >
+                                                {/* Jagged Seal Shape using CSS mask/clip or multiple circles */}
+                                                <div className="w-32 h-32 rounded-full bg-emerald-600 border-4 border-white shadow-2xl flex items-center justify-center p-2 relative overflow-hidden">
+                                                    {/* Inner Ring */}
+                                                    <div className="absolute inset-1 rounded-full border-2 border-emerald-400/30 border-dashed" />
+                                                    
+                                                    <div className="text-center z-10">
+                                                        <Trophy className="w-8 h-8 text-amber-300 mx-auto mb-1 drop-shadow-md" />
+                                                        <div className="font-fredoka font-black text-[10px] leading-tight text-white uppercase tracking-tighter">
+                                                            Mission<br/>Accomplished
+                                                        </div>
+                                                        <div className="mt-1 flex justify-center gap-0.5">
+                                                            {[1,2,3,4,5].map(s => <Star key={s} className="w-2 h-2 fill-amber-300 text-amber-300" />)}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Shine effect on stamp */}
+                                                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+                                                </div>
+                                                
+                                                {/* Ink Smudge Effect */}
+                                                <div className="absolute -inset-2 bg-emerald-600/10 blur-xl rounded-full -z-10" />
+                                            </motion.div>
+                                        </div>
+                                    )}
+
+                                    <div className={`relative z-10 flex gap-4 md:gap-6 transition-all duration-700 ${mission.isRead ? 'opacity-40 grayscale-[0.8] scale-[0.98]' : ''}`}>
                                         <div className="hidden sm:block w-24 shrink-0 aspect-[3/4] relative rounded-xl overflow-hidden shadow-xl border-2 border-white/20 group-hover:scale-105 transition-transform duration-500">
                                             <CachedImage
                                                 src={mission.coverImageUrl || ""}
@@ -145,31 +211,58 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                                         <div className="flex-1 flex flex-col justify-between">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-black uppercase tracking-wider border border-white/30">
-                                                        {idx === 0 ? 'Primary' : 'Side Quest'}
+                                                    <span className={`px-2 py-0.5 rounded-full backdrop-blur-md text-[10px] font-black uppercase tracking-wider border ${
+                                                        mission.isRead 
+                                                            ? 'bg-slate-200 text-slate-500 border-slate-300' 
+                                                            : 'bg-white/20 text-white border-white/30'
+                                                    }`}>
+                                                        {mission.isRead ? 'Archived' : idx === 0 ? 'Primary' : 'Side Quest'}
                                                     </span>
-                                                    <span className="text-white/80 font-bold text-[10px] flex items-center gap-1">
-                                                        <Clock className="w-3 h-3" /> {mission.estimatedReadingTime || 5} min
-                                                    </span>
+                                                    {!mission.isRead && (
+                                                        <span className="text-white/80 font-bold text-[10px] flex items-center gap-1">
+                                                            <Clock className="w-3 h-3" /> {mission.estimatedReadingTime || 5} min
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                <h2 className={`${idx === 0 ? 'text-2xl' : 'text-xl'} font-black font-fredoka leading-tight mb-1 group-hover:text-white/90 transition-colors`}>
+                                                <h2 className={`${idx === 0 ? 'text-2xl' : 'text-xl'} font-black font-fredoka leading-tight mb-1 transition-colors ${
+                                                    mission.isRead ? 'text-slate-600' : 'text-white'
+                                                }`}>
                                                     {mission.title}
                                                 </h2>
-                                                <p className="text-white/80 font-medium font-nunito text-xs line-clamp-2">
+                                                <p className={`font-medium font-nunito text-xs line-clamp-2 ${
+                                                    mission.isRead ? 'text-slate-400' : 'text-white/80'
+                                                }`}>
                                                     {mission.description || `Embark on a new adventure with "${mission.title}"!`}
                                                 </p>
                                             </div>
 
                                             <div className="mt-4 flex items-center justify-between gap-4">
-                                                <Link 
-                                                    href={`/reader/${mission.id}?mission=true`} 
-                                                    className="px-6 py-2 rounded-xl bg-white text-ink font-black font-fredoka shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group/btn text-sm"
-                                                >
-                                                    Start <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                                                </Link>
+                                                {mission.isRead ? (
+                                                    <Link 
+                                                        href={`/reader/${mission.id}`} 
+                                                        className="px-6 py-2 rounded-xl bg-slate-200 text-slate-600 font-black font-fredoka border border-slate-300 hover:bg-slate-300 transition-all flex items-center gap-2 text-sm pointer-events-auto"
+                                                    >
+                                                        Read Again
+                                                    </Link>
+                                                ) : (
+                                                    <Link 
+                                                        href={`/reader/${mission.id}?mission=true`} 
+                                                        className="px-6 py-2 rounded-xl bg-white text-ink font-black font-fredoka shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group/btn text-sm"
+                                                    >
+                                                        Start <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                                    </Link>
+                                                )}
                                                 <div className="flex flex-col items-end">
-                                                    <div className="text-xl font-black transform rotate-2">+{idx === 0 ? 100 : 50}</div>
-                                                    <div className="text-[10px] font-bold uppercase opacity-80 whitespace-nowrap">Coins</div>
+                                                    {mission.isRead ? (
+                                                        <div className="bg-emerald-100 text-emerald-600 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border border-emerald-200 flex items-center gap-1">
+                                                            <CheckCircle2 className="w-3 h-3" /> Claimed
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="text-xl font-black transform rotate-2">+{idx === 0 ? 100 : 50}</div>
+                                                            <div className="text-[10px] font-bold uppercase opacity-80 whitespace-nowrap">Coins</div>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -589,7 +682,7 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                     onUpdate={async (newInterests) => {
                          setOptimisticInterests(newInterests);
                          await refreshProfiles(true);
-                         window.location.reload();
+                         router.refresh();
                     }} 
                 />
             )}
