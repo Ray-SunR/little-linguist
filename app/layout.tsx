@@ -33,6 +33,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { RouteGuard } from "@/components/auth/route-guard";
 
 import { TutorialProvider } from "@/components/tutorial/tutorial-context";
 import TutorialOverlay from "@/components/tutorial/tutorial-overlay";
@@ -48,22 +49,24 @@ export default function RootLayout({
     <html lang="en" className={`${fredoka.variable} ${nunito.variable}`}>
       <body className="min-h-shell bg-shell text-ink font-nunito antialiased">
         <AuthProvider>
-          <TutorialProvider>
-            <TutorialOverlay />
-            <WordListGate>
-              <NarrationGate>
-                <GlobalStoryListener />
-                <ChildGate />
-                <div className="relative flex flex-col lg:flex-row min-h-screen">
-                  <div className="flex-1 w-full flex flex-col">
-                    <GuestBanner />
-                    {children}
+          <RouteGuard>
+            <TutorialProvider>
+              <TutorialOverlay />
+              <WordListGate>
+                <NarrationGate>
+                  <GlobalStoryListener />
+                  <ChildGate />
+                  <div className="relative flex flex-col lg:flex-row min-h-screen">
+                    <div className="flex-1 w-full flex flex-col">
+                      <GuestBanner />
+                      {children}
+                    </div>
+                    <ClayNav />
                   </div>
-                  <ClayNav />
-                </div>
-              </NarrationGate>
-            </WordListGate>
-          </TutorialProvider>
+                </NarrationGate>
+              </WordListGate>
+            </TutorialProvider>
+          </RouteGuard>
         </AuthProvider>
         <CookieConsent />
         <Analytics />

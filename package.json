@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "mobile:build": "next build",
+    "mobile:sync": "npx cap sync",
+    "mobile:open": "npx cap open ios"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -16,6 +19,7 @@
     "@aws-sdk/client-bedrock": "^3.971.0",
     "@aws-sdk/client-bedrock-runtime": "^3.962.0",
     "@aws-sdk/client-polly": "^3.958.0",
+    "@capacitor/haptics": "^8.0.0",
     "@google-cloud/vertexai": "^1.10.0",
     "@google/genai": "^1.34.0",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -45,6 +49,10 @@
     "virtua": "^0.48.3"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.4.5",
+    "@capacitor/core": "^8.0.1",
+    "@capacitor/ios": "^8.0.1",
     "@swc/core": "^1.15.8",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "20.19.27",

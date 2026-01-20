@@ -16,6 +16,7 @@ const nextConfig = {
         hostname: 'avatars.githubusercontent.com',
       },
     ],
+    unoptimized: true,
   },
   experimental: {
     serverActions: {

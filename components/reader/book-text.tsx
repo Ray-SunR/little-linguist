@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useMemo, useState } from "react";
 import type { BookImage, WordToken } from "@/lib/core";
 import { CachedImage } from "@/components/ui/cached-image";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { cn } from "@/lib/core";
 
 type BookTextProps = {
@@ -65,7 +66,14 @@ const Word = React.memo(({
             >
                 {onWordClick ? (
                     <button
-                        onClick={(e) => onWordClick(wordText, e.currentTarget, token.wordIndex)}
+                        onClick={(e) => {
+                            try {
+                                Haptics.impact({ style: ImpactStyle.Light });
+                            } catch (err) {
+                                // Ignore errors on web/unsupported platforms
+                            }
+                            onWordClick(wordText, e.currentTarget, token.wordIndex);
+                        }}
                         className="word-button"
                         type="button"
                     >

@@ -34,6 +34,13 @@
 :root {
   --shell: #e8f5ff;
   --shell-2: #f3ecff;
+
+  /* Safe Areas */
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
+
   --card: #ffffff;
   --ink: #2f3352;
   --ink-muted: #505578;
