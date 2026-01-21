@@ -36,9 +36,9 @@ async function sync() {
     const statusOutput = execSync('npx supabase status -o json', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
     const status = JSON.parse(statusOutput);
     
-    supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = 'http://127.0.0.1:54321';
-    supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = status.anon_key;
-    supabaseKeys['SUPABASE_SERVICE_ROLE_KEY'] = status.service_role_key;
+    supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = status.API_URL || 'http://127.0.0.1:54321';
+    supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = status.ANON_KEY || status.anon_key;
+    supabaseKeys['SUPABASE_SERVICE_ROLE_KEY'] = status.SERVICE_ROLE_KEY || status.service_role_key;
     
     console.log('✅ Extracted local Supabase keys.');
   } catch (error) {
@@ -59,7 +59,13 @@ async function sync() {
     '# DO NOT EDIT MANUALLY - AI keys are synced from .env.local',
     '# Supabase keys are synced from local supabase status',
     '',
-    ...sortedKeys.map(key => `${key}=${merged[key]}`)
+    ...sortedKeys.map(key => {
+      const value = merged[key];
+      if (value && (value.includes('\n') || value.includes(' '))) {
+        return `${key}="${value.replace(/"/g, '\\"')}"`;
+      }
+      return `${key}=${value}`;
+    })
   ].join('\n');
 
   fs.writeFileSync(ENV_DEV_LOCAL_PATH, content + '\n');
