@@ -102,7 +102,14 @@ export function useReaderPersistence({
                 const blob = new Blob([body], { type: 'application/json' });
 
                 let sent = false;
+                const headers: any = { 
+                    'Content-Type': 'application/json',
+                    'x-timezone': Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
+
                 if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+                    // Note: sendBeacon doesn't support custom headers easily, 
+                    // so we'll rely on fetch fallback for timezone in those cases if critical.
                     sent = navigator.sendBeacon(`/api/books/${bookId}/progress`, blob);
                 }
 
@@ -111,12 +118,16 @@ export function useReaderPersistence({
                     fetch(`/api/books/${bookId}/progress`, {
                         method: 'POST',
                         body: body,
-                        headers: { 'Content-Type': 'application/json' },
+                        headers,
                         keepalive: true
                     }).catch(() => { }); // Fire and forget
                 }
             } else {
-                const res = await axios.post(`/api/books/${bookId}/progress`, payload);
+                const res = await axios.post(`/api/books/${bookId}/progress`, payload, {
+                    headers: {
+                        'x-timezone': Intl.DateTimeFormat().resolvedOptions().timeZone
+                    }
+                });
                 responseData = res.data;
             }
 
