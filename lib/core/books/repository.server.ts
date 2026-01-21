@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { createClient as createServerClient } from "@/lib/supabase/server";
-import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
+import { createClient as createServerClient } from "../../supabase/server";
+import { AuditService, AuditAction, EntityType } from "../../features/audit/audit-service.server";
 import { Book } from '../types';
-import { BedrockEmbeddingService } from "@/lib/features/bedrock/bedrock-embedding.server";
+import { BedrockEmbeddingService } from "../../features/bedrock/bedrock-embedding.server";
 
 // Types for optimized library fetching
 // ~580 tokens reads in 100s = 348 tokens/min. Rounded to 350 for simplicity.
@@ -57,10 +57,10 @@ interface BookWithCover {
  * This should ONLY be used in API routes or Server Components.
  */
 export class BookRepository {
-    private supabase;
+    private supabase: SupabaseClient;
 
-    constructor() {
-        this.supabase = createClient(
+    constructor(supabaseClient?: SupabaseClient) {
+        this.supabase = supabaseClient || createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
@@ -547,10 +547,19 @@ export class BookRepository {
             throw new Error(`Invalid book ID: ${bookId}`);
         }
 
+        // Fetch current progress to ensure we don't overwrite completion status
+        const { data: current } = await this.supabase
+            .from('child_books')
+            .select('is_completed')
+            .match({ child_id: childId, book_id: bookId })
+            .maybeSingle();
+
         const dbProgress = {
             ...progress,
             child_id: childId,
             book_id: bookId,
+            // Never set completed back to false if it was already true
+            is_completed: progress.is_completed || (current?.is_completed ?? false),
             last_read_at: new Date().toISOString()
         };
 

@@ -107,21 +107,28 @@ DECLARE
   v_current_total_xp INTEGER;
   v_new_total_xp INTEGER;
   v_new_level INTEGER;
+  v_owner_id UUID;
   v_today DATE;
   v_yesterday DATE;
   v_last_active_date DATE;
   v_inserted_id UUID;
   v_result JSONB;
 BEGIN
-  -- 0. Ensure unique index exists for idempotency
-  -- (This is usually done in migration but adding here for safety during refactor)
-  -- CREATE UNIQUE INDEX IF NOT EXISTS point_transactions_child_idempotency_idx 
-  -- ON public.point_transactions (child_id, idempotency_key) 
-  -- WHERE idempotency_key IS NOT NULL;
+  -- 0. Fetch current stats and owner
+  SELECT last_activity_at, streak_count, COALESCE(total_xp, 0), owner_user_id
+  INTO v_last_activity, v_streak_count, v_current_total_xp, v_owner_id
+  FROM public.children
+  WHERE id = v_child_id;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Child not found');
+  END IF;
 
   -- 1. Attempt to record the transaction (Idempotency Check)
   INSERT INTO public.point_transactions (
     child_id,
+    owner_user_id,
+    identity_key,
     amount,
     reason,
     idempotency_key,
@@ -130,6 +137,8 @@ BEGIN
     metadata
   ) VALUES (
     v_child_id,
+    v_owner_id,
+    v_owner_id::text,
     p_amount,
     p_reason,
     p_key,
@@ -145,17 +154,7 @@ BEGIN
   ON CONFLICT (child_id, idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
   RETURNING id INTO v_inserted_id;
 
-  -- 2. Fetch current stats
-  SELECT last_activity_at, streak_count, COALESCE(total_xp, 0)
-  INTO v_last_activity, v_streak_count, v_current_total_xp
-  FROM public.children
-  WHERE id = v_child_id;
-
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Child not found');
-  END IF;
-
-  -- 3. Calculate streak
+  -- 2. Calculate streak
   v_today := (NOW() AT TIME ZONE p_timezone)::DATE;
   v_yesterday := v_today - INTERVAL '1 day';
   v_last_active_date := (v_last_activity AT TIME ZONE p_timezone)::DATE;
