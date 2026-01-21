@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { AuditService, AuditAction, EntityType } from '@/lib/features/audit/audit-service.server';
+import { RewardService, RewardType } from '@/lib/features/activity/reward-service.server';
 
 // In-memory de-dupe for BOOK_OPENED events to prevent double-logs from Strict Mode or rapid refreshes
 const recentOpens = new Map<string, number>();
@@ -86,63 +87,49 @@ export async function POST(
 
         console.info(`[Progress API] Request: user=${user?.id}, childId=${childId}, isOpening=${isOpening}, isCompleted=${isCompleted}`);
 
-        // 1. Handle Audit Logging / Rewards
+        // 1. Handle Rewards via Deterministic RewardService
         let rewardResult: any = null;
 
         if (user && childId) {
-            console.info(`[Progress API] Auth flow: User=${user.id}, Child=${childId}, isOpening=${isOpening}, isCompleted=${isCompleted}`);
-            
-            // AUTH FLOW: Use the record_activity RPC for atomic updates & rewards
-            try {
-                // Determine reward
-                let xpReward = 0;
-                let action = isOpening ? AuditAction.BOOK_OPENED : null;
+            const rewardService = new RewardService(supabase);
+            const timezone = request.headers.get('x-timezone') || 'UTC';
 
-                // Priority: Completion XP
+            try {
+                // Determine rewards to claim
                 if (isCompleted) {
-                    const repo = new BookRepository();
-                    const currentProgress = await repo.getProgress(childId, bookId);
+                    // Claim completion reward (idempotent, once ever)
+                    const completionResult = await rewardService.claimReward({
+                        childId,
+                        rewardType: isMission ? RewardType.MISSION_COMPLETED : RewardType.BOOK_COMPLETED,
+                        entityId: bookId,
+                        timezone,
+                        metadata: { title: body.title, tokenIndex: payload.tokenIndex }
+                    });
                     
-                    if (!currentProgress?.is_completed) {
-                        console.info(`[Progress API] New completion detected for child=${childId}, book=${bookId}. isMission=${isMission}`);
-                        action = AuditAction.BOOK_COMPLETED;
-                        xpReward = isMission ? 100 : 50;
-                    } else {
-                        console.info(`[Progress API] Reward skipped: Book already marked as completed for child=${childId}`);
-                        if (isOpening) {
-                            action = AuditAction.BOOK_OPENED;
-                            xpReward = 10;
-                        }
+                    if (completionResult.success) {
+                        rewardResult = completionResult;
                     }
-                } else if (isOpening) {
-                    xpReward = 10;
                 }
 
-                if (action) {
-                    const { data: record, error: recordError } = await supabase.rpc('record_activity', {
-                        p_child_id: childId,
-                        p_action_type: action,
-                        p_entity_type: EntityType.BOOK,
-                        p_entity_id: bookId,
-                        p_details: { 
-                            isMission: !!isMission,
-                            tokenIndex: payload.tokenIndex,
-                            title: body.title 
-                        },
-                        p_xp_reward: xpReward
+                // Claim daily opening reward (idempotent, once per day)
+                if (isOpening) {
+                    const openingResult = await rewardService.claimReward({
+                        childId,
+                        rewardType: RewardType.BOOK_OPENED,
+                        entityId: bookId,
+                        timezone,
+                        metadata: { title: body.title }
                     });
 
-                    if (recordError) {
-                        console.error("[Progress API] record_activity RPC failed:", recordError);
-                    } else if (record?.success) {
-                        console.info(`[Progress API] record_activity result: success=${record.success}, xp_earned=${record.xp_earned}, is_new=${record.is_new_activity}`);
-                        rewardResult = record;
+                    // If we haven't granted a completion reward yet, or if this is the only action
+                    if (!rewardResult || openingResult.success) {
+                        rewardResult = openingResult;
                     }
                 }
             } catch (err) {
                 console.error("[Progress API] Reward logic failed:", err);
             }
-        } 
+        }
         
         // 2. Handle Progress Saving (Requires Auth + Child)
         if (!user || !childId) {

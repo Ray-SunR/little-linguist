@@ -34,9 +34,10 @@ export async function POST(req: Request): Promise<NextResponse> {
         }
 
         const service = new MagicSentenceService(user.id);
+        const timezone = req.headers.get('x-timezone') || 'UTC';
         
         try {
-            const result = await service.generateMagicSentence(words, activeChildId, generateImage);
+            const result = await service.generateMagicSentence(words, activeChildId, generateImage, timezone);
             return NextResponse.json(result);
         } catch (error: any) {
             console.error("[MagicSentence] Generation error:", error);

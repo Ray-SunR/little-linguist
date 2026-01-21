@@ -17,6 +17,7 @@ import {
     UsageIdentity
 } from "@/lib/features/usage/usage-service.server";
 import { BedrockEmbeddingService } from "@/lib/features/bedrock/bedrock-embedding.server";
+import { RewardService, RewardType } from "@/lib/features/activity/reward-service.server";
 import { cookies } from "next/headers";
 
 export const dynamic = 'force-dynamic';
@@ -704,39 +705,29 @@ FINAL RECAP:
                 }
             })());
 
-            // Audit & Rewards: Generation Success (Text phase)
+            // Audit & Rewards: Generation Success (Deterministic)
             const totalSections = data.sections.length;
-            console.info("[StoryAPI] Recording activity & award XP for STORY_GENERATED...");
+            const timezone = req.headers.get('x-timezone') || 'UTC';
+            const rewardService = new RewardService(supabase);
             
-            const { data: recordResult, error: recordError } = await supabase.rpc('record_activity', {
-                p_child_id: childId,
-                p_action_type: AuditAction.STORY_GENERATED,
-                p_entity_type: EntityType.STORY,
-                p_entity_id: bookId,
-                p_details: {
+            const rewardResult = await rewardService.claimReward({
+                childId: childId,
+                rewardType: RewardType.STORY_GENERATED,
+                entityId: bookId,
+                timezone,
+                metadata: {
                     title: data.sections[0]?.title || "Untitled",
                     sectionCount: data.sections.length,
                     sceneCount: totalSections,
                     imageCount: actualImageCount,
                     totalTokens: tokens.length
-                },
-                p_xp_reward: 200 // Big reward for creating a story!
+                }
             });
 
-            if (recordError) {
-                console.error("[StoryAPI] Failed to record activity:", recordError);
-                // Fallback to basic audit if RPC fails
-                await AuditService.log({
-                    action: AuditAction.STORY_GENERATED,
-                    entityType: EntityType.STORY,
-                    entityId: bookId,
-                    userId: ownerUserId,
-                    identityKey: identity?.identity_key,
-                    childId: childId,
-                    details: { message: "RPC failed, fallback to basic audit" }
-                });
+            if (!rewardResult.success) {
+                console.info(`[StoryAPI] Reward skipped: Already claimed or failed.`);
             } else {
-                console.info(`[StoryAPI] Story activity recorded. XP Earned: ${recordResult?.xp_earned}`);
+                console.info(`[StoryAPI] Story activity recorded. XP Earned: ${rewardResult.xp_earned}`);
             }
 
             return NextResponse.json({

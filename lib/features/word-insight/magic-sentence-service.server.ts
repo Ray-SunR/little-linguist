@@ -5,6 +5,7 @@ import { NovaStoryService } from "@/lib/features/nova/nova-service.server";
 import { Tokenizer } from "@/lib/core/books/tokenizer";
 import { getOrCreateIdentity, reserveCredits } from "@/lib/features/usage/usage-service.server";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
+import { RewardService, RewardType } from "@/lib/features/activity/reward-service.server";
 
 const BUCKET = "user-assets";
 
@@ -54,7 +55,12 @@ export class MagicSentenceService {
         return 6; // Default age
     }
 
-    async generateMagicSentence(words: string[], activeChildId: string, generateImage: boolean = false): Promise<MagicSentenceResult> {
+    async generateMagicSentence(
+        words: string[], 
+        activeChildId: string, 
+        generateImage: boolean = false,
+        timezone: string = 'UTC'
+    ): Promise<MagicSentenceResult> {
         // 1. Security Check
         const isOwner = await this.verifyChildOwnership(activeChildId);
         if (!isOwner) {
@@ -145,29 +151,20 @@ export class MagicSentenceService {
 
             generationSuccessful = true;
 
-            // D. Audit & Rewards
-            const { data: recordResult, error: recordError } = await this.adminSupabase.rpc('record_activity', {
-                p_child_id: activeChildId,
-                p_action_type: AuditAction.MAGIC_SENTENCE_GENERATED,
-                p_entity_type: EntityType.MAGIC_SENTENCE,
-                p_entity_id: sentenceId,
-                p_details: { word_count: words.length, has_image: generateImage },
-                p_xp_reward: 20 // Reward for engagement with words
+            // D. Deterministic Rewards
+            const rewardService = new RewardService(this.adminSupabase);
+            const rewardResult = await rewardService.claimReward({
+                childId: activeChildId,
+                rewardType: RewardType.MAGIC_SENTENCE_GENERATED,
+                entityId: sentenceId,
+                timezone,
+                metadata: { word_count: words.length, has_image: generateImage }
             });
 
-            if (recordError) {
-                console.error("[MagicSentenceService] Failed to record activity:", recordError);
-                // Fallback to basic audit
-                await AuditService.log({
-                    action: AuditAction.MAGIC_SENTENCE_GENERATED,
-                    entityType: EntityType.MAGIC_SENTENCE,
-                    entityId: sentenceId,
-                    userId: this.userId,
-                    childId: activeChildId,
-                    details: { word_count: words.length, has_image: generateImage, message: "RPC failed" }
-                });
+            if (!rewardResult.success) {
+                console.info(`[MagicSentenceService] Reward skipped: Already claimed or failed.`);
             } else {
-                console.info(`[MagicSentenceService] Magic sentence recorded. XP: ${recordResult?.xp_earned}`);
+                console.info(`[MagicSentenceService] Magic sentence recorded. XP Earned: ${rewardResult.xp_earned}`);
             }
 
             // E. Hydrate URLs

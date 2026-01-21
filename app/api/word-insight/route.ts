@@ -7,6 +7,7 @@ import { getWordAnalysisProvider } from "@/lib/features/word-insight/server/fact
 import { createClient as createAuthClient } from "@/lib/supabase/server";
 import { getOrCreateIdentity, checkUsageLimit, tryIncrementUsage } from "@/lib/features/usage/usage-service.server";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
+import { RewardService, RewardType } from "@/lib/features/activity/reward-service.server";
 
 export const dynamic = 'force-dynamic';
 
@@ -148,16 +149,16 @@ export async function POST(req: Request): Promise<NextResponse> {
                 exampleTimings: cached.example_timing_markers || [],
             });
 
-            // D. Audit & Rewards: Word Insight Viewed (Cache Hit)
+            // D. Audit & Rewards: Word Insight Viewed (Deterministic)
             const activeChildId = cookies().get('activeChildId')?.value;
             if (activeChildId) {
-                await adminSupabase.rpc('record_activity', {
-                    p_child_id: activeChildId,
-                    p_action_type: AuditAction.WORD_INSIGHT_VIEWED,
-                    p_entity_type: EntityType.WORD,
-                    p_entity_id: word,
-                    p_details: { cached: true },
-                    p_xp_reward: 5
+                const rewardService = new RewardService(adminSupabase);
+                const timezone = req.headers.get('x-timezone') || 'UTC';
+                await rewardService.claimReward({
+                    childId: activeChildId,
+                    rewardType: RewardType.WORD_INSIGHT_VIEWED,
+                    entityId: word,
+                    timezone
                 });
             } else {
                 await AuditService.log({
@@ -260,15 +261,15 @@ export async function POST(req: Request): Promise<NextResponse> {
                 exampleTimings: validExAudios.map(a => a.timings),
             });
 
-            // D. Audit & Rewards: Word Insight Generated (Cache Miss)
+            // D. Audit & Rewards: Word Insight Generated (Deterministic)
             if (activeChildId) {
-                await adminSupabase.rpc('record_activity', {
-                    p_child_id: activeChildId,
-                    p_action_type: AuditAction.WORD_INSIGHT_GENERATED,
-                    p_entity_type: EntityType.WORD,
-                    p_entity_id: word,
-                    p_details: { cached: false },
-                    p_xp_reward: 10
+                const rewardService = new RewardService(adminSupabase);
+                const timezone = req.headers.get('x-timezone') || 'UTC';
+                await rewardService.claimReward({
+                    childId: activeChildId,
+                    rewardType: RewardType.WORD_INSIGHT_VIEWED, // Still use WORD_INSIGHT_VIEWED for the coin reward
+                    entityId: word,
+                    timezone
                 });
             } else {
                 await AuditService.log({

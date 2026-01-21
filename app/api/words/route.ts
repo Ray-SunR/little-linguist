@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { normalizeWord } from "@/lib/core";
 import { sanitizeWord } from "@/lib/core/text-utils";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
+import { RewardService, RewardType } from "@/lib/features/activity/reward-service.server";
 
 
 export async function GET(request: NextRequest) {
@@ -277,31 +278,23 @@ export async function POST(request: NextRequest) {
 
         if (error) throw error;
 
-        // D. Audit & Rewards: Word Added
-        const { data: recordResult, error: recordError } = await adminClient.rpc('record_activity', {
-            p_child_id: childId,
-            p_action_type: AuditAction.WORD_ADDED,
-            p_entity_type: EntityType.WORD,
-            p_entity_id: normalized,
-            p_details: {
+        // D. Audit & Rewards: Word Added (Deterministic)
+        const rewardService = new RewardService(adminClient);
+        const timezone = request.headers.get('x-timezone') || 'UTC';
+        const rewardResult = await rewardService.claimReward({
+            childId: childId,
+            rewardType: RewardType.WORD_ADDED,
+            entityId: normalized,
+            timezone,
+            metadata: {
                 word: rawWord,
                 bookId: bookId,
                 insightGenerated: !!insight
-            },
-            p_xp_reward: 10 // Reward for and adding a word to their collection
+            }
         });
 
-        if (recordError) {
-            console.error("[Words API] Failed to record activity:", recordError);
-            // Fallback to basic audit
-            await AuditService.log({
-                action: AuditAction.WORD_ADDED,
-                entityType: EntityType.WORD,
-                entityId: normalized,
-                userId: user.id,
-                childId: childId,
-                details: { word: rawWord, bookId: bookId }
-            });
+        if (rewardResult.success) {
+            console.info(`[Words API] Reward claimed for word added: ${normalized}. XP: ${rewardResult.xp_earned}`);
         }
 
         return NextResponse.json({ success: true, word: normalized, entry: finalTerm });
