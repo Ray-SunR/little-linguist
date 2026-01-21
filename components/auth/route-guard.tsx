@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./auth-provider";
 
 const PUBLIC_ROUTES = [
@@ -21,6 +21,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     const { user, status } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     useEffect(() => {
         if (status === 'loading' || status === 'hydrating') return;
@@ -31,7 +32,12 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
         // Redirect logged-in users away from auth pages
         if (user && REDIRECT_TO_DASHBOARD.includes(pathname)) {
-            router.push('/dashboard');
+            const returnTo = searchParams.get('returnTo');
+            if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+                router.push(returnTo);
+            } else {
+                router.push('/dashboard');
+            }
             return;
         }
 
