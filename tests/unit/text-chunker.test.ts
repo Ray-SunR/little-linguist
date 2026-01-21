@@ -1,31 +1,19 @@
+import { describe, it, expect } from 'vitest';
 import { TextChunker } from '../../lib/core/books/text-chunker';
 
 const mockText = `Ginger the giraffe lived in Kenya. She had a long neck. She was very tall and could reach the tops of trees. Ginger loved the leaves. One day, Mickey the monkey arrived. He looked very tired. Mickey was hungry.`;
 
-function testChunker() {
-    console.log("Running TextChunker Unit Test...");
+describe('TextChunker', () => {
+    it('should chunk text and verify word counts', () => {
+        const chunks = TextChunker.chunk(mockText);
 
-    const chunks = TextChunker.chunk(mockText);
+        expect(chunks.length).toBeGreaterThan(0);
 
-    console.log(`Generated ${chunks.length} chunks.`);
+        chunks.forEach((chunk) => {
+            const wordCount = chunk.text.split(/\s+/).length;
+            const expectedCount = chunk.endWordIndex - chunk.startWordIndex + 1;
 
-    chunks.forEach((chunk, i) => {
-        console.log(`\nChunk ${chunk.index}:`);
-        console.log(`Words: ${chunk.startWordIndex} - ${chunk.endWordIndex}`);
-        console.log(`Content: ${chunk.text.substring(0, 50)}...`);
-
-        // Safety check: word count should match index range
-        const wordCount = chunk.text.split(/\s+/).length;
-        const expectedCount = chunk.endWordIndex - chunk.startWordIndex + 1;
-
-        if (wordCount !== expectedCount) {
-            console.error(`❌ Mismatch! Count: ${wordCount}, Expected: ${expectedCount}`);
-        } else {
-            console.log(`✅ Word count matches index range.`);
-        }
+            expect(wordCount).toBe(expectedCount);
+        });
     });
-
-    console.log("\nAll tests passed!");
-}
-
-testChunker();
+});

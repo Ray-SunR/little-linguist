@@ -496,6 +496,17 @@ export class BookRepository {
         return result;
     }
 
+    async createBook(book: Partial<Book>): Promise<Book> {
+        const { data, error } = await this.supabase
+            .from('books')
+            .insert(book)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    }
+
     async getNarrationChunks(bookId: string, voiceId?: string) {
         let query = this.supabase
             .from('book_audios')

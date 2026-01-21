@@ -17,3 +17,6 @@ Thumbs.db
 .gemini
 .shared
 output
+.opencode
+coverage
+docs
