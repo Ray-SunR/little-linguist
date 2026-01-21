@@ -46,13 +46,13 @@ export class RewardService {
         const amount = this.getRewardAmount(rewardType, metadata);
 
         const { data, error } = await this.supabase.rpc('claim_lumo_reward', {
-            p_child_id: childId,
+            p_child_id: String(childId), // Ensure string for text parameter
             p_key: claimKey,
-            p_amount: amount,
+            p_amount: Math.floor(amount), // Ensure integer
             p_reason: rewardType.toLowerCase(),
-            p_entity_id: entityId,
+            p_entity_id: entityId ? String(entityId) : null,
             p_timezone: timezone,
-            p_metadata: metadata
+            p_metadata: metadata || {}
         });
 
         if (error) {
