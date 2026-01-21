@@ -33,11 +33,11 @@ Implement a single orchestration script (`scripts/setup-local-env.ts`) that prep
 - `supabase/seed.sql`: (If needed) or automated invocation of `seed-library.ts`.
 
 ### Definition of Done
-- [ ] Running `npx tsx scripts/setup-local-env.ts` completes without errors.
-- [ ] Local Supabase contains all 19 production tables with correct RLS policies and RPC functions.
-- [ ] `.env.development.local` exists and contains correct local keys + production AI service credentials.
-- [ ] `stories` table is correctly included in `supabase_realtime` publication.
-- [ ] `npm run test:local-setup` passes (verification script).
+- [x] Running `npx tsx scripts/setup-local-env.ts` completes without errors.
+- [x] Local Supabase contains all 19 production tables with correct RLS policies and RPC functions.
+- [x] `.env.development.local` exists and contains correct local keys + production AI service credentials.
+- [x] `stories` table is correctly included in `supabase_realtime` publication.
+- [x] `npm run test:local-setup` passes (verification script).
 
 ### Must Have
 - Safety guardrails to prevent accidental production resets.
@@ -86,7 +86,7 @@ Task 1 (Sync Script) → Task 2 (Schema Sync) → Task 3 (Orchestration) → Tas
     - File `.env.development.local` is generated with correct local keys.
     - Production AI keys are preserved in the new file.
 
-- [ ] 2. Synchronize Schema and Functions (`supabase/migrations/20260121000000_sync_prod_schema.sql`)
+- [x] 2. Synchronize Schema and Functions (`supabase/migrations/20260121000000_sync_prod_schema.sql`)
   **What to do**:
   - Create a migration that includes all missing production logic:
     - Implement missing RLS policies for `audit_logs` and `book_contents`.
@@ -96,7 +96,7 @@ Task 1 (Sync Script) → Task 2 (Schema Sync) → Task 3 (Orchestration) → Tas
     - `npx supabase db reset` passes.
     - Local DB has all production functions and policies identified in research (excluding stale items).
 
-- [ ] 3. Create Orchestration Script (`scripts/setup-local-env.ts`)
+- [x] 3. Create Orchestration Script (`scripts/setup-local-env.ts`)
   **What to do**:
   - Implement the "Zero-to-Hero" orchestrator:
     1. Check if Docker is running (e.g., `docker info`).
@@ -110,7 +110,7 @@ Task 1 (Sync Script) → Task 2 (Schema Sync) → Task 3 (Orchestration) → Tas
     - All steps execute sequentially.
     - Terminal output clearly shows progress of each stage.
 
-- [ ] 4. Implement Setup Verification Script (`scripts/verify-local-setup.ts`)
+- [x] 4. Implement Setup Verification Script (`scripts/verify-local-setup.ts`)
   **What to do**:
   - Create a lightweight script to check:
     - Connection to local Supabase.
@@ -143,8 +143,8 @@ npx tsx scripts/integration-test.ts
 ```
 
 ### Final Checklist
-- [ ] Local Supabase is running and matches prod schema.
-- [ ] Environment variables are correctly synced for local use.
-- [ ] Storage buckets are initialized and seeded.
-- [ ] Realtime is enabled for `stories`.
-- [ ] Integration tests can run against local instance.
+- [x] Local Supabase is running and matches prod schema.
+- [x] Environment variables are correctly synced for local use.
+- [x] Storage buckets are initialized and seeded.
+- [x] Realtime is enabled for `stories`.
+- [x] Integration tests can run against local instance.

@@ -1,6 +1,9 @@
 {
   "active_plan": "/Users/renchen/Work/github/little-linguist/.sisyphus/plans/local-supabase-automation.md",
   "started_at": "2026-01-21T19:22:00.000Z",
-  "session_ids": ["ses_41e13e8a1ffe34Lp4rtRH74J9Q"],
+  "session_ids": [
+    "ses_41e13e8a1ffe34Lp4rtRH74J9Q",
+    "ses_41df77f06ffenoeZ5fM0TVcfcd"
+  ],
   "plan_name": "local-supabase-automation"
 }
