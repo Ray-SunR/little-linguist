@@ -712,7 +712,7 @@ export class BookRepository {
 
         const { data, error } = await this.supabase.rpc('match_books', {
             query_embedding: queryEmbedding,
-            match_threshold: options.matchThreshold ?? 0.15, // Lowered from 0.4 to capture broader matches
+            match_threshold: options.matchThreshold ?? 0.10, // Lowered from 0.4 to capture broader matches
             match_count: options.limit ?? 20,
             match_offset: options.offset ?? 0,
             filter_min_grade: minGrade,
@@ -765,7 +765,7 @@ export class BookRepository {
 
         const { data, error } = await this.supabase.rpc('match_books', {
             query_embedding: interestEmbedding,
-            match_threshold: options.matchThreshold ?? 0.15,
+            match_threshold: options.matchThreshold ?? 0.10,
             match_count: options.limit ?? 20,
             match_offset: options.offset ?? 0,
             filter_min_grade: minGrade,

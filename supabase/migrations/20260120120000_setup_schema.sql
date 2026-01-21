@@ -269,7 +269,8 @@ CREATE TABLE IF NOT EXISTS public.point_transactions (
     metadata JSONB DEFAULT '{}',
     identity_key TEXT,
     entity_id TEXT,
-    entity_type TEXT
+    entity_type TEXT,
+    UNIQUE(child_id, idempotency_key)
 );
 ALTER TABLE public.point_transactions ENABLE ROW LEVEL SECURITY;
 
@@ -986,4 +987,3 @@ CREATE POLICY "Owner view magic_sentences" ON public.child_magic_sentences FOR S
 CREATE POLICY "Public read badges" ON public.badges FOR SELECT USING (true);
 
 CREATE POLICY "Owner view child_badges" ON public.child_badges FOR SELECT USING (EXISTS (SELECT 1 FROM children WHERE id = child_id AND owner_user_id = auth.uid()));
-
