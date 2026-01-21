@@ -43,12 +43,27 @@ GOOGLE_PROJECT_ID=...
 GOOGLE_CREDENTIALS_JSON=...
 ```
 
-### 3. Database Migrations
-Migrations are automatically applied when you run `supabase start`. If you need to reset the database:
+### 3. Database & Storage Setup (Zero-to-Hero)
 
-```bash
-npx supabase db reset
-```
+When setting up a brand new local environment or after a complete database wipe, follow this exact sequence to ensure all dependencies are met:
+
+1.  **Schema Application**: Reset the database to apply the latest consolidated schema and policies.
+    ```bash
+    npx supabase db reset
+    ```
+
+2.  **Storage Initialization**: Create the required storage buckets.
+    ```bash
+    npx tsx scripts/setup-storage.ts
+    ```
+
+3.  **Master Seed**: Populate infrastructure data (subscription plans) and initial book content.
+    ```bash
+    npx tsx scripts/seed-library.ts --local
+    ```
+
+> [!IMPORTANT]
+> **Dependency Awareness**: The `UsageService` relies on the `subscription_plans` table being non-empty. If you skip step 3, the app will crash with error `PGRST116` when trying to resolve user quotas.
 
 ## 🧹 Maintenance & Troubleshooting
 
@@ -70,4 +85,4 @@ Ensure the following buckets are initialized in your local Supabase instance:
 -   `word-insights-audio` (Public)
 -   `user-assets` (Private, isolated by user ID)
 
-Use `scripts/seed-books.js` to populate initial data.
+Use `scripts/seed-library.ts --local` to populate initial data.

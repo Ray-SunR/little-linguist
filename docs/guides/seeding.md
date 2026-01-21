@@ -52,16 +52,27 @@ For books to be discoverable via semantic search and personalized recommendation
       `Title: {title}. Description: {description}. Keywords: {keywords}.`
 *   **Criticality**: These fields are essential for the **Search** and **Recommendations** features. Without a valid embedding, a book will not appear in semantic search results.
 
+### 7. Zero-to-Hero Database Setup
+When starting with an empty Supabase instance, the order of operations is critical. Infrastructure data must exist before any feature usage.
+
+**Recommended Sequence:**
+1.  **Schema**: `supabase db reset` (applies `setup_schema.sql`).
+2.  **Infrastructure**: `seed-library.ts` (populates `subscription_plans`).
+3.  **Storage**: `setup-storage.ts` (creates buckets).
+4.  **Content**: `seed-library.ts` (uploads books and assets).
+
+> [!CAUTION]
+> **PGRST116 Error**: If you see this error in `UsageService`, it means the `subscription_plans` table is empty. You MUST run the seeding script to populate quotas.
+
 ---
 
 ## 🚀 Relevant Scripts
 
 | Script | Purpose |
 | :--- | :--- |
-| `scripts/narration/sync-db.ts` | The standard for syncing narration and timings. Handles `timing_tokens.json` correctly. |
-| `scripts/seed-single-book.ts` | Basic script for seeding a new book structure. |
-| `scripts/seed-all-books.ts` | Seeds all books from `output/review-library`, including embedding generation. |
-| `scripts/backfill-embeddings.ts` | Utility to re-generate and update embeddings for all books in the database. |
-| `scripts/narration/orchestrate-mass-migration.ts` | Master script for concurrent mass updates. |
+| `scripts/seed-library.ts` | **Master Script**. Unified seeding for Infrastructure + Books + Assets + Embeddings. Use `--local` for local dev. |
+| `scripts/setup-storage.ts` | Initializes all required storage buckets (`book-assets`, etc.). |
+| `scripts/narration/sync-db.ts` | Specialized script for syncing narration and timings. |
+| `scripts/backfill-embeddings.ts` | Utility to re-generate and update embeddings for all books. |
 
 For more details on the narration pipeline, see [scripts/narration/README.md](../../scripts/narration/README.md).

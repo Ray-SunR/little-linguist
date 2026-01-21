@@ -6,6 +6,7 @@
  * 2. Upload assets (audio, images) to Supabase Storage
  * 3. Generate 1024-dim embeddings using Amazon Titan V2 via Bedrock
  * 4. Sync word-level timings from timing_tokens.json (Relative MS)
+ * 5. Seed essential infrastructure data (Subscription Plans)
  * 
  * Usage:
  * npx tsx scripts/seed-library.ts [optional_category] [--local]
@@ -40,6 +41,39 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 const embeddingService = new BedrockEmbeddingService();
+
+async function seedInfrastructure() {
+    console.log("\n🏗️ Seeding infrastructure data...");
+    
+    const plans = [
+        {
+            code: 'free',
+            name: 'Free Plan',
+            quotas: {
+                story_generation: 5,
+                image_generation: 10,
+                word_insight: 50,
+                magic_sentence: 20
+            }
+        },
+        {
+            code: 'pro',
+            name: 'Pro Plan',
+            quotas: {
+                story_generation: 100,
+                image_generation: 200,
+                word_insight: 1000,
+                magic_sentence: 500
+            }
+        }
+    ];
+
+    for (const plan of plans) {
+        const { error } = await supabase.from('subscription_plans').upsert(plan);
+        if (error) console.error(`  ❌ Failed to seed plan ${plan.code}:`, error.message);
+        else console.log(`  ✓ Seeded plan: ${plan.code}`);
+    }
+}
 
 function getMimeType(filePath: string): string {
     const ext = path.extname(filePath).toLowerCase();
@@ -243,12 +277,15 @@ async function run() {
     const targetCategory = process.argv.find(a => !a.startsWith('-') && !a.includes('/') && a !== 'tsx' && !a.endsWith('.ts'));
     console.log(`🚀 Seeding Raiden Library... ${targetCategory ? `(Category: ${targetCategory})` : '(Full Library)'}`);
     
+    // 0. Seed essential infrastructure first
+    await seedInfrastructure();
+
     let allBooks = findAllBooks(SEED_LIBRARY_PATH);
     if (targetCategory) {
         allBooks = allBooks.filter(p => p.startsWith(targetCategory));
     }
 
-    console.log(`Found ${allBooks.length} books.`);
+    console.log(`\n📚 Found ${allBooks.length} books.`);
     for (const relPath of allBooks) {
         try {
             await seedBook(relPath);
