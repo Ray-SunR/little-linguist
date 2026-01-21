@@ -1,1 +1,0 @@
-ALTER TABLE books ADD COLUMN IF NOT EXISTS voice_id text;

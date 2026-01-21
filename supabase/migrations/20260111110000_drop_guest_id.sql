@@ -1,2 +1,0 @@
--- No-op: This migration is superseded by 20260111130000_consolidate_usage.sql
--- We modify this file to do nothing to prevent migration conflicts in fresh environments.
