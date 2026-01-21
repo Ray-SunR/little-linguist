@@ -101,4 +101,65 @@ describe('StoryRepository', () => {
 
         await expect(repo.createStory(inputStory)).rejects.toEqual(error);
     });
+
+    it('should update story status', async () => {
+        const repo = new StoryRepository(mockSupabase);
+        const id = '123';
+        const status = 'completed';
+        
+        mockUpdate.mockReturnValue({
+            eq: mockEq
+        });
+        mockEq.mockResolvedValue({ error: null });
+
+        await repo.updateStoryStatus(id, status);
+
+        expect(mockSupabase.from).toHaveBeenCalledWith('stories');
+        expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            status,
+            updated_at: expect.any(String)
+        }));
+        expect(mockEq).toHaveBeenCalledWith('id', id);
+    });
+
+    it('should throw error if update status fails', async () => {
+        const repo = new StoryRepository(mockSupabase);
+        const error = { message: 'Update failed' };
+        
+        mockUpdate.mockReturnValue({
+            eq: mockEq
+        });
+        mockEq.mockResolvedValue({ error });
+
+        await expect(repo.updateStoryStatus('123', 'completed')).rejects.toEqual(error);
+    });
+
+    it('should update story', async () => {
+        const repo = new StoryRepository(mockSupabase);
+        const id = '123';
+        const updates = { main_character_description: 'Updated desc' };
+        const updatedStory = { id, ...updates, status: 'generating' } as StoryEntity;
+
+        mockSingle.mockResolvedValue({ data: updatedStory, error: null });
+
+        const result = await repo.updateStory(id, updates);
+
+        expect(result).toEqual(updatedStory);
+        expect(mockSupabase.from).toHaveBeenCalledWith('stories');
+        expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            ...updates,
+            updated_at: expect.any(String)
+        }));
+        expect(mockEq).toHaveBeenCalledWith('id', id);
+        expect(mockEq.mock.results[0].value.select).toHaveBeenCalled();
+    });
+
+    it('should throw error if update story fails', async () => {
+        const repo = new StoryRepository(mockSupabase);
+        const error = { message: 'Update failed' };
+        
+        mockSingle.mockResolvedValue({ data: null, error });
+
+        await expect(repo.updateStory('123', {})).rejects.toEqual(error);
+    });
 });
