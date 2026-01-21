@@ -10,74 +10,45 @@ This guide covers the setup and maintenance of your local development environmen
 
 ## 🚀 Getting Started
 
-### 1. Supabase Local Setup
-Raiden uses Supabase for the database, authentication, and storage. To start the local environment:
+Raiden provides a "Zero-to-Hero" orchestration script that automates the entire local Supabase setup, including starting services, applying migrations, syncing environment variables, and seeding data.
+
+### 1. Automated Setup
+
+Run the following command in your terminal:
 
 ```bash
-npx supabase start
+npx tsx scripts/setup-local-env.ts
 ```
 
-This will spin up Docker containers for:
--   PostgreSQL (Port `54322`)
--   GoTrue (Auth)
--   PostgREST (API Port `54321`)
--   Realtime
--   Storage
--   Studio (Port `54323`)
--   Inbucket (Email testing, Port `54324`)
+This script performs the following actions:
+1.  **Docker Check**: Verifies that Docker is running.
+2.  **Start Supabase**: Spins up local Docker containers (Postgres, Auth, Storage, etc.).
+3.  **Database Reset**: Applies all migrations to ensure your local schema matches production.
+4.  **Environment Sync**: Automatically generates `.env.development.local` by merging production AI credentials from `.env.local` with local Supabase keys.
+5.  **Storage Initialization**: Creates the required storage buckets (`book-assets`, `user-assets`, etc.).
+6.  **Library Seeding**: Populates mandatory infrastructure data (subscription plans) and initial book content.
+7.  **Realtime Setup**: Enables Supabase Realtime for the `stories` and `book_media` tables.
 
-### 2. Environment Variables
-Create a `.env.development.local` file in the root directory. You can find the local keys by running `npx supabase status`.
+### 2. Verification
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-local-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-local-service-role-key
+After the setup script completes, you can verify that everything is correctly configured by running:
 
-# AI Services (Requires valid AWS/Google credentials)
-POLLY_ACCESS_KEY_ID=...
-POLLY_SECRET_ACCESS_KEY=...
-POLLY_REGION=...
-
-GOOGLE_PROJECT_ID=...
-GOOGLE_CREDENTIALS_JSON=...
+```bash
+npm run test:local-setup
 ```
 
-### 3. Database & Storage Setup (Zero-to-Hero)
+This will check table existence, storage bucket availability, and Realtime publication status.
 
-When setting up a brand new local environment or after a complete database wipe, follow this exact sequence to ensure all dependencies are met:
+---
 
-1.  **Schema Application**: Reset the database to apply the latest consolidated schema and policies.
-    ```bash
-    npx supabase db reset
-    ```
+## 🏁 Environment Variables
 
-2.  **Storage Initialization**: Create the required storage buckets.
-    ```bash
-    npx tsx scripts/setup-storage.ts
-    ```
-
-3.  **Master Seed**: Populate infrastructure data (subscription plans) and initial book content.
-    ```bash
-    npx tsx scripts/seed-library.ts --local
-    ```
-
-4.  **Realtime Publication**: The `stories` table MUST be added to the `supabase_realtime` publication for the Story Maker UI to receive updates:
-    ```sql
-    alter publication supabase_realtime add table public.stories;
-    ```
+The setup script automatically generates `.env.development.local`. It pulls keys starting with `POLLY_`, `GOOGLE_`, `BEDROCK_`, etc., from your `.env.local` file (which should contain your production/valid credentials) and combines them with local Supabase details.
 
 > [!IMPORTANT]
-> **Dependency Awareness**: The `UsageService` relies on the `subscription_plans` table being non-empty. If you skip step 3, the app will crash with error `PGRST116` when trying to resolve user quotas.
+> Ensure you have a valid `.env.local` file with AI service credentials before running the setup script if you need AI features (narration, image generation) to work locally.
 
-## 🏁 Integrity Checklist (Mistakes to Avoid)
-
-Before considering a setup complete, verify the following:
-
--   **RPC Verification**: Run `grep -r ".rpc(" .` to find all application-side RPC calls and verify they have corresponding definitions in the database schema.
--   **Mandatory RPCs**: Ensure `append_story_log` and `update_section_image_status` are defined.
--   **Unique Constraints**: Ensure `point_transactions(child_id, idempotency_key)` and `book_media(book_id, path)` constraints exist.
--   **Realtime Publication**: Verify that the `stories` table is included in the `supabase_realtime` publication to avoid the UI getting stuck on "Generating...".
+---
 
 ## 🧹 Maintenance & Troubleshooting
 
@@ -93,10 +64,13 @@ The Raiden application heavily caches book metadata and content in the browser's
 4.  Right-click `raiden-cache` and select **Clear**.
 5.  Refresh the page.
 
-### Storage Buckets
-Ensure the following buckets are initialized in your local Supabase instance:
--   `book-assets` (Private)
--   `word-insights-audio` (Public)
--   `user-assets` (Private, isolated by user ID)
+### Manual Database Reset
+If you need to wipe your local database and start fresh without running the full orchestrator:
 
-Use `scripts/seed-library.ts --local` to populate initial data.
+```bash
+npx supabase db reset
+```
+
+> [!CAUTION]
+> The `UsageService` relies on the `subscription_plans` table being non-empty. After a manual `db reset`, you **must** run the seeding script:
+> `npx tsx scripts/seed-library.ts --local`
