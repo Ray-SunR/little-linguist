@@ -34,7 +34,7 @@ export function useUsage(features: string[] = ['story_generation', 'image_genera
         const set = new Set(['story_generation', 'image_generation', 'word_insight', 'magic_sentence']);
         features.forEach(f => set.add(f));
         return Array.from(set).sort();
-    }, [featuresKey]);
+    }, [features]);
     
     const cacheKey = baseFeatures.join(',');
 

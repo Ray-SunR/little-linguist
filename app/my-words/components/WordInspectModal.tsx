@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/core";
 import { 
@@ -152,7 +153,7 @@ export function WordInspectModal({ word, onClose }: WordInspectModalProps) {
                 >
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[2rem] sm:rounded-[2.5rem] bg-white shadow-clay-lg border-4 border-white overflow-hidden -rotate-6 hover:rotate-0 transition-transform duration-500">
                         {word.coverImageUrl ? (
-                            <img src={word.coverImageUrl} alt="" className="w-full h-full object-cover" />
+                            <Image src={word.coverImageUrl} alt="" className="w-full h-full object-cover" width={96} height={96} />
                         ) : (
                             <div className="w-full h-full bg-gradient-to-br from-violet-400 to-indigo-500 flex items-center justify-center">
                                 <BookOpen className="w-10 h-10 text-white/80" />

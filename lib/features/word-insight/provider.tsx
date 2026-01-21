@@ -233,7 +233,7 @@ export function WordListProvider({ children, fetchOnMount = true }: { children: 
         } else {
             setIsLoading(false); // Make sure we're not stuck in loading if no fetch
         }
-    }, [user?.id, activeChild?.id, authLoading, isMyWordsRoute, fetchOnMount, loadWords]);
+    }, [user?.id, activeChild?.id, authLoading, isMyWordsRoute, fetchOnMount, loadWords, words.length]);
 
     const addWord = async (word: WordInsight, bookId?: string) => {
         const baseId = `${word.word.toLowerCase()}:${bookId || 'global'}`;

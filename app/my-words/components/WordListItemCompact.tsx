@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { Play, Trash2, BookOpen, ChevronRight, CheckCircle2, Volume2, Sparkles, History } from "lucide-react";
 import { cn } from "@/lib/core";
 import type { SavedWord } from "@/lib/features/word-insight/provider";
@@ -115,10 +116,12 @@ export function WordListItemCompact({
                 <div className="flex-shrink-0 relative">
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl overflow-hidden border-2 border-white shadow-clay-sm -rotate-3 group-hover:rotate-0 transition-transform duration-500 bg-slate-100 flex items-center justify-center">
                         {word.coverImageUrl ? (
-                            <img 
+                            <Image 
                                 src={word.coverImageUrl} 
                                 alt={word.bookTitle || "source"} 
                                 className="w-full h-full object-cover"
+                                width={48}
+                                height={48}
                             />
                         ) : (
                             <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center p-1", fallbackStyle.bg)}>

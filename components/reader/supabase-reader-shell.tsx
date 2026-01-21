@@ -157,7 +157,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
             });
         }
         lastCompletedRef.current = isCompleted;
-    }, [isCompleted, saveProgress]);
+    }, [isCompleted, saveProgress, dispatchXpEvent]);
 
     // Handle opening reward too
     useEffect(() => {
@@ -166,7 +166,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                 dispatchXpEvent(res?.reward);
             });
         }
-    }, [selectedBookId, isMounted, saveProgress]);
+    }, [selectedBookId, isMounted, saveProgress, dispatchXpEvent]);
 
     const tooltipProvider = useMemo(() => new WebSpeechNarrationProvider(), []);
     const {

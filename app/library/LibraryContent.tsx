@@ -293,6 +293,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
             return { ...prev, [urlCollection]: currentUrlFilters };
         });
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]); // ONLY depend on searchParams for URL-to-state sync
 
 

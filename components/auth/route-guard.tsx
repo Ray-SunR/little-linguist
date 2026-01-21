@@ -46,7 +46,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
             router.push('/login');
             return;
         }
-    }, [user, status, pathname, router]);
+    }, [user, status, pathname, router, searchParams]);
 
     // Optional: Hide content while redirecting if you want to avoid flashes
     // if (status === 'loading' || status === 'hydrating') return <div className="min-h-screen bg-transparent" />;
