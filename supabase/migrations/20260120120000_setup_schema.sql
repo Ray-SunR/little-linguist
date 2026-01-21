@@ -176,7 +176,8 @@ CREATE TABLE IF NOT EXISTS public.book_media (
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT now(),
     owner_user_id UUID REFERENCES auth.users(id),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(book_id, path)
 );
 ALTER TABLE public.book_media ENABLE ROW LEVEL SECURITY;
 CREATE TRIGGER update_book_media_modtime BEFORE UPDATE ON public.book_media FOR EACH ROW EXECUTE PROCEDURE public.update_updated_at_column();
@@ -269,10 +270,11 @@ CREATE TABLE IF NOT EXISTS public.point_transactions (
     metadata JSONB DEFAULT '{}',
     identity_key TEXT,
     entity_id TEXT,
-    entity_type TEXT,
-    UNIQUE(child_id, idempotency_key)
+    entity_type TEXT
+    -- UNIQUE(child_id, idempotency_key) handled via explicit index below
 );
 ALTER TABLE public.point_transactions ENABLE ROW LEVEL SECURITY;
+CREATE UNIQUE INDEX IF NOT EXISTS point_transactions_child_idempotency_idx ON public.point_transactions (child_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 -- Subscription Plans
 CREATE TABLE IF NOT EXISTS public.subscription_plans (
@@ -883,7 +885,8 @@ BEGIN
                 v_entity_id,
                 v_entity_type,
                 v_idempotency_key
-            );
+            )
+            ON CONFLICT (child_id, idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING;
         END IF;
     END LOOP;
 
@@ -933,6 +936,109 @@ BEGIN
     RETURN QUERY SELECT v_success, COALESCE(v_current, 0), p_max_limit;
 END;
 $$;
+
+-- append_story_log
+CREATE OR REPLACE FUNCTION public.append_story_log(story_id uuid, new_log jsonb)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+BEGIN
+    UPDATE stories
+    SET generation_logs = COALESCE(generation_logs, '[]'::JSONB) || jsonb_build_array(new_log)
+    WHERE id = story_id;
+END;
+$function$;
+
+-- update_section_image_status
+CREATE OR REPLACE FUNCTION public.update_section_image_status(p_book_id uuid, p_section_index integer, p_status text, p_storage_path text DEFAULT NULL::text, p_error_message text DEFAULT NULL::text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+BEGIN
+    -- Update stories table
+    UPDATE public.stories
+    SET sections = (
+        SELECT jsonb_agg(
+            CASE 
+                WHEN (ordinality - 1) = p_section_index THEN 
+                    value || jsonb_build_object(
+                        'image_status', p_status,
+                        'storage_path', COALESCE(p_storage_path, value->>'storage_path'),
+                        'error_message', COALESCE(p_error_message, value->>'error_message'),
+                        'retry_count', COALESCE((value->>'retry_count')::int, 0) + (CASE WHEN p_status = 'generating' AND value->>'image_status' = 'failed' THEN 1 ELSE 0 END)
+                    )
+                ELSE value
+            END
+        )
+        FROM jsonb_array_elements(sections) WITH ORDINALITY
+    )
+    WHERE id = p_book_id;
+
+    -- Update books table (Metadata sections)
+    -- This triggers Realtime for the reader
+    UPDATE public.books
+    SET metadata = metadata || jsonb_build_object(
+        'sections', (
+            SELECT jsonb_agg(
+                CASE 
+                    WHEN (ordinality - 1) = p_section_index THEN 
+                        value || jsonb_build_object(
+                            'image_status', p_status,
+                            'storage_path', COALESCE(p_storage_path, value->>'storage_path'),
+                            'retry_count', COALESCE((value->>'retry_count')::int, 0) + (CASE WHEN p_status = 'generating' AND value->>'image_status' = 'failed' THEN 1 ELSE 0 END)
+                        )
+                    ELSE value
+                END
+            )
+            FROM jsonb_array_elements(metadata->'sections') WITH ORDINALITY
+        )
+    )
+    WHERE id = p_book_id;
+END;
+$function$;
+
+-- get_audit_logs
+CREATE OR REPLACE FUNCTION public.get_audit_logs(p_identity_key text DEFAULT NULL::text, p_action_type audit_action_type DEFAULT NULL::audit_action_type, p_limit integer DEFAULT 50, p_offset integer DEFAULT 0)
+ RETURNS TABLE(id uuid, created_at timestamp with time zone, action_type audit_action_type, entity_type audit_entity_type, entity_id text, details jsonb, status text, ip_address text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        a.id,
+        a.created_at,
+        a.action_type,
+        a.entity_type,
+        a.entity_id,
+        a.details,
+        a.status,
+        a.ip_address
+    FROM public.audit_logs a
+    WHERE 
+        (p_identity_key IS NULL OR a.identity_key = p_identity_key)
+        AND
+        (p_action_type IS NULL OR a.action_type = p_action_type)
+    ORDER BY a.created_at DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+END;
+$function$;
+
+-- cleanup_old_audit_logs
+CREATE OR REPLACE FUNCTION public.cleanup_old_audit_logs()
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+BEGIN
+    DELETE FROM public.audit_logs
+    WHERE created_at < (now() - INTERVAL '90 days');
+END;
+$function$;
 
 -- 6. Policies
 -- Generic Read/Write for Owner pattern
@@ -987,3 +1093,21 @@ CREATE POLICY "Owner view magic_sentences" ON public.child_magic_sentences FOR S
 CREATE POLICY "Public read badges" ON public.badges FOR SELECT USING (true);
 
 CREATE POLICY "Owner view child_badges" ON public.child_badges FOR SELECT USING (EXISTS (SELECT 1 FROM children WHERE id = child_id AND owner_user_id = auth.uid()));
+
+-- 7. Realtime Setup
+-- Enable Realtime for the 'stories' table to support the Story Maker UI
+begin;
+  -- drop the publication if it exists
+  drop publication if exists supabase_realtime;
+  -- create the publication
+  create publication supabase_realtime;
+commit;
+
+-- Add the stories table to the publication
+alter publication supabase_realtime add table public.stories;
+
+-- Optional: Add audit_logs or feature_usage if UI needs live updates there
+-- alter publication supabase_realtime add table public.audit_logs;
+
+-- Enable Realtime for book_media to support image updates in Reader
+alter publication supabase_realtime add table public.book_media;

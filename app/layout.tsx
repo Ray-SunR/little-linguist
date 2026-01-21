@@ -8,6 +8,7 @@ import { ChildGate } from "@/components/auth/child-gate";
 import { WordListGate } from "@/components/providers/word-list-gate";
 import { NarrationGate } from "@/components/providers/narration-gate";
 import { Toaster } from "sonner";
+import { Suspense } from "react";
 
 import dynamic from "next/dynamic";
 const GlobalStoryListener = dynamic(
@@ -53,24 +54,26 @@ export default function RootLayout({
         <NativeIntegrations />
         <AuthProvider>
           <DeepLinkHandler />
-          <RouteGuard>
-            <TutorialProvider>
-              <TutorialOverlay />
-              <WordListGate>
-                <NarrationGate>
-                  <GlobalStoryListener />
-                  <ChildGate />
-                  <div className="relative flex flex-col lg:flex-row min-h-screen">
-                    <div className="flex-1 w-full flex flex-col">
-                      <GuestBanner />
-                      {children}
+          <Suspense fallback={null}>
+            <RouteGuard>
+              <TutorialProvider>
+                <TutorialOverlay />
+                <WordListGate>
+                  <NarrationGate>
+                    <GlobalStoryListener />
+                    <ChildGate />
+                    <div className="relative flex flex-col lg:flex-row min-h-screen">
+                      <div className="flex-1 w-full flex flex-col">
+                        <GuestBanner />
+                        {children}
+                      </div>
+                      <ClayNav />
                     </div>
-                    <ClayNav />
-                  </div>
-                </NarrationGate>
-              </WordListGate>
-            </TutorialProvider>
-          </RouteGuard>
+                  </NarrationGate>
+                </WordListGate>
+              </TutorialProvider>
+            </RouteGuard>
+          </Suspense>
         </AuthProvider>
         <CookieConsent />
         <Analytics />

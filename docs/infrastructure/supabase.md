@@ -39,6 +39,18 @@ Vector similarity search.
 -   Uses `pgvector` to find books similar to a query embedding.
 -   Filters for public content only (`owner_user_id IS NULL`).
 
+## 🛡️ Data Integrity & Story Maker Requirements
+
+### Mandatory RPCs for Story Maker
+Future setups MUST include these functions in the schema:
+-   **`append_story_log(story_id, new_log)`**: Essential for tracking the step-by-step progress of story generation.
+-   **`update_section_image_status(p_book_id, p_section_index, p_status, ...)`**: Required for the UI to show real-time image generation status and handle retries.
+
+### Required Unique Constraints
+Ensure these constraints exist for idempotent operations:
+-   **`point_transactions`**: `UNIQUE(child_id, idempotency_key)` - Prevents duplicate reward claims.
+-   **`book_media`**: `UNIQUE(book_id, path)` - Prevents duplicate image entries during seeding/generation.
+
 ## 🔐 Row Level Security (RLS)
 
 Raiden follows a strict security model:

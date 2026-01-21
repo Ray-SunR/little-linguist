@@ -62,8 +62,22 @@ When setting up a brand new local environment or after a complete database wipe,
     npx tsx scripts/seed-library.ts --local
     ```
 
+4.  **Realtime Publication**: The `stories` table MUST be added to the `supabase_realtime` publication for the Story Maker UI to receive updates:
+    ```sql
+    alter publication supabase_realtime add table public.stories;
+    ```
+
 > [!IMPORTANT]
 > **Dependency Awareness**: The `UsageService` relies on the `subscription_plans` table being non-empty. If you skip step 3, the app will crash with error `PGRST116` when trying to resolve user quotas.
+
+## 🏁 Integrity Checklist (Mistakes to Avoid)
+
+Before considering a setup complete, verify the following:
+
+-   **RPC Verification**: Run `grep -r ".rpc(" .` to find all application-side RPC calls and verify they have corresponding definitions in the database schema.
+-   **Mandatory RPCs**: Ensure `append_story_log` and `update_section_image_status` are defined.
+-   **Unique Constraints**: Ensure `point_transactions(child_id, idempotency_key)` and `book_media(book_id, path)` constraints exist.
+-   **Realtime Publication**: Verify that the `stories` table is included in the `supabase_realtime` publication to avoid the UI getting stuck on "Generating...".
 
 ## 🧹 Maintenance & Troubleshooting
 

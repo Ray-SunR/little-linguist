@@ -70,6 +70,8 @@ export async function POST(req: Request) {
     try {
         const body = await req.json();
         const { words, childId, userProfile, storyLengthMinutes: reqStoryLength = 5, imageSceneCount: reqImageCount, idempotencyKey } = body || {};
+        const storyIdempotencyKey = idempotencyKey ? `${idempotencyKey}:story` : undefined;
+        const imageIdempotencyKey = idempotencyKey ? `${idempotencyKey}:images` : undefined;
 
         // Coerce and validate story length (Minutes)
         // User requested 1-10 minutes range
@@ -213,8 +215,8 @@ FINAL RECAP:
         const reservationResult = isTestMode
             ? { success: true }
             : await reserveCredits(identity, [
-                { featureName: "story_generation", increment: 1, childId, metadata: { book_id: bookId }, idempotencyKey, entityId: bookId, entityType: 'story' },
-                { featureName: "image_generation", increment: imageSceneCount, childId, metadata: { book_id: bookId }, idempotencyKey, entityId: bookId, entityType: 'story' }
+                { featureName: "story_generation", increment: 1, childId, metadata: { book_id: bookId }, idempotencyKey: storyIdempotencyKey, entityId: bookId, entityType: 'story' },
+                { featureName: "image_generation", increment: imageSceneCount, childId, metadata: { book_id: bookId }, idempotencyKey: imageIdempotencyKey, entityId: bookId, entityType: 'story' }
             ]);
 
         if (!reservationResult.success) {
@@ -336,7 +338,7 @@ FINAL RECAP:
                 const refundAmount = imageSceneCount - actualImageCount;
                 if (refundAmount > 0) {
                     console.warn(`[StoryAPI] Model under-generated images (${actualImageCount}/${imageSceneCount}). Refunding ${refundAmount} credits.`);
-                    await refundCredits(identity!, "image_generation", refundAmount, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
+                    await refundCredits(identity!, "image_generation", refundAmount, childId, { book_id: bookId }, imageIdempotencyKey, bookId, 'story');
                     creditsRefunded += refundAmount;
                 }
             }
@@ -660,7 +662,7 @@ FINAL RECAP:
                             const failedCount = actualImageCount - successfulCount;
                             if (failedCount > 0 && identity && !isTestMode) {
                                 console.warn(`[StoryAPI] Failed to generate ${failedCount} images. Refunding credits.`);
-                                await refundCredits(identity, "image_generation", failedCount, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
+                                await refundCredits(identity, "image_generation", failedCount, childId, { book_id: bookId }, imageIdempotencyKey, bookId, 'story');
                             }
                         }
                     }
@@ -686,9 +688,9 @@ FINAL RECAP:
 
                         const remainingImagesCharged = imageSceneCount - creditsRefunded;
 
-                        await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
+                        await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId }, storyIdempotencyKey, bookId, 'story');
                         if (remainingImagesCharged > 0) {
-                            await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
+                            await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId }, imageIdempotencyKey, bookId, 'story');
                         }
                     }
 
@@ -749,9 +751,9 @@ FINAL RECAP:
                 // Refund everything we haven't already refunded
                 const remainingImagesCharged = imageSceneCount - creditsRefunded;
 
-                await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
+                await refundCredits(identity, "story_generation", 1, childId, { book_id: bookId }, storyIdempotencyKey, bookId, 'story');
                 if (remainingImagesCharged > 0) {
-                    await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId }, idempotencyKey, bookId, 'story');
+                    await refundCredits(identity, "image_generation", remainingImagesCharged, childId, { book_id: bookId }, imageIdempotencyKey, bookId, 'story');
                 }
             }
 

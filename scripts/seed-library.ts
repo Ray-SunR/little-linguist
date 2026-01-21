@@ -119,16 +119,21 @@ async function seedBook(relPath: string) {
     const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
     const bookKey = metadata.id || relPath.split(path.sep).pop();
 
-    const { data: existingBook } = await supabase
+    const { data: existingBook, error: fetchError } = await supabase
         .from("books")
         .select("id")
         .eq("book_key", bookKey)
         .maybeSingle();
 
-    const bookId = existingBook?.id || crypto.randomUUID(); 
-    console.log(`\n📖 Processing: "${metadata.title}"`);
+    if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error(`  ❌ Error fetching existing book: ${fetchError.message}`);
+        return;
+    }
 
-    // 1. Upload Assets
+    const bookId = existingBook?.id || crypto.randomUUID(); 
+    console.log(`\n📖 Processing: "${metadata.title}" (ID: ${bookId})`);
+
+    // 1. Upload Cover
     let coverPath = null;
     let localCover = path.join(bookDir, "cover.webp");
     if (!fs.existsSync(localCover)) localCover = path.join(bookDir, "cover.png");
@@ -190,11 +195,12 @@ async function seedBook(relPath: string) {
     }
 
     if (fullText) {
-        await supabase.from("book_contents").upsert({
+        const { error: contentError } = await supabase.from("book_contents").upsert({
             book_id: bookId,
             full_text: fullText,
             tokens: metadata.tokens || null, 
         }, { onConflict: 'book_id' });
+        if (contentError) console.error(`  ❌ DB Error (content):`, contentError.message);
     }
 
     // 5. Audio & Timings
@@ -218,7 +224,7 @@ async function seedBook(relPath: string) {
                     absIndex: t.absIndex
                 }));
 
-                await supabase.from("book_audios").upsert({
+                const { error: audioError } = await supabase.from("book_audios").upsert({
                     book_id: bookId,
                     voice_id: voiceId,
                     audio_path: uploaded,
@@ -227,6 +233,8 @@ async function seedBook(relPath: string) {
                     end_word_index: shard.end_word_index,
                     timings: finalTimings.length > 0 ? finalTimings : (shard.timings || [])
                 }, { onConflict: 'book_id,chunk_index,voice_id' });
+                
+                if (audioError) console.error(`  ❌ DB Error (audio shard ${shard.index}):`, audioError.message);
             }
         }
         console.log(`  ✓ Synced audio & timings`);
@@ -241,13 +249,16 @@ async function seedBook(relPath: string) {
                 const dest = `${bookId}/scenes/${scene.index}.webp`;
                 const uploaded = await uploadAsset("book-assets", localScene, dest);
                 if (uploaded) {
-                    await supabase.from("book_media").upsert({
+                    const { error: mediaError } = await supabase.from("book_media").upsert({
                         book_id: bookId,
                         media_type: "image",
                         path: uploaded,
                         metadata: { index: scene.index },
-                        after_word_index: scene.after_word_index || 0
+                        after_word_index: scene.after_word_index || 0,
+                        owner_user_id: null // System media
                     }, { onConflict: 'book_id,path' });
+                    
+                    if (mediaError) console.error(`  ❌ DB Error (media scene ${scene.index}):`, mediaError.message);
                 }
             }
         }
