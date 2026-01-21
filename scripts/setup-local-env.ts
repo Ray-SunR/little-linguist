@@ -30,9 +30,9 @@ async function main() {
 
   runCommand('npx tsx scripts/seed-library.ts --local', 'Seeding library');
 
-  const sql = 'ALTER PUBLICATION supabase_realtime ADD TABLE public.stories;';
+  const sql = 'ALTER PUBLICATION supabase_realtime ADD TABLE public.stories, public.book_media;';
   const containerName = 'supabase_db_raiden';
-  runCommand(`docker exec -i ${containerName} psql -U postgres -d postgres -c "${sql}" || true`, 'Enabling realtime for stories table');
+  runCommand(`docker exec -i ${containerName} psql -U postgres -d postgres -c "${sql}" || true`, 'Enabling realtime for stories and book_media tables');
 
   console.log('\n🎉 Local environment setup complete! "Zero-to-Hero" achieved.');
 }

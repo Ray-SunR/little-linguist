@@ -99,17 +99,20 @@ async function verify() {
   }
   console.log("");
 
-  console.log("⚡ Checking Realtime publication for \"stories\" table...");
+  const REALTIME_TABLES = ["stories", "book_media"];
+  console.log(`⚡ Checking Realtime publication for ${REALTIME_TABLES.map(t => `"${t}"`).join(", ")} tables...`);
   try {
     const containerName = "supabase_db_raiden";
-    const checkSql = "SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'stories';";
-    const output = execSync(`docker exec ${containerName} psql -U postgres -d postgres -t -c "${checkSql}"`).toString().trim();
-    
-    if (output === "1") {
-      console.log("  ✅ Realtime enabled for \"stories\".");
-    } else {
-      console.error("  ❌ Realtime NOT enabled for \"stories\".");
-      failed = true;
+    for (const table of REALTIME_TABLES) {
+      const checkSql = `SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = '${table}';`;
+      const output = execSync(`docker exec ${containerName} psql -U postgres -d postgres -t -c "${checkSql}"`).toString().trim();
+      
+      if (output === "1") {
+        console.log(`  ✅ Realtime enabled for "${table}".`);
+      } else {
+        console.error(`  ❌ Realtime NOT enabled for "${table}".`);
+        failed = true;
+      }
     }
   } catch (err) {
     console.error("  ⚠️ Could not verify Realtime via docker exec.");
