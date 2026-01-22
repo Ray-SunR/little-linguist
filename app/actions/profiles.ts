@@ -138,6 +138,44 @@ async function validateAvatarPath(
   return path;
 }
 
+/**
+ * Claims a guest avatar by copying it to the user's folder.
+ * This is necessary because strict path isolation prevents users from accessing 'guests/'
+ * paths directly unless they have the matching cookie (which is often lost/cleared after signup).
+ */
+export async function claimGuestAvatar(path: string, userId: string): Promise<string | null> {
+  // Only handle guest paths
+  if (!path || !path.startsWith('guests/')) {
+    return null;
+  }
+
+  try {
+    const fileName = path.split('/').pop();
+    if (!fileName) return null;
+
+    const newPath = `${userId}/avatars/${fileName}`;
+    const supabase = createClient();
+    
+    // Copy the file. Note: Copy is atomic.
+    const { error } = await supabase.storage
+      .from(AVATAR_BUCKET)
+      .copy(path, newPath);
+
+    if (error) {
+      // If error is "The object already exists", we can safely return the new path
+      // But Supabase storage copy error handling can be specific. 
+      // For now, log warning and return null to fallback to original behavior (which will fail validation)
+      console.warn('[profiles:claimGuestAvatar] Copy failed:', { path, newPath, error });
+      return null;
+    }
+
+    return newPath;
+  } catch (err: any) {
+    console.error('[profiles:claimGuestAvatar] Unexpected error:', err);
+    return null;
+  }
+}
+
 export async function createChildProfile(data: ChildProfilePayload) {
   try {
     const supabase = createClient();
@@ -159,13 +197,23 @@ export async function createChildProfile(data: ChildProfilePayload) {
     // 1. Prefer explicit avatar_paths from payload (e.g. from StoryMaker migration)
     if (data.avatar_paths && data.avatar_paths.length > 0) {
       for (const p of data.avatar_paths) {
-        const validated = await validateAvatarPath(p, user.id);
+        let finalPath = p;
+        if (p.startsWith('guests/')) {
+          const claimed = await claimGuestAvatar(p, user.id);
+          if (claimed) finalPath = claimed;
+        }
+        const validated = await validateAvatarPath(finalPath, user.id);
         if (validated) avatarPaths.push(validated);
       }
     }
     // 2. Fallback to avatar_asset_path (legacy style or direct preview URL)
     else if (data.avatar_asset_path) {
-      const storagePath = await validateAvatarPath(data.avatar_asset_path, user.id);
+      let finalPath = data.avatar_asset_path;
+      if (finalPath.startsWith('guests/')) {
+        const claimed = await claimGuestAvatar(finalPath, user.id);
+        if (claimed) finalPath = claimed;
+      }
+      const storagePath = await validateAvatarPath(finalPath, user.id);
       if (storagePath) {
         avatarPaths = [storagePath];
       }
@@ -258,7 +306,14 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
 
     // Handle avatar assignment if provided
     if (data.avatar_asset_path) {
-      const uploadedPath = await validateAvatarPath(data.avatar_asset_path, user.id);
+      // Claim guest avatar if needed (e.g. late registration or guest update)
+      let finalPath = data.avatar_asset_path;
+      if (finalPath.startsWith('guests/')) {
+        const claimed = await claimGuestAvatar(finalPath, user.id);
+        if (claimed) finalPath = claimed;
+      }
+
+      const uploadedPath = await validateAvatarPath(finalPath, user.id);
       if (uploadedPath) {
         // Get existing avatar_paths and append (with owner_user_id filter for safety)
         const { data: existing } = await supabase
