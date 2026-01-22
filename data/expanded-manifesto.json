@@ -664,5 +664,105 @@
     "level": "G3-5",
     "is_nonfiction": false,
     "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-11",
+    "title": "The White Dragon Horse",
+    "concept_prompt": "A brave prince turns into a magical horse to help Sun Wukong and the monk on their journey.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g12-12",
+    "title": "The Golden Cudgel's Weight",
+    "concept_prompt": "Sun Wukong learns that his staff is as heavy as the sea, and only he can lift it.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-10",
+    "title": "Journey through the Flaming Mountains",
+    "concept_prompt": "Sun Wukong must borrow a magic fan from Princess Iron Fan to put out the eternal fires.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-11",
+    "title": "The Spider Demons' Web",
+    "concept_prompt": "Sun Wukong uses his 72 transformations to escape a trap set by the tricky Spider Demons.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "sunwukong-g35-12",
+    "title": "The Lion-Camel Ridge Battle",
+    "concept_prompt": "Sun Wukong faces three powerful demon brothers in an epic battle to save his friends.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "sunwukong_series"
+  },
+  {
+    "id": "avengers-g12-100",
+    "title": "Iron Man's First Flight",
+    "concept_prompt": "Tony Stark builds a shiny red suit and learns how to fly high above the city.",
+    "category": "avengers",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "avengers_series"
+  },
+  {
+    "id": "avengers-g12-101",
+    "title": "Hulk's Big Day",
+    "concept_prompt": "Bruce Banner turns into the Hulk and helps the team move some heavy obstacles.",
+    "category": "avengers",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "avengers_series"
+  },
+  {
+    "id": "avengers-g35-102",
+    "title": "The Battle of New York",
+    "concept_prompt": "The Avengers unite for the first time to stop an alien invasion in the heart of the city.",
+    "category": "avengers",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "avengers_series"
+  },
+  {
+    "id": "avengers-g35-103",
+    "title": "Age of Ultron",
+    "concept_prompt": "The team must stop a clever robot named Ultron from taking over the world's computers.",
+    "category": "avengers",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "avengers_series"
+  },
+  {
+    "id": "avengers-g35-104",
+    "title": "Infinity Quest",
+    "concept_prompt": "The Avengers search the galaxy for powerful gems to protect the universe from a space villain.",
+    "category": "avengers",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "avengers_series"
+  },
+  {
+    "id": "batman-g13-100",
+    "title": "The Shadows of Gotham",
+    "concept_prompt": "Batman patrols the rainy streets of Gotham City, solving a mystery at the museum and helping the citizens feel safe.",
+    "category": "batman",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "batman_series",
+    "style": "Realistic cinematic photography, highly detailed textures, dramatic noir lighting, dark atmosphere, 8k resolution"
   }
 ]

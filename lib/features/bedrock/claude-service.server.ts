@@ -177,13 +177,15 @@ export class ClaudeStoryService {
         try {
             return JSON.parse(jsonMatch[0]);
         } catch (e) {
-            console.error("JSON parse error in generateKeywordsAndDescription:", e, "JSON string:", jsonMatch[0]);
-            // Fallback: try to fix common issues like trailing commas
+            console.error("JSON parse error in generateKeywordsAndDescription. Attempting cleanup...", e);
             try {
-                const fixedJson = jsonMatch[0].replace(/,\s*([\}\]])/g, '$1');
-                return JSON.parse(fixedJson);
-            } catch (e2) {
-                throw new Error("Failed to parse fixed keywords JSON");
+                const cleaned = jsonMatch[0]
+                    .replace(/,\s*([\]\}])/g, '$1')
+                    .replace(/[\u201C\u201D]/g, '"');
+                return JSON.parse(cleaned);
+            } catch (innerErr) {
+                console.error("Failed to parse keywords JSON even after cleaning. Raw string:", jsonMatch[0]);
+                throw new Error("Failed to parse keywords JSON");
             }
         }
     }

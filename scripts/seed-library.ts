@@ -286,10 +286,17 @@ function findAllBooks(dir: string, base: string = ""): string[] {
 
 async function run() {
     const targetCategory = process.argv.find(a => !a.startsWith('-') && !a.includes('/') && a !== 'tsx' && !a.endsWith('.ts'));
-    console.log(`🚀 Seeding Raiden Library... ${targetCategory ? `(Category: ${targetCategory})` : '(Full Library)'}`);
+    const skipBooks = process.argv.includes('--skip-books');
+    
+    console.log(`🚀 Seeding Raiden Library... ${skipBooks ? '(Infrastructure Only)' : (targetCategory ? `(Category: ${targetCategory})` : '(Full Library)')}`);
     
     // 0. Seed essential infrastructure first
     await seedInfrastructure();
+
+    if (skipBooks) {
+        console.log("✨ Infrastructure seeding finished.");
+        return;
+    }
 
     let allBooks = findAllBooks(SEED_LIBRARY_PATH);
     if (targetCategory) {

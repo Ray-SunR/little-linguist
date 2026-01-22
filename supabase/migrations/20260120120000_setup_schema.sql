@@ -312,7 +312,8 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     details JSONB DEFAULT '{}',
     status TEXT DEFAULT 'success',
     created_at TIMESTAMPTZ DEFAULT now(),
-    child_id UUID REFERENCES public.children(id) ON DELETE SET NULL
+    child_id UUID REFERENCES public.children(id) ON DELETE SET NULL,
+    CONSTRAINT audit_details_size_check CHECK (octet_length(details::text) < 5000)
 );
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
@@ -1093,6 +1094,11 @@ CREATE POLICY "Owner view magic_sentences" ON public.child_magic_sentences FOR S
 CREATE POLICY "Public read badges" ON public.badges FOR SELECT USING (true);
 
 CREATE POLICY "Owner view child_badges" ON public.child_badges FOR SELECT USING (EXISTS (SELECT 1 FROM children WHERE id = child_id AND owner_user_id = auth.uid()));
+
+CREATE POLICY "Allow public feedback insertion" ON public.feedbacks FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow users to view own feedback" ON public.feedbacks FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Allow service role to manage word_insights" ON public.word_insights FOR ALL USING (auth.role() = 'service_role');
 
 -- 7. Realtime Setup
 -- Enable Realtime for the 'stories' table to support the Story Maker UI

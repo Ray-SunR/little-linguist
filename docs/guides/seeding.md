@@ -1,78 +1,88 @@
-# Book Seeding & Narration Sync Guide
+# Book Generation & Seeding Guide 📚
 
-This guide captures essential knowledge and technical requirements for seeding books and syncing narration data in the Raiden repository, particularly in local Supabase environments.
-
-## 📖 Overview
-Seeding books involves inserting metadata into the `books` table, uploading assets (covers, scene images, audio) to Supabase Storage, and populating `book_contents` and `book_audios`.
+This guide explains the two primary ways to populate your local Raiden library: **AI Generation** (creating brand new content) and **Production Sync** (cloning public content from production).
 
 ---
 
-## 🛠 Lessons Learned & Requirements
+## 1. AI Content Generation Pipeline
+Raiden includes a sophisticated pipeline that uses state-of-the-art AI to generate stories, illustrations, and narrations.
 
-### 1. Timing Data Sources
-*   **Source of Truth**: Never rely solely on the `timings` array inside `metadata.json`, as it may be empty or incomplete.
-*   **Requirement**: Always check for a sibling `timing_tokens.json` file in the book folder. This file is the primary source for word-level synchronization.
+### 🚀 The Command
+```bash
+npm run library:generate -- [options]
+```
 
-### 2. Relative vs. Absolute Timings
-*   **The Difference**: Absolute timestamps are cumulative from the start of the book. Audio shards, however, require timings relative to their own start.
-*   **Requirement**: The database `book_audios.timings` column MUST contain **shard-relative milliseconds**.
-*   **Calculation**: 
-    ```typescript
-    relativeMs = (tokenStartSeconds - shardOffsetSeconds) * 1000
+### ⚙️ Options
+| Flag | Description | Example |
+| :--- | :--- | :--- |
+| `--category=[name]` | Filter generation to a specific category (from the manifesto). | `--category=sunwukong` |
+| `--id=[id]` | Generate a single specific book by its ID. | `--id=avengers-g35-102` |
+| `--limit=[num]` | Limit the number of new books to generate. | `--limit=5` |
+| `--align` | Force word-level alignment using a local Gentle server (Required for word highlighting). | `--align` |
+
+### 🛠 How it Works
+The pipeline executes the following stages in sequence:
+1.  **Story Writing**: Uses **Claude 3.5 Sonnet** (via Bedrock) to write a grade-appropriate story based on a concept prompt.
+2.  **Narration**: Uses **Amazon Polly** (Generative engine) to synthesize the audio.
+3.  **Illustration**: Uses **Stability AI** to generate a cover and unique scene images for every page.
+4.  **Word Alignment**: Uses a local **Gentle (Docker)** server to align the generated audio with the text tokens to create `timing_tokens.json`.
+5.  **Asset Optimization**: Uses **Sharp** to convert and optimize all images into lightweight **WebP** files.
+
+### 📝 The Manifesto
+The generation logic is driven by `data/expanded-manifesto.json`. This file acts as the "Matrix," defining the `id`, `title`, and `concept_prompt` for every potential book.
+
+---
+
+## 2. Seeding to Supabase
+Once books are generated (saved in `output/expanded-library/`), they must be "seeded" into the database and storage buckets.
+
+### 🚀 The Command
+```bash
+# Seed everything in the output folder
+npx tsx scripts/seed-library.ts --local
+
+# Seed only a specific category
+npx tsx scripts/seed-library.ts [category] --local
+```
+
+### 🛠 What happens during Seeding?
+- **Database**: Metadata is upserted into `books`, `book_contents`, `book_audios`, and `book_media` tables.
+- **Storage**: Audio and optimized WebP images are uploaded to the `book-assets` bucket.
+- **Embeddings**: Generates **1024-dimensional vector embeddings** (via Amazon Titan V2) for semantic search.
+- **Realtime**: Correctly registers tables for Supabase Realtime updates.
+
+---
+
+## 3. Production Data Sync
+If you prefer to work with existing data from production, you can use the automated sync tool.
+
+### 🚀 The Command
+```bash
+npm run supabase:setup -- --sync-data --limit 15
+```
+
+### 🛠 What it Syncs
+- **Public Books**: Only books where `owner_user_id` is `NULL` (system books) are pulled to keep your local environment clean.
+- **Full Assets**: Downloads all referenced images and audio files from the production S3 bucket and uploads them to your local instance.
+- **Schema**: Automatically ensures your local schema matches production before importing data.
+
+---
+
+## 🛠 Prerequisites for Generation
+
+1.  **Environment Variables**: Ensure `.env.local` contains:
+    - `BEDROCK_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+    - `STABILITY_API_KEY`
+    - `POLLY_ACCESS_KEY_ID`, `POLLY_SECRET_ACCESS_KEY`
+2.  **Docker**: Must be running for local Supabase.
+3.  **Alignment Server**: For word highlighting (`--align`), you must have the Gentle container running:
+    ```bash
+    docker run -d --name gentle -p 55002:8765 lowerquality/gentle
     ```
-    *Where `shardOffsetSeconds` is the start time of the specific audio shard in the global book timeline.*
-
-### 3. Critical Timing Object Keys
-Each object in the `timings` array (within `book_audios`) MUST include these keys for the frontend to function correctly:
-*   `absIndex`: The global word index (matches `tokens[i].i`). Used for identification.
-*   `time`: Relative start time in **milliseconds**.
-*   `end`: Relative end time in **milliseconds** (essential for clearing highlights during silence).
-*   `type`: Set to `"word"`.
-*   `value`: The actual text of the word.
-
-### 4. Storage & Bucket Configuration
-*   **Initialization**: Ensure all required buckets (`book-assets`, `word-insights-audio`, etc.) are created before seeding.
-*   **Permissions**: 
-    *   `book-assets`: Should be **PRIVATE**.
-    *   Other utility buckets (like `word-insights-audio`): Usually **PUBLIC**.
-*   **Stability**: Implement retry logic for uploads to handle local Docker/Supabase stability issues (e.g., 502 Bad Gateway errors during heavy transfers).
-
-### 5. Browser Caching (IndexedDB)
-*   **Problem**: The Raiden app caches book data heavily in the browser for performance. Even if the database is updated, changes may not appear immediately.
-*   **Requirement**: After changing timing data or book metadata, developers MUST clear the browser's **IndexedDB** (`raiden-cache`) to see the updates.
-
-### 6. Mandatory Metadata & Semantic Search
-For books to be discoverable via semantic search and personalized recommendations, specific metadata fields MUST be populated:
-
-*   **`description`**: A descriptive summary of the book. Pulled from `metadata.json`.
-*   **`keywords`**: An array of tags (e.g., `["adventure", "magic"]`). Pulled from `metadata.json` (falls back to `category` if missing).
-*   **`embedding`**: A 1024-dimension vector used for vector similarity search.
-    *   **Service**: Generated using `BedrockEmbeddingService` (`amazon.titan-embed-text-v2:0`).
-    *   **Composition**: Generated from a string combining the title, description, and keywords:
-      `Title: {title}. Description: {description}. Keywords: {keywords}.`
-*   **Criticality**: These fields are essential for the **Search** and **Recommendations** features. Without a valid embedding, a book will not appear in semantic search results.
-
-### 7. Zero-to-Hero Database Setup
-When starting with an empty Supabase instance, the order of operations is critical. Infrastructure data must exist before any feature usage.
-
-**Recommended Sequence:**
-1.  **Schema**: `supabase db reset` (applies `setup_schema.sql`).
-2.  **Infrastructure**: `seed-library.ts` (populates `subscription_plans`).
-3.  **Storage**: `setup-storage.ts` (creates buckets).
-4.  **Content**: `seed-library.ts` (uploads books and assets).
-
-> [!CAUTION]
-> **PGRST116 Error**: If you see this error in `UsageService`, it means the `subscription_plans` table is empty. You MUST run the seeding script to populate quotas.
 
 ---
 
-## 🚀 Relevant Scripts
+## 🧹 Troubleshooting
 
-| Script | Purpose |
-| :--- | :--- |
-| `scripts/seed-library.ts` | **Master Script**. Unified seeding for Infrastructure + Books + Assets + Embeddings. Use `--local` for local dev. |
-| `scripts/setup-storage.ts` | Initializes all required storage buckets (`book-assets`, etc.). |
-| `scripts/narration/sync-db.ts` | Specialized script for syncing narration and timings. |
-| `scripts/backfill-embeddings.ts` | Utility to re-generate and update embeddings for all books. |
-
-For more details on the narration pipeline, see [scripts/narration/README.md](../../scripts/narration/README.md).
+- **Missing Highlighting**: Ensure you ran the generation with the `--align` flag. If a book is already generated, you can run `python3 scripts/narration/align.py path/to/book` manually and then re-seed.
+- **Image Errors**: Stability AI has strict prompt safety filters. The generation script automatically sanitizes character names (e.g., "Avengers" -> "a team of superheroes") to bypass false-positive blocks.

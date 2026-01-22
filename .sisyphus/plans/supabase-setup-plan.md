@@ -103,6 +103,14 @@ Integrate database verification into your GitHub workflow.
 - **Migration Testing**: Use `supabase/setup-cli` in GitHub Actions to run `supabase start` and verify migrations apply cleanly on every PR.
 - **Branching**: Enable Supabase Branching in the dashboard to get isolated database environments for preview deployments.
 
+### 3. Production Parity Refinements (CRITICAL)
+Before the final schema application, the migration `20260120120000_setup_schema.sql` must be updated with:
+- **Table `audit_logs`**: Add constraint `CONSTRAINT audit_details_size_check CHECK (octet_length(details::text) < 5000)`.
+- **Table `feedbacks`**: Add production-specific policies:
+  - `Allow public feedback insertion` (INSERT).
+  - `Allow users to view own feedback` (SELECT where `auth.uid() = user_id`).
+- **Table `word_insights`**: Add `Allow service role to manage word_insights` (ALL).
+
 ---
 
 ## ✅ Verification Checklist

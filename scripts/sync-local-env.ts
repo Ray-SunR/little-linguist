@@ -6,29 +6,23 @@ import dotenv from 'dotenv';
 const ENV_LOCAL_PATH = path.resolve(process.cwd(), '.env.local');
 const ENV_DEV_LOCAL_PATH = path.resolve(process.cwd(), '.env.development.local');
 
-const AI_KEY_PREFIXES = [
-  'POLLY_',
-  'GOOGLE_',
-  'BEDROCK_',
-  'STABILITY_',
-  'ANTHROPIC_',
-  'OPENAI_',
-];
-
 async function sync() {
   console.log('🔄 Syncing local environment...');
 
-  let aiKeys: Record<string, string> = {};
+  let externalKeys: Record<string, string> = {};
   if (fs.existsSync(ENV_LOCAL_PATH)) {
     const envLocalContent = fs.readFileSync(ENV_LOCAL_PATH, 'utf-8');
     const parsed = dotenv.parse(envLocalContent);
     
     for (const [key, value] of Object.entries(parsed)) {
-      if (AI_KEY_PREFIXES.some(prefix => key.startsWith(prefix))) {
-        aiKeys[key] = value;
+      const isSupabaseKey = key.includes('SUPABASE') && !key.startsWith('SUPABASE_AUTH_EXTERNAL_');
+      const isPostgresKey = key.startsWith('POSTGRES_');
+
+      if (!isSupabaseKey && !isPostgresKey) {
+        externalKeys[key] = value;
       }
     }
-    console.log(`✅ Extracted ${Object.keys(aiKeys).length} AI credentials from .env.local`);
+    console.log(`✅ Extracted ${Object.keys(externalKeys).length} credentials from .env.local`);
   }
 
   let supabaseKeys: Record<string, string> = {};
@@ -42,13 +36,11 @@ async function sync() {
     
     console.log('✅ Extracted local Supabase keys.');
   } catch (error) {
-    console.error('❌ Failed to get Supabase status. Is Supabase running?');
-    console.info('💡 Run "supabase start" to start the local Supabase instance.');
-    process.exit(1);
+    console.warn('⚠️  Could not get Supabase status. Local Supabase keys will be skipped.');
   }
 
   const merged = {
-    ...aiKeys,
+    ...externalKeys,
     ...supabaseKeys,
   };
 
@@ -61,8 +53,8 @@ async function sync() {
     '',
     ...sortedKeys.map(key => {
       const value = merged[key];
-      if (value && (value.includes('\n') || value.includes(' '))) {
-        return `${key}="${value.replace(/"/g, '\\"')}"`;
+      if (value && (value.includes('{') || value.includes('\n') || value.includes(' '))) {
+        return `${key}='${value}'`;
       }
       return `${key}=${value}`;
     })

@@ -24,7 +24,7 @@ async function setup() {
     
     // Bucket configuration to match cloud environment
     const buckets = [
-        { name: 'book-assets', public: false },
+        { name: 'book-assets', public: true },
         { name: 'word-insights-audio', public: true },
         { name: 'guardian-photos', public: false },
         { name: 'user-assets', public: false }

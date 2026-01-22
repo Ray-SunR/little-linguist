@@ -10,6 +10,7 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import sharp from "sharp";
+import { execSync } from "child_process";
 
 dotenv.config({ path: ".env.local" });
 
@@ -28,6 +29,13 @@ function sanitizeTheme(theme: string | null): string {
     return theme
         .replace(/Justice League/gi, "a legendary team of heroes")
         .replace(/Avengers/gi, "a team of mighty superheroes")
+        .replace(/Iron Man/gi, "a futuristic hero in red and gold high-tech armor")
+        .replace(/Hulk/gi, "a strong and friendly big green giant")
+        .replace(/Captain America/gi, "a heroic leader with a star-spangled shield")
+        .replace(/Thor/gi, "a mighty warrior with a red cape and a magical hammer")
+        .replace(/Black Widow/gi, "a skilled and brave spy in a sleek black suit")
+        .replace(/Hawkeye/gi, "a brave hero with a powerful bow and arrows")
+        .replace(/Spider-Man/gi, "a friendly neighborhood hero in red and blue")
         .replace(/Superman/gi, "a superhero with a blue suit, red cape, and an S-shield")
         .replace(/Batman/gi, "a hero in a black bat-suit with pointed ears in a dark city")
         .replace(/Batwheels/gi, "heroic talking vehicles with glowing logos")
@@ -72,6 +80,12 @@ async function saveOptimizedImage(base64Data: string, outputPath: string) {
 }
 
 async function main() {
+    const args = process.argv.slice(2);
+    const categoryArg = args.find(a => a.startsWith('--category='))?.split('=')[1];
+    const idArg = args.find(a => a.startsWith('--id='))?.split('=')[1];
+    const limitArg = args.find(a => a.startsWith('--limit='))?.split('=')[1];
+    const limit = limitArg ? parseInt(limitArg, 10) : null;
+
     if (!fs.existsSync(OUTPUT_DIR)) {
         fs.mkdirSync(OUTPUT_DIR, { recursive: true });
     }
@@ -93,7 +107,21 @@ async function main() {
     console.log(`\n🚀 Starting concurrent generation (Concurrency: 3) for remaining ${manifesto.length - state.completed.length} books...`);
 
     const CONCURRENCY = 3;
-    const queue = manifesto.filter((entry: any) => entry.category === 'sunwukong');
+    let queue = manifesto;
+    if (idArg) {
+        queue = manifesto.filter((entry: any) => entry.id === idArg);
+    } else if (categoryArg) {
+        queue = manifesto.filter((entry: any) => entry.category === categoryArg);
+    } else {
+        queue = manifesto.filter((entry: any) => entry.category === 'sunwukong');
+    }
+
+    // Filter out completed books before applying the limit
+    queue = queue.filter((entry: any) => !state.completed.includes(entry.id));
+
+    if (limit) {
+        queue = queue.slice(0, limit);
+    }
 
     async function processBook(entry: any) {
         if (state.completed.includes(entry.id)) {
@@ -105,11 +133,10 @@ async function main() {
         const specs = LEVEL_SPECS[entry.level] || LEVEL_SPECS["G3-5"];
         const bookDir = path.join(OUTPUT_DIR, entry.category, entry.id);
 
-        // Style Selection based on Level
         const isOlder = ["G3-5", "G1-2"].includes(entry.level);
-        let artStyle = isOlder
+        let artStyle = entry.style || (isOlder
             ? "Cinematic digital concept art, realistic textures, dramatic lighting, detailed background, anime-influenced but semi-realistic, 8k resolution"
-            : undefined; // undefined uses the default from the service
+            : undefined);
 
         if (entry.category === 'sunwukong') {
             artStyle = SUN_WUKONG_STYLE;
@@ -361,7 +388,19 @@ async function main() {
     const workers = Array.from({ length: CONCURRENCY }, () => (async () => {
         while (queue.length > 0) {
             const entry = queue.shift();
-            if (entry) await processBook(entry);
+            if (entry) {
+                await processBook(entry);
+                
+                if (process.argv.includes('--align')) {
+                    const bookDir = path.join(OUTPUT_DIR, entry.category, entry.id);
+                    console.log(`  🔍 [Post-Process] Running Gentle Alignment for ${entry.id}...`);
+                    try {
+                        execSync(`python3 scripts/narration/align.py "${bookDir}"`, { stdio: 'inherit' });
+                    } catch (e) {
+                        console.warn(`  ⚠️ Forced alignment failed for ${entry.id}. Falling back to Polly timings.`);
+                    }
+                }
+            }
         }
     })());
 

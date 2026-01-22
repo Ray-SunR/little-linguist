@@ -24,25 +24,15 @@ Repository pattern, API structure, and dual-caching strategy (`raidenCache` for 
 
 ---
 
-## 🛠 Commands
-
-| Task | Command |
-|------|---------|
-| Build | `npm run build` |
-| Lint | `npm run lint` |
-| Test (All) | `npm test` |
-| Test (Single File) | `npx vitest run path/to/test.test.ts` |
-| Local Setup | `supabase db reset && npx tsx scripts/setup-storage.ts` |
-| Local Seeding | `npx tsx scripts/seed-library.ts --local` |
-| Mobile Sync | `npm run mobile:sync` |
-
-**Important:** Never run `npm run dev` automatically. Always ask the user to start the development server manually.
-
 ## 🎨 Core Principles
 
 1.  **Verify First**: Always explore the relevant documentation in `docs/` and the codebase before implementing changes.
-2.  **Repository Pattern**: Centralize all database interactions in `repository.server.ts` files.
-3.  **Strict Typing**: Avoid `any`. Use interfaces for domain models.
-4.  **Test-Driven**: Write unit tests in `__tests__` directories adjacent to the code.
-5.  **Local Reliability**: Ensure all database operations are idempotent (using `ON CONFLICT`) to support stable local development.
-6.  **Mobile Awareness**: After UI changes, remind the user to run `npm run mobile:sync`.
+2.  **Local Sync with Prod**: The local Supabase database MUST be kept in sync with production. Treat the local database as a **staging environment** where all integration tests must run before deployment. Refer to the [Local Development Guide](./docs/guides/local-development.md) for automated sync commands.
+3.  **Schema Enforcement**: Any changes to the database schema must be applied to the local Supabase instance via migrations first. Never modify production schema directly without local verification.
+4.  **Documentation Integrity**: Always update guide documentation in `docs/` if parameters, usage, or interfaces change.
+5.  **Clean Workspace**: Do not leave any files in the repository that are not meant to be committed.
+6.  **Repository Pattern**: Centralize all database interactions in `repository.server.ts` files.
+7.  **Strict Typing**: Avoid `any`. Use interfaces for domain models.
+8.  **Test-Driven**: Write unit tests in `__tests__` directories adjacent to the code.
+9.  **Local Reliability**: Ensure all database operations are idempotent (using `ON CONFLICT`) to support stable local development.
+10. **Mobile Awareness**: After UI changes, remind the user to run `npm run mobile:sync`.

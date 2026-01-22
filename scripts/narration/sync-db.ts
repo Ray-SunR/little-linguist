@@ -53,33 +53,36 @@ async function updateBookNarration(bookId: string, bookDir: string) {
     const timingTokensPath = path.join(bookDir, "timing_tokens.json");
 
     if (!fs.existsSync(metadataPath)) throw new Error(`metadata.json not found in ${bookDir}`);
-    if (!fs.existsSync(timingTokensPath)) throw new Error(`timing_tokens.json not found in ${bookDir}`);
-
     const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
-    const timingTokens = JSON.parse(fs.readFileSync(timingTokensPath, "utf-8"));
+
+    let shardTimings: Record<number, any[]> = {};
+
+    if (fs.existsSync(timingTokensPath)) {
+        console.log("  🕒 Found timing_tokens.json (Forced Alignment)");
+        const timingTokens = JSON.parse(fs.readFileSync(timingTokensPath, "utf-8"));
+        for (const token of timingTokens) {
+            const sIdx = token.shardIndex;
+            if (!shardTimings[sIdx]) shardTimings[sIdx] = [];
+            const relativeStartSeconds = (token.start || 0) - (token.offset || 0);
+            const relativeEndSeconds = (token.end || 0) - (token.offset || 0);
+            shardTimings[sIdx].push({
+                absIndex: token.absIndex,
+                time: Math.round(relativeStartSeconds * 1000),
+                end: Math.round(relativeEndSeconds * 1000),
+                value: token.word,
+                type: "word"
+            });
+        }
+    } else if (metadata.audio?.shards?.[0]?.timings) {
+        console.log("  🕒 Using embedded timings from metadata.json (Polly Alignment)");
+        metadata.audio.shards.forEach((shard: any) => {
+            shardTimings[shard.index] = shard.timings;
+        });
+    } else {
+        throw new Error(`No timing information found in ${bookDir} (timing_tokens.json or metadata.json)`);
+    }
 
     const voiceId = metadata.audio?.voice_id || "Ruth";
-    const engine = metadata.audio?.engine || "generative";
-
-    // 1. Group timings by shardIndex
-    const shardTimings: Record<number, any[]> = {};
-    for (const token of timingTokens) {
-        const sIdx = token.shardIndex;
-        if (!shardTimings[sIdx]) shardTimings[sIdx] = [];
-
-        // Convert to the schema format expected by the frontend (NarrationShard type)
-        // CRITICAL: We MUST subtract the offset to make the time relative to the shard audio file!
-        const relativeStartSeconds = (token.start || 0) - (token.offset || 0);
-        const relativeEndSeconds = (token.end || 0) - (token.offset || 0);
-
-        shardTimings[sIdx].push({
-            absIndex: token.absIndex,
-            time: Math.round(relativeStartSeconds * 1000), // Convert to ms
-            end: Math.round(relativeEndSeconds * 1000),   // Convert to ms
-            value: token.word,
-            type: "word"
-        });
-    }
 
     // 2. Process Shards
     if (!metadata.audio?.shards) throw new Error("No shards found in metadata.json");
