@@ -158,7 +158,8 @@ describe('Remaining API Routes Integration', () => {
         vi.spyOn(mockClient.auth, 'getUser').mockResolvedValue({ data: { user: testUser }, error: null });
         vi.spyOn(supabaseServer, 'createClient').mockReturnValue(mockClient as any);
 
-        const payload = { word: 'banana' };
+        const testWord = 'banana' + Math.random().toString(36).substring(7);
+        const payload = { word: testWord }; 
         const req = new Request('http://localhost/api/word-insight', {
             method: 'POST',
             body: JSON.stringify(payload)
@@ -168,8 +169,17 @@ describe('Remaining API Routes Integration', () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
-        expect(body.word).toBe('banana');
+        expect(body.word).toBe(testWord);
         expect(body).toHaveProperty('definition');
+
+        const { data: insight } = await supabase
+            .from('word_insights')
+            .select('*')
+            .eq('word', testWord)
+            .single();
+        
+        expect(insight).not.toBeNull();
+        expect(insight.definition).toContain(testWord);
 
         vi.restoreAllMocks();
     });

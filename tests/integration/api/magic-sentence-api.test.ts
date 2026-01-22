@@ -78,7 +78,18 @@ describe('Magic Sentence API Integration', () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
-        expect(body.sentence).toBeDefined();
+        expect(body.sentence).toBe('Magic sentence.');
+
+        const { data: stored } = await supabase
+            .from('child_magic_sentences')
+            .select('*')
+            .eq('child_id', testChild.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+        
+        expect(stored).not.toBeNull();
+        expect(stored.sentence).toBe('Magic sentence.');
 
         vi.restoreAllMocks();
     });
@@ -95,6 +106,7 @@ describe('Magic Sentence API Integration', () => {
         expect(res.status).toBe(200);
         expect(Array.isArray(body)).toBe(true);
         expect(body.length).toBeGreaterThan(0);
+        expect(body[0].sentence).toBe('Magic sentence.');
 
         vi.restoreAllMocks();
     });

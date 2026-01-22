@@ -33,7 +33,7 @@ Repository pattern, API structure, and dual-caching strategy (`raidenCache` for 
 5.  **Clean Workspace**: Do not leave any files in the repository that are not meant to be committed.
 6.  **Repository Pattern**: Centralize all database interactions in `repository.server.ts` files.
 7.  **Strict Typing**: Avoid `any`. Use interfaces for domain models.
-8.  **Test-Driven**: Write unit tests in `__tests__` directories adjacent to the code.
+8.  **Test-Driven**: Write unit tests in `__tests__` directories adjacent to the code. **Always consult [Integration Testing Guide](./docs/guides/testing.md) when creating or modifying tests.**
 9.  **Local Reliability**: Ensure all database operations are idempotent (using `ON CONFLICT`) to support stable local development.
 10. **Mobile Awareness**: After UI changes, remind the user to run `npm run mobile:sync`.
-11. **Substantive Testing**: Never write placeholder tests (e.g. tests that only check for status 200 without verifying business logic or data state). Every test must include meaningful assertions.
+11. **Substantive Testing**: Never write placeholder tests (e.g. tests that only check for status 200 without verifying business logic or data state). Every test must include meaningful assertions. **Mandatory: Verify DB state and side effects.**

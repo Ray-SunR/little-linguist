@@ -47,7 +47,7 @@ describe('Rewards System Integration', () => {
         expect(res.status).toBe(200);
         expect(body.reward).not.toBeNull();
         expect(body.reward.success).toBe(true);
-        expect(body.reward.xp_earned).toBeGreaterThan(0);
+        expect(body.reward.xp_earned).toBe(10);
 
         const { data: updatedChild } = await supabase.from('children').select('total_xp, streak_count').eq('id', testChild.id).single();
         expect(updatedChild?.total_xp).toBe(body.reward.new_total_xp);

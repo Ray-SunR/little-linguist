@@ -118,9 +118,10 @@ export class BookRepository {
             p_only_public: !!filters.only_public,
             p_filter_ids: filters.ids || null
         };
-
+ 
         // GUEST LIMIT: Enforce 6 books max for unauthenticated users
         if (!userId) {
+
             rpcParams.p_limit = 6;
             rpcParams.p_offset = 0;
         }
