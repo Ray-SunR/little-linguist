@@ -6,29 +6,27 @@ import dotenv from 'dotenv';
 const ENV_LOCAL_PATH = path.resolve(process.cwd(), '.env.local');
 const ENV_DEV_LOCAL_PATH = path.resolve(process.cwd(), '.env.development.local');
 
-const AI_KEY_PREFIXES = [
-  'POLLY_',
-  'GOOGLE_',
-  'BEDROCK_',
-  'STABILITY_',
-  'ANTHROPIC_',
-  'OPENAI_',
+const OVERRIDE_PREFIXES = [
+  'SUPABASE_',
+  'NEXT_PUBLIC_SUPABASE_',
+  'POSTGRES_',
 ];
 
 async function sync() {
   console.log('🔄 Syncing local environment...');
 
-  let aiKeys: Record<string, string> = {};
+  let merged: Record<string, string> = {};
   if (fs.existsSync(ENV_LOCAL_PATH)) {
     const envLocalContent = fs.readFileSync(ENV_LOCAL_PATH, 'utf-8');
     const parsed = dotenv.parse(envLocalContent);
     
     for (const [key, value] of Object.entries(parsed)) {
-      if (AI_KEY_PREFIXES.some(prefix => key.startsWith(prefix))) {
-        aiKeys[key] = value;
+      // Keep everything EXCEPT variables starting with our protected prefixes
+      if (!OVERRIDE_PREFIXES.some(prefix => key.startsWith(prefix)) && key !== 'DATABASE_URL') {
+        merged[key] = value;
       }
     }
-    console.log(`✅ Extracted ${Object.keys(aiKeys).length} AI credentials from .env.local`);
+    console.log(`✅ Loaded ${Object.keys(merged).length} non-Supabase variables from .env.local`);
   }
 
   let supabaseKeys: Record<string, string> = {};
@@ -36,21 +34,38 @@ async function sync() {
     const statusOutput = execSync('npx supabase status -o json', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
     const status = JSON.parse(statusOutput);
     
+    // Core Supabase Keys
     supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = status.API_URL || 'http://127.0.0.1:54321';
+    supabaseKeys['SUPABASE_URL'] = supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'];
+    
     supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = status.ANON_KEY || status.anon_key;
+    supabaseKeys['SUPABASE_ANON_KEY'] = supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
+    
     supabaseKeys['SUPABASE_SERVICE_ROLE_KEY'] = status.SERVICE_ROLE_KEY || status.service_role_key;
     
-    console.log('✅ Extracted local Supabase keys.');
+    // Database Keys
+    if (status.DB_URL) {
+      supabaseKeys['POSTGRES_URL'] = status.DB_URL;
+      supabaseKeys['POSTGRES_URL_NON_POOLING'] = status.DB_URL;
+      supabaseKeys['DATABASE_URL'] = status.DB_URL;
+      
+      // Extract components from DB_URL if needed
+      const dbUrl = new URL(status.DB_URL);
+      supabaseKeys['POSTGRES_HOST'] = dbUrl.hostname;
+      supabaseKeys['POSTGRES_PORT'] = dbUrl.port;
+      supabaseKeys['POSTGRES_USER'] = dbUrl.username;
+      supabaseKeys['POSTGRES_PASSWORD'] = dbUrl.password;
+      supabaseKeys['POSTGRES_DATABASE'] = dbUrl.pathname.substring(1);
+    }
+    
+    console.log('✅ Extracted local Supabase and Postgres connection variables.');
   } catch (error) {
     console.error('❌ Failed to get Supabase status. Is Supabase running?');
     console.info('💡 Run "supabase start" to start the local Supabase instance.');
     process.exit(1);
   }
 
-  const merged = {
-    ...aiKeys,
-    ...supabaseKeys,
-  };
+  Object.assign(merged, supabaseKeys);
 
   const sortedKeys = Object.keys(merged).sort();
   

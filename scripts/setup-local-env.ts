@@ -13,7 +13,12 @@ function runCommand(command: string, description: string) {
 }
 
 async function main() {
+  const syncData = process.argv.includes('--sync-data');
   console.log('🌟 Starting Zero-to-Hero Local Environment Setup...');
+
+  if (syncData) {
+    runCommand('npx tsx scripts/dump-prod-data.ts', 'Dumping production data');
+  }
 
   runCommand('docker info', 'Checking Docker status');
 
@@ -28,7 +33,9 @@ async function main() {
 
   runCommand('npx tsx scripts/setup-storage.ts', 'Setting up storage');
 
-  runCommand('npx tsx scripts/seed-library.ts --local', 'Seeding library');
+  if (syncData) {
+    runCommand('npx tsx scripts/sync-storage-assets.ts', 'Syncing production storage assets');
+  }
 
   const sql = 'ALTER PUBLICATION supabase_realtime ADD TABLE public.stories, public.book_media;';
   const containerName = 'supabase_db_raiden';

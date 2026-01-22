@@ -12,6 +12,10 @@ This guide covers the setup and maintenance of your local development environmen
 
 Raiden provides a "Zero-to-Hero" orchestration script that automates the entire local Supabase setup, including starting services, applying migrations, syncing environment variables, and seeding data.
 
+> [!IMPORTANT]
+> **Always clear your browser's IndexedDB cache before testing locally.**
+> The application aggressively caches book data and asset URLs (including signed URLs) in `raiden-cache`. If you switch between production and local environments, or reset the local database, stale cached data will cause 404 errors for images and audio.
+
 ### 1. Automated Setup
 
 Run the following command in your terminal:
@@ -20,16 +24,44 @@ Run the following command in your terminal:
 npx tsx scripts/setup-local-env.ts
 ```
 
+#### Lite Mode (Sample Data only)
+If you want to setup your local database from scratch with only a small portion of data from production (faster setup):
+
+```bash
+npx tsx scripts/setup-local-env.ts --sync-data --limit 5
+```
+This will:
+1. Dump only 5 records per main table (books, stories, etc.) from production.
+2. Automatically sync only the storage assets needed for those specific records.
+
+#### Full Production Sync
+To setup with ALL production data and assets:
+
+```bash
+npx tsx scripts/setup-local-env.ts --sync-data
+```
+
 This script performs the following actions:
 1.  **Docker Check**: Verifies that Docker is running.
 2.  **Start Supabase**: Spins up local Docker containers (Postgres, Auth, Storage, etc.).
 3.  **Database Reset**: Applies all migrations to ensure your local schema matches production.
 4.  **Environment Sync**: Automatically generates `.env.development.local` by merging production AI credentials from `.env.local` with local Supabase keys.
 5.  **Storage Initialization**: Creates the required storage buckets (`book-assets`, `user-assets`, etc.).
-6.  **Library Seeding**: Populates mandatory infrastructure data (subscription plans) and initial book content.
-7.  **Realtime Setup**: Enables Supabase Realtime for the `stories` and `book_media` tables.
+6.  **Realtime Setup**: Enables Supabase Realtime for the `stories` and `book_media` tables.
 
-### 2. Verification
+### 2. Running the App
+
+To start the application pointing to your local Supabase instance:
+
+```bash
+npm run dev:local
+```
+
+This command explicitly loads `.env.development.local` using `dotenv-cli` to ensure parity with your local environment.
+
+---
+
+### 3. Verification
 
 After the setup script completes, you can verify that everything is correctly configured by running:
 

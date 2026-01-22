@@ -29,3 +29,15 @@
 - **Bucket Existence Check**: `supabase.storage.listBuckets()` is the standard way to verify that storage buckets have been correctly initialized.
 - **Realtime Verification**: Checking `pg_publication_tables` via `docker exec` (psql) is necessary because system tables are not typically exposed via the PostgREST API. This ensures that the `stories` table is correctly added to the `supabase_realtime` publication.
 - **Storage Stability**: Local Supabase storage services can sometimes fail to respond (e.g., "invalid response from upstream server") if the containers are not fully stabilized or after a long period of inactivity. A restart of the Supabase stack (`npx supabase stop && npx supabase start`) often resolves these issues.
+
+## Orchestrator Flag Handling
+- Added `--sync-data` flag to `scripts/setup-local-env.ts`.
+- The flag is parsed using `process.argv.includes('--sync-data')`.
+- This allows optional production data synchronization during local environment setup.
+
+## Data Sync Flow
+- If `--sync-data` is provided, `scripts/dump-prod-data.ts` is executed.
+- This script generates `supabase/seed.sql` from the production database.
+- Subsequent `npx supabase db reset` automatically uses the fresh `seed.sql` to populate the local database.
+- This provides a seamless way to refresh local data with production-like content.
+- The dump stage is inserted before `npx supabase start` and `npx supabase db reset`. Placing it early ensures that if the production dump fails (e.g., missing credentials), the process stops before starting long-running local services.

@@ -2,7 +2,7 @@
 
 -- book-assets
 CREATE POLICY "Authenticated users can upload" ON storage.objects FOR INSERT TO public WITH CHECK ((bucket_id = 'book-assets'::text) AND (auth.role() = 'authenticated'::text));
-CREATE POLICY "Authenticated users can read assets" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'book-assets'::text);
+CREATE POLICY "Anyone can read book assets" ON storage.objects FOR SELECT TO public USING (bucket_id = 'book-assets'::text);
 
 -- word-insights-audio
 CREATE POLICY "Public Access for word-insights-audio" ON storage.objects FOR SELECT TO public USING (bucket_id = 'word-insights-audio'::text);
