@@ -151,8 +151,23 @@ export async function POST(req: Request) {
             }
 
             if (!isOwnedByUser && !isChildAsset && !isGuestOwned) {
-                console.warn(`[Security] Invalid avatar path attempted: ${childAvatar}. User: ${ownerUserId}`);
-                childAvatar = null;
+                // FALLBACK: Check if this guest avatar was already claimed (exists in child's avatarPaths under user ID)
+                // This handles race conditions where frontend sends the old guest path but backend already migrated it
+                if (childAvatar.startsWith('guests/')) {
+                    const filename = childAvatar.split('/').pop();
+                    const claimedPath = avatarPaths?.find((p: string) => p.endsWith(`/${filename}`) && p.startsWith(`${ownerUserId}/`));
+                    
+                    if (claimedPath) {
+                        console.info(`[StoryAPI] Auto-corrected guest path ${childAvatar} to claimed path ${claimedPath}`);
+                        childAvatar = claimedPath;
+                    } else {
+                        console.warn(`[Security] Invalid avatar path attempted: ${childAvatar}. User: ${ownerUserId}`);
+                        childAvatar = null;
+                    }
+                } else {
+                    console.warn(`[Security] Invalid avatar path attempted: ${childAvatar}. User: ${ownerUserId}`);
+                    childAvatar = null;
+                }
             }
         }
 
