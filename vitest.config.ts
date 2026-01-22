@@ -10,6 +10,25 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
     ],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: [
+        'lib/core/**',
+        'lib/features/**',
+        'app/api/**',
+      ],
+      exclude: [
+        '**/*.test.ts',
+        '**/*.spec.ts',
+      ],
+    },
+    globalSetup: './tests/setup/global.ts',
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
   },
   resolve: {
     alias: {

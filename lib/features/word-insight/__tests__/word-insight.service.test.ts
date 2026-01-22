@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { GeminiWordAnalysisProvider } from '../server/gemini-provider';
 import { MagicSentenceService } from '../magic-sentence-service.server';
 import { GoogleGenAI } from '@google/genai';
@@ -70,14 +70,16 @@ vi.mock('@/lib/core/books/tokenizer', () => ({
   }
 }));
 
-// Mock global crypto
-Object.defineProperty(global, 'crypto', {
-  value: {
-    randomUUID: () => 'test-uuid'
-  }
+const MOCK_UUID = '11111111-1111-1111-1111-111111111111';
+beforeAll(() => {
+    vi.stubGlobal('crypto', {
+        randomUUID: () => MOCK_UUID
+    });
 });
 
-// --- Tests ---
+afterAll(() => {
+    vi.unstubAllGlobals();
+});
 
 describe('GeminiWordAnalysisProvider', () => {
   let provider: GeminiWordAnalysisProvider;
@@ -109,7 +111,7 @@ describe('GeminiWordAnalysisProvider', () => {
   });
 
   it('should return empty object on empty response', async () => {
-    mockGenerateContent.mockResolvedValueOnce({}); // No text
+    mockGenerateContent.mockResolvedValueOnce({});
 
     const result = await provider.analyzeWord('cat');
     expect(result).toEqual({});
@@ -125,9 +127,6 @@ describe('MagicSentenceService', () => {
     vi.clearAllMocks();
     service = new MagicSentenceService(userId);
 
-    // Setup default mock behaviors
-    
-    // 1. Child ownership check
     mockSupabase.from.mockImplementation((table) => {
         if (table === 'children') {
             return {
@@ -152,21 +151,18 @@ describe('MagicSentenceService', () => {
         return { select: vi.fn() };
     });
 
-    // 2. Storage
     mockSupabase.storage.from.mockReturnValue({
         upload: vi.fn().mockResolvedValue({ data: {}, error: null }),
         createSignedUrls: vi.fn().mockResolvedValue({ 
             data: [
-                { path: `${userId}/${childId}/magic_sentences/test-uuid/audio.mp3`, signedUrl: 'http://audio' },
-                { path: `${userId}/${childId}/magic_sentences/test-uuid/image.png`, signedUrl: 'http://image' }
+                { path: `${userId}/${childId}/magic_sentences/${MOCK_UUID}/audio.mp3`, signedUrl: 'http://audio' },
+                { path: `${userId}/${childId}/magic_sentences/${MOCK_UUID}/image.png`, signedUrl: 'http://image' }
             ] 
         })
     });
 
-    // 3. Usage
     (reserveCredits as any).mockResolvedValue({ success: true });
 
-    // 4. Generators
     mockGenerateMagicSentence.mockResolvedValue({
         sentence: 'The cat sat on the mat.',
         imagePrompt: 'A cat on a mat'
@@ -179,7 +175,6 @@ describe('MagicSentenceService', () => {
 
     mockGenerateImage.mockResolvedValue('base64image');
 
-    // 5. Rewards
     mockClaimReward.mockResolvedValue({ success: true, xp_earned: 10 });
   });
 
@@ -193,14 +188,13 @@ describe('MagicSentenceService', () => {
     expect(mockSupabase.storage.from).toHaveBeenCalledWith('user-assets');
     expect(mockClaimReward).toHaveBeenCalled();
 
-    expect(result.id).toBe('test-uuid');
+    expect(result.id).toBe(MOCK_UUID);
     expect(result.audioUrl).toBe('http://audio');
     expect(result.imageUrl).toBe('http://image');
     expect(result.sentence).toBe('The cat sat on the mat.');
   });
 
   it('should throw forbidden if child not owned by user', async () => {
-    // Override child check to fail
     mockSupabase.from.mockImplementation((table) => {
          if (table === 'children') {
             return {

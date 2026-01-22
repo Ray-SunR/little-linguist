@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const serviceRoleClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // [TEST MODE] Bypassing auth for integration tests in development
-    if (!user && process.env.NODE_ENV === 'development') {
+    if (!user && (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test')) {
         const testUserId = req.headers.get('x-test-user-id');
         if (testUserId) {
             console.warn(`[TEST MODE] Bypassing auth for user: ${testUserId}`);
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     // Note: if test mode bypass was used, RLS might still fail unless we use serviceRoleClient
     // for subsequent calls. For safety in test mode, we'll swap supabase to serviceRoleClient
     // ONLY if the bypass was active.
-    const isTestBypass = !!req.headers.get('x-test-user-id') && process.env.NODE_ENV === 'development';
+    const isTestBypass = !!req.headers.get('x-test-user-id') && (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test');
     const supabase = isTestBypass ? serviceRoleClient : authClient;
 
     // Scoped variable for refunding in catch block

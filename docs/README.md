@@ -19,6 +19,7 @@ Welcome to the Raiden technical documentation. This directory serves as the sour
 ### 📖 [Guides](./guides/)
 *   [Local Development](./guides/local-development.md): Setup instructions for local Supabase and environment.
 *   [Seeding](./guides/seeding.md): Technical requirements for seeding books and narration sync.
+*   [Integration Testing](./guides/testing.md): Guidelines for writing substantive backend tests against local Supabase.
 
 ---
 

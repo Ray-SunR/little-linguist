@@ -17,7 +17,7 @@ export async function GET(
         let { data: { user } } = await authClient.auth.getUser();
 
         // Integration test bypass for development
-        if (!user && process.env.NODE_ENV === 'development') {
+        if (!user && (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test')) {
             const testUserId = request.headers.get('x-test-user-id');
             if (testUserId) {
                 console.warn(`[TEST MODE] Bypassing auth in books API for user: ${testUserId}`);

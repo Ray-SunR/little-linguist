@@ -36,3 +36,4 @@ Repository pattern, API structure, and dual-caching strategy (`raidenCache` for 
 8.  **Test-Driven**: Write unit tests in `__tests__` directories adjacent to the code.
 9.  **Local Reliability**: Ensure all database operations are idempotent (using `ON CONFLICT`) to support stable local development.
 10. **Mobile Awareness**: After UI changes, remind the user to run `npm run mobile:sync`.
+11. **Substantive Testing**: Never write placeholder tests (e.g. tests that only check for status 200 without verifying business logic or data state). Every test must include meaningful assertions.
