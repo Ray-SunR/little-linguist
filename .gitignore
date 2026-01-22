@@ -20,4 +20,4 @@ output
 .opencode
 coverage
 docs
-.sisyphus
+.sisyphus.worktrees/
