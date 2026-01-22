@@ -1,0 +1,1634 @@
+[
+  {
+    "absIndex": 0,
+    "shardIndex": 0,
+    "start": 0.0,
+    "end": 0.4,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 1,
+    "shardIndex": 0,
+    "start": 0.41,
+    "end": 0.85,
+    "offset": 0.0,
+    "word": "Stark"
+  },
+  {
+    "absIndex": 2,
+    "shardIndex": 0,
+    "start": 0.85,
+    "end": 1.12,
+    "offset": 0.0,
+    "word": "stood"
+  },
+  {
+    "absIndex": 3,
+    "shardIndex": 0,
+    "start": 1.12,
+    "end": 1.24,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 4,
+    "shardIndex": 0,
+    "start": 1.24,
+    "end": 1.43,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 5,
+    "shardIndex": 0,
+    "start": 1.43,
+    "end": 1.64,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 6,
+    "shardIndex": 0,
+    "start": 1.64,
+    "end": 2.27,
+    "offset": 0.0,
+    "word": "workshop"
+  },
+  {
+    "absIndex": 7,
+    "shardIndex": 0,
+    "start": 3.14,
+    "end": 3.52,
+    "offset": 0.0,
+    "word": "Shiny"
+  },
+  {
+    "absIndex": 8,
+    "shardIndex": 0,
+    "start": 3.52,
+    "end": 3.97,
+    "offset": 0.0,
+    "word": "tools"
+  },
+  {
+    "absIndex": 9,
+    "shardIndex": 0,
+    "start": 3.99,
+    "end": 4.35,
+    "offset": 0.0,
+    "word": "covered"
+  },
+  {
+    "absIndex": 10,
+    "shardIndex": 0,
+    "start": 4.35,
+    "end": 4.41,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 11,
+    "shardIndex": 0,
+    "start": 4.41,
+    "end": 5.02,
+    "offset": 0.0,
+    "word": "tables"
+  },
+  {
+    "absIndex": 12,
+    "shardIndex": 0,
+    "start": 5.26,
+    "end": 5.47,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 13,
+    "shardIndex": 0,
+    "start": 5.47,
+    "end": 5.63,
+    "offset": 0.0,
+    "word": "had"
+  },
+  {
+    "absIndex": 14,
+    "shardIndex": 0,
+    "start": 5.63,
+    "end": 5.7,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 15,
+    "shardIndex": 0,
+    "start": 5.7,
+    "end": 6.03,
+    "offset": 0.0,
+    "word": "great"
+  },
+  {
+    "absIndex": 16,
+    "shardIndex": 0,
+    "start": 6.03,
+    "end": 6.48,
+    "offset": 0.0,
+    "word": "idea"
+  },
+  {
+    "absIndex": 17,
+    "shardIndex": 0,
+    "start": 6.49,
+    "end": 6.64,
+    "offset": 0.0,
+    "word": "for"
+  },
+  {
+    "absIndex": 18,
+    "shardIndex": 0,
+    "start": 6.64,
+    "end": 7.06,
+    "offset": 0.0,
+    "word": "something"
+  },
+  {
+    "absIndex": 19,
+    "shardIndex": 0,
+    "start": 7.06,
+    "end": 7.42,
+    "offset": 0.0,
+    "word": "new"
+  },
+  {
+    "absIndex": 20,
+    "shardIndex": 0,
+    "start": 8.75,
+    "end": 9.07,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 21,
+    "shardIndex": 0,
+    "start": 9.07,
+    "end": 9.35,
+    "offset": 0.0,
+    "word": "wanted"
+  },
+  {
+    "absIndex": 22,
+    "shardIndex": 0,
+    "start": 9.35,
+    "end": 9.45,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 23,
+    "shardIndex": 0,
+    "start": 9.45,
+    "end": 9.7,
+    "offset": 0.0,
+    "word": "build"
+  },
+  {
+    "absIndex": 24,
+    "shardIndex": 0,
+    "start": 9.7,
+    "end": 9.75,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 25,
+    "shardIndex": 0,
+    "start": 9.75,
+    "end": 10.13,
+    "offset": 0.0,
+    "word": "special"
+  },
+  {
+    "absIndex": 26,
+    "shardIndex": 0,
+    "start": 10.13,
+    "end": 10.59,
+    "offset": 0.0,
+    "word": "suit"
+  },
+  {
+    "absIndex": 27,
+    "shardIndex": 0,
+    "start": 10.8,
+    "end": 10.94,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 28,
+    "shardIndex": 0,
+    "start": 10.94,
+    "end": 11.13,
+    "offset": 0.0,
+    "word": "suit"
+  },
+  {
+    "absIndex": 29,
+    "shardIndex": 0,
+    "start": 11.15,
+    "end": 11.31,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 30,
+    "shardIndex": 0,
+    "start": 11.32,
+    "end": 11.49,
+    "offset": 0.0,
+    "word": "be"
+  },
+  {
+    "absIndex": 31,
+    "shardIndex": 0,
+    "start": 11.49,
+    "end": 11.79,
+    "offset": 0.0,
+    "word": "red"
+  },
+  {
+    "absIndex": 32,
+    "shardIndex": 0,
+    "start": 11.79,
+    "end": 11.96,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 33,
+    "shardIndex": 0,
+    "start": 11.97,
+    "end": 12.44,
+    "offset": 0.0,
+    "word": "gold"
+  },
+  {
+    "absIndex": 34,
+    "shardIndex": 0,
+    "start": 12.68,
+    "end": 12.83,
+    "offset": 0.0,
+    "word": "It"
+  },
+  {
+    "absIndex": 35,
+    "shardIndex": 0,
+    "start": 12.83,
+    "end": 12.96,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 36,
+    "shardIndex": 0,
+    "start": 12.96,
+    "end": 13.17,
+    "offset": 0.0,
+    "word": "help"
+  },
+  {
+    "absIndex": 37,
+    "shardIndex": 0,
+    "start": 13.17,
+    "end": 13.35,
+    "offset": 0.0,
+    "word": "him"
+  },
+  {
+    "absIndex": 38,
+    "shardIndex": 0,
+    "start": 13.35,
+    "end": 13.69,
+    "offset": 0.0,
+    "word": "fly"
+  },
+  {
+    "absIndex": 39,
+    "shardIndex": 0,
+    "start": 13.7,
+    "end": 13.93,
+    "offset": 0.0,
+    "word": "high"
+  },
+  {
+    "absIndex": 40,
+    "shardIndex": 0,
+    "start": 13.93,
+    "end": 14.03,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 41,
+    "shardIndex": 0,
+    "start": 14.03,
+    "end": 14.13,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 42,
+    "shardIndex": 0,
+    "start": 14.13,
+    "end": 14.66,
+    "offset": 0.0,
+    "word": "sky"
+  },
+  {
+    "absIndex": 43,
+    "shardIndex": 0,
+    "start": 16.42,
+    "end": 16.76,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 44,
+    "shardIndex": 0,
+    "start": 16.76,
+    "end": 17.08,
+    "offset": 0.0,
+    "word": "worked"
+  },
+  {
+    "absIndex": 45,
+    "shardIndex": 0,
+    "start": 17.08,
+    "end": 17.34,
+    "offset": 0.0,
+    "word": "day"
+  },
+  {
+    "absIndex": 46,
+    "shardIndex": 0,
+    "start": 17.34,
+    "end": 17.49,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 47,
+    "shardIndex": 0,
+    "start": 17.52,
+    "end": 17.86,
+    "offset": 0.0,
+    "word": "night"
+  },
+  {
+    "absIndex": 48,
+    "shardIndex": 0,
+    "start": 17.86,
+    "end": 17.99,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 49,
+    "shardIndex": 0,
+    "start": 17.99,
+    "end": 18.15,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 50,
+    "shardIndex": 0,
+    "start": 18.15,
+    "end": 18.62,
+    "offset": 0.0,
+    "word": "suit"
+  },
+  {
+    "absIndex": 51,
+    "shardIndex": 0,
+    "start": 18.88,
+    "end": 19.04,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 52,
+    "shardIndex": 0,
+    "start": 19.04,
+    "end": 19.35,
+    "offset": 0.0,
+    "word": "used"
+  },
+  {
+    "absIndex": 53,
+    "shardIndex": 0,
+    "start": 19.35,
+    "end": 19.49,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 54,
+    "shardIndex": 0,
+    "start": 19.49,
+    "end": 19.8,
+    "offset": 0.0,
+    "word": "silver"
+  },
+  {
+    "absIndex": 55,
+    "shardIndex": 0,
+    "start": 19.8,
+    "end": 20.24,
+    "offset": 0.0,
+    "word": "tools"
+  },
+  {
+    "absIndex": 56,
+    "shardIndex": 0,
+    "start": 20.24,
+    "end": 20.36,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 57,
+    "shardIndex": 0,
+    "start": 20.36,
+    "end": 20.63,
+    "offset": 0.0,
+    "word": "build"
+  },
+  {
+    "absIndex": 58,
+    "shardIndex": 0,
+    "start": 20.63,
+    "end": 20.81,
+    "offset": 0.0,
+    "word": "each"
+  },
+  {
+    "absIndex": 59,
+    "shardIndex": 0,
+    "start": 20.81,
+    "end": 21.27,
+    "offset": 0.0,
+    "word": "part"
+  },
+  {
+    "absIndex": 60,
+    "shardIndex": 0,
+    "start": 22.13,
+    "end": 22.26,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 61,
+    "shardIndex": 0,
+    "start": 22.26,
+    "end": 22.61,
+    "offset": 0.0,
+    "word": "chest"
+  },
+  {
+    "absIndex": 62,
+    "shardIndex": 0,
+    "start": 22.62,
+    "end": 22.95,
+    "offset": 0.0,
+    "word": "piece"
+  },
+  {
+    "absIndex": 63,
+    "shardIndex": 0,
+    "start": 22.95,
+    "end": 23.26,
+    "offset": 0.0,
+    "word": "began"
+  },
+  {
+    "absIndex": 64,
+    "shardIndex": 0,
+    "start": 23.26,
+    "end": 23.36,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 65,
+    "shardIndex": 0,
+    "start": 23.36,
+    "end": 23.62,
+    "offset": 0.0,
+    "word": "glow"
+  },
+  {
+    "absIndex": 66,
+    "shardIndex": 0,
+    "start": 23.62,
+    "end": 24.14,
+    "offset": 0.0,
+    "word": "bright"
+  },
+  {
+    "absIndex": 67,
+    "shardIndex": 0,
+    "start": 24.34,
+    "end": 24.52,
+    "offset": 0.0,
+    "word": "It"
+  },
+  {
+    "absIndex": 68,
+    "shardIndex": 0,
+    "start": 24.52,
+    "end": 24.76,
+    "offset": 0.0,
+    "word": "looked"
+  },
+  {
+    "absIndex": 69,
+    "shardIndex": 0,
+    "start": 24.76,
+    "end": 24.97,
+    "offset": 0.0,
+    "word": "like"
+  },
+  {
+    "absIndex": 70,
+    "shardIndex": 0,
+    "start": 24.97,
+    "end": 25.04,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 71,
+    "shardIndex": 0,
+    "start": 25.04,
+    "end": 25.39,
+    "offset": 0.0,
+    "word": "small"
+  },
+  {
+    "absIndex": 72,
+    "shardIndex": 0,
+    "start": 25.39,
+    "end": 25.84,
+    "offset": 0.0,
+    "word": "sun"
+  },
+  {
+    "absIndex": 73,
+    "shardIndex": 0,
+    "start": 26.75,
+    "end": 27.08,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 74,
+    "shardIndex": 0,
+    "start": 27.08,
+    "end": 27.29,
+    "offset": 0.0,
+    "word": "put"
+  },
+  {
+    "absIndex": 75,
+    "shardIndex": 0,
+    "start": 27.29,
+    "end": 27.41,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 76,
+    "shardIndex": 0,
+    "start": 27.41,
+    "end": 27.51,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 77,
+    "shardIndex": 0,
+    "start": 27.51,
+    "end": 27.71,
+    "offset": 0.0,
+    "word": "red"
+  },
+  {
+    "absIndex": 78,
+    "shardIndex": 0,
+    "start": 27.71,
+    "end": 28.19,
+    "offset": 0.0,
+    "word": "helmet"
+  },
+  {
+    "absIndex": 79,
+    "shardIndex": 0,
+    "start": 28.43,
+    "end": 28.69,
+    "offset": 0.0,
+    "word": "Now"
+  },
+  {
+    "absIndex": 80,
+    "shardIndex": 0,
+    "start": 28.69,
+    "end": 28.8,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 81,
+    "shardIndex": 0,
+    "start": 28.8,
+    "end": 29.08,
+    "offset": 0.0,
+    "word": "suit"
+  },
+  {
+    "absIndex": 82,
+    "shardIndex": 0,
+    "start": 29.09,
+    "end": 29.29,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 83,
+    "shardIndex": 0,
+    "start": 29.29,
+    "end": 29.52,
+    "offset": 0.0,
+    "word": "ready"
+  },
+  {
+    "absIndex": 84,
+    "shardIndex": 0,
+    "start": 29.52,
+    "end": 29.63,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 85,
+    "shardIndex": 0,
+    "start": 29.63,
+    "end": 30.16,
+    "offset": 0.0,
+    "word": "test"
+  },
+  {
+    "absIndex": 86,
+    "shardIndex": 0,
+    "start": 31.91,
+    "end": 32.24,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 87,
+    "shardIndex": 0,
+    "start": 32.24,
+    "end": 32.54,
+    "offset": 0.0,
+    "word": "walked"
+  },
+  {
+    "absIndex": 88,
+    "shardIndex": 0,
+    "start": 32.54,
+    "end": 33.0,
+    "offset": 0.0,
+    "word": "outside"
+  },
+  {
+    "absIndex": 89,
+    "shardIndex": 0,
+    "start": 33.01,
+    "end": 33.12,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 90,
+    "shardIndex": 0,
+    "start": 33.12,
+    "end": 33.27,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 91,
+    "shardIndex": 0,
+    "start": 33.27,
+    "end": 33.54,
+    "offset": 0.0,
+    "word": "open"
+  },
+  {
+    "absIndex": 92,
+    "shardIndex": 0,
+    "start": 33.54,
+    "end": 34.0,
+    "offset": 0.0,
+    "word": "field"
+  },
+  {
+    "absIndex": 93,
+    "shardIndex": 0,
+    "start": 34.22,
+    "end": 34.36,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 94,
+    "shardIndex": 0,
+    "start": 34.36,
+    "end": 34.64,
+    "offset": 0.0,
+    "word": "sun"
+  },
+  {
+    "absIndex": 95,
+    "shardIndex": 0,
+    "start": 34.64,
+    "end": 34.78,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 96,
+    "shardIndex": 0,
+    "start": 34.78,
+    "end": 35.16,
+    "offset": 0.0,
+    "word": "shining"
+  },
+  {
+    "absIndex": 97,
+    "shardIndex": 0,
+    "start": 35.17,
+    "end": 35.46,
+    "offset": 0.0,
+    "word": "bright"
+  },
+  {
+    "absIndex": 98,
+    "shardIndex": 0,
+    "start": 35.46,
+    "end": 35.95,
+    "offset": 0.0,
+    "word": "above"
+  },
+  {
+    "absIndex": 99,
+    "shardIndex": 0,
+    "start": 36.2,
+    "end": 36.38,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 100,
+    "shardIndex": 0,
+    "start": 36.38,
+    "end": 36.63,
+    "offset": 0.0,
+    "word": "felt"
+  },
+  {
+    "absIndex": 101,
+    "shardIndex": 0,
+    "start": 36.64,
+    "end": 37.18,
+    "offset": 0.0,
+    "word": "nervous"
+  },
+  {
+    "absIndex": 102,
+    "shardIndex": 0,
+    "start": 37.2,
+    "end": 37.38,
+    "offset": 0.0,
+    "word": "but"
+  },
+  {
+    "absIndex": 103,
+    "shardIndex": 0,
+    "start": 37.38,
+    "end": 37.92,
+    "offset": 0.0,
+    "word": "excited"
+  },
+  {
+    "absIndex": 104,
+    "shardIndex": 0,
+    "start": 37.92,
+    "end": 38.31,
+    "offset": 0.0,
+    "word": "too"
+  },
+  {
+    "absIndex": 105,
+    "shardIndex": 0,
+    "start": 39.41,
+    "end": 39.75,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 106,
+    "shardIndex": 0,
+    "start": 39.75,
+    "end": 40.09,
+    "offset": 0.0,
+    "word": "pressed"
+  },
+  {
+    "absIndex": 107,
+    "shardIndex": 0,
+    "start": 40.09,
+    "end": 40.14,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 108,
+    "shardIndex": 0,
+    "start": 40.14,
+    "end": 40.48,
+    "offset": 0.0,
+    "word": "button"
+  },
+  {
+    "absIndex": 109,
+    "shardIndex": 0,
+    "start": 40.5,
+    "end": 40.66,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 110,
+    "shardIndex": 0,
+    "start": 40.66,
+    "end": 40.82,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 111,
+    "shardIndex": 0,
+    "start": 40.82,
+    "end": 41.25,
+    "offset": 0.0,
+    "word": "suit"
+  },
+  {
+    "absIndex": 112,
+    "shardIndex": 0,
+    "start": 41.48,
+    "end": 41.63,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 113,
+    "shardIndex": 0,
+    "start": 41.63,
+    "end": 41.89,
+    "offset": 0.0,
+    "word": "boots"
+  },
+  {
+    "absIndex": 114,
+    "shardIndex": 0,
+    "start": 41.9,
+    "end": 42.28,
+    "offset": 0.0,
+    "word": "started"
+  },
+  {
+    "absIndex": 115,
+    "shardIndex": 0,
+    "start": 42.28,
+    "end": 42.38,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 116,
+    "shardIndex": 0,
+    "start": 42.38,
+    "end": 42.62,
+    "offset": 0.0,
+    "word": "hum"
+  },
+  {
+    "absIndex": 117,
+    "shardIndex": 0,
+    "start": 42.62,
+    "end": 43.22,
+    "offset": 0.0,
+    "word": "loudly"
+  },
+  {
+    "absIndex": 118,
+    "shardIndex": 0,
+    "start": 44.13,
+    "end": 44.75,
+    "offset": 0.0,
+    "word": "Suddenly"
+  },
+  {
+    "absIndex": 119,
+    "shardIndex": 0,
+    "start": 44.94,
+    "end": 45.12,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 120,
+    "shardIndex": 0,
+    "start": 45.12,
+    "end": 45.45,
+    "offset": 0.0,
+    "word": "lifted"
+  },
+  {
+    "absIndex": 121,
+    "shardIndex": 0,
+    "start": 45.45,
+    "end": 45.64,
+    "offset": 0.0,
+    "word": "off"
+  },
+  {
+    "absIndex": 122,
+    "shardIndex": 0,
+    "start": 45.65,
+    "end": 45.76,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 123,
+    "shardIndex": 0,
+    "start": 45.76,
+    "end": 46.29,
+    "offset": 0.0,
+    "word": "ground"
+  },
+  {
+    "absIndex": 124,
+    "shardIndex": 0,
+    "start": 48.05,
+    "end": 48.43,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 125,
+    "shardIndex": 0,
+    "start": 48.43,
+    "end": 48.7,
+    "offset": 0.0,
+    "word": "flew"
+  },
+  {
+    "absIndex": 126,
+    "shardIndex": 0,
+    "start": 48.71,
+    "end": 49.11,
+    "offset": 0.0,
+    "word": "higher"
+  },
+  {
+    "absIndex": 127,
+    "shardIndex": 0,
+    "start": 49.11,
+    "end": 49.27,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 128,
+    "shardIndex": 0,
+    "start": 49.28,
+    "end": 49.64,
+    "offset": 0.0,
+    "word": "higher"
+  },
+  {
+    "absIndex": 129,
+    "shardIndex": 0,
+    "start": 49.64,
+    "end": 49.95,
+    "offset": 0.0,
+    "word": "up"
+  },
+  {
+    "absIndex": 130,
+    "shardIndex": 0,
+    "start": 50.21,
+    "end": 50.43,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 131,
+    "shardIndex": 0,
+    "start": 50.43,
+    "end": 50.79,
+    "offset": 0.0,
+    "word": "zoomed"
+  },
+  {
+    "absIndex": 132,
+    "shardIndex": 0,
+    "start": 50.82,
+    "end": 51.24,
+    "offset": 0.0,
+    "word": "past"
+  },
+  {
+    "absIndex": 133,
+    "shardIndex": 0,
+    "start": 51.25,
+    "end": 51.36,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 134,
+    "shardIndex": 0,
+    "start": 51.36,
+    "end": 51.61,
+    "offset": 0.0,
+    "word": "tall"
+  },
+  {
+    "absIndex": 135,
+    "shardIndex": 0,
+    "start": 51.61,
+    "end": 52.25,
+    "offset": 0.0,
+    "word": "buildings"
+  },
+  {
+    "absIndex": 136,
+    "shardIndex": 0,
+    "start": 53.14,
+    "end": 53.29,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 137,
+    "shardIndex": 0,
+    "start": 53.29,
+    "end": 53.59,
+    "offset": 0.0,
+    "word": "city"
+  },
+  {
+    "absIndex": 138,
+    "shardIndex": 0,
+    "start": 53.59,
+    "end": 53.84,
+    "offset": 0.0,
+    "word": "looked"
+  },
+  {
+    "absIndex": 139,
+    "shardIndex": 0,
+    "start": 53.84,
+    "end": 54.09,
+    "offset": 0.0,
+    "word": "so"
+  },
+  {
+    "absIndex": 140,
+    "shardIndex": 0,
+    "start": 54.09,
+    "end": 54.47,
+    "offset": 0.0,
+    "word": "small"
+  },
+  {
+    "absIndex": 141,
+    "shardIndex": 0,
+    "start": 54.47,
+    "end": 54.81,
+    "offset": 0.0,
+    "word": "below"
+  },
+  {
+    "absIndex": 142,
+    "shardIndex": 0,
+    "start": 54.81,
+    "end": 55.18,
+    "offset": 0.0,
+    "word": "him"
+  },
+  {
+    "absIndex": 143,
+    "shardIndex": 0,
+    "start": 55.48,
+    "end": 55.86,
+    "offset": 0.0,
+    "word": "Cars"
+  },
+  {
+    "absIndex": 144,
+    "shardIndex": 0,
+    "start": 55.86,
+    "end": 56.11,
+    "offset": 0.0,
+    "word": "looked"
+  },
+  {
+    "absIndex": 145,
+    "shardIndex": 0,
+    "start": 56.11,
+    "end": 56.31,
+    "offset": 0.0,
+    "word": "like"
+  },
+  {
+    "absIndex": 146,
+    "shardIndex": 0,
+    "start": 56.31,
+    "end": 56.64,
+    "offset": 0.0,
+    "word": "tiny"
+  },
+  {
+    "absIndex": 147,
+    "shardIndex": 0,
+    "start": 56.64,
+    "end": 57.01,
+    "offset": 0.0,
+    "word": "toys"
+  },
+  {
+    "absIndex": 148,
+    "shardIndex": 0,
+    "start": 57.01,
+    "end": 57.15,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 149,
+    "shardIndex": 0,
+    "start": 57.15,
+    "end": 57.75,
+    "offset": 0.0,
+    "word": "streets"
+  },
+  {
+    "absIndex": 150,
+    "shardIndex": 0,
+    "start": 57.98,
+    "end": 58.28,
+    "offset": 0.0,
+    "word": "People"
+  },
+  {
+    "absIndex": 151,
+    "shardIndex": 0,
+    "start": 58.28,
+    "end": 58.68,
+    "offset": 0.0,
+    "word": "pointed"
+  },
+  {
+    "absIndex": 152,
+    "shardIndex": 0,
+    "start": 58.68,
+    "end": 58.85,
+    "offset": 0.0,
+    "word": "up"
+  },
+  {
+    "absIndex": 153,
+    "shardIndex": 0,
+    "start": 58.85,
+    "end": 58.95,
+    "offset": 0.0,
+    "word": "at"
+  },
+  {
+    "absIndex": 154,
+    "shardIndex": 0,
+    "start": 58.95,
+    "end": 59.04,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 155,
+    "shardIndex": 0,
+    "start": 59.04,
+    "end": 59.4,
+    "offset": 0.0,
+    "word": "sky"
+  },
+  {
+    "absIndex": 156,
+    "shardIndex": 0,
+    "start": 60.65,
+    "end": 61.0,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 157,
+    "shardIndex": 0,
+    "start": 61.0,
+    "end": 61.24,
+    "offset": 0.0,
+    "word": "felt"
+  },
+  {
+    "absIndex": 158,
+    "shardIndex": 0,
+    "start": 61.24,
+    "end": 61.41,
+    "offset": 0.0,
+    "word": "like"
+  },
+  {
+    "absIndex": 159,
+    "shardIndex": 0,
+    "start": 61.41,
+    "end": 61.49,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 160,
+    "shardIndex": 0,
+    "start": 61.49,
+    "end": 61.81,
+    "offset": 0.0,
+    "word": "real"
+  },
+  {
+    "absIndex": 161,
+    "shardIndex": 0,
+    "start": 61.81,
+    "end": 62.42,
+    "offset": 0.0,
+    "word": "superhero"
+  },
+  {
+    "absIndex": 162,
+    "shardIndex": 0,
+    "start": 62.42,
+    "end": 62.81,
+    "offset": 0.0,
+    "word": "now"
+  },
+  {
+    "absIndex": 163,
+    "shardIndex": 0,
+    "start": 64.58,
+    "end": 64.91,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 164,
+    "shardIndex": 0,
+    "start": 64.91,
+    "end": 65.26,
+    "offset": 0.0,
+    "word": "landed"
+  },
+  {
+    "absIndex": 165,
+    "shardIndex": 0,
+    "start": 65.27,
+    "end": 65.55,
+    "offset": 0.0,
+    "word": "back"
+  },
+  {
+    "absIndex": 166,
+    "shardIndex": 0,
+    "start": 65.55,
+    "end": 65.65,
+    "offset": 0.0,
+    "word": "at"
+  },
+  {
+    "absIndex": 167,
+    "shardIndex": 0,
+    "start": 65.65,
+    "end": 65.8,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 168,
+    "shardIndex": 0,
+    "start": 65.8,
+    "end": 66.27,
+    "offset": 0.0,
+    "word": "workshop"
+  },
+  {
+    "absIndex": 169,
+    "shardIndex": 0,
+    "start": 66.27,
+    "end": 66.83,
+    "offset": 0.0,
+    "word": "safely"
+  },
+  {
+    "absIndex": 170,
+    "shardIndex": 0,
+    "start": 67.08,
+    "end": 67.26,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 171,
+    "shardIndex": 0,
+    "start": 67.26,
+    "end": 67.45,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 172,
+    "shardIndex": 0,
+    "start": 67.45,
+    "end": 67.77,
+    "offset": 0.0,
+    "word": "so"
+  },
+  {
+    "absIndex": 173,
+    "shardIndex": 0,
+    "start": 67.77,
+    "end": 68.17,
+    "offset": 0.0,
+    "word": "happy"
+  },
+  {
+    "absIndex": 174,
+    "shardIndex": 0,
+    "start": 68.17,
+    "end": 68.32,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 175,
+    "shardIndex": 0,
+    "start": 68.34,
+    "end": 68.84,
+    "offset": 0.0,
+    "word": "proud"
+  },
+  {
+    "absIndex": 176,
+    "shardIndex": 0,
+    "start": 69.09,
+    "end": 69.32,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 177,
+    "shardIndex": 0,
+    "start": 69.32,
+    "end": 69.54,
+    "offset": 0.0,
+    "word": "suit"
+  },
+  {
+    "absIndex": 178,
+    "shardIndex": 0,
+    "start": 69.55,
+    "end": 69.82,
+    "offset": 0.0,
+    "word": "worked"
+  },
+  {
+    "absIndex": 179,
+    "shardIndex": 0,
+    "start": 69.85,
+    "end": 70.39,
+    "offset": 0.0,
+    "word": "perfectly"
+  },
+  {
+    "absIndex": 180,
+    "shardIndex": 0,
+    "start": 70.39,
+    "end": 70.47,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 181,
+    "shardIndex": 0,
+    "start": 70.47,
+    "end": 70.57,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 182,
+    "shardIndex": 0,
+    "start": 70.57,
+    "end": 71.07,
+    "offset": 0.0,
+    "word": "sky"
+  },
+  {
+    "absIndex": 183,
+    "shardIndex": 0,
+    "start": 72.14,
+    "end": 72.44,
+    "offset": 0.0,
+    "word": "Now"
+  },
+  {
+    "absIndex": 184,
+    "shardIndex": 0,
+    "start": 72.47,
+    "end": 72.59,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 185,
+    "shardIndex": 0,
+    "start": 72.59,
+    "end": 72.74,
+    "offset": 0.0,
+    "word": "could"
+  },
+  {
+    "absIndex": 186,
+    "shardIndex": 0,
+    "start": 72.74,
+    "end": 72.95,
+    "offset": 0.0,
+    "word": "help"
+  },
+  {
+    "absIndex": 187,
+    "shardIndex": 0,
+    "start": 72.96,
+    "end": 73.32,
+    "offset": 0.0,
+    "word": "people"
+  },
+  {
+    "absIndex": 188,
+    "shardIndex": 0,
+    "start": 73.34,
+    "end": 73.99,
+    "offset": 0.0,
+    "word": "everywhere"
+  },
+  {
+    "absIndex": 189,
+    "shardIndex": 0,
+    "start": 74.25,
+    "end": 74.6,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 190,
+    "shardIndex": 0,
+    "start": 74.61,
+    "end": 74.89,
+    "offset": 0.0,
+    "word": "knew"
+  },
+  {
+    "absIndex": 191,
+    "shardIndex": 0,
+    "start": 74.9,
+    "end": 75.05,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 192,
+    "shardIndex": 0,
+    "start": 75.05,
+    "end": 75.21,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 193,
+    "shardIndex": 0,
+    "start": 75.21,
+    "end": 75.51,
+    "offset": 0.0,
+    "word": "join"
+  },
+  {
+    "absIndex": 194,
+    "shardIndex": 0,
+    "start": 75.51,
+    "end": 75.71,
+    "offset": 0.0,
+    "word": "other"
+  },
+  {
+    "absIndex": 195,
+    "shardIndex": 0,
+    "start": 75.71,
+    "end": 76.31,
+    "offset": 0.0,
+    "word": "heroes"
+  },
+  {
+    "absIndex": 196,
+    "shardIndex": 0,
+    "start": 77.21,
+    "end": 77.73,
+    "offset": 0.0,
+    "word": "Together"
+  },
+  {
+    "absIndex": 197,
+    "shardIndex": 0,
+    "start": 77.73,
+    "end": 77.89,
+    "offset": 0.0,
+    "word": "they"
+  },
+  {
+    "absIndex": 198,
+    "shardIndex": 0,
+    "start": 77.89,
+    "end": 78.04,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 199,
+    "shardIndex": 0,
+    "start": 78.05,
+    "end": 78.21,
+    "offset": 0.0,
+    "word": "be"
+  },
+  {
+    "absIndex": 200,
+    "shardIndex": 0,
+    "start": 78.21,
+    "end": 78.31,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 201,
+    "shardIndex": 0,
+    "start": 78.31,
+    "end": 78.72,
+    "offset": 0.0,
+    "word": "mighty"
+  },
+  {
+    "absIndex": 202,
+    "shardIndex": 0,
+    "start": 78.72,
+    "end": 79.2,
+    "offset": 0.0,
+    "word": "Avengers"
+  },
+  {
+    "absIndex": 203,
+    "shardIndex": 0,
+    "start": 79.21,
+    "end": 79.64,
+    "offset": 0.0,
+    "word": "team"
+  }
+]

@@ -2,20 +2,31 @@ import fs from 'fs';
 import path from 'path';
 import { createAdminClient } from '@/lib/supabase/server';
 
-export async function seedBooksFromOutput(limit: number = 3) {
+export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: string) {
     const supabase = createAdminClient();
-    const outputPath = path.resolve(process.cwd(), 'output/expanded-library');
-    const categories = ['avengers', 'batman', 'sunwukong'];
+    const fixturePath = sourcePath || path.resolve(process.cwd(), 'tests/fixtures/library');
+    
+    if (!fs.existsSync(fixturePath)) {
+        console.warn(`⚠ Fixture path not found: ${fixturePath}`);
+        return 0;
+    }
+
+    const categories = fs.readdirSync(fixturePath).filter(f => {
+        const fullPath = path.join(fixturePath, f);
+        return fs.statSync(fullPath).isDirectory() && !f.startsWith('.');
+    });
     
     let seededCount = 0;
 
     for (const category of categories) {
         if (seededCount >= limit) break;
         
-        const categoryPath = path.join(outputPath, category);
-        if (!fs.existsSync(categoryPath)) continue;
-        
-        const bookDirs = fs.readdirSync(categoryPath);
+        const categoryPath = path.join(fixturePath, category);
+        const bookDirs = fs.readdirSync(categoryPath).filter(f => {
+            const fullPath = path.join(categoryPath, f);
+            return fs.statSync(fullPath).isDirectory() && !f.startsWith('.');
+        });
+
         for (const bookDir of bookDirs) {
             if (seededCount >= limit) break;
             
@@ -23,9 +34,13 @@ export async function seedBooksFromOutput(limit: number = 3) {
             const metadataPath = path.join(bookPath, 'metadata.json');
             const contentPath = path.join(bookPath, 'content.txt');
             const tokensPath = path.join(bookPath, 'timing_tokens.json');
+            const embeddingsPath = path.join(bookPath, 'embeddings.json');
             
             if (fs.existsSync(metadataPath)) {
                 const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+                const embedding = fs.existsSync(embeddingsPath) 
+                    ? JSON.parse(fs.readFileSync(embeddingsPath, 'utf8'))
+                    : null;
                 
                 const { data: book, error: bookError } = await supabase
                     .from('books')
@@ -42,6 +57,7 @@ export async function seedBooksFromOutput(limit: number = 3) {
                         estimated_reading_time: metadata.stats?.reading_time_seconds ? Math.ceil(metadata.stats.reading_time_seconds / 60) : 2,
                         total_tokens: metadata.stats?.word_count || 0,
                         cover_image_path: metadata.cover_image_path,
+                        embedding: embedding,
                         metadata: {
                             scenes: metadata.scenes,
                             stats: metadata.stats
@@ -99,6 +115,9 @@ export async function seedBooksFromOutput(limit: number = 3) {
         }
     }
     
-    console.log(`✅ Seeded ${seededCount} books from output/ expanded library.`);
+    console.log(`✅ Seeded ${seededCount} books from fixtures library.`);
     return seededCount;
 }
+
+/** @deprecated Use seedBooksFromFixtures */
+export const seedBooksFromOutput = seedBooksFromFixtures;

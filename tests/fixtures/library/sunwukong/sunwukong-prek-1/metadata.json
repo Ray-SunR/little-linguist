@@ -1,0 +1,489 @@
+{
+  "id": "sunwukong-prek-1",
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 43,
+        "timings": [],
+        "metadata": {
+          "mood": "playful and magical",
+          "suggestedVoice": "Ruth"
+        }
+      }
+    ]
+  },
+  "level": "PreK",
+  "stats": {
+    "char_count": 215,
+    "word_count": 44,
+    "scene_count": 2,
+    "length_category": "Short",
+    "reading_time_seconds": 18
+  },
+  "title": "Sun Wukong's Magic Staff",
+  "scenes": [
+    {
+      "text": "Sun Wukong holds his magic staff. It is red and gold. He makes it very big! Now he makes it very small.",
+      "index": 0,
+      "image_path": "scenes/scene_0.webp",
+      "imagePrompt": "A magical monkey warrior standing on a mountain peak holding a glowing staff that transforms from giant pillar size to tiny needle size, with swirling golden clouds and ancient Chinese mountains in the background, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 21
+    },
+    {
+      "text": "The staff grows big as a tree! The staff shrinks like a pin! Sun Wukong laughs and plays with his magic staff.",
+      "index": 1,
+      "image_path": "scenes/scene_1.webp",
+      "imagePrompt": "A playful scene in the Heavenly Palace courtyard with jade floors and red pillars, where a magical staff transforms dramatically in size creating sparkles of red and gold light, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 43
+    }
+  ],
+  "tokens": [
+    {
+      "i": 0,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 1,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 2,
+      "t": "holds",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 3,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 4,
+      "t": "magic",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 5,
+      "t": "staff",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 6,
+      "t": "It",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 7,
+      "t": "is",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 8,
+      "t": "red",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 9,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 10,
+      "t": "gold",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 11,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 12,
+      "t": "makes",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 13,
+      "t": "it",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 14,
+      "t": "very",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 15,
+      "t": "big",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 16,
+      "t": "Now",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 17,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 18,
+      "t": "makes",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 19,
+      "t": "it",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 20,
+      "t": "very",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 21,
+      "t": "small",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 22,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 23,
+      "t": "staff",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 24,
+      "t": "grows",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 25,
+      "t": "big",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 26,
+      "t": "as",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 27,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 28,
+      "t": "tree",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 29,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 30,
+      "t": "staff",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 31,
+      "t": "shrinks",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 32,
+      "t": "like",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 33,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 34,
+      "t": "pin",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 35,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 36,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 37,
+      "t": "laughs",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 38,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 39,
+      "t": "plays",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 40,
+      "t": "with",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 41,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 42,
+      "t": "magic",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 43,
+      "t": "staff",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    }
+  ],
+  "category": "sunwukong",
+  "keywords": [
+    "monkey",
+    "staff",
+    "magic",
+    "transformation",
+    "hero",
+    "adventure",
+    "size",
+    "play",
+    "power",
+    "legend",
+    "warrior",
+    "trickster"
+  ],
+  "series_id": "sunwukong_series",
+  "description": "Sun Wukong, the legendary Monkey King, delights in playing with his magical red and gold staff that can change size at his command. Watch as he transforms it from as tall as a tree to as tiny as a pin! A playful introduction to one of the most beloved heroes from Chinese mythology and his amazing powers.",
+  "cover_prompt": "Sun Wukong, a spunky anthropomorphic male golden macaque with confident mischievous boyish grin and masculine jawline, stands center stage with bright golden fur and fiery-gold eyes. His strong muscular build and broad shoulders are clad in golden chainmail armor over red tunic, tiger-skin kilt, black trousers, and black combat boots. A golden fillet headband with two extremely long red pheasant feathers curving back adorns his head. He triumphantly holds his magical red-and-gold iron staff that splits the composition - one end towering gigantic as a massive tree reaching skyward, the other end shrinking tiny as a pin near the ground, demonstrating its incredible size-changing powers. His expression radiates joy and playfulness as magical golden energy swirls around the transforming staff.",
+  "is_nonfiction": false,
+  "character_anchor": "Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+  "cover_image_path": "cover.webp",
+  "original_concept_title": "The Red Staff"
+}

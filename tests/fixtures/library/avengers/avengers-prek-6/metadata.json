@@ -1,0 +1,364 @@
+{
+  "id": "avengers-prek-6",
+  "title": "Tiny Heroes, Big Friends!",
+  "original_concept_title": "Baby Avengers: Team Up!",
+  "category": "avengers",
+  "level": "PreK",
+  "is_nonfiction": false,
+  "description": "Join tiny Iron Man and baby Hulk as they discover the joy of friendship and teamwork! These adorable mini superheroes share toys, give hugs, and learn that playing together makes them the best superhero friends. A heartwarming introduction to the Avengers for the youngest readers.",
+  "keywords": [
+    "avengers",
+    "superhero",
+    "friends",
+    "teamwork",
+    "baby",
+    "ironman",
+    "hulk",
+    "toys",
+    "sharing",
+    "play",
+    "heroes",
+    "adventure"
+  ],
+  "series_id": null,
+  "cover_image_path": "cover.webp",
+  "cover_prompt": "Two toddler boys playing together in the center of the frame, best friends sharing toys and hugging. First toddler has spiky black hair, red and gold shirt, toy arc reactor glowing on chest, and miniature red gloves, zooming a toy car forward with excitement. Second toddler has wild black hair, green oversized t-shirt, purple stretchy pants, and toy strength bands on wrists, lifting colorful building blocks high above his head with a big smile. Both children are laughing joyfully. The toddler in red and gold is sharing his toy car while the one in green and purple reaches out for a hug. Scattered toys and blocks around them on the floor, capturing their superhero friendship and playful energy in an iconic moment of sharing and togetherness.",
+  "stats": {
+    "word_count": 31,
+    "char_count": 170,
+    "scene_count": 2,
+    "reading_time_seconds": 13,
+    "length_category": "Short"
+  },
+  "scenes": [
+    {
+      "index": 0,
+      "text": "Tiny Iron Man zooms around! Tiny Hulk lifts his blocks high. They laugh and play together.",
+      "imagePrompt": "A sunny playground with colorful slides and sandbox, two toddlers playing with building blocks scattered around, featuring toddler boy with red and gold shirt, spiky black hair, toy arc reactor on chest, miniature red gloves and toddler boy with purple stretchy pants, wild black hair, green oversized t-shirt, toy strength bands on wrists",
+      "image_path": "scenes/scene_0.webp",
+      "after_word_index": 15
+    },
+    {
+      "index": 1,
+      "text": "Iron Man shares his toy car. Hulk gives him a big hug. Best superhero friends!",
+      "imagePrompt": "A cozy playroom with soft cushions and toy shelves filled with action figures, two toddlers hugging while a red toy car sits nearby on a colorful alphabet rug, featuring toddler boy with red and gold shirt, spiky black hair, toy arc reactor on chest, miniature red gloves and toddler boy with purple stretchy pants, wild black hair, green oversized t-shirt, toy strength bands on wrists",
+      "image_path": "scenes/scene_1.webp",
+      "after_word_index": 30
+    }
+  ],
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 30,
+        "timings": []
+      }
+    ]
+  },
+  "tokens": [
+    {
+      "t": "Tiny",
+      "type": "w",
+      "i": 0
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Iron",
+      "type": "w",
+      "i": 1
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Man",
+      "type": "w",
+      "i": 2
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "zooms",
+      "type": "w",
+      "i": 3
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "around",
+      "type": "w",
+      "i": 4
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Tiny",
+      "type": "w",
+      "i": 5
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 6
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lifts",
+      "type": "w",
+      "i": 7
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 8
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "blocks",
+      "type": "w",
+      "i": 9
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "high",
+      "type": "w",
+      "i": 10
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 11
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "laugh",
+      "type": "w",
+      "i": 12
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 13
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "play",
+      "type": "w",
+      "i": 14
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "together",
+      "type": "w",
+      "i": 15
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Iron",
+      "type": "w",
+      "i": 16
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Man",
+      "type": "w",
+      "i": 17
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shares",
+      "type": "w",
+      "i": 18
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 19
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "toy",
+      "type": "w",
+      "i": 20
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "car",
+      "type": "w",
+      "i": 21
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 22
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gives",
+      "type": "w",
+      "i": 23
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 24
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 25
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "big",
+      "type": "w",
+      "i": 26
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hug",
+      "type": "w",
+      "i": 27
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Best",
+      "type": "w",
+      "i": 28
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "superhero",
+      "type": "w",
+      "i": 29
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "friends",
+      "type": "w",
+      "i": 30
+    },
+    {
+      "t": "!",
+      "type": "p"
+    }
+  ],
+  "character_anchor": "Toddler boy with red and gold shirt, spiky black hair, toy arc reactor on chest, miniature red gloves\n\nToddler boy with purple stretchy pants, wild black hair, green oversized t-shirt, toy strength bands on wrists"
+}

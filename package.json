@@ -9,6 +9,7 @@
     "lint": "next lint",
     "supabase:setup": "npx tsx scripts/setup-local-env.ts",
     "test": "vitest run",
+    "test:watch": "vitest",
     "test:local-setup": "npx tsx scripts/verify-local-setup.ts",
     "library:generate": "npx tsx scripts/generate-expanded-library.ts",
     "mobile:build": "next build",

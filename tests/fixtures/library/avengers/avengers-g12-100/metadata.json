@@ -1,0 +1,2042 @@
+{
+  "id": "avengers-g12-100",
+  "title": "Tony Builds His Flying Suit",
+  "original_concept_title": "Iron Man's First Flight",
+  "category": "avengers",
+  "level": "G1-2",
+  "is_nonfiction": false,
+  "description": "Tony Stark works tirelessly in his workshop to build a revolutionary red and gold suit that will allow him to fly. After a successful test flight over the city, Tony realizes his invention will help him protect people everywhere as part of the mighty Avengers team. This exciting origin story captures Iron Man's first thrilling moments as a superhero taking to the skies.",
+  "keywords": [
+    "superhero",
+    "flight",
+    "inventor",
+    "suit",
+    "workshop",
+    "armor",
+    "technology",
+    "hero",
+    "city",
+    "avengers",
+    "courage",
+    "innovation"
+  ],
+  "series_id": "avengers_series",
+  "cover_image_path": "cover.webp",
+  "cover_prompt": "An adult man with short black hair and goatee stands heroically in his large workshop, wearing a gleaming red and gold mechanical suit with a bright glowing circular chest piece that shines like a small sun. He holds silver tools in his hand as he works on his armor. The workshop surrounds him with shiny tools covering tables and workbenches. Through large windows behind him, a bright blue sky is visible. The red and gold suit dominates the center of the image, with intricate mechanical details visible on the armor plating. The glowing chest piece casts warm light across the scene. The man's confident pose suggests he's ready to become a superhero.",
+  "stats": {
+    "word_count": 204,
+    "char_count": 1079,
+    "scene_count": 5,
+    "reading_time_seconds": 82,
+    "length_category": "Medium"
+  },
+  "scenes": [
+    {
+      "index": 0,
+      "text": "Tony Stark stood in his big workshop. Shiny tools covered the tables. He had a great idea for something new. Tony wanted to build a special suit. The suit would be red and gold. It would help him fly high in the sky.",
+      "imagePrompt": "A large bright workshop filled with metal tables covered in shiny silver tools and glowing blue screens, featuring adult man, short black hair with goatee, red and gold mechanical suit, glowing circular chest piece, silver tools in hand",
+      "image_path": "scenes/scene_0.webp",
+      "after_word_index": 42
+    },
+    {
+      "index": 1,
+      "text": "Tony worked day and night on his suit. He used his silver tools to build each part. The chest piece began to glow bright. It looked like a small sun. Tony put on the red helmet. Now the suit was ready to test.",
+      "imagePrompt": "Inside a dimly lit garage with sparks flying from welding work and metal suit parts hanging on racks, featuring adult man, short black hair with goatee, red and gold mechanical suit, glowing circular chest piece, silver tools in hand",
+      "image_path": "scenes/scene_1.webp",
+      "after_word_index": 85
+    },
+    {
+      "index": 2,
+      "text": "Tony walked outside to the open field. The sun was shining bright above. He felt nervous but excited too. Tony pressed a button on his suit. The boots started to hum loudly. Suddenly, he lifted off the ground.",
+      "imagePrompt": "A wide green field with tall grass under a bright blue sky and fluffy white clouds, featuring adult man, short black hair with goatee, red and gold mechanical suit, glowing circular chest piece, silver tools in hand",
+      "image_path": "scenes/scene_2.webp",
+      "after_word_index": 123
+    },
+    {
+      "index": 3,
+      "text": "Tony flew higher and higher up. He zoomed past the tall buildings. The city looked so small below him. Cars looked like tiny toys on streets. People pointed up at the sky. Tony felt like a real superhero now.",
+      "imagePrompt": "High above a sprawling city with tall skyscrapers, busy streets with small cars below, and the golden sun setting behind buildings, featuring adult man, short black hair with goatee, red and gold mechanical suit, glowing circular chest piece, silver tools in hand",
+      "image_path": "scenes/scene_3.webp",
+      "after_word_index": 162
+    },
+    {
+      "index": 4,
+      "text": "Tony landed back at his workshop safely. He was so happy and proud. His suit worked perfectly in the sky. Now he could help people everywhere. Tony knew he would join other heroes. Together they would be the mighty Avengers team.",
+      "imagePrompt": "A rooftop landing pad at sunset with the city skyline glowing orange and purple in the background and a circular landing platform, featuring adult man, short black hair with goatee, red and gold mechanical suit, glowing circular chest piece, silver tools in hand",
+      "image_path": "scenes/scene_4.webp",
+      "after_word_index": 203
+    }
+  ],
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 203,
+        "timings": []
+      }
+    ]
+  },
+  "tokens": [
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 0
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Stark",
+      "type": "w",
+      "i": 1
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stood",
+      "type": "w",
+      "i": 2
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 3
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 4
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "big",
+      "type": "w",
+      "i": 5
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "workshop",
+      "type": "w",
+      "i": 6
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Shiny",
+      "type": "w",
+      "i": 7
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tools",
+      "type": "w",
+      "i": 8
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "covered",
+      "type": "w",
+      "i": 9
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 10
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tables",
+      "type": "w",
+      "i": 11
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 12
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 13
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 14
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "great",
+      "type": "w",
+      "i": 15
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "idea",
+      "type": "w",
+      "i": 16
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 17
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "something",
+      "type": "w",
+      "i": 18
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "new",
+      "type": "w",
+      "i": 19
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 20
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wanted",
+      "type": "w",
+      "i": 21
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 22
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "build",
+      "type": "w",
+      "i": 23
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 24
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "special",
+      "type": "w",
+      "i": 25
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "suit",
+      "type": "w",
+      "i": 26
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 27
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "suit",
+      "type": "w",
+      "i": 28
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "would",
+      "type": "w",
+      "i": 29
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "be",
+      "type": "w",
+      "i": 30
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "red",
+      "type": "w",
+      "i": 31
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 32
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gold",
+      "type": "w",
+      "i": 33
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 34
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "would",
+      "type": "w",
+      "i": 35
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "help",
+      "type": "w",
+      "i": 36
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 37
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fly",
+      "type": "w",
+      "i": 38
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "high",
+      "type": "w",
+      "i": 39
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 40
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 41
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sky",
+      "type": "w",
+      "i": 42
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 43
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "worked",
+      "type": "w",
+      "i": 44
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "day",
+      "type": "w",
+      "i": 45
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 46
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "night",
+      "type": "w",
+      "i": 47
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 48
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 49
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "suit",
+      "type": "w",
+      "i": 50
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 51
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "used",
+      "type": "w",
+      "i": 52
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 53
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "silver",
+      "type": "w",
+      "i": 54
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tools",
+      "type": "w",
+      "i": 55
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 56
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "build",
+      "type": "w",
+      "i": 57
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "each",
+      "type": "w",
+      "i": 58
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "part",
+      "type": "w",
+      "i": 59
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 60
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "chest",
+      "type": "w",
+      "i": 61
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "piece",
+      "type": "w",
+      "i": 62
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "began",
+      "type": "w",
+      "i": 63
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 64
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "glow",
+      "type": "w",
+      "i": 65
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bright",
+      "type": "w",
+      "i": 66
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 67
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "looked",
+      "type": "w",
+      "i": 68
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "like",
+      "type": "w",
+      "i": 69
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 70
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "small",
+      "type": "w",
+      "i": 71
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sun",
+      "type": "w",
+      "i": 72
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 73
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "put",
+      "type": "w",
+      "i": 74
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 75
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 76
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "red",
+      "type": "w",
+      "i": 77
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "helmet",
+      "type": "w",
+      "i": 78
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Now",
+      "type": "w",
+      "i": 79
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 80
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "suit",
+      "type": "w",
+      "i": 81
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 82
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ready",
+      "type": "w",
+      "i": 83
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 84
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "test",
+      "type": "w",
+      "i": 85
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 86
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "walked",
+      "type": "w",
+      "i": 87
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "outside",
+      "type": "w",
+      "i": 88
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 89
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 90
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "open",
+      "type": "w",
+      "i": 91
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "field",
+      "type": "w",
+      "i": 92
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 93
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sun",
+      "type": "w",
+      "i": 94
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 95
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shining",
+      "type": "w",
+      "i": 96
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bright",
+      "type": "w",
+      "i": 97
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "above",
+      "type": "w",
+      "i": 98
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 99
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "felt",
+      "type": "w",
+      "i": 100
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "nervous",
+      "type": "w",
+      "i": 101
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "but",
+      "type": "w",
+      "i": 102
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "excited",
+      "type": "w",
+      "i": 103
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "too",
+      "type": "w",
+      "i": 104
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 105
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pressed",
+      "type": "w",
+      "i": 106
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 107
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "button",
+      "type": "w",
+      "i": 108
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 109
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 110
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "suit",
+      "type": "w",
+      "i": 111
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 112
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "boots",
+      "type": "w",
+      "i": 113
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "started",
+      "type": "w",
+      "i": 114
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 115
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hum",
+      "type": "w",
+      "i": 116
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "loudly",
+      "type": "w",
+      "i": 117
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Suddenly",
+      "type": "w",
+      "i": 118
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 119
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lifted",
+      "type": "w",
+      "i": 120
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "off",
+      "type": "w",
+      "i": 121
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 122
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ground",
+      "type": "w",
+      "i": 123
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 124
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "flew",
+      "type": "w",
+      "i": 125
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "higher",
+      "type": "w",
+      "i": 126
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 127
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "higher",
+      "type": "w",
+      "i": 128
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "up",
+      "type": "w",
+      "i": 129
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 130
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "zoomed",
+      "type": "w",
+      "i": 131
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "past",
+      "type": "w",
+      "i": 132
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 133
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tall",
+      "type": "w",
+      "i": 134
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "buildings",
+      "type": "w",
+      "i": 135
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 136
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "city",
+      "type": "w",
+      "i": 137
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "looked",
+      "type": "w",
+      "i": 138
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "so",
+      "type": "w",
+      "i": 139
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "small",
+      "type": "w",
+      "i": 140
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "below",
+      "type": "w",
+      "i": 141
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 142
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Cars",
+      "type": "w",
+      "i": 143
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "looked",
+      "type": "w",
+      "i": 144
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "like",
+      "type": "w",
+      "i": 145
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tiny",
+      "type": "w",
+      "i": 146
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "toys",
+      "type": "w",
+      "i": 147
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 148
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "streets",
+      "type": "w",
+      "i": 149
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "People",
+      "type": "w",
+      "i": 150
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pointed",
+      "type": "w",
+      "i": 151
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "up",
+      "type": "w",
+      "i": 152
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 153
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 154
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sky",
+      "type": "w",
+      "i": 155
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 156
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "felt",
+      "type": "w",
+      "i": 157
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "like",
+      "type": "w",
+      "i": 158
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 159
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "real",
+      "type": "w",
+      "i": 160
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "superhero",
+      "type": "w",
+      "i": 161
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "now",
+      "type": "w",
+      "i": 162
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 163
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "landed",
+      "type": "w",
+      "i": 164
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "back",
+      "type": "w",
+      "i": 165
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 166
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 167
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "workshop",
+      "type": "w",
+      "i": 168
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "safely",
+      "type": "w",
+      "i": 169
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 170
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 171
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "so",
+      "type": "w",
+      "i": 172
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "happy",
+      "type": "w",
+      "i": 173
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 174
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "proud",
+      "type": "w",
+      "i": 175
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 176
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "suit",
+      "type": "w",
+      "i": 177
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "worked",
+      "type": "w",
+      "i": 178
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "perfectly",
+      "type": "w",
+      "i": 179
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 180
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 181
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sky",
+      "type": "w",
+      "i": 182
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Now",
+      "type": "w",
+      "i": 183
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 184
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "could",
+      "type": "w",
+      "i": 185
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "help",
+      "type": "w",
+      "i": 186
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "people",
+      "type": "w",
+      "i": 187
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "everywhere",
+      "type": "w",
+      "i": 188
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Tony",
+      "type": "w",
+      "i": 189
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "knew",
+      "type": "w",
+      "i": 190
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 191
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "would",
+      "type": "w",
+      "i": 192
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "join",
+      "type": "w",
+      "i": 193
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "other",
+      "type": "w",
+      "i": 194
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "heroes",
+      "type": "w",
+      "i": 195
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Together",
+      "type": "w",
+      "i": 196
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 197
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "would",
+      "type": "w",
+      "i": 198
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "be",
+      "type": "w",
+      "i": 199
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 200
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mighty",
+      "type": "w",
+      "i": 201
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Avengers",
+      "type": "w",
+      "i": 202
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "team",
+      "type": "w",
+      "i": 203
+    },
+    {
+      "t": ".",
+      "type": "p"
+    }
+  ],
+  "character_anchor": "Adult man, short black hair with goatee, red and gold mechanical suit, glowing circular chest piece, silver tools in hand"
+}

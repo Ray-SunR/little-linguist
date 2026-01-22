@@ -32,7 +32,11 @@ if (fs.existsSync(envFile)) {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const SEED_LIBRARY_PATH = path.join(process.cwd(), "output/expanded-library");
+
+const sourceIndex = process.argv.indexOf("--source");
+const SEED_LIBRARY_PATH = sourceIndex !== -1 
+    ? path.resolve(process.cwd(), process.argv[sourceIndex + 1]) 
+    : path.join(process.cwd(), "output/expanded-library");
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     console.error("❌ Missing Supabase credentials. Check your .env file.");
@@ -184,9 +188,10 @@ async function seedBook(relPath: string) {
         }, { onConflict: 'book_key' });
 
     if (bookError) {
-        console.error(`  ❌ DB Error (books):`, bookError.message);
+        console.error(`  ❌ DB Error (books) for ${bookKey}:`, bookError.message, bookError.details);
         return;
     }
+    console.log(`  ✓ Upserted book: ${bookKey}`);
 
     // 4. Content
     let fullText = fs.existsSync(contentPath) ? fs.readFileSync(contentPath, "utf-8") : "";

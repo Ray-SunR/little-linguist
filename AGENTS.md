@@ -29,7 +29,7 @@ Repository pattern, API structure, and dual-caching strategy (`raidenCache` for 
 1.  **Verify First**: Always explore the relevant documentation in `docs/` and the codebase before implementing changes.
 2.  **Local Sync with Prod**: The local Supabase database MUST be kept in sync with production. Treat the local database as a **staging environment** where all integration tests must run before deployment. Refer to the [Local Development Guide](./docs/guides/local-development.md) for automated sync commands.
 3.  **Schema Enforcement**: Any changes to the database schema must be applied to the local Supabase instance via migrations first. Never modify production schema directly without local verification.
-4.  **Documentation Integrity**: Always update guide documentation in `docs/` if parameters, usage, or interfaces change.
+4.  **Documentation Integrity**: Always update guide documentation in `docs/` if parameters, usage, test setup or interfaces change.
 5.  **Clean Workspace**: Do not leave any files in the repository that are not meant to be committed.
 6.  **Repository Pattern**: Centralize all database interactions in `repository.server.ts` files.
 7.  **Strict Typing**: Avoid `any`. Use interfaces for domain models.

@@ -1,0 +1,1378 @@
+[
+  {
+    "absIndex": 0,
+    "shardIndex": 0,
+    "start": 0.0,
+    "end": 0.16,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 1,
+    "shardIndex": 0,
+    "start": 0.16,
+    "end": 0.44,
+    "offset": 0.0,
+    "word": "rain"
+  },
+  {
+    "absIndex": 2,
+    "shardIndex": 0,
+    "start": 0.44,
+    "end": 0.69,
+    "offset": 0.0,
+    "word": "fell"
+  },
+  {
+    "absIndex": 3,
+    "shardIndex": 0,
+    "start": 0.69,
+    "end": 0.96,
+    "offset": 0.0,
+    "word": "hard"
+  },
+  {
+    "absIndex": 4,
+    "shardIndex": 0,
+    "start": 0.96,
+    "end": 1.1,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 5,
+    "shardIndex": 0,
+    "start": 1.1,
+    "end": 1.45,
+    "offset": 0.0,
+    "word": "Gotham"
+  },
+  {
+    "absIndex": 6,
+    "shardIndex": 0,
+    "start": 1.45,
+    "end": 1.92,
+    "offset": 0.0,
+    "word": "City"
+  },
+  {
+    "absIndex": 7,
+    "shardIndex": 0,
+    "start": 2.15,
+    "end": 2.26,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 8,
+    "shardIndex": 0,
+    "start": 2.26,
+    "end": 2.67,
+    "offset": 0.0,
+    "word": "streets"
+  },
+  {
+    "absIndex": 9,
+    "shardIndex": 0,
+    "start": 2.67,
+    "end": 2.81,
+    "offset": 0.0,
+    "word": "were"
+  },
+  {
+    "absIndex": 10,
+    "shardIndex": 0,
+    "start": 2.81,
+    "end": 3.26,
+    "offset": 0.0,
+    "word": "dark"
+  },
+  {
+    "absIndex": 11,
+    "shardIndex": 0,
+    "start": 3.28,
+    "end": 3.47,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 12,
+    "shardIndex": 0,
+    "start": 3.47,
+    "end": 3.89,
+    "offset": 0.0,
+    "word": "wet"
+  },
+  {
+    "absIndex": 13,
+    "shardIndex": 0,
+    "start": 4.93,
+    "end": 5.49,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 14,
+    "shardIndex": 0,
+    "start": 5.49,
+    "end": 5.77,
+    "offset": 0.0,
+    "word": "stood"
+  },
+  {
+    "absIndex": 15,
+    "shardIndex": 0,
+    "start": 5.77,
+    "end": 5.9,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 16,
+    "shardIndex": 0,
+    "start": 5.9,
+    "end": 5.96,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 17,
+    "shardIndex": 0,
+    "start": 5.96,
+    "end": 6.23,
+    "offset": 0.0,
+    "word": "tall"
+  },
+  {
+    "absIndex": 18,
+    "shardIndex": 0,
+    "start": 6.23,
+    "end": 6.78,
+    "offset": 0.0,
+    "word": "building"
+  },
+  {
+    "absIndex": 19,
+    "shardIndex": 0,
+    "start": 7.03,
+    "end": 7.31,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 20,
+    "shardIndex": 0,
+    "start": 7.31,
+    "end": 7.65,
+    "offset": 0.0,
+    "word": "cape"
+  },
+  {
+    "absIndex": 21,
+    "shardIndex": 0,
+    "start": 7.66,
+    "end": 8.03,
+    "offset": 0.0,
+    "word": "moved"
+  },
+  {
+    "absIndex": 22,
+    "shardIndex": 0,
+    "start": 8.03,
+    "end": 8.12,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 23,
+    "shardIndex": 0,
+    "start": 8.12,
+    "end": 8.22,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 24,
+    "shardIndex": 0,
+    "start": 8.22,
+    "end": 8.67,
+    "offset": 0.0,
+    "word": "wind"
+  },
+  {
+    "absIndex": 25,
+    "shardIndex": 0,
+    "start": 8.93,
+    "end": 9.11,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 26,
+    "shardIndex": 0,
+    "start": 9.11,
+    "end": 9.33,
+    "offset": 0.0,
+    "word": "looked"
+  },
+  {
+    "absIndex": 27,
+    "shardIndex": 0,
+    "start": 9.35,
+    "end": 9.63,
+    "offset": 0.0,
+    "word": "down"
+  },
+  {
+    "absIndex": 28,
+    "shardIndex": 0,
+    "start": 9.63,
+    "end": 9.73,
+    "offset": 0.0,
+    "word": "at"
+  },
+  {
+    "absIndex": 29,
+    "shardIndex": 0,
+    "start": 9.73,
+    "end": 9.83,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 30,
+    "shardIndex": 0,
+    "start": 9.83,
+    "end": 10.12,
+    "offset": 0.0,
+    "word": "city"
+  },
+  {
+    "absIndex": 31,
+    "shardIndex": 0,
+    "start": 10.12,
+    "end": 10.66,
+    "offset": 0.0,
+    "word": "below"
+  },
+  {
+    "absIndex": 32,
+    "shardIndex": 0,
+    "start": 11.53,
+    "end": 12.1,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 33,
+    "shardIndex": 0,
+    "start": 12.1,
+    "end": 12.28,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 34,
+    "shardIndex": 0,
+    "start": 12.28,
+    "end": 12.53,
+    "offset": 0.0,
+    "word": "ready"
+  },
+  {
+    "absIndex": 35,
+    "shardIndex": 0,
+    "start": 12.53,
+    "end": 12.64,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 36,
+    "shardIndex": 0,
+    "start": 12.64,
+    "end": 12.91,
+    "offset": 0.0,
+    "word": "keep"
+  },
+  {
+    "absIndex": 37,
+    "shardIndex": 0,
+    "start": 12.91,
+    "end": 13.36,
+    "offset": 0.0,
+    "word": "everyone"
+  },
+  {
+    "absIndex": 38,
+    "shardIndex": 0,
+    "start": 13.36,
+    "end": 13.84,
+    "offset": 0.0,
+    "word": "safe"
+  },
+  {
+    "absIndex": 39,
+    "shardIndex": 0,
+    "start": 15.58,
+    "end": 16.11,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 40,
+    "shardIndex": 0,
+    "start": 16.11,
+    "end": 16.35,
+    "offset": 0.0,
+    "word": "heard"
+  },
+  {
+    "absIndex": 41,
+    "shardIndex": 0,
+    "start": 16.35,
+    "end": 16.43,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 42,
+    "shardIndex": 0,
+    "start": 16.43,
+    "end": 16.73,
+    "offset": 0.0,
+    "word": "loud"
+  },
+  {
+    "absIndex": 43,
+    "shardIndex": 0,
+    "start": 16.73,
+    "end": 17.27,
+    "offset": 0.0,
+    "word": "alarm"
+  },
+  {
+    "absIndex": 44,
+    "shardIndex": 0,
+    "start": 17.48,
+    "end": 17.65,
+    "offset": 0.0,
+    "word": "It"
+  },
+  {
+    "absIndex": 45,
+    "shardIndex": 0,
+    "start": 17.65,
+    "end": 17.91,
+    "offset": 0.0,
+    "word": "came"
+  },
+  {
+    "absIndex": 46,
+    "shardIndex": 0,
+    "start": 17.91,
+    "end": 18.1,
+    "offset": 0.0,
+    "word": "from"
+  },
+  {
+    "absIndex": 47,
+    "shardIndex": 0,
+    "start": 18.1,
+    "end": 18.18,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 48,
+    "shardIndex": 0,
+    "start": 18.18,
+    "end": 18.43,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 49,
+    "shardIndex": 0,
+    "start": 18.43,
+    "end": 19.04,
+    "offset": 0.0,
+    "word": "museum"
+  },
+  {
+    "absIndex": 50,
+    "shardIndex": 0,
+    "start": 19.91,
+    "end": 20.1,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 51,
+    "shardIndex": 0,
+    "start": 20.1,
+    "end": 20.4,
+    "offset": 0.0,
+    "word": "jumped"
+  },
+  {
+    "absIndex": 52,
+    "shardIndex": 0,
+    "start": 20.41,
+    "end": 20.62,
+    "offset": 0.0,
+    "word": "from"
+  },
+  {
+    "absIndex": 53,
+    "shardIndex": 0,
+    "start": 20.62,
+    "end": 20.7,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 54,
+    "shardIndex": 0,
+    "start": 20.7,
+    "end": 21.2,
+    "offset": 0.0,
+    "word": "building"
+  },
+  {
+    "absIndex": 55,
+    "shardIndex": 0,
+    "start": 21.45,
+    "end": 21.7,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 56,
+    "shardIndex": 0,
+    "start": 21.7,
+    "end": 22.03,
+    "offset": 0.0,
+    "word": "cape"
+  },
+  {
+    "absIndex": 57,
+    "shardIndex": 0,
+    "start": 22.03,
+    "end": 22.4,
+    "offset": 0.0,
+    "word": "spread"
+  },
+  {
+    "absIndex": 58,
+    "shardIndex": 0,
+    "start": 22.41,
+    "end": 22.8,
+    "offset": 0.0,
+    "word": "wide"
+  },
+  {
+    "absIndex": 59,
+    "shardIndex": 0,
+    "start": 22.8,
+    "end": 23.03,
+    "offset": 0.0,
+    "word": "like"
+  },
+  {
+    "absIndex": 60,
+    "shardIndex": 0,
+    "start": 23.03,
+    "end": 23.51,
+    "offset": 0.0,
+    "word": "wings"
+  },
+  {
+    "absIndex": 61,
+    "shardIndex": 0,
+    "start": 23.74,
+    "end": 23.95,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 62,
+    "shardIndex": 0,
+    "start": 23.95,
+    "end": 24.3,
+    "offset": 0.0,
+    "word": "swung"
+  },
+  {
+    "absIndex": 63,
+    "shardIndex": 0,
+    "start": 24.3,
+    "end": 24.55,
+    "offset": 0.0,
+    "word": "through"
+  },
+  {
+    "absIndex": 64,
+    "shardIndex": 0,
+    "start": 24.55,
+    "end": 24.69,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 65,
+    "shardIndex": 0,
+    "start": 24.69,
+    "end": 25.01,
+    "offset": 0.0,
+    "word": "rainy"
+  },
+  {
+    "absIndex": 66,
+    "shardIndex": 0,
+    "start": 25.01,
+    "end": 25.6,
+    "offset": 0.0,
+    "word": "streets"
+  },
+  {
+    "absIndex": 67,
+    "shardIndex": 0,
+    "start": 26.44,
+    "end": 26.55,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 68,
+    "shardIndex": 0,
+    "start": 26.55,
+    "end": 27.03,
+    "offset": 0.0,
+    "word": "museum"
+  },
+  {
+    "absIndex": 69,
+    "shardIndex": 0,
+    "start": 27.03,
+    "end": 27.17,
+    "offset": 0.0,
+    "word": "had"
+  },
+  {
+    "absIndex": 70,
+    "shardIndex": 0,
+    "start": 27.17,
+    "end": 27.22,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 71,
+    "shardIndex": 0,
+    "start": 27.22,
+    "end": 27.8,
+    "offset": 0.0,
+    "word": "problem"
+  },
+  {
+    "absIndex": 72,
+    "shardIndex": 0,
+    "start": 28.04,
+    "end": 28.59,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 73,
+    "shardIndex": 0,
+    "start": 28.6,
+    "end": 28.8,
+    "offset": 0.0,
+    "word": "had"
+  },
+  {
+    "absIndex": 74,
+    "shardIndex": 0,
+    "start": 28.8,
+    "end": 28.92,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 75,
+    "shardIndex": 0,
+    "start": 28.92,
+    "end": 29.33,
+    "offset": 0.0,
+    "word": "help"
+  },
+  {
+    "absIndex": 76,
+    "shardIndex": 0,
+    "start": 31.05,
+    "end": 31.51,
+    "offset": 0.0,
+    "word": "Inside"
+  },
+  {
+    "absIndex": 77,
+    "shardIndex": 0,
+    "start": 31.51,
+    "end": 31.58,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 78,
+    "shardIndex": 0,
+    "start": 31.58,
+    "end": 32.19,
+    "offset": 0.0,
+    "word": "museum"
+  },
+  {
+    "absIndex": 79,
+    "shardIndex": 0,
+    "start": 32.37,
+    "end": 32.85,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 80,
+    "shardIndex": 0,
+    "start": 32.85,
+    "end": 33.06,
+    "offset": 0.0,
+    "word": "looked"
+  },
+  {
+    "absIndex": 81,
+    "shardIndex": 0,
+    "start": 33.06,
+    "end": 33.6,
+    "offset": 0.0,
+    "word": "around"
+  },
+  {
+    "absIndex": 82,
+    "shardIndex": 0,
+    "start": 34.65,
+    "end": 35.21,
+    "offset": 0.0,
+    "word": "Footprints"
+  },
+  {
+    "absIndex": 83,
+    "shardIndex": 0,
+    "start": 35.21,
+    "end": 35.35,
+    "offset": 0.0,
+    "word": "were"
+  },
+  {
+    "absIndex": 84,
+    "shardIndex": 0,
+    "start": 35.35,
+    "end": 35.46,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 85,
+    "shardIndex": 0,
+    "start": 35.46,
+    "end": 35.55,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 86,
+    "shardIndex": 0,
+    "start": 35.55,
+    "end": 36.04,
+    "offset": 0.0,
+    "word": "floor"
+  },
+  {
+    "absIndex": 87,
+    "shardIndex": 0,
+    "start": 36.31,
+    "end": 36.41,
+    "offset": 0.0,
+    "word": "A"
+  },
+  {
+    "absIndex": 88,
+    "shardIndex": 0,
+    "start": 36.41,
+    "end": 36.77,
+    "offset": 0.0,
+    "word": "window"
+  },
+  {
+    "absIndex": 89,
+    "shardIndex": 0,
+    "start": 36.77,
+    "end": 36.95,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 90,
+    "shardIndex": 0,
+    "start": 36.96,
+    "end": 37.48,
+    "offset": 0.0,
+    "word": "broken"
+  },
+  {
+    "absIndex": 91,
+    "shardIndex": 0,
+    "start": 38.36,
+    "end": 38.5,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 92,
+    "shardIndex": 0,
+    "start": 38.5,
+    "end": 38.93,
+    "offset": 0.0,
+    "word": "special"
+  },
+  {
+    "absIndex": 93,
+    "shardIndex": 0,
+    "start": 38.93,
+    "end": 39.37,
+    "offset": 0.0,
+    "word": "diamond"
+  },
+  {
+    "absIndex": 94,
+    "shardIndex": 0,
+    "start": 39.38,
+    "end": 39.56,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 95,
+    "shardIndex": 0,
+    "start": 39.56,
+    "end": 40.02,
+    "offset": 0.0,
+    "word": "gone"
+  },
+  {
+    "absIndex": 96,
+    "shardIndex": 0,
+    "start": 41.1,
+    "end": 41.65,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 97,
+    "shardIndex": 0,
+    "start": 41.65,
+    "end": 41.97,
+    "offset": 0.0,
+    "word": "found"
+  },
+  {
+    "absIndex": 98,
+    "shardIndex": 0,
+    "start": 42.0,
+    "end": 42.36,
+    "offset": 0.0,
+    "word": "clues"
+  },
+  {
+    "absIndex": 99,
+    "shardIndex": 0,
+    "start": 42.4,
+    "end": 43.08,
+    "offset": 0.0,
+    "word": "everywhere"
+  },
+  {
+    "absIndex": 100,
+    "shardIndex": 0,
+    "start": 43.32,
+    "end": 43.49,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 101,
+    "shardIndex": 0,
+    "start": 43.49,
+    "end": 43.67,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 102,
+    "shardIndex": 0,
+    "start": 43.67,
+    "end": 44.01,
+    "offset": 0.0,
+    "word": "solve"
+  },
+  {
+    "absIndex": 103,
+    "shardIndex": 0,
+    "start": 44.02,
+    "end": 44.19,
+    "offset": 0.0,
+    "word": "this"
+  },
+  {
+    "absIndex": 104,
+    "shardIndex": 0,
+    "start": 44.19,
+    "end": 44.77,
+    "offset": 0.0,
+    "word": "mystery"
+  },
+  {
+    "absIndex": 105,
+    "shardIndex": 0,
+    "start": 46.52,
+    "end": 47.04,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 106,
+    "shardIndex": 0,
+    "start": 47.05,
+    "end": 47.44,
+    "offset": 0.0,
+    "word": "followed"
+  },
+  {
+    "absIndex": 107,
+    "shardIndex": 0,
+    "start": 47.44,
+    "end": 47.51,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 108,
+    "shardIndex": 0,
+    "start": 47.51,
+    "end": 48.02,
+    "offset": 0.0,
+    "word": "footprints"
+  },
+  {
+    "absIndex": 109,
+    "shardIndex": 0,
+    "start": 48.02,
+    "end": 48.67,
+    "offset": 0.0,
+    "word": "outside"
+  },
+  {
+    "absIndex": 110,
+    "shardIndex": 0,
+    "start": 48.9,
+    "end": 49.12,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 111,
+    "shardIndex": 0,
+    "start": 49.12,
+    "end": 49.33,
+    "offset": 0.0,
+    "word": "led"
+  },
+  {
+    "absIndex": 112,
+    "shardIndex": 0,
+    "start": 49.33,
+    "end": 49.44,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 113,
+    "shardIndex": 0,
+    "start": 49.44,
+    "end": 49.57,
+    "offset": 0.0,
+    "word": "an"
+  },
+  {
+    "absIndex": 114,
+    "shardIndex": 0,
+    "start": 49.58,
+    "end": 49.82,
+    "offset": 0.0,
+    "word": "old"
+  },
+  {
+    "absIndex": 115,
+    "shardIndex": 0,
+    "start": 49.82,
+    "end": 50.5,
+    "offset": 0.0,
+    "word": "warehouse"
+  },
+  {
+    "absIndex": 116,
+    "shardIndex": 0,
+    "start": 51.55,
+    "end": 51.77,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 117,
+    "shardIndex": 0,
+    "start": 51.77,
+    "end": 52.07,
+    "offset": 0.0,
+    "word": "opened"
+  },
+  {
+    "absIndex": 118,
+    "shardIndex": 0,
+    "start": 52.1,
+    "end": 52.2,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 119,
+    "shardIndex": 0,
+    "start": 52.2,
+    "end": 52.46,
+    "offset": 0.0,
+    "word": "door"
+  },
+  {
+    "absIndex": 120,
+    "shardIndex": 0,
+    "start": 52.46,
+    "end": 53.08,
+    "offset": 0.0,
+    "word": "slowly"
+  },
+  {
+    "absIndex": 121,
+    "shardIndex": 0,
+    "start": 54.41,
+    "end": 55.11,
+    "offset": 0.0,
+    "word": "Inside"
+  },
+  {
+    "absIndex": 122,
+    "shardIndex": 0,
+    "start": 55.33,
+    "end": 55.51,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 124,
+    "shardIndex": 0,
+    "start": 55.86,
+    "end": 55.98,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 125,
+    "shardIndex": 0,
+    "start": 55.98,
+    "end": 56.4,
+    "offset": 0.0,
+    "word": "stolen"
+  },
+  {
+    "absIndex": 126,
+    "shardIndex": 0,
+    "start": 56.4,
+    "end": 56.99,
+    "offset": 0.0,
+    "word": "diamond"
+  },
+  {
+    "absIndex": 127,
+    "shardIndex": 0,
+    "start": 57.22,
+    "end": 57.36,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 128,
+    "shardIndex": 0,
+    "start": 57.36,
+    "end": 57.67,
+    "offset": 0.0,
+    "word": "thief"
+  },
+  {
+    "absIndex": 129,
+    "shardIndex": 0,
+    "start": 57.67,
+    "end": 57.85,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 130,
+    "shardIndex": 0,
+    "start": 57.85,
+    "end": 58.34,
+    "offset": 0.0,
+    "word": "caught"
+  },
+  {
+    "absIndex": 131,
+    "shardIndex": 0,
+    "start": 59.18,
+    "end": 59.73,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 132,
+    "shardIndex": 0,
+    "start": 59.73,
+    "end": 60.1,
+    "offset": 0.0,
+    "word": "returned"
+  },
+  {
+    "absIndex": 133,
+    "shardIndex": 0,
+    "start": 60.14,
+    "end": 60.23,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 134,
+    "shardIndex": 0,
+    "start": 60.23,
+    "end": 60.66,
+    "offset": 0.0,
+    "word": "diamond"
+  },
+  {
+    "absIndex": 135,
+    "shardIndex": 0,
+    "start": 60.68,
+    "end": 60.8,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 136,
+    "shardIndex": 0,
+    "start": 60.8,
+    "end": 60.89,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 137,
+    "shardIndex": 0,
+    "start": 60.89,
+    "end": 61.52,
+    "offset": 0.0,
+    "word": "museum"
+  },
+  {
+    "absIndex": 138,
+    "shardIndex": 0,
+    "start": 63.25,
+    "end": 63.4,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 139,
+    "shardIndex": 0,
+    "start": 63.4,
+    "end": 63.69,
+    "offset": 0.0,
+    "word": "rain"
+  },
+  {
+    "absIndex": 140,
+    "shardIndex": 0,
+    "start": 63.69,
+    "end": 64.02,
+    "offset": 0.0,
+    "word": "stopped"
+  },
+  {
+    "absIndex": 141,
+    "shardIndex": 0,
+    "start": 64.02,
+    "end": 64.53,
+    "offset": 0.0,
+    "word": "falling"
+  },
+  {
+    "absIndex": 142,
+    "shardIndex": 0,
+    "start": 64.77,
+    "end": 64.92,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 143,
+    "shardIndex": 0,
+    "start": 64.92,
+    "end": 65.24,
+    "offset": 0.0,
+    "word": "city"
+  },
+  {
+    "absIndex": 144,
+    "shardIndex": 0,
+    "start": 65.24,
+    "end": 65.4,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 145,
+    "shardIndex": 0,
+    "start": 65.4,
+    "end": 65.7,
+    "offset": 0.0,
+    "word": "safe"
+  },
+  {
+    "absIndex": 146,
+    "shardIndex": 0,
+    "start": 65.7,
+    "end": 66.15,
+    "offset": 0.0,
+    "word": "again"
+  },
+  {
+    "absIndex": 147,
+    "shardIndex": 0,
+    "start": 67.05,
+    "end": 67.35,
+    "offset": 0.0,
+    "word": "People"
+  },
+  {
+    "absIndex": 148,
+    "shardIndex": 0,
+    "start": 67.35,
+    "end": 67.88,
+    "offset": 0.0,
+    "word": "smiled"
+  },
+  {
+    "absIndex": 149,
+    "shardIndex": 0,
+    "start": 67.88,
+    "end": 68.03,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 150,
+    "shardIndex": 0,
+    "start": 68.03,
+    "end": 68.38,
+    "offset": 0.0,
+    "word": "waved"
+  },
+  {
+    "absIndex": 151,
+    "shardIndex": 0,
+    "start": 68.38,
+    "end": 68.45,
+    "offset": 0.0,
+    "word": "at"
+  },
+  {
+    "absIndex": 152,
+    "shardIndex": 0,
+    "start": 68.46,
+    "end": 69.09,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 153,
+    "shardIndex": 0,
+    "start": 70.17,
+    "end": 70.34,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 154,
+    "shardIndex": 0,
+    "start": 70.34,
+    "end": 70.62,
+    "offset": 0.0,
+    "word": "stood"
+  },
+  {
+    "absIndex": 155,
+    "shardIndex": 0,
+    "start": 70.62,
+    "end": 70.74,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 156,
+    "shardIndex": 0,
+    "start": 70.74,
+    "end": 70.81,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 157,
+    "shardIndex": 0,
+    "start": 70.81,
+    "end": 71.35,
+    "offset": 0.0,
+    "word": "rooftop"
+  },
+  {
+    "absIndex": 158,
+    "shardIndex": 0,
+    "start": 71.37,
+    "end": 71.77,
+    "offset": 0.0,
+    "word": "watching"
+  },
+  {
+    "absIndex": 159,
+    "shardIndex": 0,
+    "start": 71.77,
+    "end": 71.96,
+    "offset": 0.0,
+    "word": "over"
+  },
+  {
+    "absIndex": 160,
+    "shardIndex": 0,
+    "start": 71.96,
+    "end": 72.5,
+    "offset": 0.0,
+    "word": "Gotham"
+  },
+  {
+    "absIndex": 161,
+    "shardIndex": 0,
+    "start": 72.78,
+    "end": 73.01,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 162,
+    "shardIndex": 0,
+    "start": 73.01,
+    "end": 73.27,
+    "offset": 0.0,
+    "word": "work"
+  },
+  {
+    "absIndex": 163,
+    "shardIndex": 0,
+    "start": 73.27,
+    "end": 73.48,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 164,
+    "shardIndex": 0,
+    "start": 73.48,
+    "end": 73.72,
+    "offset": 0.0,
+    "word": "done"
+  },
+  {
+    "absIndex": 165,
+    "shardIndex": 0,
+    "start": 73.72,
+    "end": 73.88,
+    "offset": 0.0,
+    "word": "for"
+  },
+  {
+    "absIndex": 166,
+    "shardIndex": 0,
+    "start": 73.88,
+    "end": 74.44,
+    "offset": 0.0,
+    "word": "tonight"
+  },
+  {
+    "absIndex": 167,
+    "shardIndex": 0,
+    "start": 75.54,
+    "end": 76.11,
+    "offset": 0.0,
+    "word": "Batman"
+  },
+  {
+    "absIndex": 168,
+    "shardIndex": 0,
+    "start": 76.11,
+    "end": 76.26,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 169,
+    "shardIndex": 0,
+    "start": 76.26,
+    "end": 76.57,
+    "offset": 0.0,
+    "word": "always"
+  },
+  {
+    "absIndex": 170,
+    "shardIndex": 0,
+    "start": 76.59,
+    "end": 76.97,
+    "offset": 0.0,
+    "word": "protect"
+  },
+  {
+    "absIndex": 171,
+    "shardIndex": 0,
+    "start": 76.97,
+    "end": 77.13,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 172,
+    "shardIndex": 0,
+    "start": 77.13,
+    "end": 77.58,
+    "offset": 0.0,
+    "word": "city"
+  }
+]

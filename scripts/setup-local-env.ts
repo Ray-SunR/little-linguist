@@ -17,6 +17,7 @@ function runCommand(command: string, description: string) {
 
 async function main() {
   const syncData = process.argv.includes('--sync-data');
+  const testData = process.argv.includes('--test-data');
   const noReset = process.argv.includes('--no-reset');
   const limitIndex = process.argv.indexOf('--limit');
   const limit = limitIndex !== -1 ? process.argv[limitIndex + 1] : null;
@@ -92,6 +93,8 @@ async function main() {
     runCommand(`docker exec -i ${containerName} psql -U postgres -d postgres -f - < supabase/prod_seed.sql`, 'Applying prod data via psql');
     
     runCommand('npx tsx scripts/sync-storage-assets.ts', 'Syncing production storage assets');
+  } else if (testData) {
+    runCommand('npx tsx scripts/seed-library.ts --local --source tests/fixtures/library', 'Seeding library (test fixtures)');
   } else {
     runCommand('npx tsx scripts/seed-library.ts --local', 'Seeding library (local seeds)');
   }

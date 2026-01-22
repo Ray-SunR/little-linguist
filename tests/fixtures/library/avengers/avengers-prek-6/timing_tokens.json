@@ -1,0 +1,338 @@
+[
+  {
+    "absIndex": 0,
+    "shardIndex": 0,
+    "start": 0.0,
+    "end": 0.43,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 1,
+    "shardIndex": 0,
+    "start": 0.43,
+    "end": 0.57,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 2,
+    "shardIndex": 0,
+    "start": 0.58,
+    "end": 0.96,
+    "offset": 0.0,
+    "word": "Bruce"
+  },
+  {
+    "absIndex": 3,
+    "shardIndex": 0,
+    "start": 0.99,
+    "end": 1.15,
+    "offset": 0.0,
+    "word": "are"
+  },
+  {
+    "absIndex": 4,
+    "shardIndex": 0,
+    "start": 1.15,
+    "end": 1.48,
+    "offset": 0.0,
+    "word": "best"
+  },
+  {
+    "absIndex": 5,
+    "shardIndex": 0,
+    "start": 1.48,
+    "end": 2.03,
+    "offset": 0.0,
+    "word": "friends"
+  },
+  {
+    "absIndex": 6,
+    "shardIndex": 0,
+    "start": 2.91,
+    "end": 3.11,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 7,
+    "shardIndex": 0,
+    "start": 3.11,
+    "end": 3.37,
+    "offset": 0.0,
+    "word": "play"
+  },
+  {
+    "absIndex": 8,
+    "shardIndex": 0,
+    "start": 3.37,
+    "end": 4.02,
+    "offset": 0.0,
+    "word": "superhero"
+  },
+  {
+    "absIndex": 9,
+    "shardIndex": 0,
+    "start": 4.02,
+    "end": 4.14,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 10,
+    "shardIndex": 0,
+    "start": 4.14,
+    "end": 4.24,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 11,
+    "shardIndex": 0,
+    "start": 4.24,
+    "end": 4.56,
+    "offset": 0.0,
+    "word": "sunny"
+  },
+  {
+    "absIndex": 12,
+    "shardIndex": 0,
+    "start": 4.56,
+    "end": 5.25,
+    "offset": 0.0,
+    "word": "backyard"
+  },
+  {
+    "absIndex": 13,
+    "shardIndex": 0,
+    "start": 5.5,
+    "end": 5.83,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 14,
+    "shardIndex": 0,
+    "start": 5.83,
+    "end": 6.14,
+    "offset": 0.0,
+    "word": "wears"
+  },
+  {
+    "absIndex": 15,
+    "shardIndex": 0,
+    "start": 6.14,
+    "end": 6.33,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 16,
+    "shardIndex": 0,
+    "start": 6.33,
+    "end": 6.6,
+    "offset": 0.0,
+    "word": "toy"
+  },
+  {
+    "absIndex": 17,
+    "shardIndex": 0,
+    "start": 6.63,
+    "end": 6.87,
+    "offset": 0.0,
+    "word": "arc"
+  },
+  {
+    "absIndex": 18,
+    "shardIndex": 0,
+    "start": 6.87,
+    "end": 7.49,
+    "offset": 0.0,
+    "word": "reactor"
+  },
+  {
+    "absIndex": 19,
+    "shardIndex": 0,
+    "start": 7.75,
+    "end": 8.05,
+    "offset": 0.0,
+    "word": "Bruce"
+  },
+  {
+    "absIndex": 20,
+    "shardIndex": 0,
+    "start": 8.06,
+    "end": 8.3,
+    "offset": 0.0,
+    "word": "has"
+  },
+  {
+    "absIndex": 21,
+    "shardIndex": 0,
+    "start": 8.31,
+    "end": 8.56,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 22,
+    "shardIndex": 0,
+    "start": 8.57,
+    "end": 8.87,
+    "offset": 0.0,
+    "word": "foam"
+  },
+  {
+    "absIndex": 23,
+    "shardIndex": 0,
+    "start": 8.87,
+    "end": 9.39,
+    "offset": 0.0,
+    "word": "fists"
+  },
+  {
+    "absIndex": 24,
+    "shardIndex": 0,
+    "start": 11.15,
+    "end": 11.35,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 25,
+    "shardIndex": 0,
+    "start": 11.35,
+    "end": 11.68,
+    "offset": 0.0,
+    "word": "jump"
+  },
+  {
+    "absIndex": 26,
+    "shardIndex": 0,
+    "start": 11.68,
+    "end": 11.83,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 27,
+    "shardIndex": 0,
+    "start": 11.83,
+    "end": 12.11,
+    "offset": 0.0,
+    "word": "laugh"
+  },
+  {
+    "absIndex": 28,
+    "shardIndex": 0,
+    "start": 12.11,
+    "end": 12.64,
+    "offset": 0.0,
+    "word": "together"
+  },
+  {
+    "absIndex": 29,
+    "shardIndex": 0,
+    "start": 13.54,
+    "end": 13.85,
+    "offset": 0.0,
+    "word": "Tony"
+  },
+  {
+    "absIndex": 30,
+    "shardIndex": 0,
+    "start": 13.85,
+    "end": 14.31,
+    "offset": 0.0,
+    "word": "pretends"
+  },
+  {
+    "absIndex": 31,
+    "shardIndex": 0,
+    "start": 14.31,
+    "end": 14.42,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 32,
+    "shardIndex": 0,
+    "start": 14.42,
+    "end": 14.92,
+    "offset": 0.0,
+    "word": "fly"
+  },
+  {
+    "absIndex": 33,
+    "shardIndex": 0,
+    "start": 15.15,
+    "end": 15.43,
+    "offset": 0.0,
+    "word": "Bruce"
+  },
+  {
+    "absIndex": 34,
+    "shardIndex": 0,
+    "start": 15.46,
+    "end": 15.91,
+    "offset": 0.0,
+    "word": "pretends"
+  },
+  {
+    "absIndex": 35,
+    "shardIndex": 0,
+    "start": 15.91,
+    "end": 15.99,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 36,
+    "shardIndex": 0,
+    "start": 16.0,
+    "end": 16.13,
+    "offset": 0.0,
+    "word": "be"
+  },
+  {
+    "absIndex": 37,
+    "shardIndex": 0,
+    "start": 16.13,
+    "end": 16.69,
+    "offset": 0.0,
+    "word": "strong"
+  },
+  {
+    "absIndex": 38,
+    "shardIndex": 0,
+    "start": 17.58,
+    "end": 17.83,
+    "offset": 0.0,
+    "word": "What"
+  },
+  {
+    "absIndex": 39,
+    "shardIndex": 0,
+    "start": 17.83,
+    "end": 17.89,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 40,
+    "shardIndex": 0,
+    "start": 17.89,
+    "end": 18.32,
+    "offset": 0.0,
+    "word": "mighty"
+  },
+  {
+    "absIndex": 41,
+    "shardIndex": 0,
+    "start": 18.32,
+    "end": 18.76,
+    "offset": 0.0,
+    "word": "team"
+  }
+]

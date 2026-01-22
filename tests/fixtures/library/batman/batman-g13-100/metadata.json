@@ -1,0 +1,1771 @@
+{
+  "id": "batman-g13-100",
+  "title": "Batman Saves the Diamond",
+  "original_concept_title": "The Shadows of Gotham",
+  "category": "batman",
+  "level": "G1-2",
+  "is_nonfiction": false,
+  "description": "When a priceless diamond is stolen from Gotham's museum on a stormy night, Batman springs into action. Following clues through rain-soaked streets to an old warehouse, the Dark Knight uses his detective skills to recover the treasure and catch the thief, proving once again that he will always protect his city.",
+  "keywords": [
+    "batman",
+    "gotham",
+    "superhero",
+    "detective",
+    "mystery",
+    "museum",
+    "diamond",
+    "crime",
+    "rooftop",
+    "cape",
+    "rain",
+    "warehouse"
+  ],
+  "series_id": "batman_series",
+  "cover_image_path": "cover.webp",
+  "cover_prompt": "An adult male hero with an athletic build stands prominently on a Gothic rooftop overlooking Gotham City at night. He wears a black mask covering his eyes, a dark gray armored suit, and a yellow utility belt at his waist. His long black cape billows dramatically behind him in the wind. Rain pours down around him, creating streaks of water and reflections on the wet rooftop surface. The city skyline spreads below with glowing windows and dark buildings. Storm clouds fill the sky above. The hero's silhouette is powerful and protective, captured in a heroic pose with hands on hips, looking down at his city with determination and vigilance.",
+  "stats": {
+    "word_count": 173,
+    "char_count": 984,
+    "scene_count": 5,
+    "reading_time_seconds": 70,
+    "length_category": "Medium"
+  },
+  "scenes": [
+    {
+      "index": 0,
+      "text": "The rain fell hard on Gotham City. The streets were dark and wet. Batman stood on a tall building. His cape moved in the wind. He looked down at the city below. Batman was ready to keep everyone safe.",
+      "imagePrompt": "A superhero standing on top of a tall building overlooking a dark rainy city with wet streets and glowing streetlights below, featuring adult male hero, athletic build, black mask covering eyes, dark gray armored suit, long black cape, yellow utility belt",
+      "image_path": "scenes/scene_0.webp",
+      "after_word_index": 38
+    },
+    {
+      "index": 1,
+      "text": "Batman heard a loud alarm. It came from the big museum. He jumped from the building. His cape spread wide like wings. He swung through the rainy streets. The museum had a problem. Batman had to help.",
+      "imagePrompt": "A superhero swinging through rainy city streets between tall buildings toward a large museum with alarm lights flashing, featuring adult male hero, athletic build, black mask covering eyes, dark gray armored suit, long black cape, yellow utility belt",
+      "image_path": "scenes/scene_1.webp",
+      "after_word_index": 75
+    },
+    {
+      "index": 2,
+      "text": "Inside the museum, Batman looked around. Footprints were on the floor. A window was broken. The special diamond was gone. Batman found clues everywhere. He would solve this mystery.",
+      "imagePrompt": "A superhero examining wet footprints and a broken window inside a grand museum with display cases and a spotlight on an empty pedestal, featuring adult male hero, athletic build, black mask covering eyes, dark gray armored suit, long black cape, yellow utility belt",
+      "image_path": "scenes/scene_2.webp",
+      "after_word_index": 104
+    },
+    {
+      "index": 3,
+      "text": "Batman followed the footprints outside. They led to an old warehouse. He opened the door slowly. Inside, he found the stolen diamond. The thief was caught. Batman returned the diamond to the museum.",
+      "imagePrompt": "A superhero holding a sparkling diamond inside a dark warehouse with wooden crates and shadows, featuring adult male hero, athletic build, black mask covering eyes, dark gray armored suit, long black cape, yellow utility belt",
+      "image_path": "scenes/scene_3.webp",
+      "after_word_index": 137
+    },
+    {
+      "index": 4,
+      "text": "The rain stopped falling. The city was safe again. People smiled and waved at Batman. He stood on a rooftop watching over Gotham. His work was done for tonight. Batman would always protect his city.",
+      "imagePrompt": "A superhero standing proudly on a rooftop with the city skyline behind him and citizens waving from below under clearing skies, featuring adult male hero, athletic build, black mask covering eyes, dark gray armored suit, long black cape, yellow utility belt",
+      "image_path": "scenes/scene_4.webp",
+      "after_word_index": 172
+    }
+  ],
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 172,
+        "timings": []
+      }
+    ]
+  },
+  "tokens": [
+    {
+      "t": "The",
+      "type": "w",
+      "i": 0
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rain",
+      "type": "w",
+      "i": 1
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fell",
+      "type": "w",
+      "i": 2
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hard",
+      "type": "w",
+      "i": 3
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 4
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Gotham",
+      "type": "w",
+      "i": 5
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "City",
+      "type": "w",
+      "i": 6
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 7
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "streets",
+      "type": "w",
+      "i": 8
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 9
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dark",
+      "type": "w",
+      "i": 10
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 11
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wet",
+      "type": "w",
+      "i": 12
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 13
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stood",
+      "type": "w",
+      "i": 14
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 15
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 16
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tall",
+      "type": "w",
+      "i": 17
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "building",
+      "type": "w",
+      "i": 18
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 19
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cape",
+      "type": "w",
+      "i": 20
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "moved",
+      "type": "w",
+      "i": 21
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 22
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 23
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wind",
+      "type": "w",
+      "i": 24
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 25
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "looked",
+      "type": "w",
+      "i": 26
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "down",
+      "type": "w",
+      "i": 27
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 28
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 29
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "city",
+      "type": "w",
+      "i": 30
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "below",
+      "type": "w",
+      "i": 31
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 32
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 33
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ready",
+      "type": "w",
+      "i": 34
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 35
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "keep",
+      "type": "w",
+      "i": 36
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "everyone",
+      "type": "w",
+      "i": 37
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "safe",
+      "type": "w",
+      "i": 38
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 39
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "heard",
+      "type": "w",
+      "i": 40
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 41
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "loud",
+      "type": "w",
+      "i": 42
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "alarm",
+      "type": "w",
+      "i": 43
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 44
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "came",
+      "type": "w",
+      "i": 45
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 46
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 47
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "big",
+      "type": "w",
+      "i": 48
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "museum",
+      "type": "w",
+      "i": 49
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 50
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "jumped",
+      "type": "w",
+      "i": 51
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 52
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 53
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "building",
+      "type": "w",
+      "i": 54
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 55
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cape",
+      "type": "w",
+      "i": 56
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spread",
+      "type": "w",
+      "i": 57
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wide",
+      "type": "w",
+      "i": 58
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "like",
+      "type": "w",
+      "i": 59
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wings",
+      "type": "w",
+      "i": 60
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 61
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "swung",
+      "type": "w",
+      "i": 62
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 63
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 64
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rainy",
+      "type": "w",
+      "i": 65
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "streets",
+      "type": "w",
+      "i": 66
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 67
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "museum",
+      "type": "w",
+      "i": 68
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 69
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 70
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "problem",
+      "type": "w",
+      "i": 71
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 72
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 73
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 74
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "help",
+      "type": "w",
+      "i": 75
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Inside",
+      "type": "w",
+      "i": 76
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 77
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "museum",
+      "type": "w",
+      "i": 78
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 79
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "looked",
+      "type": "w",
+      "i": 80
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "around",
+      "type": "w",
+      "i": 81
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Footprints",
+      "type": "w",
+      "i": 82
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 83
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 84
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 85
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "floor",
+      "type": "w",
+      "i": 86
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "A",
+      "type": "w",
+      "i": 87
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "window",
+      "type": "w",
+      "i": 88
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 89
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "broken",
+      "type": "w",
+      "i": 90
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 91
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "special",
+      "type": "w",
+      "i": 92
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "diamond",
+      "type": "w",
+      "i": 93
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 94
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gone",
+      "type": "w",
+      "i": 95
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 96
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "found",
+      "type": "w",
+      "i": 97
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "clues",
+      "type": "w",
+      "i": 98
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "everywhere",
+      "type": "w",
+      "i": 99
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 100
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "would",
+      "type": "w",
+      "i": 101
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "solve",
+      "type": "w",
+      "i": 102
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "this",
+      "type": "w",
+      "i": 103
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mystery",
+      "type": "w",
+      "i": 104
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 105
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "followed",
+      "type": "w",
+      "i": 106
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 107
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "footprints",
+      "type": "w",
+      "i": 108
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "outside",
+      "type": "w",
+      "i": 109
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 110
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "led",
+      "type": "w",
+      "i": 111
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 112
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "an",
+      "type": "w",
+      "i": 113
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "old",
+      "type": "w",
+      "i": 114
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "warehouse",
+      "type": "w",
+      "i": 115
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 116
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "opened",
+      "type": "w",
+      "i": 117
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 118
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "door",
+      "type": "w",
+      "i": 119
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "slowly",
+      "type": "w",
+      "i": 120
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Inside",
+      "type": "w",
+      "i": 121
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 122
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "found",
+      "type": "w",
+      "i": 123
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 124
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stolen",
+      "type": "w",
+      "i": 125
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "diamond",
+      "type": "w",
+      "i": 126
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 127
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "thief",
+      "type": "w",
+      "i": 128
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 129
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "caught",
+      "type": "w",
+      "i": 130
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 131
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "returned",
+      "type": "w",
+      "i": 132
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 133
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "diamond",
+      "type": "w",
+      "i": 134
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 135
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 136
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "museum",
+      "type": "w",
+      "i": 137
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 138
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rain",
+      "type": "w",
+      "i": 139
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stopped",
+      "type": "w",
+      "i": 140
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "falling",
+      "type": "w",
+      "i": 141
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 142
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "city",
+      "type": "w",
+      "i": 143
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 144
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "safe",
+      "type": "w",
+      "i": 145
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "again",
+      "type": "w",
+      "i": 146
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "People",
+      "type": "w",
+      "i": 147
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "smiled",
+      "type": "w",
+      "i": 148
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 149
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "waved",
+      "type": "w",
+      "i": 150
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 151
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 152
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 153
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stood",
+      "type": "w",
+      "i": 154
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 155
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 156
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rooftop",
+      "type": "w",
+      "i": 157
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "watching",
+      "type": "w",
+      "i": 158
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "over",
+      "type": "w",
+      "i": 159
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Gotham",
+      "type": "w",
+      "i": 160
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 161
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "work",
+      "type": "w",
+      "i": 162
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 163
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "done",
+      "type": "w",
+      "i": 164
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 165
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tonight",
+      "type": "w",
+      "i": 166
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Batman",
+      "type": "w",
+      "i": 167
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "would",
+      "type": "w",
+      "i": 168
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "always",
+      "type": "w",
+      "i": 169
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "protect",
+      "type": "w",
+      "i": 170
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 171
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "city",
+      "type": "w",
+      "i": 172
+    },
+    {
+      "t": ".",
+      "type": "p"
+    }
+  ],
+  "character_anchor": "Adult male hero, athletic build, black mask covering eyes, dark gray armored suit, long black cape, yellow utility belt"
+}
