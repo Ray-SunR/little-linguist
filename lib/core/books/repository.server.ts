@@ -268,7 +268,7 @@ export class BookRepository {
         const isUuid = BookRepository.isValidUuid(idOrSlug);
 
         // Fetch Metadata first (NO TOKENS)
-        const fields = ['id', 'book_key', 'title', 'origin', 'updated_at', 'voice_id', 'owner_user_id', 'child_id', 'metadata', 'total_tokens', 'cover_image_path', 'description', 'keywords'];
+        const fields = ['id', 'book_key', 'title', 'origin', 'updated_at', 'voice_id', 'owner_user_id', 'child_id', 'metadata', 'total_tokens', 'cover_image_path', 'description', 'keywords', 'schema_version'];
         let query = this.supabase.from('books').select(fields.join(','));
 
         if (isUuid) {
@@ -781,6 +781,7 @@ export class BookRepository {
     /**
      * Combines semantic recommendations with full UI metadata (covers, progress).
      * Falls back to newest books if no recommendations are found.
+     * Persists the mission for the day to ensure consistency.
      */
     async getRecommendedBooksWithCovers(
         userId: string,
@@ -788,6 +789,31 @@ export class BookRepository {
         limit: number = 3
     ): Promise<BookWithCover[]> {
         try {
+            // 0. Check for persisted daily mission
+            const { data: child, error: childError } = await this.supabase
+                .from('children')
+                .select('daily_mission')
+                .eq('id', childId)
+                .single();
+
+            const today = new Date().toISOString().split('T')[0];
+
+            if (!childError && child?.daily_mission?.date === today && Array.isArray(child.daily_mission.book_ids) && child.daily_mission.book_ids.length > 0) {
+                // Return persisted mission books
+                const persistedBooks = await this.getAvailableBooksWithCovers(
+                    userId,
+                    childId,
+                    { ids: child.daily_mission.book_ids, limit: child.daily_mission.book_ids.length }
+                );
+                
+                // Sort to maintain original order if possible
+                return persistedBooks.sort((a, b) => {
+                    const indexA = child.daily_mission.book_ids.indexOf(a.id);
+                    const indexB = child.daily_mission.book_ids.indexOf(b.id);
+                    return indexA - indexB;
+                });
+            }
+
             // 1. Get a larger pool of semantic recommendations
             const recommendations = await this.recommendBooksForChild(childId, { limit: 12 });
             const recommendedIds = recommendations.map(r => r.id);
@@ -825,7 +851,17 @@ export class BookRepository {
 
             // Fallback: If still empty, get anything newest
             if (finalSelection.length === 0) {
-                return await this.getAvailableBooksWithCovers(userId, childId, { limit, sortBy: 'newest' });
+                finalSelection = await this.getAvailableBooksWithCovers(userId, childId, { limit, sortBy: 'newest' });
+            }
+
+            // 4. Persist the new selection for today
+            if (finalSelection.length > 0) {
+                await this.supabase.from('children').update({
+                    daily_mission: {
+                        date: today,
+                        book_ids: finalSelection.map(b => b.id)
+                    }
+                }).eq('id', childId);
             }
 
             return finalSelection;
