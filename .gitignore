@@ -22,5 +22,5 @@ coverage
 docs
 .sisyphus.worktrees/
 .worktrees/
-test-results/
-playwright-report/
+test-results
+playwright-report
