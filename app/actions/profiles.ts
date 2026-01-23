@@ -16,6 +16,11 @@ export interface ChildProfilePayload {
   avatar_paths?: string[]; // Support direct storage paths
 }
 
+export interface DailyMission {
+  date: string; // YYYY-MM-DD
+  book_ids: string[];
+}
+
 export interface LibrarySettings {
   readingLevel?: string;
   excludedCategories?: string[];
@@ -37,6 +42,7 @@ export interface ChildProfile extends ChildProfilePayload {
   total_xp?: number;
   level?: number;
   earned_badges?: Record<string, string>;
+  daily_mission?: DailyMission | null;
 }
 
 import { BUCKETS } from "@/lib/constants/storage";
