@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useMemo } from 'react';
-import axios from 'axios';
+import { saveBookProgressAction } from '@/app/actions/books';
 import { PlaybackState } from './use-narration-engine';
 
 interface PersistenceProps {
@@ -82,9 +82,10 @@ export function useReaderPersistence({
         try {
             const payload = {
                 childId,
-                tokenIndex: tIdx,
+                bookId,
+                tokenIndex: tIdx ?? undefined,
                 shardIndex: sIdx,
-                time: tTime,
+                totalReadSeconds: tTime,
                 playbackState, // Informative
                 viewMode: tView,
                 speed: tSpeed,
@@ -123,12 +124,7 @@ export function useReaderPersistence({
                     }).catch(() => { }); // Fire and forget
                 }
             } else {
-                const res = await axios.post(`/api/books/${bookId}/progress`, payload, {
-                    headers: {
-                        'x-timezone': Intl.DateTimeFormat().resolvedOptions().timeZone
-                    }
-                });
-                responseData = res.data;
+                responseData = await saveBookProgressAction(payload);
             }
 
             lastSavedRef.current = {

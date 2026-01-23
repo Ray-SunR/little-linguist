@@ -7,7 +7,7 @@ import { BookRepository } from '@/lib/core/books/repository.server';
 import { RewardService, RewardType } from '@/lib/features/activity/reward-service.server';
 
 export interface SaveProgressPayload {
-  childId: string;
+  childId: string | null;
   bookId: string;
   tokenIndex?: number;
   shardIndex?: number;
@@ -15,6 +15,8 @@ export interface SaveProgressPayload {
   isRead?: boolean;
   totalReadSeconds?: number;
   speed?: number;
+  playbackState?: string;
+  viewMode?: string;
   isOpening?: boolean;
   isMission?: boolean;
   title?: string;
