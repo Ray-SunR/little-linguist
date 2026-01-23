@@ -52,6 +52,20 @@ The system periodically checks if a child qualifies for new badges:
 
 ---
 
+## 🎯 Daily Missions
+
+Daily Missions provide a curated set of 3 books tailored to the child's interests and level.
+
+-   **Persistence**: Once generated, missions are "locked in" for the remainder of the day (UTC). This ensures that refreshing the page or completing a book doesn't cause the mission list to change prematurely.
+-   **Storage**: State is stored in the `children.daily_mission` column (JSONB) with the format `{ date: "YYYY-MM-DD", book_ids: ["uuid", ...] }`.
+-   **Rotation**: 
+    1.  The system checks if a mission exists for "today".
+    2.  If yes, it retrieves those specific books (even if already completed).
+    3.  If no (or if it's a new day), it generates 3 new recommendations and persists them.
+-   **UI Feedback**: Completed mission books remain visible on the dashboard but receive a "Mission Accomplished" visual indicator.
+
+---
+
 ## 🛡️ Integrity & Idempotency
 
 To prevent "gaming" the system or duplicate rewards from network retries:

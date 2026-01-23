@@ -47,7 +47,11 @@ npx tsx scripts/seed-library.ts [category] --local
 
 ### 🛠 What happens during Seeding?
 - **Database**: Metadata is upserted into `books`, `book_contents`, `book_audios`, and `book_media` tables.
-- **Storage**: Audio and optimized WebP images are uploaded to the `book-assets` bucket.
+- **Storage**: Audio and optimized WebP images are uploaded to the `book-assets` bucket. 
+    - **Path Convention**: All assets are stored under a folder named after the book's UUID (e.g., `[book_id]/cover.webp`, `[book_id]/audio/Ruth/0.mp3`).
+- **Data Formats**:
+    - **Tokens**: `book_contents.tokens` uses the **Canonical Format**: `{ t: string, type: 'w'|'s'|'p', i: number }`.
+    - **Timings**: `book_audios.timings` uses **Relative Milliseconds** (e.g., `{ time: 500, value: "hello" }` means 0.5s into that specific audio shard).
 - **Embeddings**: Generates **1024-dimensional vector embeddings** (via Amazon Titan V2) for semantic search.
 - **Realtime**: Correctly registers tables for Supabase Realtime updates.
 
