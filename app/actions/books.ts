@@ -68,7 +68,10 @@ export async function saveBookProgressAction(payload: SaveProgressPayload) {
             metadata: { title: payload.title }
           });
 
-          if (!rewardResult || openingResult.success) {
+          if (openingResult.success) {
+            rewardResult = openingResult;
+            revalidatePath('/dashboard');
+          } else if (!rewardResult) {
             rewardResult = openingResult;
           }
         }

@@ -49,16 +49,6 @@ export function useReaderPersistence({
         const { isExiting = false, force = false, isOpening = false } = options;
         const { tokenIndex: tIdx, shardIndex: sIdx, time: tTime, viewMode: tView, speed: tSpeed, isCompleted: tCompleted, isMission: tMission, title: tTitle } = currentValuesRef.current;
 
-        // Prevent double-logging the "open" event in Strict Mode or re-renders
-        if (isOpening) {
-            if (hasLoggedOpenRef.current) return null;
-            hasLoggedOpenRef.current = true;
-        }
-
-        // CRITICAL: Don't save if tokenIndex is null (meaning progress not yet loaded/initialized)
-        // EXCEPT: Allow forced saves (e.g., "save on open") even if tokenIndex is null
-        if (tIdx === null && !force && !isOpening) return null;
-
         // Only save if meaningful change OR forced (e.g. pause/stop/manual/opening)
         const effectiveIdx = tIdx ?? 0;
         const isMeaningful =
@@ -75,9 +65,15 @@ export function useReaderPersistence({
         const isInitialState = (tIdx === 0 || tIdx === null) && sIdx === 0 && tTime === 0 && !tCompleted;
         if (isInitialState && !force && !isExiting && !isOpening) return null;
 
-        // For auditing (isOpening), we don't need childId or meaningful changes 
-        // (the de-dupe logic above handles it). But for actual progress saves, we do.
-        if (!bookId || (!isOpening && !childId) || !isMeaningful) return null;
+        // CRITICAL: We need a childId to save anything.
+        if (!bookId || !childId || !isMeaningful) return null;
+
+        // Prevent double-logging the "open" event in Strict Mode or re-renders
+        // We only set this AFTER the childId check to ensure it runs when childId arrives
+        if (isOpening) {
+            if (hasLoggedOpenRef.current) return null;
+            hasLoggedOpenRef.current = true;
+        }
 
         try {
             const payload = {

@@ -80,6 +80,19 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   console.log('Checking for Mission Control...');
   await expect(page.getByText('Mission Control')).toBeVisible({ timeout: 30000 });
 
+  // Helper to get current coins from the Explorer Status section
+  const getCoins = async () => {
+    // Look specifically for the coins display in the Explorer Status card
+    const coinsDisplay = page.locator('div:has-text("Explorer Status")').locator('span:has-text("Coins")').first();
+    const coinsText = await coinsDisplay.innerText();
+    console.log(`DEBUG COINS TEXT: "${coinsText}"`);
+    const match = coinsText.match(/(\d+)\s+Coins/i);
+    return match ? parseInt(match[1]) : 0;
+  };
+
+  const initialCoins = await getCoins();
+  console.log(`Initial Coins: ${initialCoins}`);
+
   // 4. Identify a mission book
   // Find a "Start" button which links to a mission
   const missionStartBtn = page.locator('a[href*="mission=true"]').first();
@@ -142,16 +155,6 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   // 10. Verify that the book card now has the "Mission Accomplished" stamp
   console.log(`Verifying Mission Accomplished stamp for "${bookTitle}"...`);
   
-  // Diagnostic: log all cards
-  await page.evaluate(() => {
-    const cards = Array.from(document.querySelectorAll('.clay-card')) as HTMLElement[];
-    cards.forEach(card => {
-        const title = card.querySelector('h2')?.innerText;
-        const text = card.innerText;
-        console.log(`DEBUG CARD: "${title}", Text includes Accomplished: ${text.includes('Accomplished')}, Text includes Archived: ${text.includes('Archived')}`);
-    });
-  });
-
   const missionCardResult = page.locator('.clay-card').filter({ hasText: bookTitle });
   
   // It might need a refresh or a bit more time if the DB is slow
@@ -159,26 +162,76 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
     await expect(missionCardResult.getByText(/Mission.*Accomplished/s)).toBeVisible({ timeout: 20000 });
   } catch (e) {
     console.log('Stamp not visible yet, checking Achievements then reloading page...');
-    const achievement = page.getByText(/Finished|Mission/);
-    if (await achievement.count() > 0) {
-        console.log('Found achievement entry:', await achievement.first().innerText());
-    }
-    
     await page.reload();
     await page.waitForTimeout(3000);
-
-    // Diagnostic again
-    await page.evaluate(() => {
-        const cards = Array.from(document.querySelectorAll('.clay-card')) as HTMLElement[];
-        cards.forEach(card => {
-            const title = card.querySelector('h2')?.innerText;
-            const text = card.innerText;
-            console.log(`DEBUG CARD AFTER RELOAD: "${title}", Text includes Accomplished: ${text.includes('Accomplished')}`);
-        });
-    });
-
     await expect(missionCardResult.getByText(/Mission.*Accomplished/s)).toBeVisible({ timeout: 15000 });
   }
   
-  console.log('Test PASSED: Mission sync verified.');
+  const coinsAfterFirstRead = await getCoins();
+  console.log(`Coins after first read: ${coinsAfterFirstRead}`);
+  expect(coinsAfterFirstRead, 'First read should increase coins').toBeGreaterThan(initialCoins);
+  
+  // 11. Test reopening the book (IDEMPOTENCY CHECK)
+  console.log('Reopening the SAME book today to test idempotency...');
+  const readAgainBtn = missionCardResult.getByRole('link', { name: 'Read Again' });
+  await readAgainBtn.click();
+  
+  // Wait for the reader to load
+  await expect(page).toHaveURL(/\/reader\//, { timeout: 30000 });
+  console.log('Reader loaded, waiting for potential double-reward attempt...');
+  await page.waitForTimeout(5000);
+  
+  // Go back
+  console.log('Going back to dashboard...');
+  await page.locator('#reader-back-to-library').click();
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
+  
+  const coinsAfterReopen = await getCoins();
+  console.log(`Coins after reopening same book: ${coinsAfterReopen}`);
+  expect(coinsAfterReopen, 'Reopening same book today should NOT increase coins (idempotent)').toBe(coinsAfterFirstRead);
+  
+  // 12. Test re-reading same book (IDEMPOTENCY CHECK)
+  console.log('Re-reading the SAME book today to test completion idempotency...');
+  await missionCardResult.getByRole('link', { name: 'Read Again' }).click();
+  await expect(page).toHaveURL(/\/reader\//, { timeout: 30000 });
+  
+  console.log('Simulating re-reading to the end...');
+  const lastWordAgain = page.locator('[data-word-index]').last();
+  await lastWordAgain.scrollIntoViewIfNeeded();
+  await lastWordAgain.click();
+  await page.waitForTimeout(5000);
+  
+  console.log('Going back to dashboard...');
+  await page.locator('#reader-back-to-library').click();
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
+  
+  const finalCoins = await getCoins();
+  console.log(`Final Coins: ${finalCoins}`);
+  expect(finalCoins, 'Re-reading same book today should NOT increase coins further').toBe(coinsAfterReopen);
+
+  // 13. Test a DIFFERENT book (PROVE PER-BOOK DAILY REWARDS)
+  console.log('Finding a DIFFERENT mission book...');
+  const otherMissionBtn = page.locator('a[href*="mission=true"]').filter({ hasNotText: bookTitle }).first();
+  
+  if (await otherMissionBtn.isVisible()) {
+    const otherCard = page.locator('.clay-card').filter({ has: otherMissionBtn });
+    const otherBookTitle = await otherCard.locator('h2').innerText();
+    console.log(`Starting second mission for book: ${otherBookTitle}`);
+    
+    await otherMissionBtn.click();
+    await expect(page).toHaveURL(/\/reader\//, { timeout: 30000 });
+    console.log('Second reader loaded, waiting for opening reward...');
+    await page.waitForTimeout(5000);
+    
+    await page.locator('#reader-back-to-library').click();
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
+    
+    const coinsAfterSecondBook = await getCoins();
+    console.log(`Coins after opening second book: ${coinsAfterSecondBook}`);
+    expect(coinsAfterSecondBook, 'Opening a DIFFERENT book should increase coins').toBeGreaterThan(finalCoins);
+  } else {
+    console.log('No other missions available to test per-book reward.');
+  }
+
+  console.log('Test PASSED: Mission sync, per-book rewards, and daily idempotency verified.');
 });

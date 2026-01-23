@@ -94,9 +94,9 @@ export class RewardService {
             case RewardType.BOOK_OPENED:
                 return `v1:book_opened:${entityId}:${dateStr}`;
             case RewardType.BOOK_COMPLETED:
-                return `v1:book_completed:${entityId}`;
+                return `v1:book_completed:${entityId}:${dateStr}`;
             case RewardType.MISSION_COMPLETED:
-                return `v1:mission_completed:${entityId}`;
+                return `v1:mission_completed:${entityId}:${dateStr}`;
             case RewardType.STORY_GENERATED:
                 return `v1:story_generated:${entityId}`;
             case RewardType.MAGIC_SENTENCE_GENERATED:
