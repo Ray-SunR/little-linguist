@@ -1,0 +1,1 @@
+ALTER TABLE public.children ADD COLUMN IF NOT EXISTS daily_mission JSONB DEFAULT NULL;
