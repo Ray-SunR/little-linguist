@@ -183,9 +183,9 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
 
     const isEmpty = books.length === 0;
 
-    const goNextBook = useCallback(() => {
+    const goNextBook = useCallback(async () => {
         if (!books.length) return;
-        saveProgress({ force: true, isExiting: true });
+        await saveProgress({ force: true, isExiting: true });
         const currentIndex = books.findIndex((book) => book.id === selectedBookId);
         const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % books.length;
         const nextBookId = books[nextIndex].id;
@@ -373,8 +373,8 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                     <button
                         id="reader-back-to-library"
                         data-tour-target="reader-back-to-library"
-                        onClick={() => {
-                            saveProgress({ force: true, isExiting: true });
+                        onClick={async () => {
+                            await saveProgress({ force: true, isExiting: true });
                             if (window.history.length > 1) {
                                 router.back();
                             } else {
