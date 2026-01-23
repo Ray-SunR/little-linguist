@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { AuditService, AuditAction, EntityType } from '@/lib/features/audit/audit-service.server';
@@ -26,7 +27,6 @@ export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    // ... existing GET implementation ...
     try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -108,6 +108,9 @@ export async function POST(
                     
                     if (completionResult.success) {
                         rewardResult = completionResult;
+                        // Trigger revalidation for dashboard and library when a book is completed
+                        revalidatePath('/dashboard');
+                        revalidatePath('/library');
                     }
                 }
 
@@ -144,8 +147,8 @@ export async function POST(
         const result = await repo.saveProgress(childId, bookId, {
             last_token_index: payload.tokenIndex,
             last_shard_index: payload.shardIndex,
-            is_completed: payload.isCompleted ?? payload.isRead,
-            total_read_seconds: payload.totalReadSeconds,
+            is_completed: !!(payload.isCompleted ?? payload.isRead),
+            total_read_seconds: payload.totalReadSeconds ? Math.round(payload.totalReadSeconds) : undefined,
             playback_speed: payload.speed
         });
 

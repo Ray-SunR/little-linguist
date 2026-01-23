@@ -392,7 +392,9 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                                 console.error("Failed to save progress on exit:", error);
                             }
 
-                            if (window.history.length > 1) {
+                            if (isMission) {
+                                router.push('/dashboard');
+                            } else if (window.history.length > 1) {
                                 router.back();
                             } else {
                                 const lastUrl = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('lastLibraryUrl') : null;

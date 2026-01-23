@@ -570,6 +570,7 @@ export class BookRepository {
             ...progress,
             child_id: childId,
             book_id: bookId,
+            total_read_seconds: progress.total_read_seconds ? Math.round(progress.total_read_seconds) : undefined,
             // Never set completed back to false if it was already true
             is_completed: progress.is_completed || (current?.is_completed ?? false),
             last_read_at: new Date().toISOString()

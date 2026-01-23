@@ -89,8 +89,8 @@ export async function saveBookProgressAction(payload: SaveProgressPayload) {
     const result = await repo.saveProgress(childId, bookId, {
       last_token_index: data.tokenIndex,
       last_shard_index: data.shardIndex,
-      is_completed: data.isCompleted ?? data.isRead,
-      total_read_seconds: data.totalReadSeconds,
+      is_completed: !!(data.isCompleted ?? data.isRead),
+      total_read_seconds: data.totalReadSeconds ? Math.round(data.totalReadSeconds) : undefined,
       playback_speed: data.speed
     });
 
