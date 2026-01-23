@@ -17,8 +17,8 @@ vi.mock('next/headers', () => ({
             if (name === 'activeChildId') return { value: state.activeChildId };
             return null;
         },
-        set: () => {},
-        delete: () => {},
+        set: () => { },
+        delete: () => { },
         getAll: () => []
     }),
     headers: () => ({
@@ -26,15 +26,13 @@ vi.mock('next/headers', () => ({
     })
 }));
 
-vi.mock('@/lib/features/bedrock/bedrock-embedding.server', () => {
-    return {
-        BedrockEmbeddingService: class {
-            async generateEmbedding() {
-                return new Array(1024).fill(0.1);
-            }
-        }
-    };
-});
+vi.mock('@/lib/core/integrations/ai/factory.server', () => ({
+    AIFactory: {
+        getProvider: vi.fn(() => ({
+            generateEmbedding: vi.fn().mockResolvedValue(new Array(1024).fill(0.1))
+        }))
+    }
+}));
 
 describe('Search and Recommendations API Integration', () => {
     let testUser: any;
@@ -46,12 +44,12 @@ describe('Search and Recommendations API Integration', () => {
         await truncateAllTables();
         await seedBooksFromOutput(5);
         testUser = await createTestUser();
-        
+
         const { data: book } = await supabase.from('books').select('*').limit(1).single();
         testBook = book;
-        
-        await supabase.from('books').update({ 
-            embedding: new Array(1024).fill(0.1) 
+
+        await supabase.from('books').update({
+            embedding: new Array(1024).fill(0.1)
         }).eq('id', testBook.id);
 
         const { data: child } = await supabase.from('children').insert({
@@ -83,7 +81,7 @@ describe('Search and Recommendations API Integration', () => {
         expect(Array.isArray(body)).toBe(true);
         expect(body.length).toBeGreaterThan(0);
         expect(body[0].id).toBe(testBook.id);
-        
+
         vi.restoreAllMocks();
     });
 
@@ -98,7 +96,7 @@ describe('Search and Recommendations API Integration', () => {
 
         expect(res.status).toBe(200);
         expect(Array.isArray(body)).toBe(true);
-        
+
         vi.restoreAllMocks();
     });
 
@@ -123,7 +121,7 @@ describe('Search and Recommendations API Integration', () => {
             .select('is_favorite')
             .match({ child_id: testChild.id, book_id: testBook.id })
             .single();
-        
+
         expect(progress?.is_favorite).toBe(true);
 
         vi.restoreAllMocks();

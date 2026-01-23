@@ -1,0 +1,447 @@
+{
+  "id": "sunwukong-prek-4",
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 39,
+        "timings": [],
+        "metadata": {
+          "mood": "playful and joyful",
+          "suggestedVoice": "Ruth"
+        }
+      }
+    ]
+  },
+  "level": "PreK",
+  "stats": {
+    "char_count": 232,
+    "word_count": 40,
+    "scene_count": 2,
+    "length_category": "Short",
+    "reading_time_seconds": 16
+  },
+  "title": "Sun Wukong's Mountain Adventure",
+  "scenes": [
+    {
+      "text": "Sun Wukong plays with his monkey friends on Flower Fruit Mountain. They jump and swing from tree to tree. Sun Wukong laughs and laughs!",
+      "index": 0,
+      "image_path": "scenes/scene_0.webp",
+      "imagePrompt": "A joyful monkey playing and swinging through lush green trees on a sunny mountain with waterfalls and colorful flowers, surrounded by other happy monkeys jumping on branches, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 23
+    },
+    {
+      "text": "Sun Wukong does somersaults in the air. His friends clap and cheer. Everyone is happy together!",
+      "index": 1,
+      "image_path": "scenes/scene_1.webp",
+      "imagePrompt": "An acrobatic monkey doing flips and somersaults high in the bright blue sky above a beautiful mountain paradise, with many monkeys below clapping and cheering excitedly near a cave entrance and peach trees, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 39
+    }
+  ],
+  "tokens": [
+    {
+      "i": 0,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 1,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 2,
+      "t": "plays",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 3,
+      "t": "with",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 4,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 5,
+      "t": "monkey",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 6,
+      "t": "friends",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 7,
+      "t": "on",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 8,
+      "t": "Flower",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 9,
+      "t": "Fruit",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 10,
+      "t": "Mountain",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 11,
+      "t": "They",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 12,
+      "t": "jump",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 13,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 14,
+      "t": "swing",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 15,
+      "t": "from",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 16,
+      "t": "tree",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 17,
+      "t": "to",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 18,
+      "t": "tree",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 19,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 20,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 21,
+      "t": "laughs",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 22,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 23,
+      "t": "laughs",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 24,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 25,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 26,
+      "t": "does",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 27,
+      "t": "somersaults",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 28,
+      "t": "in",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 29,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 30,
+      "t": "air",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 31,
+      "t": "His",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 32,
+      "t": "friends",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 33,
+      "t": "clap",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 34,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 35,
+      "t": "cheer",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 36,
+      "t": "Everyone",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 37,
+      "t": "is",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 38,
+      "t": "happy",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 39,
+      "t": "together",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    }
+  ],
+  "category": "sunwukong",
+  "keywords": [
+    "monkey",
+    "friendship",
+    "mountain",
+    "joy",
+    "acrobatics",
+    "nature",
+    "laughter",
+    "adventure",
+    "play",
+    "celebration"
+  ],
+  "series_id": "sunwukong_series",
+  "description": "Join Sun Wukong and his monkey friends for a joyful day of play on Flower Fruit Mountain! Watch as they swing through trees, perform amazing somersaults, and share laughter together in this delightful tale of friendship and happiness.",
+  "cover_prompt": "Sun Wukong, a spunky anthropomorphic male golden macaque with confident mischievous boyish grin and masculine jawline, performs an acrobatic mid-air somersault at the center of the composition. He has bright golden fur, fiery-gold eyes, strong muscular build with broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, and black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Gripping his red-and-gold iron staff. Several cheerful monkey friends clap and cheer below him among lush trees on Flower Fruit Mountain. Joyful, dynamic action scene with monkeys swinging from flowering branches in the background. Sun Wukong is the focal point, captured in triumphant aerial pose against bright sky, radiating playful energy and friendship.",
+  "is_nonfiction": false,
+  "character_anchor": "Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+  "cover_image_path": "cover.webp",
+  "original_concept_title": "The Happy Monkey"
+}

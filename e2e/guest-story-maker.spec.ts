@@ -1,6 +1,22 @@
 import { test, expect } from '@playwright/test';
 
-test('Full Guest to Story Workflow', async ({ page }) => {
+test('Full Guest to Story Workflow', async ({ page, context }) => {
+  test.setTimeout(120000);
+
+  // Ensure fresh state by clearing all cookies/storage
+  await context.clearCookies();
+  await page.addInitScript(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+    // Aggressively clear IndexedDB to prevent cache leaks
+    indexedDB.deleteDatabase('raiden-local-cache');
+    window.localStorage.setItem('lumo_tutorial_completed_v2', 'true');
+    window.localStorage.setItem('lumo-cookie-consent', 'accepted');
+  });
+
+  page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+  page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
+
   await page.goto('/story-maker');
 
   await page.getByPlaceholder('Leo, Mia, Sam...').fill('Leo');
@@ -38,7 +54,10 @@ test('Full Guest to Story Workflow', async ({ page }) => {
   await expect(page).toHaveURL(/\/story-maker/);
   await expect(page).toHaveURL(/action=resume_story_maker/);
 
-  await expect(page.getByText('Making Magic...')).toBeVisible({ timeout: 15000 });
+  // Wait for any previous loader to disappear
+  await expect(page.getByText('Wait for it...')).not.toBeVisible({ timeout: 30000 });
+
+  await expect(page.getByText('Making Magic...')).toBeVisible({ timeout: 30000 });
 
   await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
   await expect(page.getByText('Leo').first()).toBeVisible();

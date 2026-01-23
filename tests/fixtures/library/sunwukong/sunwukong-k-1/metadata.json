@@ -1,0 +1,940 @@
+{
+  "id": "sunwukong-k-1",
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 89,
+        "timings": [],
+        "metadata": {
+          "mood": "playful and magical",
+          "suggestedVoice": "Ruth"
+        }
+      }
+    ]
+  },
+  "level": "K",
+  "stats": {
+    "char_count": 476,
+    "word_count": 90,
+    "scene_count": 3,
+    "length_category": "Short",
+    "reading_time_seconds": 36
+  },
+  "title": "Sun Wukong's Magic Transformations",
+  "scenes": [
+    {
+      "text": "Sun Wukong is a magic monkey. He lives in a beautiful mountain. One day, he wants to play a trick. He uses his magic powers to change his face!",
+      "index": 0,
+      "image_path": "scenes/scene_0.webp",
+      "imagePrompt": "A magical monkey standing on a misty mountain peak with ancient temples and peach trees in the background, golden sparkles swirling around his face, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 28
+    },
+    {
+      "text": "First, he changes into a tiger! He has big teeth and stripes. Then he becomes a bird with pretty feathers. He flies up high in the sky. His magic is so strong!",
+      "index": 1,
+      "image_path": "scenes/scene_1.webp",
+      "imagePrompt": "A transformation sequence showing magical golden light swirling in a bamboo forest clearing, with tiger stripes and bird feathers appearing in the glowing energy, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 60
+    },
+    {
+      "text": "Sun Wukong laughs and changes back. He is a clever monkey again! He can change into any animal he wants. His seventy-two transformations make him the best trickster ever!",
+      "index": 2,
+      "image_path": "scenes/scene_2.webp",
+      "imagePrompt": "A joyful monkey laughing on a cloud above the Heavenly Palace with colorful magical auras fading around him, celestial buildings with golden roofs in the background, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 89
+    }
+  ],
+  "tokens": [
+    {
+      "i": 0,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 1,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 2,
+      "t": "is",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 3,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 4,
+      "t": "magic",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 5,
+      "t": "monkey",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 6,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 7,
+      "t": "lives",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 8,
+      "t": "in",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 9,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 10,
+      "t": "beautiful",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 11,
+      "t": "mountain",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 12,
+      "t": "One",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 13,
+      "t": "day",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 14,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 15,
+      "t": "wants",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 16,
+      "t": "to",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 17,
+      "t": "play",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 18,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 19,
+      "t": "trick",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 20,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 21,
+      "t": "uses",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 22,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 23,
+      "t": "magic",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 24,
+      "t": "powers",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 25,
+      "t": "to",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 26,
+      "t": "change",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 27,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 28,
+      "t": "face",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 29,
+      "t": "First",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 30,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 31,
+      "t": "changes",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 32,
+      "t": "into",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 33,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 34,
+      "t": "tiger",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 35,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 36,
+      "t": "has",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 37,
+      "t": "big",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 38,
+      "t": "teeth",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 39,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 40,
+      "t": "stripes",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 41,
+      "t": "Then",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 42,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 43,
+      "t": "becomes",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 44,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 45,
+      "t": "bird",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 46,
+      "t": "with",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 47,
+      "t": "pretty",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 48,
+      "t": "feathers",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 49,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 50,
+      "t": "flies",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 51,
+      "t": "up",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 52,
+      "t": "high",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 53,
+      "t": "in",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 54,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 55,
+      "t": "sky",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 56,
+      "t": "His",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 57,
+      "t": "magic",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 58,
+      "t": "is",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 59,
+      "t": "so",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 60,
+      "t": "strong",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 61,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 62,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 63,
+      "t": "laughs",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 64,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 65,
+      "t": "changes",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 66,
+      "t": "back",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 67,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 68,
+      "t": "is",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 69,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 70,
+      "t": "clever",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 71,
+      "t": "monkey",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 72,
+      "t": "again",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 73,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 74,
+      "t": "can",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 75,
+      "t": "change",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 76,
+      "t": "into",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 77,
+      "t": "any",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 78,
+      "t": "animal",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 79,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 80,
+      "t": "wants",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 81,
+      "t": "His",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 82,
+      "t": "seventy-two",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 83,
+      "t": "transformations",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 84,
+      "t": "make",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 85,
+      "t": "him",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 86,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 87,
+      "t": "best",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 88,
+      "t": "trickster",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 89,
+      "t": "ever",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    }
+  ],
+  "category": "sunwukong",
+  "keywords": [
+    "monkey",
+    "magic",
+    "transformation",
+    "trickster",
+    "tiger",
+    "bird",
+    "mountain",
+    "animal",
+    "powers",
+    "adventure"
+  ],
+  "series_id": "sunwukong_series",
+  "description": "Sun Wukong, a magical monkey living in the mountains, uses his incredible transformation powers to play tricks by changing his face into different animals. From a fierce tiger with stripes to a beautiful bird soaring through the sky, this clever trickster demonstrates his famous seventy-two transformations. A delightful introduction to the legendary Monkey King's shapeshifting abilities for young readers.",
+  "cover_prompt": "Sun Wukong, a spunky anthropomorphic male golden macaque with bright golden fur and fiery-gold eyes, stands center in a dynamic magical transformation pose on a misty mountain peak. He has a confident mischievous boyish grin, masculine jawline, strong muscular build with broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots, and golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Swirling magical energy surrounds him showing transparent overlapping transformations: a fierce tiger with stripes and big teeth on one side, a colorful bird with pretty feathers on the other. Beautiful mountain landscape background with clouds.",
+  "is_nonfiction": false,
+  "character_anchor": "Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+  "cover_image_path": "cover.webp",
+  "original_concept_title": "The Magic Mask"
+}

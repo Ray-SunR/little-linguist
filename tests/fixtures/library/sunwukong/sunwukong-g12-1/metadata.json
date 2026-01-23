@@ -1,0 +1,3411 @@
+{
+  "id": "sunwukong-g12-1",
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 271,
+        "timings": [],
+        "metadata": {
+          "mood": "adventurous and playful",
+          "suggestedVoice": "Ruth"
+        }
+      },
+      {
+        "index": 1,
+        "path": "audio/1.mp3",
+        "start_word_index": 272,
+        "end_word_index": 345,
+        "timings": [],
+        "metadata": {
+          "mood": "joyful and triumphant",
+          "suggestedVoice": "Ruth"
+        }
+      }
+    ]
+  },
+  "level": "G1-2",
+  "stats": {
+    "char_count": 1962,
+    "word_count": 346,
+    "scene_count": 5,
+    "length_category": "Long",
+    "reading_time_seconds": 139
+  },
+  "title": "The Brave Monkey King",
+  "scenes": [
+    {
+      "text": "Long ago, on a mountain called Flower Fruit Mountain, many monkeys lived together. They played in the trees and ate sweet fruit all day long. One day, the monkeys found a beautiful waterfall. The water crashed down into a pool below. Behind the rushing water, they saw something dark and mysterious. The monkeys were very curious. They wondered what was hiding behind the waterfall.",
+      "index": 0,
+      "image_path": "scenes/scene_0.webp",
+      "imagePrompt": "A lush tropical mountain landscape with many monkeys gathering near a tall, powerful waterfall cascading into a crystal-clear pool, surrounded by fruit trees and colorful flowers under bright sunshine, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 63
+    },
+    {
+      "text": "The oldest monkey spoke up. He said whoever could jump through the waterfall would become their king. All the monkeys looked at each other nervously. The waterfall was big and powerful. The water fell fast and hard. Many monkeys were too scared to try. They stepped back from the edge. But one brave monkey was not afraid. His name was Sun Wukong, and his golden fur shined in the sunlight.",
+      "index": 1,
+      "image_path": "scenes/scene_1.webp",
+      "imagePrompt": "A group of worried monkeys standing at the edge of a misty waterfall pool, backing away nervously while one brave golden monkey stands confidently at the front with his chest out, the waterfall roaring behind them with rainbow mist, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 133
+    },
+    {
+      "text": "Sun Wukong smiled his mischievous smile. He took a big breath and ran toward the waterfall. His strong legs pushed off the ground. He jumped high into the air! The water rushed around him as he flew through the waterfall. For a moment, everything was wet and loud. Then suddenly, he was on the other side. Sun Wukong had made it through! He landed safely on his feet.",
+      "index": 2,
+      "image_path": "scenes/scene_2.webp",
+      "imagePrompt": "A dynamic mid-air action shot of a golden monkey leaping through the center of a massive waterfall with water droplets frozen in motion around him, sunlight creating sparkles in the spray, rocky cliffs visible on both sides, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 201
+    },
+    {
+      "text": "Behind the waterfall, Sun Wukong found something amazing. There was a big cave with stone chairs and tables. It was like a palace inside the mountain! The cave was dry and comfortable. It would be a perfect home for all the monkeys. Sun Wukong explored every corner of the wonderful cave. He knew his monkey friends would love this place. Then he took another brave jump back through the waterfall.",
+      "index": 3,
+      "image_path": "scenes/scene_3.webp",
+      "imagePrompt": "Inside a magnificent cave behind the waterfall with natural stone furniture, glowing crystals on the walls, and beams of light filtering through the water curtain entrance, creating a magical palace-like atmosphere with ancient carvings, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 271
+    },
+    {
+      "text": "All the monkeys cheered when Sun Wukong came back! He told them about the beautiful cave behind the waterfall. The monkeys were so happy and excited. They all bowed to Sun Wukong. From that day on, he was their king. They called him the Handsome Monkey King. Sun Wukong led all his monkey friends through the waterfall to their new home. They lived happily together in the Water Curtain Cave on Flower Fruit Mountain.",
+      "index": 4,
+      "image_path": "scenes/scene_4.webp",
+      "imagePrompt": "A joyful celebration scene with hundreds of monkeys bowing and cheering around their new leader on a sunny riverbank, with the majestic waterfall in the background and Flower Fruit Mountain's peaks visible, colorful fruits scattered around in celebration, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 345
+    }
+  ],
+  "tokens": [
+    {
+      "i": 0,
+      "t": "Long",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 1,
+      "t": "ago",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 2,
+      "t": "on",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 3,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 4,
+      "t": "mountain",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 5,
+      "t": "called",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 6,
+      "t": "Flower",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 7,
+      "t": "Fruit",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 8,
+      "t": "Mountain",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 9,
+      "t": "many",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 10,
+      "t": "monkeys",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 11,
+      "t": "lived",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 12,
+      "t": "together",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 13,
+      "t": "They",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 14,
+      "t": "played",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 15,
+      "t": "in",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 16,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 17,
+      "t": "trees",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 18,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 19,
+      "t": "ate",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 20,
+      "t": "sweet",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 21,
+      "t": "fruit",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 22,
+      "t": "all",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 23,
+      "t": "day",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 24,
+      "t": "long",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 25,
+      "t": "One",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 26,
+      "t": "day",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 27,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 28,
+      "t": "monkeys",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 29,
+      "t": "found",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 30,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 31,
+      "t": "beautiful",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 32,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 33,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 34,
+      "t": "water",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 35,
+      "t": "crashed",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 36,
+      "t": "down",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 37,
+      "t": "into",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 38,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 39,
+      "t": "pool",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 40,
+      "t": "below",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 41,
+      "t": "Behind",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 42,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 43,
+      "t": "rushing",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 44,
+      "t": "water",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 45,
+      "t": "they",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 46,
+      "t": "saw",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 47,
+      "t": "something",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 48,
+      "t": "dark",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 49,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 50,
+      "t": "mysterious",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 51,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 52,
+      "t": "monkeys",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 53,
+      "t": "were",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 54,
+      "t": "very",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 55,
+      "t": "curious",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 56,
+      "t": "They",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 57,
+      "t": "wondered",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 58,
+      "t": "what",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 59,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 60,
+      "t": "hiding",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 61,
+      "t": "behind",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 62,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 63,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 64,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 65,
+      "t": "oldest",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 66,
+      "t": "monkey",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 67,
+      "t": "spoke",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 68,
+      "t": "up",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 69,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 70,
+      "t": "said",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 71,
+      "t": "whoever",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 72,
+      "t": "could",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 73,
+      "t": "jump",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 74,
+      "t": "through",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 75,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 76,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 77,
+      "t": "would",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 78,
+      "t": "become",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 79,
+      "t": "their",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 80,
+      "t": "king",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 81,
+      "t": "All",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 82,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 83,
+      "t": "monkeys",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 84,
+      "t": "looked",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 85,
+      "t": "at",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 86,
+      "t": "each",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 87,
+      "t": "other",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 88,
+      "t": "nervously",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 89,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 90,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 91,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 92,
+      "t": "big",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 93,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 94,
+      "t": "powerful",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 95,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 96,
+      "t": "water",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 97,
+      "t": "fell",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 98,
+      "t": "fast",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 99,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 100,
+      "t": "hard",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 101,
+      "t": "Many",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 102,
+      "t": "monkeys",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 103,
+      "t": "were",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 104,
+      "t": "too",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 105,
+      "t": "scared",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 106,
+      "t": "to",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 107,
+      "t": "try",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 108,
+      "t": "They",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 109,
+      "t": "stepped",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 110,
+      "t": "back",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 111,
+      "t": "from",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 112,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 113,
+      "t": "edge",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 114,
+      "t": "But",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 115,
+      "t": "one",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 116,
+      "t": "brave",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 117,
+      "t": "monkey",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 118,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 119,
+      "t": "not",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 120,
+      "t": "afraid",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 121,
+      "t": "His",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 122,
+      "t": "name",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 123,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 124,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 125,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 126,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 127,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 128,
+      "t": "golden",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 129,
+      "t": "fur",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 130,
+      "t": "shined",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 131,
+      "t": "in",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 132,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 133,
+      "t": "sunlight",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 134,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 135,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 136,
+      "t": "smiled",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 137,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 138,
+      "t": "mischievous",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 139,
+      "t": "smile",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 140,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 141,
+      "t": "took",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 142,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 143,
+      "t": "big",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 144,
+      "t": "breath",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 145,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 146,
+      "t": "ran",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 147,
+      "t": "toward",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 148,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 149,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 150,
+      "t": "His",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 151,
+      "t": "strong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 152,
+      "t": "legs",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 153,
+      "t": "pushed",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 154,
+      "t": "off",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 155,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 156,
+      "t": "ground",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 157,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 158,
+      "t": "jumped",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 159,
+      "t": "high",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 160,
+      "t": "into",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 161,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 162,
+      "t": "air",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 163,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 164,
+      "t": "water",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 165,
+      "t": "rushed",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 166,
+      "t": "around",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 167,
+      "t": "him",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 168,
+      "t": "as",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 169,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 170,
+      "t": "flew",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 171,
+      "t": "through",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 172,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 173,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 174,
+      "t": "For",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 175,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 176,
+      "t": "moment",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 177,
+      "t": "everything",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 178,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 179,
+      "t": "wet",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 180,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 181,
+      "t": "loud",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 182,
+      "t": "Then",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 183,
+      "t": "suddenly",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 184,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 185,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 186,
+      "t": "on",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 187,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 188,
+      "t": "other",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 189,
+      "t": "side",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 190,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 191,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 192,
+      "t": "had",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 193,
+      "t": "made",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 194,
+      "t": "it",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 195,
+      "t": "through",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 196,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 197,
+      "t": "landed",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 198,
+      "t": "safely",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 199,
+      "t": "on",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 200,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 201,
+      "t": "feet",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 202,
+      "t": "Behind",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 203,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 204,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 205,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 206,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 207,
+      "t": "found",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 208,
+      "t": "something",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 209,
+      "t": "amazing",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 210,
+      "t": "There",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 211,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 212,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 213,
+      "t": "big",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 214,
+      "t": "cave",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 215,
+      "t": "with",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 216,
+      "t": "stone",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 217,
+      "t": "chairs",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 218,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 219,
+      "t": "tables",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 220,
+      "t": "It",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 221,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 222,
+      "t": "like",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 223,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 224,
+      "t": "palace",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 225,
+      "t": "inside",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 226,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 227,
+      "t": "mountain",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 228,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 229,
+      "t": "cave",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 230,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 231,
+      "t": "dry",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 232,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 233,
+      "t": "comfortable",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 234,
+      "t": "It",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 235,
+      "t": "would",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 236,
+      "t": "be",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 237,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 238,
+      "t": "perfect",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 239,
+      "t": "home",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 240,
+      "t": "for",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 241,
+      "t": "all",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 242,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 243,
+      "t": "monkeys",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 244,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 245,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 246,
+      "t": "explored",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 247,
+      "t": "every",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 248,
+      "t": "corner",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 249,
+      "t": "of",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 250,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 251,
+      "t": "wonderful",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 252,
+      "t": "cave",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 253,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 254,
+      "t": "knew",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 255,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 256,
+      "t": "monkey",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 257,
+      "t": "friends",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 258,
+      "t": "would",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 259,
+      "t": "love",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 260,
+      "t": "this",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 261,
+      "t": "place",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 262,
+      "t": "Then",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 263,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 264,
+      "t": "took",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 265,
+      "t": "another",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 266,
+      "t": "brave",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 267,
+      "t": "jump",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 268,
+      "t": "back",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 269,
+      "t": "through",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 270,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 271,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 272,
+      "t": "All",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 273,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 274,
+      "t": "monkeys",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 275,
+      "t": "cheered",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 276,
+      "t": "when",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 277,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 278,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 279,
+      "t": "came",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 280,
+      "t": "back",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 281,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 282,
+      "t": "told",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 283,
+      "t": "them",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 284,
+      "t": "about",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 285,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 286,
+      "t": "beautiful",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 287,
+      "t": "cave",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 288,
+      "t": "behind",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 289,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 290,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 291,
+      "t": "The",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 292,
+      "t": "monkeys",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 293,
+      "t": "were",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 294,
+      "t": "so",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 295,
+      "t": "happy",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 296,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 297,
+      "t": "excited",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 298,
+      "t": "They",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 299,
+      "t": "all",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 300,
+      "t": "bowed",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 301,
+      "t": "to",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 302,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 303,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 304,
+      "t": "From",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 305,
+      "t": "that",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 306,
+      "t": "day",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 307,
+      "t": "on",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 308,
+      "t": "he",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 309,
+      "t": "was",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 310,
+      "t": "their",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 311,
+      "t": "king",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 312,
+      "t": "They",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 313,
+      "t": "called",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 314,
+      "t": "him",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 315,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 316,
+      "t": "Handsome",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 317,
+      "t": "Monkey",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 318,
+      "t": "King",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 319,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 320,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 321,
+      "t": "led",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 322,
+      "t": "all",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 323,
+      "t": "his",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 324,
+      "t": "monkey",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 325,
+      "t": "friends",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 326,
+      "t": "through",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 327,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 328,
+      "t": "waterfall",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 329,
+      "t": "to",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 330,
+      "t": "their",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 331,
+      "t": "new",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 332,
+      "t": "home",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 333,
+      "t": "They",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 334,
+      "t": "lived",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 335,
+      "t": "happily",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 336,
+      "t": "together",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 337,
+      "t": "in",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 338,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 339,
+      "t": "Water",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 340,
+      "t": "Curtain",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 341,
+      "t": "Cave",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 342,
+      "t": "on",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 343,
+      "t": "Flower",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 344,
+      "t": "Fruit",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 345,
+      "t": "Mountain",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    }
+  ],
+  "category": "sunwukong",
+  "keywords": [
+    "monkey",
+    "king",
+    "waterfall",
+    "cave",
+    "mountain",
+    "courage",
+    "adventure",
+    "leadership",
+    "friendship",
+    "palace",
+    "hero",
+    "challenge"
+  ],
+  "series_id": "sunwukong_series",
+  "description": "When curious monkeys discover a mysterious waterfall on Flower Fruit Mountain, the brave Sun Wukong accepts a daring challenge to jump through the rushing water. His courage leads to an amazing discovery and earns him the title of Handsome Monkey King, as he guides his friends to a wonderful new home in the Water Curtain Cave.",
+  "cover_prompt": "Sun Wukong, a spunky anthropomorphic male golden macaque with bright golden fur and fiery-gold eyes, leaps dramatically through a massive crashing waterfall on Flower Fruit Mountain. He wears golden chainmail armor over a red tunic, tiger-skin kilt, black trousers, and black combat boots. His golden fillet headband displays two extremely long red pheasant feathers streaming behind him. He grips his red-and-gold iron staff as water explodes around his strong muscular build and broad shoulders. His confident mischievous boyish grin and masculine jawline show no fear. Other monkeys watch in awe from the rocky shore surrounded by lush trees and tropical fruit. Sunlight illuminates his golden fur as he soars through the water curtain, creating a dynamic heroic moment.",
+  "is_nonfiction": false,
+  "character_anchor": "Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+  "cover_image_path": "cover.webp",
+  "original_concept_title": "The King of Flower Fruit Mountain"
+}

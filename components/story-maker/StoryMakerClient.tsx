@@ -170,7 +170,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const action = searchParams.get("action");
     const isResumingIntent = action === "resume_story_maker" || action === "generate";
 
-    const [step, setStep] = useState<Step>(isResumingIntent ? "generating" : "profile");
+    const [step, setInternalStep] = useState<Step>(isResumingIntent ? "generating" : "profile");
+    const setStep = (newStep: Step) => {
+        setInternalStep(newStep);
+    };
     const [profile, setProfile] = useState<UserProfile>(initialProfile);
     const [selectedWords, setSelectedWords] = useState<string[]>([]);
     const [story, setStory] = useState<Story | null>(null);
@@ -298,11 +301,11 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             // Clear URL action parameters to prevent re-triggering on browser "Back"
             router.replace(pathname, { scroll: false });
 
-            console.debug("[StoryMakerClient] resumeDraftIfNeeded triggered:", { 
-                hasUser: !!user, 
-                isLoading, 
+            console.debug("[StoryMakerClient] resumeDraftIfNeeded triggered:", {
+                hasUser: !!user,
+                isLoading,
                 profileCount: profiles.length,
-                action 
+                action
             });
 
             const userDraftKey = `draft:${user.id}`;

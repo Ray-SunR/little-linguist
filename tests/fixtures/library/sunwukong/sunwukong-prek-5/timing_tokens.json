@@ -1,0 +1,362 @@
+[
+  {
+    "absIndex": 0,
+    "shardIndex": 0,
+    "start": 0.0,
+    "end": 0.33,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 1,
+    "shardIndex": 0,
+    "start": 0.33,
+    "end": 0.86,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 2,
+    "shardIndex": 0,
+    "start": 0.86,
+    "end": 1.12,
+    "offset": 0.0,
+    "word": "sits"
+  },
+  {
+    "absIndex": 3,
+    "shardIndex": 0,
+    "start": 1.12,
+    "end": 1.37,
+    "offset": 0.0,
+    "word": "under"
+  },
+  {
+    "absIndex": 4,
+    "shardIndex": 0,
+    "start": 1.37,
+    "end": 1.43,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 5,
+    "shardIndex": 0,
+    "start": 1.43,
+    "end": 1.75,
+    "offset": 0.0,
+    "word": "peach"
+  },
+  {
+    "absIndex": 6,
+    "shardIndex": 0,
+    "start": 1.75,
+    "end": 2.04,
+    "offset": 0.0,
+    "word": "tree"
+  },
+  {
+    "absIndex": 7,
+    "shardIndex": 0,
+    "start": 2.04,
+    "end": 2.18,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 8,
+    "shardIndex": 0,
+    "start": 2.18,
+    "end": 2.58,
+    "offset": 0.0,
+    "word": "Flower"
+  },
+  {
+    "absIndex": 9,
+    "shardIndex": 0,
+    "start": 2.58,
+    "end": 2.82,
+    "offset": 0.0,
+    "word": "Fruit"
+  },
+  {
+    "absIndex": 10,
+    "shardIndex": 0,
+    "start": 2.82,
+    "end": 3.42,
+    "offset": 0.0,
+    "word": "Mountain"
+  },
+  {
+    "absIndex": 11,
+    "shardIndex": 0,
+    "start": 4.29,
+    "end": 4.52,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 12,
+    "shardIndex": 0,
+    "start": 4.52,
+    "end": 4.7,
+    "offset": 0.0,
+    "word": "has"
+  },
+  {
+    "absIndex": 13,
+    "shardIndex": 0,
+    "start": 4.7,
+    "end": 4.81,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 14,
+    "shardIndex": 0,
+    "start": 4.82,
+    "end": 5.24,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 15,
+    "shardIndex": 0,
+    "start": 5.33,
+    "end": 5.79,
+    "offset": 0.0,
+    "word": "juicy"
+  },
+  {
+    "absIndex": 16,
+    "shardIndex": 0,
+    "start": 5.79,
+    "end": 6.37,
+    "offset": 0.0,
+    "word": "peach"
+  },
+  {
+    "absIndex": 17,
+    "shardIndex": 0,
+    "start": 7.25,
+    "end": 7.36,
+    "offset": 0.0,
+    "word": "A"
+  },
+  {
+    "absIndex": 18,
+    "shardIndex": 0,
+    "start": 7.36,
+    "end": 7.74,
+    "offset": 0.0,
+    "word": "tiny"
+  },
+  {
+    "absIndex": 19,
+    "shardIndex": 0,
+    "start": 7.74,
+    "end": 8.04,
+    "offset": 0.0,
+    "word": "bird"
+  },
+  {
+    "absIndex": 20,
+    "shardIndex": 0,
+    "start": 8.04,
+    "end": 8.39,
+    "offset": 0.0,
+    "word": "chirps"
+  },
+  {
+    "absIndex": 21,
+    "shardIndex": 0,
+    "start": 8.39,
+    "end": 9.03,
+    "offset": 0.0,
+    "word": "nearby"
+  },
+  {
+    "absIndex": 22,
+    "shardIndex": 0,
+    "start": 10.82,
+    "end": 11.14,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 23,
+    "shardIndex": 0,
+    "start": 11.14,
+    "end": 11.59,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 24,
+    "shardIndex": 0,
+    "start": 11.6,
+    "end": 12.26,
+    "offset": 0.0,
+    "word": "smiles"
+  },
+  {
+    "absIndex": 25,
+    "shardIndex": 0,
+    "start": 13.12,
+    "end": 13.3,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 26,
+    "shardIndex": 0,
+    "start": 13.3,
+    "end": 13.65,
+    "offset": 0.0,
+    "word": "breaks"
+  },
+  {
+    "absIndex": 27,
+    "shardIndex": 0,
+    "start": 13.65,
+    "end": 13.75,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 28,
+    "shardIndex": 0,
+    "start": 13.75,
+    "end": 14.01,
+    "offset": 0.0,
+    "word": "peach"
+  },
+  {
+    "absIndex": 29,
+    "shardIndex": 0,
+    "start": 14.01,
+    "end": 14.14,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 30,
+    "shardIndex": 0,
+    "start": 14.14,
+    "end": 14.62,
+    "offset": 0.0,
+    "word": "half"
+  },
+  {
+    "absIndex": 31,
+    "shardIndex": 0,
+    "start": 15.5,
+    "end": 15.7,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 32,
+    "shardIndex": 0,
+    "start": 15.7,
+    "end": 15.97,
+    "offset": 0.0,
+    "word": "gives"
+  },
+  {
+    "absIndex": 33,
+    "shardIndex": 0,
+    "start": 15.97,
+    "end": 16.25,
+    "offset": 0.0,
+    "word": "one"
+  },
+  {
+    "absIndex": 34,
+    "shardIndex": 0,
+    "start": 16.25,
+    "end": 16.59,
+    "offset": 0.0,
+    "word": "piece"
+  },
+  {
+    "absIndex": 35,
+    "shardIndex": 0,
+    "start": 16.59,
+    "end": 16.74,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 36,
+    "shardIndex": 0,
+    "start": 16.74,
+    "end": 16.86,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 37,
+    "shardIndex": 0,
+    "start": 16.86,
+    "end": 17.06,
+    "offset": 0.0,
+    "word": "little"
+  },
+  {
+    "absIndex": 38,
+    "shardIndex": 0,
+    "start": 17.06,
+    "end": 17.51,
+    "offset": 0.0,
+    "word": "bird"
+  },
+  {
+    "absIndex": 39,
+    "shardIndex": 0,
+    "start": 18.56,
+    "end": 18.77,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 40,
+    "shardIndex": 0,
+    "start": 18.77,
+    "end": 18.97,
+    "offset": 0.0,
+    "word": "eat"
+  },
+  {
+    "absIndex": 41,
+    "shardIndex": 0,
+    "start": 18.97,
+    "end": 19.47,
+    "offset": 0.0,
+    "word": "together"
+  },
+  {
+    "absIndex": 42,
+    "shardIndex": 0,
+    "start": 19.48,
+    "end": 19.62,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 43,
+    "shardIndex": 0,
+    "start": 19.67,
+    "end": 19.72,
+    "offset": 0.0,
+    "word": "are"
+  },
+  {
+    "absIndex": 44,
+    "shardIndex": 0,
+    "start": 19.72,
+    "end": 20.25,
+    "offset": 0.0,
+    "word": "happy"
+  }
+]

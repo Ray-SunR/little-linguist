@@ -3,67 +3,33 @@ import { POST } from '@/app/api/story/route';
 import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
 import { createAdminClient } from '@/lib/supabase/server';
 
-vi.mock('@google/genai', () => ({
-    GoogleGenAI: vi.fn().mockImplementation(() => ({
-        models: {
-            getGenerativeModel: vi.fn().mockReturnValue({
-                generateContent: vi.fn().mockResolvedValue({
-                    response: {
-                        text: () => JSON.stringify({
-                            title: 'Test Story',
-                            content: 'This is a test story.',
-                            mainCharacterDescription: 'A test character',
-                            sections: [{ text: 'Once upon a time there was a test.' }],
-                            image_scenes: [{ section_index: 0, image_prompt: '[1] is testing' }]
-                        })
-                    }
-                })
-            }),
-            generateContent: vi.fn().mockResolvedValue({
-                text: JSON.stringify({
+vi.mock('@/lib/core/integrations/ai/factory.server', () => ({
+    AIFactory: {
+        getProvider: vi.fn(() => ({
+            generateEmbedding: vi.fn().mockResolvedValue(new Array(1024).fill(0)),
+            generateStory: vi.fn().mockResolvedValue({
+                title: 'Test Story',
+                content: 'This is a test story.',
+                mainCharacterDescription: 'A test character',
+                book_id: 'test-book-id',
+                sections: [{ text: 'Once upon a time there was a test.', image_prompt: '[1] is testing' }],
+                rawResponse: {
                     title: 'Test Story',
                     content: 'This is a test story.',
                     mainCharacterDescription: 'A test character',
                     sections: [{ text: 'Once upon a time there was a test.' }],
                     image_scenes: [{ section_index: 0, image_prompt: '[1] is testing' }]
-                })
+                }
             })
-        }
-    })),
-    Type: { OBJECT: 'OBJECT', STRING: 'STRING', ARRAY: 'ARRAY', NUMBER: 'NUMBER' }
-}));
-
-vi.mock('@aws-sdk/client-polly', () => ({
-    PollyClient: vi.fn().mockImplementation(() => ({
-        send: vi.fn().mockResolvedValue({
-            AudioStream: Buffer.from('test-audio'),
-            SpeechMarks: '[]'
-        })
-    })),
-    SynthesizeSpeechCommand: vi.fn()
-}));
-
-vi.mock('@aws-sdk/client-bedrock-runtime', () => ({
-    BedrockRuntimeClient: vi.fn().mockImplementation(() => ({
-        send: vi.fn().mockResolvedValue({
-            body: Buffer.from(JSON.stringify({
-                images: [{ base64: 'test-image' }]
-            }))
-        })
-    })),
-    InvokeModelCommand: vi.fn()
-}));
-vi.mock('@/lib/features/bedrock/bedrock-embedding.server', () => ({
-    BedrockEmbeddingService: vi.fn().mockImplementation(() => ({
-        generateEmbedding: vi.fn().mockResolvedValue(new Array(1024).fill(0))
-    }))
+        }))
+    }
 }));
 
 vi.mock('next/headers', () => ({
     cookies: () => ({
         get: () => ({ value: 'test-guest' }),
         getAll: () => [],
-        set: () => {}
+        set: () => { }
     })
 }));
 
@@ -75,7 +41,7 @@ describe('Story API Integration', () => {
     beforeAll(async () => {
         await truncateAllTables();
         testUser = await createTestUser();
-        
+
         const { data: child, error } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'TestKid',
@@ -83,7 +49,7 @@ describe('Story API Integration', () => {
             gender: 'boy',
             avatar_paths: ['avatar1.png']
         }).select().single();
-        
+
         if (error) throw error;
         testChild = child;
 
@@ -96,7 +62,7 @@ describe('Story API Integration', () => {
                 image_generation: 10
             }
         });
-        
+
         process.env.GEMINI_API_KEY = 'test-key';
         process.env.TEST_MODE = 'false';
     });

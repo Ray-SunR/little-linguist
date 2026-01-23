@@ -26,7 +26,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (status === 'loading' || status === 'hydrating') return;
 
-        const isPublic = PUBLIC_ROUTES.some(route => 
+        const isPublic = PUBLIC_ROUTES.some(route =>
             pathname === route || pathname.startsWith(route + '/')
         );
 

@@ -1,0 +1,500 @@
+{
+  "id": "sunwukong-prek-5",
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 44,
+        "timings": [],
+        "metadata": {
+          "mood": "warm and cheerful",
+          "suggestedVoice": "Ruth"
+        }
+      }
+    ]
+  },
+  "level": "PreK",
+  "stats": {
+    "char_count": 235,
+    "word_count": 45,
+    "scene_count": 2,
+    "length_category": "Short",
+    "reading_time_seconds": 18
+  },
+  "title": "Sun Wukong Shares His Peach",
+  "scenes": [
+    {
+      "text": "Sun Wukong sits under a peach tree on Flower Fruit Mountain. He has a big, juicy peach. A tiny bird chirps nearby.",
+      "index": 0,
+      "image_path": "scenes/scene_0.webp",
+      "imagePrompt": "A spunky monkey sitting cross-legged under a lush peach tree with pink blossoms on a sunny mountain peak, holding a large ripe peach, with a small colorful bird perched on a nearby branch, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 21
+    },
+    {
+      "text": "Sun Wukong smiles. He breaks the peach in half. He gives one piece to the little bird. They eat together and are happy!",
+      "index": 1,
+      "image_path": "scenes/scene_1.webp",
+      "imagePrompt": "A heartwarming scene on a mountain with waterfalls and green trees in the background, showing a monkey offering half a peach to a delighted small bird who flutters near his outstretched hand, both appearing joyful, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "after_word_index": 44
+    }
+  ],
+  "tokens": [
+    {
+      "i": 0,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 1,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 2,
+      "t": "sits",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 3,
+      "t": "under",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 4,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 5,
+      "t": "peach",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 6,
+      "t": "tree",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 7,
+      "t": "on",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 8,
+      "t": "Flower",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 9,
+      "t": "Fruit",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 10,
+      "t": "Mountain",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 11,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 12,
+      "t": "has",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 13,
+      "t": "a",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 14,
+      "t": "big",
+      "type": "w"
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 15,
+      "t": "juicy",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 16,
+      "t": "peach",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 17,
+      "t": "A",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 18,
+      "t": "tiny",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 19,
+      "t": "bird",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 20,
+      "t": "chirps",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 21,
+      "t": "nearby",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "i": 22,
+      "t": "Sun",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 23,
+      "t": "Wukong",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 24,
+      "t": "smiles",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 25,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 26,
+      "t": "breaks",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 27,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 28,
+      "t": "peach",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 29,
+      "t": "in",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 30,
+      "t": "half",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 31,
+      "t": "He",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 32,
+      "t": "gives",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 33,
+      "t": "one",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 34,
+      "t": "piece",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 35,
+      "t": "to",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 36,
+      "t": "the",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 37,
+      "t": "little",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 38,
+      "t": "bird",
+      "type": "w"
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 39,
+      "t": "They",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 40,
+      "t": "eat",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 41,
+      "t": "together",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 42,
+      "t": "and",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 43,
+      "t": "are",
+      "type": "w"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "i": 44,
+      "t": "happy",
+      "type": "w"
+    },
+    {
+      "t": "!",
+      "type": "p"
+    }
+  ],
+  "category": "sunwukong",
+  "keywords": [
+    "monkey",
+    "sharing",
+    "friendship",
+    "peach",
+    "kindness",
+    "mountain",
+    "bird",
+    "generosity",
+    "nature",
+    "happiness"
+  ],
+  "series_id": "sunwukong_series",
+  "description": "Sun Wukong, the legendary monkey, demonstrates the joy of sharing when he splits his delicious peach with a tiny bird on Flower Fruit Mountain. This heartwarming tale teaches young readers about friendship and generosity through a simple act of kindness between two unlikely companions.",
+  "cover_prompt": "Sun Wukong, a spunky anthropomorphic male golden macaque with bright golden fur, fiery-gold eyes, confident mischievous boyish grin, and masculine jawline, sits beneath a lush peach tree on Flower Fruit Mountain. He has a strong muscular build with broad shoulders, wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, and black combat boots. His golden fillet headband has two extremely long red pheasant feathers curving back. He holds a big juicy peach broken in half, sharing one piece with a tiny colorful bird perched on his hand. His red-and-gold iron staff rests beside him. Both character and bird are eating together with joyful expressions, surrounded by pink peach blossoms and ripe peaches hanging from branches above.",
+  "is_nonfiction": false,
+  "character_anchor": "Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+  "cover_image_path": "cover.webp",
+  "original_concept_title": "Friendly Monkey"
+}

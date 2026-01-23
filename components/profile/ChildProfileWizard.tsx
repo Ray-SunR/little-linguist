@@ -33,7 +33,7 @@ const GUEST_MAGIC_WORDS = [
 
 export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfileWizardProps) {
     const router = useRouter();
-    const { refreshProfiles } = useAuth();
+    const { refreshProfiles, user } = useAuth();
     const [step, setStep] = useState<Step>('name');
     const [formData, setFormData] = useState({
         first_name: '',
@@ -171,8 +171,15 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
             await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", ...draft });
 
-            const returnUrl = encodeURIComponent('/story-maker?action=resume_story_maker');
-            router.push(`/login?returnTo=${returnUrl}`);
+            if (user) {
+                // If already logged in, just refresh and go to library or let parent handle
+                // Actually, for mode='story', we probably want to resume story maker
+                await refreshProfiles();
+                router.push('/story-maker?action=resume_story_maker');
+            } else {
+                const returnUrl = encodeURIComponent('/story-maker?action=resume_story_maker');
+                router.push(`/login?returnTo=${returnUrl}`);
+            }
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to save magic draft';
             setError(message);
@@ -243,10 +250,10 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     </div>
                                     <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Who is our Hero?</h2>
                                     <p className="text-ink-muted font-bold font-nunito text-[10px] max-w-xs mx-auto">
-                                         {mode === 'story'
-                                             ? "Let's name your hero! We'll create a profile to save their adventures."
-                                             : "Let's start by naming your child's profile."}
-                                     </p>
+                                        {mode === 'story'
+                                            ? "Let's name your hero! We'll create a profile to save their adventures."
+                                            : "Let's start by naming your child's profile."}
+                                    </p>
                                 </div>
 
                                 <div className="relative max-w-sm mx-auto">
@@ -464,16 +471,16 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
                                                     const result = await getAvatarUploadUrl(file.name);
                                                     if (result.error || !result.data) throw new Error(result.error);
-                                                    
+
                                                     const { signedUrl, path } = result.data;
-                                                    const response = await fetch(signedUrl, { 
-                                                        method: 'PUT', 
-                                                        body: file, 
-                                                        headers: { 'Content-Type': file.type } 
+                                                    const response = await fetch(signedUrl, {
+                                                        method: 'PUT',
+                                                        body: file,
+                                                        headers: { 'Content-Type': file.type }
                                                     });
-                                                    
+
                                                     if (!response.ok) throw new Error('Failed to upload image to storage.');
-                                                    
+
                                                     setAvatarStoragePath(path);
                                                 } catch (err: unknown) {
                                                     console.error("Upload failed:", err);

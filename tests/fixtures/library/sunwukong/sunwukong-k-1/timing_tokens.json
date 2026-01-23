@@ -1,0 +1,722 @@
+[
+  {
+    "absIndex": 0,
+    "shardIndex": 0,
+    "start": 0.8,
+    "end": 0.94,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 1,
+    "shardIndex": 0,
+    "start": 0.95,
+    "end": 0.96,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 2,
+    "shardIndex": 0,
+    "start": 0.97,
+    "end": 1.18,
+    "offset": 0.0,
+    "word": "is"
+  },
+  {
+    "absIndex": 3,
+    "shardIndex": 0,
+    "start": 1.18,
+    "end": 1.24,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 4,
+    "shardIndex": 0,
+    "start": 1.24,
+    "end": 1.7,
+    "offset": 0.0,
+    "word": "magic"
+  },
+  {
+    "absIndex": 5,
+    "shardIndex": 0,
+    "start": 1.7,
+    "end": 2.22,
+    "offset": 0.0,
+    "word": "monkey"
+  },
+  {
+    "absIndex": 6,
+    "shardIndex": 0,
+    "start": 2.47,
+    "end": 2.66,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 7,
+    "shardIndex": 0,
+    "start": 2.66,
+    "end": 2.94,
+    "offset": 0.0,
+    "word": "lives"
+  },
+  {
+    "absIndex": 8,
+    "shardIndex": 0,
+    "start": 2.94,
+    "end": 3.05,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 9,
+    "shardIndex": 0,
+    "start": 3.05,
+    "end": 3.1,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 10,
+    "shardIndex": 0,
+    "start": 3.1,
+    "end": 3.57,
+    "offset": 0.0,
+    "word": "beautiful"
+  },
+  {
+    "absIndex": 11,
+    "shardIndex": 0,
+    "start": 3.57,
+    "end": 4.12,
+    "offset": 0.0,
+    "word": "mountain"
+  },
+  {
+    "absIndex": 12,
+    "shardIndex": 0,
+    "start": 4.98,
+    "end": 5.22,
+    "offset": 0.0,
+    "word": "One"
+  },
+  {
+    "absIndex": 13,
+    "shardIndex": 0,
+    "start": 5.22,
+    "end": 5.61,
+    "offset": 0.0,
+    "word": "day"
+  },
+  {
+    "absIndex": 14,
+    "shardIndex": 0,
+    "start": 5.72,
+    "end": 5.84,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 15,
+    "shardIndex": 0,
+    "start": 5.84,
+    "end": 6.14,
+    "offset": 0.0,
+    "word": "wants"
+  },
+  {
+    "absIndex": 16,
+    "shardIndex": 0,
+    "start": 6.14,
+    "end": 6.24,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 17,
+    "shardIndex": 0,
+    "start": 6.24,
+    "end": 6.47,
+    "offset": 0.0,
+    "word": "play"
+  },
+  {
+    "absIndex": 18,
+    "shardIndex": 0,
+    "start": 6.47,
+    "end": 6.52,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 19,
+    "shardIndex": 0,
+    "start": 6.52,
+    "end": 6.99,
+    "offset": 0.0,
+    "word": "trick"
+  },
+  {
+    "absIndex": 20,
+    "shardIndex": 0,
+    "start": 7.22,
+    "end": 7.38,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 21,
+    "shardIndex": 0,
+    "start": 7.38,
+    "end": 7.79,
+    "offset": 0.0,
+    "word": "uses"
+  },
+  {
+    "absIndex": 22,
+    "shardIndex": 0,
+    "start": 7.79,
+    "end": 7.99,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 23,
+    "shardIndex": 0,
+    "start": 7.99,
+    "end": 8.34,
+    "offset": 0.0,
+    "word": "magic"
+  },
+  {
+    "absIndex": 24,
+    "shardIndex": 0,
+    "start": 8.34,
+    "end": 8.8,
+    "offset": 0.0,
+    "word": "powers"
+  },
+  {
+    "absIndex": 25,
+    "shardIndex": 0,
+    "start": 8.8,
+    "end": 8.92,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 26,
+    "shardIndex": 0,
+    "start": 8.92,
+    "end": 9.24,
+    "offset": 0.0,
+    "word": "change"
+  },
+  {
+    "absIndex": 27,
+    "shardIndex": 0,
+    "start": 9.24,
+    "end": 9.39,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 28,
+    "shardIndex": 0,
+    "start": 9.39,
+    "end": 9.86,
+    "offset": 0.0,
+    "word": "face"
+  },
+  {
+    "absIndex": 29,
+    "shardIndex": 0,
+    "start": 11.64,
+    "end": 12.21,
+    "offset": 0.0,
+    "word": "First"
+  },
+  {
+    "absIndex": 30,
+    "shardIndex": 0,
+    "start": 12.36,
+    "end": 12.52,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 31,
+    "shardIndex": 0,
+    "start": 12.52,
+    "end": 12.95,
+    "offset": 0.0,
+    "word": "changes"
+  },
+  {
+    "absIndex": 32,
+    "shardIndex": 0,
+    "start": 12.95,
+    "end": 13.23,
+    "offset": 0.0,
+    "word": "into"
+  },
+  {
+    "absIndex": 33,
+    "shardIndex": 0,
+    "start": 13.23,
+    "end": 13.3,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 34,
+    "shardIndex": 0,
+    "start": 13.3,
+    "end": 13.84,
+    "offset": 0.0,
+    "word": "tiger"
+  },
+  {
+    "absIndex": 35,
+    "shardIndex": 0,
+    "start": 14.72,
+    "end": 14.95,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 36,
+    "shardIndex": 0,
+    "start": 14.95,
+    "end": 15.19,
+    "offset": 0.0,
+    "word": "has"
+  },
+  {
+    "absIndex": 37,
+    "shardIndex": 0,
+    "start": 15.19,
+    "end": 15.44,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 38,
+    "shardIndex": 0,
+    "start": 15.44,
+    "end": 15.81,
+    "offset": 0.0,
+    "word": "teeth"
+  },
+  {
+    "absIndex": 39,
+    "shardIndex": 0,
+    "start": 15.81,
+    "end": 15.97,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 40,
+    "shardIndex": 0,
+    "start": 15.97,
+    "end": 16.55,
+    "offset": 0.0,
+    "word": "stripes"
+  },
+  {
+    "absIndex": 41,
+    "shardIndex": 0,
+    "start": 16.8,
+    "end": 17.06,
+    "offset": 0.0,
+    "word": "Then"
+  },
+  {
+    "absIndex": 42,
+    "shardIndex": 0,
+    "start": 17.06,
+    "end": 17.2,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 43,
+    "shardIndex": 0,
+    "start": 17.2,
+    "end": 17.56,
+    "offset": 0.0,
+    "word": "becomes"
+  },
+  {
+    "absIndex": 44,
+    "shardIndex": 0,
+    "start": 17.56,
+    "end": 17.62,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 45,
+    "shardIndex": 0,
+    "start": 17.62,
+    "end": 18.02,
+    "offset": 0.0,
+    "word": "bird"
+  },
+  {
+    "absIndex": 46,
+    "shardIndex": 0,
+    "start": 18.04,
+    "end": 18.24,
+    "offset": 0.0,
+    "word": "with"
+  },
+  {
+    "absIndex": 47,
+    "shardIndex": 0,
+    "start": 18.27,
+    "end": 18.56,
+    "offset": 0.0,
+    "word": "pretty"
+  },
+  {
+    "absIndex": 48,
+    "shardIndex": 0,
+    "start": 18.56,
+    "end": 19.12,
+    "offset": 0.0,
+    "word": "feathers"
+  },
+  {
+    "absIndex": 49,
+    "shardIndex": 0,
+    "start": 19.36,
+    "end": 19.56,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 50,
+    "shardIndex": 0,
+    "start": 19.56,
+    "end": 19.93,
+    "offset": 0.0,
+    "word": "flies"
+  },
+  {
+    "absIndex": 51,
+    "shardIndex": 0,
+    "start": 19.93,
+    "end": 20.11,
+    "offset": 0.0,
+    "word": "up"
+  },
+  {
+    "absIndex": 52,
+    "shardIndex": 0,
+    "start": 20.11,
+    "end": 20.26,
+    "offset": 0.0,
+    "word": "high"
+  },
+  {
+    "absIndex": 53,
+    "shardIndex": 0,
+    "start": 20.26,
+    "end": 20.28,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 54,
+    "shardIndex": 0,
+    "start": 20.45,
+    "end": 20.55,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 55,
+    "shardIndex": 0,
+    "start": 20.55,
+    "end": 21.08,
+    "offset": 0.0,
+    "word": "sky"
+  },
+  {
+    "absIndex": 56,
+    "shardIndex": 0,
+    "start": 21.96,
+    "end": 22.22,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 57,
+    "shardIndex": 0,
+    "start": 22.22,
+    "end": 22.65,
+    "offset": 0.0,
+    "word": "magic"
+  },
+  {
+    "absIndex": 58,
+    "shardIndex": 0,
+    "start": 22.65,
+    "end": 22.8,
+    "offset": 0.0,
+    "word": "is"
+  },
+  {
+    "absIndex": 59,
+    "shardIndex": 0,
+    "start": 22.8,
+    "end": 23.02,
+    "offset": 0.0,
+    "word": "so"
+  },
+  {
+    "absIndex": 60,
+    "shardIndex": 0,
+    "start": 23.02,
+    "end": 23.62,
+    "offset": 0.0,
+    "word": "strong"
+  },
+  {
+    "absIndex": 61,
+    "shardIndex": 0,
+    "start": 25.4,
+    "end": 25.64,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 62,
+    "shardIndex": 0,
+    "start": 25.64,
+    "end": 26.06,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 63,
+    "shardIndex": 0,
+    "start": 26.07,
+    "end": 26.44,
+    "offset": 0.0,
+    "word": "laughs"
+  },
+  {
+    "absIndex": 64,
+    "shardIndex": 0,
+    "start": 26.44,
+    "end": 26.62,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 65,
+    "shardIndex": 0,
+    "start": 26.62,
+    "end": 27.01,
+    "offset": 0.0,
+    "word": "changes"
+  },
+  {
+    "absIndex": 66,
+    "shardIndex": 0,
+    "start": 27.01,
+    "end": 27.47,
+    "offset": 0.0,
+    "word": "back"
+  },
+  {
+    "absIndex": 67,
+    "shardIndex": 0,
+    "start": 28.34,
+    "end": 28.53,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 68,
+    "shardIndex": 0,
+    "start": 28.53,
+    "end": 28.64,
+    "offset": 0.0,
+    "word": "is"
+  },
+  {
+    "absIndex": 69,
+    "shardIndex": 0,
+    "start": 28.64,
+    "end": 28.72,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 70,
+    "shardIndex": 0,
+    "start": 28.72,
+    "end": 29.09,
+    "offset": 0.0,
+    "word": "clever"
+  },
+  {
+    "absIndex": 71,
+    "shardIndex": 0,
+    "start": 29.09,
+    "end": 29.5,
+    "offset": 0.0,
+    "word": "monkey"
+  },
+  {
+    "absIndex": 72,
+    "shardIndex": 0,
+    "start": 29.5,
+    "end": 29.98,
+    "offset": 0.0,
+    "word": "again"
+  },
+  {
+    "absIndex": 73,
+    "shardIndex": 0,
+    "start": 30.25,
+    "end": 30.44,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 74,
+    "shardIndex": 0,
+    "start": 30.44,
+    "end": 30.6,
+    "offset": 0.0,
+    "word": "can"
+  },
+  {
+    "absIndex": 75,
+    "shardIndex": 0,
+    "start": 30.6,
+    "end": 30.95,
+    "offset": 0.0,
+    "word": "change"
+  },
+  {
+    "absIndex": 76,
+    "shardIndex": 0,
+    "start": 30.95,
+    "end": 31.22,
+    "offset": 0.0,
+    "word": "into"
+  },
+  {
+    "absIndex": 77,
+    "shardIndex": 0,
+    "start": 31.22,
+    "end": 31.45,
+    "offset": 0.0,
+    "word": "any"
+  },
+  {
+    "absIndex": 78,
+    "shardIndex": 0,
+    "start": 31.45,
+    "end": 31.8,
+    "offset": 0.0,
+    "word": "animal"
+  },
+  {
+    "absIndex": 79,
+    "shardIndex": 0,
+    "start": 31.8,
+    "end": 31.93,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 80,
+    "shardIndex": 0,
+    "start": 31.93,
+    "end": 32.47,
+    "offset": 0.0,
+    "word": "wants"
+  },
+  {
+    "absIndex": 81,
+    "shardIndex": 0,
+    "start": 33.34,
+    "end": 33.57,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 82,
+    "shardIndex": 0,
+    "start": 33.57,
+    "end": 34.19,
+    "offset": 0.0,
+    "word": "seventy-two"
+  },
+  {
+    "absIndex": 83,
+    "shardIndex": 0,
+    "start": 34.19,
+    "end": 35.1,
+    "offset": 0.0,
+    "word": "transformations"
+  },
+  {
+    "absIndex": 84,
+    "shardIndex": 0,
+    "start": 35.13,
+    "end": 35.35,
+    "offset": 0.0,
+    "word": "make"
+  },
+  {
+    "absIndex": 85,
+    "shardIndex": 0,
+    "start": 35.35,
+    "end": 35.48,
+    "offset": 0.0,
+    "word": "him"
+  },
+  {
+    "absIndex": 86,
+    "shardIndex": 0,
+    "start": 35.49,
+    "end": 35.6,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 87,
+    "shardIndex": 0,
+    "start": 35.6,
+    "end": 35.9,
+    "offset": 0.0,
+    "word": "best"
+  },
+  {
+    "absIndex": 88,
+    "shardIndex": 0,
+    "start": 35.91,
+    "end": 36.4,
+    "offset": 0.0,
+    "word": "trickster"
+  },
+  {
+    "absIndex": 89,
+    "shardIndex": 0,
+    "start": 36.4,
+    "end": 36.79,
+    "offset": 0.0,
+    "word": "ever"
+  }
+]

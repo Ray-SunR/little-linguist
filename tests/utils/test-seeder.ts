@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/server';
 export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: string) {
     const supabase = createAdminClient();
     const fixturePath = sourcePath || path.resolve(process.cwd(), 'tests/fixtures/library');
-    
+
     if (!fs.existsSync(fixturePath)) {
         console.warn(`⚠ Fixture path not found: ${fixturePath}`);
         return 0;
@@ -15,12 +15,12 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
         const fullPath = path.join(fixturePath, f);
         return fs.statSync(fullPath).isDirectory() && !f.startsWith('.');
     });
-    
+
     let seededCount = 0;
 
     for (const category of categories) {
         if (seededCount >= limit) break;
-        
+
         const categoryPath = path.join(fixturePath, category);
         const bookDirs = fs.readdirSync(categoryPath).filter(f => {
             const fullPath = path.join(categoryPath, f);
@@ -29,19 +29,19 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
 
         for (const bookDir of bookDirs) {
             if (seededCount >= limit) break;
-            
+
             const bookPath = path.join(categoryPath, bookDir);
             const metadataPath = path.join(bookPath, 'metadata.json');
             const contentPath = path.join(bookPath, 'content.txt');
             const tokensPath = path.join(bookPath, 'timing_tokens.json');
             const embeddingsPath = path.join(bookPath, 'embeddings.json');
-            
+
             if (fs.existsSync(metadataPath)) {
                 const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
-                const embedding = fs.existsSync(embeddingsPath) 
+                const embedding = fs.existsSync(embeddingsPath)
                     ? JSON.parse(fs.readFileSync(embeddingsPath, 'utf8'))
                     : null;
-                
+
                 const { data: book, error: bookError } = await supabase
                     .from('books')
                     .upsert({
@@ -67,14 +67,13 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
                     .single();
 
                 if (bookError) {
-                    console.error(`Error seeding book ${metadata.id}:`, bookError);
                     continue;
                 }
 
                 if (fs.existsSync(contentPath) && fs.existsSync(tokensPath)) {
                     const fullText = fs.readFileSync(contentPath, 'utf8');
                     const tokens = JSON.parse(fs.readFileSync(tokensPath, 'utf8'));
-                    
+
                     await supabase.from('book_contents').upsert({
                         book_id: book.id,
                         full_text: fullText,
@@ -114,8 +113,7 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
             }
         }
     }
-    
-    console.log(`✅ Seeded ${seededCount} books from fixtures library.`);
+
     return seededCount;
 }
 

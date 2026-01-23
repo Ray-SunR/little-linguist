@@ -36,7 +36,7 @@ export class MagicSentenceService {
             .select('owner_user_id')
             .eq('id', childId)
             .single();
-        
+
         if (error || !data) return false;
         return data.owner_user_id === this.userId;
     }
@@ -47,7 +47,7 @@ export class MagicSentenceService {
             .select('birth_year')
             .eq('id', childId)
             .single();
-        
+
         if (data?.birth_year) {
             const currentYear = new Date().getFullYear();
             return currentYear - data.birth_year;
@@ -56,8 +56,8 @@ export class MagicSentenceService {
     }
 
     async generateMagicSentence(
-        words: string[], 
-        activeChildId: string, 
+        words: string[],
+        activeChildId: string,
         generateImage: boolean = false,
         timezone: string = 'UTC'
     ): Promise<MagicSentenceResult> {
@@ -73,20 +73,20 @@ export class MagicSentenceService {
 
         // 2. Quota Reservation
         const usageRequests: any[] = [
-            { 
-                featureName: 'magic_sentence', 
-                increment: 1, 
-                childId: activeChildId, 
+            {
+                featureName: 'magic_sentence',
+                increment: 1,
+                childId: activeChildId,
                 metadata: { words, magic_sentence_id: sentenceId },
                 entityId: sentenceId,
                 entityType: 'magic_sentence'
             }
         ];
         if (generateImage) {
-            usageRequests.push({ 
-                featureName: 'image_generation', 
-                increment: 1, 
-                childId: activeChildId, 
+            usageRequests.push({
+                featureName: 'image_generation',
+                increment: 1,
+                childId: activeChildId,
                 metadata: { type: 'magic_sentence', magic_sentence_id: sentenceId },
                 entityId: sentenceId,
                 entityType: 'magic_sentence'
@@ -100,13 +100,20 @@ export class MagicSentenceService {
 
         let generationSuccessful = false;
         try {
+            console.log('[MagicSentenceService] Starting generation for words:', words);
             const claude = new ClaudeStoryService();
             const polly = NarrationFactory.getProvider();
             const nova = new NovaStoryService();
 
             // A. Generate content
+            console.log('[MagicSentenceService] Calling Claude...');
             const { sentence, imagePrompt } = await claude.generateMagicSentence(words, age);
+            console.log('[MagicSentenceService] Sentence generated:', sentence);
+
+            console.log('[MagicSentenceService] Calling Polly...');
             const { audioBuffer, speechMarks } = await polly.synthesize(sentence);
+            console.log('[MagicSentenceService] Polly success. Buffer size:', audioBuffer.length);
+
             const timingMarkers = speechMarks.map((mark, idx) => ({
                 wordIndex: idx,
                 startMs: mark.time,
@@ -116,11 +123,13 @@ export class MagicSentenceService {
 
             let imageBase64: string | undefined;
             if (generateImage) {
+                console.log('[MagicSentenceService] Calling Nova...');
                 imageBase64 = await nova.generateImage(imagePrompt);
             }
 
             // B. Upload Assets
             const storagePrefix = `${this.userId}/${activeChildId}/magic_sentences/${sentenceId}`;
+            console.log('[MagicSentenceService] Uploading to storage:', storagePrefix);
             const uploads = [
                 this.adminSupabase.storage.from(BUCKET).upload(`${storagePrefix}/audio.mp3`, audioBuffer, { contentType: "audio/mpeg", upsert: true }),
                 this.adminSupabase.storage.from(BUCKET).upload(`${storagePrefix}/timing.json`, Buffer.from(JSON.stringify(timingMarkers)), { contentType: "application/json", upsert: true })
@@ -133,10 +142,14 @@ export class MagicSentenceService {
 
             const uploadResults = await Promise.all(uploads);
             for (const res of uploadResults) {
-                if (res.error) throw res.error;
+                if (res.error) {
+                    console.error('[MagicSentenceService] Upload error:', res.error);
+                    throw res.error;
+                }
             }
 
             // C. DB Persistence
+            console.log('[MagicSentenceService] Persisting to DB...');
             const { data: inserted, error: dbError } = await this.adminSupabase.from('child_magic_sentences').insert({
                 id: sentenceId,
                 child_id: activeChildId,
@@ -180,8 +193,8 @@ export class MagicSentenceService {
 
         } catch (error) {
             if (!generationSuccessful) {
-                await reserveCredits(identity, usageRequests.map(r => ({ 
-                    ...r, 
+                await reserveCredits(identity, usageRequests.map(r => ({
+                    ...r,
                     increment: -r.increment,
                     metadata: { ...r.metadata, is_refund: true }
                 }))).catch(e => console.error("[MagicSentenceService] Refund failed:", e));
@@ -202,7 +215,7 @@ export class MagicSentenceService {
             .eq('child_id', activeChildId)
             .order('created_at', { ascending: false })
             .limit(limit);
-        
+
         if (error) throw error;
         if (!data) return [];
 
@@ -215,7 +228,7 @@ export class MagicSentenceService {
             .select('*')
             .eq('id', sentenceId)
             .single();
-        
+
         if (error || !data) throw new Error("NOT_FOUND: Sentence not found");
 
         const isOwner = await this.verifyChildOwnership(data.child_id);
@@ -243,7 +256,7 @@ export class MagicSentenceService {
             const { data: timingSigned } = await this.adminSupabase.storage
                 .from(BUCKET)
                 .createSignedUrl(item.timing_path, 60);
-            
+
             if (timingSigned?.signedUrl) {
                 try {
                     const res = await fetch(timingSigned.signedUrl);

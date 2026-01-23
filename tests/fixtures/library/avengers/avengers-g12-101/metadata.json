@@ -1,0 +1,2613 @@
+{
+  "id": "avengers-g12-101",
+  "title": "Hulk Saves the Day!",
+  "original_concept_title": "Hulk's Big Day",
+  "category": "avengers",
+  "level": "G1-2",
+  "is_nonfiction": false,
+  "description": "When the Avengers face an impossible obstacle of giant rocks blocking their path, Bruce Banner transforms into the incredible Hulk to save the day. This exciting superhero tale shows young readers how teamwork and unique strengths help friends overcome any challenge together.",
+  "keywords": [
+    "Avengers",
+    "Hulk",
+    "superhero",
+    "teamwork",
+    "strength",
+    "transformation",
+    "rocks",
+    "rescue",
+    "friends",
+    "hero"
+  ],
+  "series_id": "avengers_series",
+  "cover_image_path": "cover.webp",
+  "cover_prompt": "The mighty Hulk stands center frame, towering and triumphant with bright green skin covering his massive muscular build. His black messy hair crowns his head as he holds an enormous boulder high above with both arms. His purple pants remain intact while his shirt is completely ripped and torn apart, hanging in shreds from his powerful frame. Below him lies a pile of large rocks he's clearing away. The other Avengers - Iron Man in red and gold armor, Captain America with his shield, Thor with his hammer, and Black Widow - stand around him looking up in awe and celebration. The scene captures the transformation's aftermath as Hulk saves the day, his green skin gleaming and muscles bulging with incredible strength.",
+  "stats": {
+    "word_count": 265,
+    "char_count": 1429,
+    "scene_count": 5,
+    "reading_time_seconds": 106,
+    "length_category": "Medium"
+  },
+  "scenes": [
+    {
+      "index": 0,
+      "text": "The Avengers stood in front of a big pile of rocks. Iron Man tried to blast them away. Captain America pushed with his shield. Thor used his hammer to hit the rocks. But nothing worked! The rocks were too heavy and too big. Black Widow looked worried. The team needed help right away.",
+      "imagePrompt": "A team of superheroes standing before a massive pile of gray boulders blocking a city street, with tall buildings in the background and debris scattered around, featuring adult man, black messy hair, purple pants, green skin when transformed, muscular build, torn clothing",
+      "image_path": "scenes/scene_0.webp",
+      "after_word_index": 52
+    },
+    {
+      "index": 1,
+      "text": "Bruce Banner stepped forward to help his friends. He had black messy hair and wore purple pants. Bruce knew what he had to do. He took a deep breath and closed his eyes. His heart began to beat faster and faster. Bruce started to feel very strong inside. It was time to transform!",
+      "imagePrompt": "A man with determination on his face standing in front of concerned superheroes on a city street with afternoon sunlight, featuring adult man, black messy hair, purple pants, green skin when transformed, muscular build, torn clothing",
+      "image_path": "scenes/scene_1.webp",
+      "after_word_index": 105
+    },
+    {
+      "index": 2,
+      "text": "Bruce's body began to change and grow! His skin turned bright green all over. His muscles got bigger and bigger. His shirt ripped and tore apart! Now he was the mighty Hulk. The Hulk was very tall and very strong. He roared loudly at the pile of rocks.",
+      "imagePrompt": "A transformation happening in the middle of a city street with energy radiating outward, clothes tearing, body expanding and turning green while other heroes watch in awe, featuring adult man, black messy hair, purple pants, green skin when transformed, muscular build, torn clothing",
+      "image_path": "scenes/scene_2.webp",
+      "after_word_index": 153
+    },
+    {
+      "index": 3,
+      "text": "The Hulk walked up to the heavy rocks. He bent down and grabbed the biggest boulder. The Hulk lifted it high above his head! He threw it far away into an empty field. Then he picked up another rock and another. The other Avengers cheered for their strong friend. Hulk moved all the rocks away from the path.",
+      "imagePrompt": "A powerful green figure holding an enormous boulder above his head on a city street, with other superheroes cheering in the background and clear blue sky overhead, featuring adult man, black messy hair, purple pants, green skin when transformed, muscular build, torn clothing",
+      "image_path": "scenes/scene_3.webp",
+      "after_word_index": 211
+    },
+    {
+      "index": 4,
+      "text": "The path was clear at last! The Avengers could continue their mission now. Iron Man patted Hulk on his big green arm. Captain America smiled and said thank you. The Hulk was happy to help his team. Together, the Avengers were stronger than ever. They were the mightiest superhero team in the world!",
+      "imagePrompt": "A group of happy superheroes standing together on a now-clear city street with the sun setting behind buildings, celebrating their success as a team, featuring adult man, black messy hair, purple pants, green skin when transformed, muscular build, torn clothing",
+      "image_path": "scenes/scene_4.webp",
+      "after_word_index": 264
+    }
+  ],
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 264,
+        "timings": []
+      }
+    ]
+  },
+  "tokens": [
+    {
+      "t": "The",
+      "type": "w",
+      "i": 0
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Avengers",
+      "type": "w",
+      "i": 1
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stood",
+      "type": "w",
+      "i": 2
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 3
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "front",
+      "type": "w",
+      "i": 4
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 5
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 6
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "big",
+      "type": "w",
+      "i": 7
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pile",
+      "type": "w",
+      "i": 8
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 9
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rocks",
+      "type": "w",
+      "i": 10
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Iron",
+      "type": "w",
+      "i": 11
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Man",
+      "type": "w",
+      "i": 12
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tried",
+      "type": "w",
+      "i": 13
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 14
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "blast",
+      "type": "w",
+      "i": 15
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "them",
+      "type": "w",
+      "i": 16
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "away",
+      "type": "w",
+      "i": 17
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Captain",
+      "type": "w",
+      "i": 18
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "America",
+      "type": "w",
+      "i": 19
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pushed",
+      "type": "w",
+      "i": 20
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 21
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 22
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shield",
+      "type": "w",
+      "i": 23
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Thor",
+      "type": "w",
+      "i": 24
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "used",
+      "type": "w",
+      "i": 25
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 26
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hammer",
+      "type": "w",
+      "i": 27
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 28
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hit",
+      "type": "w",
+      "i": 29
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 30
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rocks",
+      "type": "w",
+      "i": 31
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "But",
+      "type": "w",
+      "i": 32
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "nothing",
+      "type": "w",
+      "i": 33
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "worked",
+      "type": "w",
+      "i": 34
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 35
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rocks",
+      "type": "w",
+      "i": 36
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 37
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "too",
+      "type": "w",
+      "i": 38
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "heavy",
+      "type": "w",
+      "i": 39
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 40
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "too",
+      "type": "w",
+      "i": 41
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "big",
+      "type": "w",
+      "i": 42
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Black",
+      "type": "w",
+      "i": 43
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Widow",
+      "type": "w",
+      "i": 44
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "looked",
+      "type": "w",
+      "i": 45
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "worried",
+      "type": "w",
+      "i": 46
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 47
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "team",
+      "type": "w",
+      "i": 48
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "needed",
+      "type": "w",
+      "i": 49
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "help",
+      "type": "w",
+      "i": 50
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "right",
+      "type": "w",
+      "i": 51
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "away",
+      "type": "w",
+      "i": 52
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Bruce",
+      "type": "w",
+      "i": 53
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Banner",
+      "type": "w",
+      "i": 54
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stepped",
+      "type": "w",
+      "i": 55
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "forward",
+      "type": "w",
+      "i": 56
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 57
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "help",
+      "type": "w",
+      "i": 58
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 59
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "friends",
+      "type": "w",
+      "i": 60
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 61
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 62
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "black",
+      "type": "w",
+      "i": 63
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "messy",
+      "type": "w",
+      "i": 64
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hair",
+      "type": "w",
+      "i": 65
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 66
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wore",
+      "type": "w",
+      "i": 67
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "purple",
+      "type": "w",
+      "i": 68
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pants",
+      "type": "w",
+      "i": 69
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Bruce",
+      "type": "w",
+      "i": 70
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "knew",
+      "type": "w",
+      "i": 71
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "what",
+      "type": "w",
+      "i": 72
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 73
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 74
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 75
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "do",
+      "type": "w",
+      "i": 76
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 77
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "took",
+      "type": "w",
+      "i": 78
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 79
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "deep",
+      "type": "w",
+      "i": 80
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "breath",
+      "type": "w",
+      "i": 81
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 82
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "closed",
+      "type": "w",
+      "i": 83
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 84
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eyes",
+      "type": "w",
+      "i": 85
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 86
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "heart",
+      "type": "w",
+      "i": 87
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "began",
+      "type": "w",
+      "i": 88
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 89
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beat",
+      "type": "w",
+      "i": 90
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "faster",
+      "type": "w",
+      "i": 91
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 92
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "faster",
+      "type": "w",
+      "i": 93
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Bruce",
+      "type": "w",
+      "i": 94
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "started",
+      "type": "w",
+      "i": 95
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 96
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "feel",
+      "type": "w",
+      "i": 97
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "very",
+      "type": "w",
+      "i": 98
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "strong",
+      "type": "w",
+      "i": 99
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "inside",
+      "type": "w",
+      "i": 100
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 101
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 102
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "time",
+      "type": "w",
+      "i": 103
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 104
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transform",
+      "type": "w",
+      "i": 105
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Bruce's",
+      "type": "w",
+      "i": 106
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "body",
+      "type": "w",
+      "i": 107
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "began",
+      "type": "w",
+      "i": 108
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 109
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "change",
+      "type": "w",
+      "i": 110
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 111
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grow",
+      "type": "w",
+      "i": 112
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 113
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "skin",
+      "type": "w",
+      "i": 114
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "turned",
+      "type": "w",
+      "i": 115
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bright",
+      "type": "w",
+      "i": 116
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "green",
+      "type": "w",
+      "i": 117
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "all",
+      "type": "w",
+      "i": 118
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "over",
+      "type": "w",
+      "i": 119
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 120
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "muscles",
+      "type": "w",
+      "i": 121
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "got",
+      "type": "w",
+      "i": 122
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bigger",
+      "type": "w",
+      "i": 123
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 124
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bigger",
+      "type": "w",
+      "i": 125
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 126
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shirt",
+      "type": "w",
+      "i": 127
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ripped",
+      "type": "w",
+      "i": 128
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 129
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tore",
+      "type": "w",
+      "i": 130
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "apart",
+      "type": "w",
+      "i": 131
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Now",
+      "type": "w",
+      "i": 132
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 133
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 134
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 135
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mighty",
+      "type": "w",
+      "i": 136
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 137
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 138
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 139
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 140
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "very",
+      "type": "w",
+      "i": 141
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tall",
+      "type": "w",
+      "i": 142
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 143
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "very",
+      "type": "w",
+      "i": 144
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "strong",
+      "type": "w",
+      "i": 145
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 146
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "roared",
+      "type": "w",
+      "i": 147
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "loudly",
+      "type": "w",
+      "i": 148
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 149
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 150
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pile",
+      "type": "w",
+      "i": 151
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 152
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rocks",
+      "type": "w",
+      "i": 153
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 154
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 155
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "walked",
+      "type": "w",
+      "i": 156
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "up",
+      "type": "w",
+      "i": 157
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 158
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 159
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "heavy",
+      "type": "w",
+      "i": 160
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rocks",
+      "type": "w",
+      "i": 161
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 162
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bent",
+      "type": "w",
+      "i": 163
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "down",
+      "type": "w",
+      "i": 164
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 165
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grabbed",
+      "type": "w",
+      "i": 166
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 167
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "biggest",
+      "type": "w",
+      "i": 168
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "boulder",
+      "type": "w",
+      "i": 169
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 170
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 171
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lifted",
+      "type": "w",
+      "i": 172
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "it",
+      "type": "w",
+      "i": 173
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "high",
+      "type": "w",
+      "i": 174
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "above",
+      "type": "w",
+      "i": 175
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 176
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "head",
+      "type": "w",
+      "i": 177
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 178
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "threw",
+      "type": "w",
+      "i": 179
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "it",
+      "type": "w",
+      "i": 180
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "far",
+      "type": "w",
+      "i": 181
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "away",
+      "type": "w",
+      "i": 182
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 183
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "an",
+      "type": "w",
+      "i": 184
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "empty",
+      "type": "w",
+      "i": 185
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "field",
+      "type": "w",
+      "i": 186
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Then",
+      "type": "w",
+      "i": 187
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 188
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "picked",
+      "type": "w",
+      "i": 189
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "up",
+      "type": "w",
+      "i": 190
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "another",
+      "type": "w",
+      "i": 191
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rock",
+      "type": "w",
+      "i": 192
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 193
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "another",
+      "type": "w",
+      "i": 194
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 195
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "other",
+      "type": "w",
+      "i": 196
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Avengers",
+      "type": "w",
+      "i": 197
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cheered",
+      "type": "w",
+      "i": 198
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 199
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 200
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "strong",
+      "type": "w",
+      "i": 201
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "friend",
+      "type": "w",
+      "i": 202
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 203
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "moved",
+      "type": "w",
+      "i": 204
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "all",
+      "type": "w",
+      "i": 205
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 206
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rocks",
+      "type": "w",
+      "i": 207
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "away",
+      "type": "w",
+      "i": 208
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 209
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 210
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "path",
+      "type": "w",
+      "i": 211
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 212
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "path",
+      "type": "w",
+      "i": 213
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 214
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "clear",
+      "type": "w",
+      "i": 215
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 216
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "last",
+      "type": "w",
+      "i": 217
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 218
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Avengers",
+      "type": "w",
+      "i": 219
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "could",
+      "type": "w",
+      "i": 220
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "continue",
+      "type": "w",
+      "i": 221
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 222
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mission",
+      "type": "w",
+      "i": 223
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "now",
+      "type": "w",
+      "i": 224
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Iron",
+      "type": "w",
+      "i": 225
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Man",
+      "type": "w",
+      "i": 226
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "patted",
+      "type": "w",
+      "i": 227
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 228
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 229
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 230
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "big",
+      "type": "w",
+      "i": 231
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "green",
+      "type": "w",
+      "i": 232
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "arm",
+      "type": "w",
+      "i": 233
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Captain",
+      "type": "w",
+      "i": 234
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "America",
+      "type": "w",
+      "i": 235
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "smiled",
+      "type": "w",
+      "i": 236
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 237
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "said",
+      "type": "w",
+      "i": 238
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "thank",
+      "type": "w",
+      "i": 239
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "you",
+      "type": "w",
+      "i": 240
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 241
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Hulk",
+      "type": "w",
+      "i": 242
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 243
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "happy",
+      "type": "w",
+      "i": 244
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 245
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "help",
+      "type": "w",
+      "i": 246
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 247
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "team",
+      "type": "w",
+      "i": 248
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Together",
+      "type": "w",
+      "i": 249
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 250
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Avengers",
+      "type": "w",
+      "i": 251
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 252
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stronger",
+      "type": "w",
+      "i": 253
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "than",
+      "type": "w",
+      "i": 254
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ever",
+      "type": "w",
+      "i": 255
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 256
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 257
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 258
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mightiest",
+      "type": "w",
+      "i": 259
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "superhero",
+      "type": "w",
+      "i": 260
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "team",
+      "type": "w",
+      "i": 261
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 262
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 263
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "world",
+      "type": "w",
+      "i": 264
+    },
+    {
+      "t": "!",
+      "type": "p"
+    }
+  ],
+  "character_anchor": "Adult man, black messy hair, purple pants, green skin when transformed, muscular build, torn clothing"
+}

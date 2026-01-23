@@ -12,7 +12,8 @@ import ChildProfileWizard from "@/components/profile/ChildProfileWizard";
 function StoryMakerPageContent() {
     const { activeChild, user, status, authResolved } = useAuth();
     const searchParams = useSearchParams();
-    
+
+
     // Check if we are in a resume flow
     const action = searchParams.get("action");
     const isResuming = action === "resume_story_maker" || action === "generate";

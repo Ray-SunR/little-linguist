@@ -1,0 +1,2122 @@
+[
+  {
+    "absIndex": 0,
+    "shardIndex": 0,
+    "start": 0.05,
+    "end": 0.22,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 1,
+    "shardIndex": 0,
+    "start": 0.22,
+    "end": 0.77,
+    "offset": 0.0,
+    "word": "Avengers"
+  },
+  {
+    "absIndex": 2,
+    "shardIndex": 0,
+    "start": 0.78,
+    "end": 1.07,
+    "offset": 0.0,
+    "word": "stood"
+  },
+  {
+    "absIndex": 3,
+    "shardIndex": 0,
+    "start": 1.07,
+    "end": 1.19,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 4,
+    "shardIndex": 0,
+    "start": 1.19,
+    "end": 1.47,
+    "offset": 0.0,
+    "word": "front"
+  },
+  {
+    "absIndex": 5,
+    "shardIndex": 0,
+    "start": 1.47,
+    "end": 1.59,
+    "offset": 0.0,
+    "word": "of"
+  },
+  {
+    "absIndex": 6,
+    "shardIndex": 0,
+    "start": 1.59,
+    "end": 1.63,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 7,
+    "shardIndex": 0,
+    "start": 1.63,
+    "end": 1.9,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 8,
+    "shardIndex": 0,
+    "start": 1.93,
+    "end": 2.24,
+    "offset": 0.0,
+    "word": "pile"
+  },
+  {
+    "absIndex": 9,
+    "shardIndex": 0,
+    "start": 2.24,
+    "end": 2.36,
+    "offset": 0.0,
+    "word": "of"
+  },
+  {
+    "absIndex": 10,
+    "shardIndex": 0,
+    "start": 2.36,
+    "end": 2.89,
+    "offset": 0.0,
+    "word": "rocks"
+  },
+  {
+    "absIndex": 11,
+    "shardIndex": 0,
+    "start": 3.76,
+    "end": 4.13,
+    "offset": 0.0,
+    "word": "Iron"
+  },
+  {
+    "absIndex": 12,
+    "shardIndex": 0,
+    "start": 4.13,
+    "end": 4.42,
+    "offset": 0.0,
+    "word": "Man"
+  },
+  {
+    "absIndex": 13,
+    "shardIndex": 0,
+    "start": 4.43,
+    "end": 4.77,
+    "offset": 0.0,
+    "word": "tried"
+  },
+  {
+    "absIndex": 14,
+    "shardIndex": 0,
+    "start": 4.77,
+    "end": 4.87,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 15,
+    "shardIndex": 0,
+    "start": 4.87,
+    "end": 5.28,
+    "offset": 0.0,
+    "word": "blast"
+  },
+  {
+    "absIndex": 16,
+    "shardIndex": 0,
+    "start": 5.29,
+    "end": 5.45,
+    "offset": 0.0,
+    "word": "them"
+  },
+  {
+    "absIndex": 17,
+    "shardIndex": 0,
+    "start": 5.45,
+    "end": 5.94,
+    "offset": 0.0,
+    "word": "away"
+  },
+  {
+    "absIndex": 18,
+    "shardIndex": 0,
+    "start": 6.2,
+    "end": 6.6,
+    "offset": 0.0,
+    "word": "Captain"
+  },
+  {
+    "absIndex": 19,
+    "shardIndex": 0,
+    "start": 6.6,
+    "end": 7.12,
+    "offset": 0.0,
+    "word": "America"
+  },
+  {
+    "absIndex": 20,
+    "shardIndex": 0,
+    "start": 7.13,
+    "end": 7.5,
+    "offset": 0.0,
+    "word": "pushed"
+  },
+  {
+    "absIndex": 21,
+    "shardIndex": 0,
+    "start": 7.5,
+    "end": 7.63,
+    "offset": 0.0,
+    "word": "with"
+  },
+  {
+    "absIndex": 22,
+    "shardIndex": 0,
+    "start": 7.63,
+    "end": 7.79,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 23,
+    "shardIndex": 0,
+    "start": 7.79,
+    "end": 8.28,
+    "offset": 0.0,
+    "word": "shield"
+  },
+  {
+    "absIndex": 24,
+    "shardIndex": 0,
+    "start": 8.53,
+    "end": 8.81,
+    "offset": 0.0,
+    "word": "Thor"
+  },
+  {
+    "absIndex": 25,
+    "shardIndex": 0,
+    "start": 8.81,
+    "end": 9.09,
+    "offset": 0.0,
+    "word": "used"
+  },
+  {
+    "absIndex": 26,
+    "shardIndex": 0,
+    "start": 9.09,
+    "end": 9.24,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 27,
+    "shardIndex": 0,
+    "start": 9.24,
+    "end": 9.57,
+    "offset": 0.0,
+    "word": "hammer"
+  },
+  {
+    "absIndex": 28,
+    "shardIndex": 0,
+    "start": 9.57,
+    "end": 9.72,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 29,
+    "shardIndex": 0,
+    "start": 9.72,
+    "end": 9.88,
+    "offset": 0.0,
+    "word": "hit"
+  },
+  {
+    "absIndex": 30,
+    "shardIndex": 0,
+    "start": 9.88,
+    "end": 9.98,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 31,
+    "shardIndex": 0,
+    "start": 9.98,
+    "end": 10.52,
+    "offset": 0.0,
+    "word": "rocks"
+  },
+  {
+    "absIndex": 32,
+    "shardIndex": 0,
+    "start": 11.38,
+    "end": 11.61,
+    "offset": 0.0,
+    "word": "But"
+  },
+  {
+    "absIndex": 33,
+    "shardIndex": 0,
+    "start": 11.61,
+    "end": 11.99,
+    "offset": 0.0,
+    "word": "nothing"
+  },
+  {
+    "absIndex": 34,
+    "shardIndex": 0,
+    "start": 11.99,
+    "end": 12.46,
+    "offset": 0.0,
+    "word": "worked"
+  },
+  {
+    "absIndex": 35,
+    "shardIndex": 0,
+    "start": 12.68,
+    "end": 12.83,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 36,
+    "shardIndex": 0,
+    "start": 12.83,
+    "end": 13.17,
+    "offset": 0.0,
+    "word": "rocks"
+  },
+  {
+    "absIndex": 37,
+    "shardIndex": 0,
+    "start": 13.17,
+    "end": 13.3,
+    "offset": 0.0,
+    "word": "were"
+  },
+  {
+    "absIndex": 38,
+    "shardIndex": 0,
+    "start": 13.3,
+    "end": 13.54,
+    "offset": 0.0,
+    "word": "too"
+  },
+  {
+    "absIndex": 39,
+    "shardIndex": 0,
+    "start": 13.54,
+    "end": 13.98,
+    "offset": 0.0,
+    "word": "heavy"
+  },
+  {
+    "absIndex": 40,
+    "shardIndex": 0,
+    "start": 14.0,
+    "end": 14.22,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 41,
+    "shardIndex": 0,
+    "start": 14.25,
+    "end": 14.49,
+    "offset": 0.0,
+    "word": "too"
+  },
+  {
+    "absIndex": 42,
+    "shardIndex": 0,
+    "start": 14.49,
+    "end": 14.96,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 43,
+    "shardIndex": 0,
+    "start": 15.78,
+    "end": 16.09,
+    "offset": 0.0,
+    "word": "Black"
+  },
+  {
+    "absIndex": 44,
+    "shardIndex": 0,
+    "start": 16.09,
+    "end": 16.41,
+    "offset": 0.0,
+    "word": "Widow"
+  },
+  {
+    "absIndex": 45,
+    "shardIndex": 0,
+    "start": 16.41,
+    "end": 16.68,
+    "offset": 0.0,
+    "word": "looked"
+  },
+  {
+    "absIndex": 46,
+    "shardIndex": 0,
+    "start": 16.68,
+    "end": 17.18,
+    "offset": 0.0,
+    "word": "worried"
+  },
+  {
+    "absIndex": 47,
+    "shardIndex": 0,
+    "start": 17.41,
+    "end": 17.54,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 48,
+    "shardIndex": 0,
+    "start": 17.54,
+    "end": 17.79,
+    "offset": 0.0,
+    "word": "team"
+  },
+  {
+    "absIndex": 49,
+    "shardIndex": 0,
+    "start": 17.8,
+    "end": 18.09,
+    "offset": 0.0,
+    "word": "needed"
+  },
+  {
+    "absIndex": 50,
+    "shardIndex": 0,
+    "start": 18.09,
+    "end": 18.41,
+    "offset": 0.0,
+    "word": "help"
+  },
+  {
+    "absIndex": 51,
+    "shardIndex": 0,
+    "start": 18.41,
+    "end": 18.66,
+    "offset": 0.0,
+    "word": "right"
+  },
+  {
+    "absIndex": 52,
+    "shardIndex": 0,
+    "start": 18.71,
+    "end": 19.12,
+    "offset": 0.0,
+    "word": "away"
+  },
+  {
+    "absIndex": 53,
+    "shardIndex": 0,
+    "start": 20.85,
+    "end": 21.15,
+    "offset": 0.0,
+    "word": "Bruce"
+  },
+  {
+    "absIndex": 54,
+    "shardIndex": 0,
+    "start": 21.16,
+    "end": 21.53,
+    "offset": 0.0,
+    "word": "Banner"
+  },
+  {
+    "absIndex": 55,
+    "shardIndex": 0,
+    "start": 21.54,
+    "end": 21.84,
+    "offset": 0.0,
+    "word": "stepped"
+  },
+  {
+    "absIndex": 56,
+    "shardIndex": 0,
+    "start": 21.84,
+    "end": 22.28,
+    "offset": 0.0,
+    "word": "forward"
+  },
+  {
+    "absIndex": 57,
+    "shardIndex": 0,
+    "start": 22.28,
+    "end": 22.4,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 58,
+    "shardIndex": 0,
+    "start": 22.4,
+    "end": 22.61,
+    "offset": 0.0,
+    "word": "help"
+  },
+  {
+    "absIndex": 59,
+    "shardIndex": 0,
+    "start": 22.61,
+    "end": 22.76,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 60,
+    "shardIndex": 0,
+    "start": 22.76,
+    "end": 23.27,
+    "offset": 0.0,
+    "word": "friends"
+  },
+  {
+    "absIndex": 61,
+    "shardIndex": 0,
+    "start": 23.53,
+    "end": 23.74,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 62,
+    "shardIndex": 0,
+    "start": 23.74,
+    "end": 23.9,
+    "offset": 0.0,
+    "word": "had"
+  },
+  {
+    "absIndex": 63,
+    "shardIndex": 0,
+    "start": 23.91,
+    "end": 24.26,
+    "offset": 0.0,
+    "word": "black"
+  },
+  {
+    "absIndex": 64,
+    "shardIndex": 0,
+    "start": 24.26,
+    "end": 24.58,
+    "offset": 0.0,
+    "word": "messy"
+  },
+  {
+    "absIndex": 65,
+    "shardIndex": 0,
+    "start": 24.58,
+    "end": 24.93,
+    "offset": 0.0,
+    "word": "hair"
+  },
+  {
+    "absIndex": 66,
+    "shardIndex": 0,
+    "start": 24.95,
+    "end": 25.15,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 67,
+    "shardIndex": 0,
+    "start": 25.15,
+    "end": 25.32,
+    "offset": 0.0,
+    "word": "wore"
+  },
+  {
+    "absIndex": 68,
+    "shardIndex": 0,
+    "start": 25.32,
+    "end": 25.65,
+    "offset": 0.0,
+    "word": "purple"
+  },
+  {
+    "absIndex": 69,
+    "shardIndex": 0,
+    "start": 25.65,
+    "end": 26.22,
+    "offset": 0.0,
+    "word": "pants"
+  },
+  {
+    "absIndex": 70,
+    "shardIndex": 0,
+    "start": 26.44,
+    "end": 26.76,
+    "offset": 0.0,
+    "word": "Bruce"
+  },
+  {
+    "absIndex": 71,
+    "shardIndex": 0,
+    "start": 26.76,
+    "end": 26.94,
+    "offset": 0.0,
+    "word": "knew"
+  },
+  {
+    "absIndex": 72,
+    "shardIndex": 0,
+    "start": 26.94,
+    "end": 27.11,
+    "offset": 0.0,
+    "word": "what"
+  },
+  {
+    "absIndex": 73,
+    "shardIndex": 0,
+    "start": 27.11,
+    "end": 27.26,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 74,
+    "shardIndex": 0,
+    "start": 27.26,
+    "end": 27.48,
+    "offset": 0.0,
+    "word": "had"
+  },
+  {
+    "absIndex": 75,
+    "shardIndex": 0,
+    "start": 27.48,
+    "end": 27.58,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 76,
+    "shardIndex": 0,
+    "start": 27.58,
+    "end": 27.92,
+    "offset": 0.0,
+    "word": "do"
+  },
+  {
+    "absIndex": 77,
+    "shardIndex": 0,
+    "start": 28.89,
+    "end": 28.98,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 78,
+    "shardIndex": 0,
+    "start": 28.98,
+    "end": 29.18,
+    "offset": 0.0,
+    "word": "took"
+  },
+  {
+    "absIndex": 79,
+    "shardIndex": 0,
+    "start": 29.18,
+    "end": 29.25,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 80,
+    "shardIndex": 0,
+    "start": 29.25,
+    "end": 29.49,
+    "offset": 0.0,
+    "word": "deep"
+  },
+  {
+    "absIndex": 81,
+    "shardIndex": 0,
+    "start": 29.5,
+    "end": 29.9,
+    "offset": 0.0,
+    "word": "breath"
+  },
+  {
+    "absIndex": 82,
+    "shardIndex": 0,
+    "start": 29.93,
+    "end": 30.12,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 83,
+    "shardIndex": 0,
+    "start": 30.12,
+    "end": 30.52,
+    "offset": 0.0,
+    "word": "closed"
+  },
+  {
+    "absIndex": 84,
+    "shardIndex": 0,
+    "start": 30.52,
+    "end": 30.71,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 85,
+    "shardIndex": 0,
+    "start": 30.71,
+    "end": 31.13,
+    "offset": 0.0,
+    "word": "eyes"
+  },
+  {
+    "absIndex": 86,
+    "shardIndex": 0,
+    "start": 31.4,
+    "end": 31.65,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 87,
+    "shardIndex": 0,
+    "start": 31.65,
+    "end": 31.89,
+    "offset": 0.0,
+    "word": "heart"
+  },
+  {
+    "absIndex": 88,
+    "shardIndex": 0,
+    "start": 31.89,
+    "end": 32.22,
+    "offset": 0.0,
+    "word": "began"
+  },
+  {
+    "absIndex": 89,
+    "shardIndex": 0,
+    "start": 32.22,
+    "end": 32.33,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 90,
+    "shardIndex": 0,
+    "start": 32.33,
+    "end": 32.54,
+    "offset": 0.0,
+    "word": "beat"
+  },
+  {
+    "absIndex": 91,
+    "shardIndex": 0,
+    "start": 32.54,
+    "end": 33.08,
+    "offset": 0.0,
+    "word": "faster"
+  },
+  {
+    "absIndex": 92,
+    "shardIndex": 0,
+    "start": 33.08,
+    "end": 33.24,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 93,
+    "shardIndex": 0,
+    "start": 33.24,
+    "end": 33.9,
+    "offset": 0.0,
+    "word": "faster"
+  },
+  {
+    "absIndex": 94,
+    "shardIndex": 0,
+    "start": 34.14,
+    "end": 34.4,
+    "offset": 0.0,
+    "word": "Bruce"
+  },
+  {
+    "absIndex": 95,
+    "shardIndex": 0,
+    "start": 34.4,
+    "end": 34.75,
+    "offset": 0.0,
+    "word": "started"
+  },
+  {
+    "absIndex": 96,
+    "shardIndex": 0,
+    "start": 34.75,
+    "end": 34.83,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 97,
+    "shardIndex": 0,
+    "start": 34.83,
+    "end": 35.08,
+    "offset": 0.0,
+    "word": "feel"
+  },
+  {
+    "absIndex": 98,
+    "shardIndex": 0,
+    "start": 35.08,
+    "end": 35.42,
+    "offset": 0.0,
+    "word": "very"
+  },
+  {
+    "absIndex": 99,
+    "shardIndex": 0,
+    "start": 35.42,
+    "end": 35.77,
+    "offset": 0.0,
+    "word": "strong"
+  },
+  {
+    "absIndex": 100,
+    "shardIndex": 0,
+    "start": 35.77,
+    "end": 36.35,
+    "offset": 0.0,
+    "word": "inside"
+  },
+  {
+    "absIndex": 101,
+    "shardIndex": 0,
+    "start": 37.21,
+    "end": 37.36,
+    "offset": 0.0,
+    "word": "It"
+  },
+  {
+    "absIndex": 102,
+    "shardIndex": 0,
+    "start": 37.37,
+    "end": 37.53,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 103,
+    "shardIndex": 0,
+    "start": 37.53,
+    "end": 37.79,
+    "offset": 0.0,
+    "word": "time"
+  },
+  {
+    "absIndex": 104,
+    "shardIndex": 0,
+    "start": 37.79,
+    "end": 37.89,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 105,
+    "shardIndex": 0,
+    "start": 37.89,
+    "end": 38.62,
+    "offset": 0.0,
+    "word": "transform"
+  },
+  {
+    "absIndex": 106,
+    "shardIndex": 0,
+    "start": 40.35,
+    "end": 40.79,
+    "offset": 0.0,
+    "word": "Bruce's"
+  },
+  {
+    "absIndex": 107,
+    "shardIndex": 0,
+    "start": 40.79,
+    "end": 41.13,
+    "offset": 0.0,
+    "word": "body"
+  },
+  {
+    "absIndex": 108,
+    "shardIndex": 0,
+    "start": 41.13,
+    "end": 41.47,
+    "offset": 0.0,
+    "word": "began"
+  },
+  {
+    "absIndex": 109,
+    "shardIndex": 0,
+    "start": 41.47,
+    "end": 41.58,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 110,
+    "shardIndex": 0,
+    "start": 41.58,
+    "end": 42.0,
+    "offset": 0.0,
+    "word": "change"
+  },
+  {
+    "absIndex": 111,
+    "shardIndex": 0,
+    "start": 42.0,
+    "end": 42.15,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 112,
+    "shardIndex": 0,
+    "start": 42.17,
+    "end": 42.63,
+    "offset": 0.0,
+    "word": "grow"
+  },
+  {
+    "absIndex": 113,
+    "shardIndex": 0,
+    "start": 42.9,
+    "end": 43.13,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 114,
+    "shardIndex": 0,
+    "start": 43.13,
+    "end": 43.52,
+    "offset": 0.0,
+    "word": "skin"
+  },
+  {
+    "absIndex": 115,
+    "shardIndex": 0,
+    "start": 43.52,
+    "end": 43.8,
+    "offset": 0.0,
+    "word": "turned"
+  },
+  {
+    "absIndex": 116,
+    "shardIndex": 0,
+    "start": 43.82,
+    "end": 44.09,
+    "offset": 0.0,
+    "word": "bright"
+  },
+  {
+    "absIndex": 117,
+    "shardIndex": 0,
+    "start": 44.09,
+    "end": 44.4,
+    "offset": 0.0,
+    "word": "green"
+  },
+  {
+    "absIndex": 118,
+    "shardIndex": 0,
+    "start": 44.4,
+    "end": 44.56,
+    "offset": 0.0,
+    "word": "all"
+  },
+  {
+    "absIndex": 119,
+    "shardIndex": 0,
+    "start": 44.56,
+    "end": 44.96,
+    "offset": 0.0,
+    "word": "over"
+  },
+  {
+    "absIndex": 120,
+    "shardIndex": 0,
+    "start": 45.22,
+    "end": 45.43,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 121,
+    "shardIndex": 0,
+    "start": 45.43,
+    "end": 45.87,
+    "offset": 0.0,
+    "word": "muscles"
+  },
+  {
+    "absIndex": 122,
+    "shardIndex": 0,
+    "start": 45.87,
+    "end": 46.08,
+    "offset": 0.0,
+    "word": "got"
+  },
+  {
+    "absIndex": 123,
+    "shardIndex": 0,
+    "start": 46.08,
+    "end": 46.39,
+    "offset": 0.0,
+    "word": "bigger"
+  },
+  {
+    "absIndex": 124,
+    "shardIndex": 0,
+    "start": 46.39,
+    "end": 46.53,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 125,
+    "shardIndex": 0,
+    "start": 46.56,
+    "end": 47.01,
+    "offset": 0.0,
+    "word": "bigger"
+  },
+  {
+    "absIndex": 126,
+    "shardIndex": 0,
+    "start": 47.41,
+    "end": 47.54,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 127,
+    "shardIndex": 0,
+    "start": 47.54,
+    "end": 47.8,
+    "offset": 0.0,
+    "word": "shirt"
+  },
+  {
+    "absIndex": 128,
+    "shardIndex": 0,
+    "start": 47.8,
+    "end": 48.1,
+    "offset": 0.0,
+    "word": "ripped"
+  },
+  {
+    "absIndex": 129,
+    "shardIndex": 0,
+    "start": 48.1,
+    "end": 48.3,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 130,
+    "shardIndex": 0,
+    "start": 48.3,
+    "end": 48.54,
+    "offset": 0.0,
+    "word": "tore"
+  },
+  {
+    "absIndex": 131,
+    "shardIndex": 0,
+    "start": 48.54,
+    "end": 49.07,
+    "offset": 0.0,
+    "word": "apart"
+  },
+  {
+    "absIndex": 132,
+    "shardIndex": 0,
+    "start": 49.94,
+    "end": 50.25,
+    "offset": 0.0,
+    "word": "Now"
+  },
+  {
+    "absIndex": 133,
+    "shardIndex": 0,
+    "start": 50.25,
+    "end": 50.41,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 134,
+    "shardIndex": 0,
+    "start": 50.41,
+    "end": 50.66,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 135,
+    "shardIndex": 0,
+    "start": 50.66,
+    "end": 50.77,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 136,
+    "shardIndex": 0,
+    "start": 50.77,
+    "end": 51.13,
+    "offset": 0.0,
+    "word": "mighty"
+  },
+  {
+    "absIndex": 137,
+    "shardIndex": 0,
+    "start": 51.13,
+    "end": 51.55,
+    "offset": 0.0,
+    "word": "Hulk"
+  },
+  {
+    "absIndex": 138,
+    "shardIndex": 0,
+    "start": 51.78,
+    "end": 51.95,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 139,
+    "shardIndex": 0,
+    "start": 51.95,
+    "end": 52.28,
+    "offset": 0.0,
+    "word": "Hulk"
+  },
+  {
+    "absIndex": 140,
+    "shardIndex": 0,
+    "start": 52.29,
+    "end": 52.5,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 141,
+    "shardIndex": 0,
+    "start": 52.51,
+    "end": 52.86,
+    "offset": 0.0,
+    "word": "very"
+  },
+  {
+    "absIndex": 142,
+    "shardIndex": 0,
+    "start": 52.86,
+    "end": 53.29,
+    "offset": 0.0,
+    "word": "tall"
+  },
+  {
+    "absIndex": 143,
+    "shardIndex": 0,
+    "start": 53.32,
+    "end": 53.5,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 144,
+    "shardIndex": 0,
+    "start": 53.5,
+    "end": 53.82,
+    "offset": 0.0,
+    "word": "very"
+  },
+  {
+    "absIndex": 145,
+    "shardIndex": 0,
+    "start": 53.82,
+    "end": 54.38,
+    "offset": 0.0,
+    "word": "strong"
+  },
+  {
+    "absIndex": 146,
+    "shardIndex": 0,
+    "start": 55.63,
+    "end": 55.65,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 147,
+    "shardIndex": 0,
+    "start": 55.65,
+    "end": 55.83,
+    "offset": 0.0,
+    "word": "roared"
+  },
+  {
+    "absIndex": 148,
+    "shardIndex": 0,
+    "start": 55.84,
+    "end": 56.34,
+    "offset": 0.0,
+    "word": "loudly"
+  },
+  {
+    "absIndex": 149,
+    "shardIndex": 0,
+    "start": 56.34,
+    "end": 56.45,
+    "offset": 0.0,
+    "word": "at"
+  },
+  {
+    "absIndex": 150,
+    "shardIndex": 0,
+    "start": 56.45,
+    "end": 56.53,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 151,
+    "shardIndex": 0,
+    "start": 56.53,
+    "end": 56.86,
+    "offset": 0.0,
+    "word": "pile"
+  },
+  {
+    "absIndex": 152,
+    "shardIndex": 0,
+    "start": 56.86,
+    "end": 56.98,
+    "offset": 0.0,
+    "word": "of"
+  },
+  {
+    "absIndex": 153,
+    "shardIndex": 0,
+    "start": 56.98,
+    "end": 57.51,
+    "offset": 0.0,
+    "word": "rocks"
+  },
+  {
+    "absIndex": 154,
+    "shardIndex": 0,
+    "start": 59.27,
+    "end": 59.43,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 155,
+    "shardIndex": 0,
+    "start": 59.43,
+    "end": 59.69,
+    "offset": 0.0,
+    "word": "Hulk"
+  },
+  {
+    "absIndex": 156,
+    "shardIndex": 0,
+    "start": 59.7,
+    "end": 60.01,
+    "offset": 0.0,
+    "word": "walked"
+  },
+  {
+    "absIndex": 157,
+    "shardIndex": 0,
+    "start": 60.02,
+    "end": 60.18,
+    "offset": 0.0,
+    "word": "up"
+  },
+  {
+    "absIndex": 158,
+    "shardIndex": 0,
+    "start": 60.18,
+    "end": 60.3,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 159,
+    "shardIndex": 0,
+    "start": 60.3,
+    "end": 60.39,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 160,
+    "shardIndex": 0,
+    "start": 60.39,
+    "end": 60.66,
+    "offset": 0.0,
+    "word": "heavy"
+  },
+  {
+    "absIndex": 161,
+    "shardIndex": 0,
+    "start": 60.66,
+    "end": 61.17,
+    "offset": 0.0,
+    "word": "rocks"
+  },
+  {
+    "absIndex": 162,
+    "shardIndex": 0,
+    "start": 61.41,
+    "end": 61.59,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 163,
+    "shardIndex": 0,
+    "start": 61.59,
+    "end": 61.85,
+    "offset": 0.0,
+    "word": "bent"
+  },
+  {
+    "absIndex": 164,
+    "shardIndex": 0,
+    "start": 61.85,
+    "end": 62.16,
+    "offset": 0.0,
+    "word": "down"
+  },
+  {
+    "absIndex": 165,
+    "shardIndex": 0,
+    "start": 62.16,
+    "end": 62.29,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 166,
+    "shardIndex": 0,
+    "start": 62.31,
+    "end": 62.65,
+    "offset": 0.0,
+    "word": "grabbed"
+  },
+  {
+    "absIndex": 167,
+    "shardIndex": 0,
+    "start": 62.68,
+    "end": 62.79,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 168,
+    "shardIndex": 0,
+    "start": 62.79,
+    "end": 63.16,
+    "offset": 0.0,
+    "word": "biggest"
+  },
+  {
+    "absIndex": 169,
+    "shardIndex": 0,
+    "start": 63.16,
+    "end": 63.66,
+    "offset": 0.0,
+    "word": "boulder"
+  },
+  {
+    "absIndex": 170,
+    "shardIndex": 0,
+    "start": 64.55,
+    "end": 64.7,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 171,
+    "shardIndex": 0,
+    "start": 64.7,
+    "end": 65.01,
+    "offset": 0.0,
+    "word": "Hulk"
+  },
+  {
+    "absIndex": 172,
+    "shardIndex": 0,
+    "start": 65.02,
+    "end": 65.41,
+    "offset": 0.0,
+    "word": "lifted"
+  },
+  {
+    "absIndex": 173,
+    "shardIndex": 0,
+    "start": 65.41,
+    "end": 65.55,
+    "offset": 0.0,
+    "word": "it"
+  },
+  {
+    "absIndex": 174,
+    "shardIndex": 0,
+    "start": 65.55,
+    "end": 65.83,
+    "offset": 0.0,
+    "word": "high"
+  },
+  {
+    "absIndex": 175,
+    "shardIndex": 0,
+    "start": 65.83,
+    "end": 66.1,
+    "offset": 0.0,
+    "word": "above"
+  },
+  {
+    "absIndex": 176,
+    "shardIndex": 0,
+    "start": 66.1,
+    "end": 66.28,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 177,
+    "shardIndex": 0,
+    "start": 66.28,
+    "end": 66.66,
+    "offset": 0.0,
+    "word": "head"
+  },
+  {
+    "absIndex": 178,
+    "shardIndex": 0,
+    "start": 66.89,
+    "end": 67.08,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 179,
+    "shardIndex": 0,
+    "start": 67.08,
+    "end": 67.34,
+    "offset": 0.0,
+    "word": "threw"
+  },
+  {
+    "absIndex": 180,
+    "shardIndex": 0,
+    "start": 67.34,
+    "end": 67.5,
+    "offset": 0.0,
+    "word": "it"
+  },
+  {
+    "absIndex": 181,
+    "shardIndex": 0,
+    "start": 67.5,
+    "end": 67.79,
+    "offset": 0.0,
+    "word": "far"
+  },
+  {
+    "absIndex": 182,
+    "shardIndex": 0,
+    "start": 67.79,
+    "end": 68.21,
+    "offset": 0.0,
+    "word": "away"
+  },
+  {
+    "absIndex": 183,
+    "shardIndex": 0,
+    "start": 68.23,
+    "end": 68.53,
+    "offset": 0.0,
+    "word": "into"
+  },
+  {
+    "absIndex": 184,
+    "shardIndex": 0,
+    "start": 68.53,
+    "end": 68.65,
+    "offset": 0.0,
+    "word": "an"
+  },
+  {
+    "absIndex": 185,
+    "shardIndex": 0,
+    "start": 68.65,
+    "end": 68.96,
+    "offset": 0.0,
+    "word": "empty"
+  },
+  {
+    "absIndex": 186,
+    "shardIndex": 0,
+    "start": 68.96,
+    "end": 69.5,
+    "offset": 0.0,
+    "word": "field"
+  },
+  {
+    "absIndex": 187,
+    "shardIndex": 0,
+    "start": 69.74,
+    "end": 70.0,
+    "offset": 0.0,
+    "word": "Then"
+  },
+  {
+    "absIndex": 188,
+    "shardIndex": 0,
+    "start": 70.01,
+    "end": 70.14,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 189,
+    "shardIndex": 0,
+    "start": 70.14,
+    "end": 70.42,
+    "offset": 0.0,
+    "word": "picked"
+  },
+  {
+    "absIndex": 190,
+    "shardIndex": 0,
+    "start": 70.42,
+    "end": 70.54,
+    "offset": 0.0,
+    "word": "up"
+  },
+  {
+    "absIndex": 191,
+    "shardIndex": 0,
+    "start": 70.54,
+    "end": 70.9,
+    "offset": 0.0,
+    "word": "another"
+  },
+  {
+    "absIndex": 192,
+    "shardIndex": 0,
+    "start": 70.9,
+    "end": 71.31,
+    "offset": 0.0,
+    "word": "rock"
+  },
+  {
+    "absIndex": 193,
+    "shardIndex": 0,
+    "start": 71.35,
+    "end": 71.56,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 194,
+    "shardIndex": 0,
+    "start": 71.56,
+    "end": 72.07,
+    "offset": 0.0,
+    "word": "another"
+  },
+  {
+    "absIndex": 195,
+    "shardIndex": 0,
+    "start": 72.92,
+    "end": 73.13,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 196,
+    "shardIndex": 0,
+    "start": 73.13,
+    "end": 73.39,
+    "offset": 0.0,
+    "word": "other"
+  },
+  {
+    "absIndex": 197,
+    "shardIndex": 0,
+    "start": 73.39,
+    "end": 73.92,
+    "offset": 0.0,
+    "word": "Avengers"
+  },
+  {
+    "absIndex": 198,
+    "shardIndex": 0,
+    "start": 73.94,
+    "end": 74.33,
+    "offset": 0.0,
+    "word": "cheered"
+  },
+  {
+    "absIndex": 199,
+    "shardIndex": 0,
+    "start": 74.34,
+    "end": 74.49,
+    "offset": 0.0,
+    "word": "for"
+  },
+  {
+    "absIndex": 200,
+    "shardIndex": 0,
+    "start": 74.49,
+    "end": 74.64,
+    "offset": 0.0,
+    "word": "their"
+  },
+  {
+    "absIndex": 201,
+    "shardIndex": 0,
+    "start": 74.64,
+    "end": 75.04,
+    "offset": 0.0,
+    "word": "strong"
+  },
+  {
+    "absIndex": 202,
+    "shardIndex": 0,
+    "start": 75.04,
+    "end": 75.53,
+    "offset": 0.0,
+    "word": "friend"
+  },
+  {
+    "absIndex": 203,
+    "shardIndex": 0,
+    "start": 75.79,
+    "end": 76.11,
+    "offset": 0.0,
+    "word": "Hulk"
+  },
+  {
+    "absIndex": 204,
+    "shardIndex": 0,
+    "start": 76.13,
+    "end": 76.45,
+    "offset": 0.0,
+    "word": "moved"
+  },
+  {
+    "absIndex": 205,
+    "shardIndex": 0,
+    "start": 76.46,
+    "end": 76.67,
+    "offset": 0.0,
+    "word": "all"
+  },
+  {
+    "absIndex": 206,
+    "shardIndex": 0,
+    "start": 76.67,
+    "end": 76.77,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 207,
+    "shardIndex": 0,
+    "start": 76.77,
+    "end": 77.08,
+    "offset": 0.0,
+    "word": "rocks"
+  },
+  {
+    "absIndex": 208,
+    "shardIndex": 0,
+    "start": 77.08,
+    "end": 77.34,
+    "offset": 0.0,
+    "word": "away"
+  },
+  {
+    "absIndex": 209,
+    "shardIndex": 0,
+    "start": 77.34,
+    "end": 77.52,
+    "offset": 0.0,
+    "word": "from"
+  },
+  {
+    "absIndex": 210,
+    "shardIndex": 0,
+    "start": 77.52,
+    "end": 77.6,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 211,
+    "shardIndex": 0,
+    "start": 77.6,
+    "end": 78.07,
+    "offset": 0.0,
+    "word": "path"
+  },
+  {
+    "absIndex": 212,
+    "shardIndex": 0,
+    "start": 79.84,
+    "end": 80.0,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 213,
+    "shardIndex": 0,
+    "start": 80.0,
+    "end": 80.34,
+    "offset": 0.0,
+    "word": "path"
+  },
+  {
+    "absIndex": 214,
+    "shardIndex": 0,
+    "start": 80.35,
+    "end": 80.57,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 215,
+    "shardIndex": 0,
+    "start": 80.57,
+    "end": 80.92,
+    "offset": 0.0,
+    "word": "clear"
+  },
+  {
+    "absIndex": 216,
+    "shardIndex": 0,
+    "start": 80.92,
+    "end": 81.04,
+    "offset": 0.0,
+    "word": "at"
+  },
+  {
+    "absIndex": 217,
+    "shardIndex": 0,
+    "start": 81.04,
+    "end": 81.55,
+    "offset": 0.0,
+    "word": "last"
+  },
+  {
+    "absIndex": 218,
+    "shardIndex": 0,
+    "start": 81.75,
+    "end": 81.94,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 219,
+    "shardIndex": 0,
+    "start": 81.94,
+    "end": 82.52,
+    "offset": 0.0,
+    "word": "Avengers"
+  },
+  {
+    "absIndex": 220,
+    "shardIndex": 0,
+    "start": 82.55,
+    "end": 82.78,
+    "offset": 0.0,
+    "word": "could"
+  },
+  {
+    "absIndex": 221,
+    "shardIndex": 0,
+    "start": 82.78,
+    "end": 83.23,
+    "offset": 0.0,
+    "word": "continue"
+  },
+  {
+    "absIndex": 222,
+    "shardIndex": 0,
+    "start": 83.23,
+    "end": 83.37,
+    "offset": 0.0,
+    "word": "their"
+  },
+  {
+    "absIndex": 223,
+    "shardIndex": 0,
+    "start": 83.37,
+    "end": 83.7,
+    "offset": 0.0,
+    "word": "mission"
+  },
+  {
+    "absIndex": 224,
+    "shardIndex": 0,
+    "start": 83.7,
+    "end": 84.09,
+    "offset": 0.0,
+    "word": "now"
+  },
+  {
+    "absIndex": 225,
+    "shardIndex": 0,
+    "start": 84.97,
+    "end": 85.33,
+    "offset": 0.0,
+    "word": "Iron"
+  },
+  {
+    "absIndex": 226,
+    "shardIndex": 0,
+    "start": 85.33,
+    "end": 85.64,
+    "offset": 0.0,
+    "word": "Man"
+  },
+  {
+    "absIndex": 227,
+    "shardIndex": 0,
+    "start": 85.64,
+    "end": 86.02,
+    "offset": 0.0,
+    "word": "patted"
+  },
+  {
+    "absIndex": 228,
+    "shardIndex": 0,
+    "start": 86.02,
+    "end": 86.36,
+    "offset": 0.0,
+    "word": "Hulk"
+  },
+  {
+    "absIndex": 229,
+    "shardIndex": 0,
+    "start": 86.36,
+    "end": 86.49,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 230,
+    "shardIndex": 0,
+    "start": 86.49,
+    "end": 86.7,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 231,
+    "shardIndex": 0,
+    "start": 86.7,
+    "end": 86.92,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 232,
+    "shardIndex": 0,
+    "start": 86.93,
+    "end": 87.22,
+    "offset": 0.0,
+    "word": "green"
+  },
+  {
+    "absIndex": 233,
+    "shardIndex": 0,
+    "start": 87.22,
+    "end": 87.56,
+    "offset": 0.0,
+    "word": "arm"
+  },
+  {
+    "absIndex": 234,
+    "shardIndex": 0,
+    "start": 87.84,
+    "end": 88.21,
+    "offset": 0.0,
+    "word": "Captain"
+  },
+  {
+    "absIndex": 235,
+    "shardIndex": 0,
+    "start": 88.21,
+    "end": 88.63,
+    "offset": 0.0,
+    "word": "America"
+  },
+  {
+    "absIndex": 236,
+    "shardIndex": 0,
+    "start": 88.63,
+    "end": 89.12,
+    "offset": 0.0,
+    "word": "smiled"
+  },
+  {
+    "absIndex": 237,
+    "shardIndex": 0,
+    "start": 89.12,
+    "end": 89.3,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 238,
+    "shardIndex": 0,
+    "start": 89.3,
+    "end": 89.51,
+    "offset": 0.0,
+    "word": "said"
+  },
+  {
+    "absIndex": 239,
+    "shardIndex": 0,
+    "start": 89.51,
+    "end": 89.8,
+    "offset": 0.0,
+    "word": "thank"
+  },
+  {
+    "absIndex": 240,
+    "shardIndex": 0,
+    "start": 89.8,
+    "end": 90.12,
+    "offset": 0.0,
+    "word": "you"
+  },
+  {
+    "absIndex": 241,
+    "shardIndex": 0,
+    "start": 91.02,
+    "end": 91.18,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 242,
+    "shardIndex": 0,
+    "start": 91.18,
+    "end": 91.52,
+    "offset": 0.0,
+    "word": "Hulk"
+  },
+  {
+    "absIndex": 243,
+    "shardIndex": 0,
+    "start": 91.53,
+    "end": 91.75,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 244,
+    "shardIndex": 0,
+    "start": 91.76,
+    "end": 92.08,
+    "offset": 0.0,
+    "word": "happy"
+  },
+  {
+    "absIndex": 245,
+    "shardIndex": 0,
+    "start": 92.08,
+    "end": 92.18,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 246,
+    "shardIndex": 0,
+    "start": 92.18,
+    "end": 92.37,
+    "offset": 0.0,
+    "word": "help"
+  },
+  {
+    "absIndex": 247,
+    "shardIndex": 0,
+    "start": 92.37,
+    "end": 92.54,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 248,
+    "shardIndex": 0,
+    "start": 92.54,
+    "end": 92.97,
+    "offset": 0.0,
+    "word": "team"
+  },
+  {
+    "absIndex": 249,
+    "shardIndex": 0,
+    "start": 93.24,
+    "end": 93.87,
+    "offset": 0.0,
+    "word": "Together"
+  },
+  {
+    "absIndex": 250,
+    "shardIndex": 0,
+    "start": 93.91,
+    "end": 94.09,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 251,
+    "shardIndex": 0,
+    "start": 94.12,
+    "end": 94.54,
+    "offset": 0.0,
+    "word": "Avengers"
+  },
+  {
+    "absIndex": 252,
+    "shardIndex": 0,
+    "start": 94.57,
+    "end": 94.7,
+    "offset": 0.0,
+    "word": "were"
+  },
+  {
+    "absIndex": 253,
+    "shardIndex": 0,
+    "start": 94.7,
+    "end": 95.21,
+    "offset": 0.0,
+    "word": "stronger"
+  },
+  {
+    "absIndex": 254,
+    "shardIndex": 0,
+    "start": 95.21,
+    "end": 95.38,
+    "offset": 0.0,
+    "word": "than"
+  },
+  {
+    "absIndex": 255,
+    "shardIndex": 0,
+    "start": 95.38,
+    "end": 95.78,
+    "offset": 0.0,
+    "word": "ever"
+  },
+  {
+    "absIndex": 256,
+    "shardIndex": 0,
+    "start": 96.63,
+    "end": 96.82,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 257,
+    "shardIndex": 0,
+    "start": 96.82,
+    "end": 96.96,
+    "offset": 0.0,
+    "word": "were"
+  },
+  {
+    "absIndex": 258,
+    "shardIndex": 0,
+    "start": 96.96,
+    "end": 97.05,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 259,
+    "shardIndex": 0,
+    "start": 97.5,
+    "end": 97.57,
+    "offset": 0.0,
+    "word": "mightiest"
+  },
+  {
+    "absIndex": 260,
+    "shardIndex": 0,
+    "start": 97.57,
+    "end": 98.2,
+    "offset": 0.0,
+    "word": "superhero"
+  },
+  {
+    "absIndex": 261,
+    "shardIndex": 0,
+    "start": 98.2,
+    "end": 98.5,
+    "offset": 0.0,
+    "word": "team"
+  },
+  {
+    "absIndex": 262,
+    "shardIndex": 0,
+    "start": 98.5,
+    "end": 98.59,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 263,
+    "shardIndex": 0,
+    "start": 98.59,
+    "end": 98.68,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 264,
+    "shardIndex": 0,
+    "start": 98.68,
+    "end": 99.21,
+    "offset": 0.0,
+    "word": "world"
+  }
+]

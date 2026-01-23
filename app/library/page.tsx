@@ -21,7 +21,7 @@ export default async function LibraryPage() {
     if (user) {
         const { data, error } = await getChildren();
         if (error) {
-            console.error("[RAIDEN_DIAG][Library] Server-side profile fetch failed:", error);
+            console.error("Server-side profile fetch failed:", error);
         }
         if (!error && data) {
             initialProfiles = data;

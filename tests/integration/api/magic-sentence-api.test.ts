@@ -9,18 +9,20 @@ const state = {
     activeChildId: 'test-child-id'
 };
 
+// --- Comprehensive Mocks at the top ---
+
 vi.mock('next/headers', () => ({
     cookies: () => ({
         get: (name: string) => {
             if (name === 'activeChildId') return { value: state.activeChildId };
             return null;
         },
-        set: () => {},
-        delete: () => {},
+        set: () => { },
+        delete: () => { },
         getAll: () => []
     }),
     headers: () => ({
-        get: () => null
+        get: () => 'UTC'
     })
 }));
 
@@ -32,12 +34,40 @@ vi.mock('@/lib/features/bedrock/claude-service.server', () => ({
     }
 }));
 
-vi.mock('@/lib/features/narration/polly-service.server', () => ({
-    PollyNarrationService: class {
-        async synthesize() {
-            return { audioBuffer: Buffer.from('audio'), speechMarks: [] };
+vi.mock('@/lib/features/narration/factory.server', () => ({
+    NarrationFactory: {
+        getProvider: vi.fn(() => ({
+            synthesize: vi.fn().mockResolvedValue({
+                audioBuffer: Buffer.from('audio'),
+                speechMarks: []
+            })
+        }))
+    }
+}));
+
+vi.mock('@/lib/features/nova/nova-service.server', () => ({
+    NovaStoryService: class {
+        async generateImage() {
+            return Buffer.from('image').toString('base64');
         }
     }
+}));
+
+vi.mock('@/lib/features/audit/audit-service.server', () => ({
+    AuditService: {
+        log: vi.fn().mockResolvedValue(undefined)
+    },
+    AuditAction: {},
+    EntityType: {}
+}));
+
+vi.mock('@/lib/features/activity/reward-service.server', () => ({
+    RewardService: class {
+        async claimReward() {
+            return { success: true, xp_earned: 10 };
+        }
+    },
+    RewardType: { MAGIC_SENTENCE_GENERATED: 'MAGIC_SENTENCE_GENERATED' }
 }));
 
 describe('Magic Sentence API Integration', () => {
@@ -48,7 +78,7 @@ describe('Magic Sentence API Integration', () => {
     beforeAll(async () => {
         await truncateAllTables();
         testUser = await createTestUser();
-        
+
         const { data: child } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'MagicKid',
@@ -60,7 +90,7 @@ describe('Magic Sentence API Integration', () => {
         await supabase.from('subscription_plans').upsert({
             code: 'free',
             name: 'Free Plan',
-            quotas: { magic_sentence: 10 }
+            quotas: { magic_sentence: 10, image_generation: 10 }
         });
     });
 
@@ -87,7 +117,7 @@ describe('Magic Sentence API Integration', () => {
             .order('created_at', { ascending: false })
             .limit(1)
             .single();
-        
+
         expect(stored).not.toBeNull();
         expect(stored.sentence).toBe('Magic sentence.');
 

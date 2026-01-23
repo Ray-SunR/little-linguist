@@ -28,7 +28,7 @@ class RaidenCache {
         const stores = Object.values(CacheStore);
         const missing = stores.filter(s => !db.objectStoreNames.contains(s));
         if (missing.length > 0) {
-            console.warn(`[RAIDEN_DIAG][Cache] Missing stores in database: ${missing.join(", ")}`);
+            console.warn(`[Cache] Missing stores in database: ${missing.join(", ")}`);
             return false;
         }
         return true;
@@ -44,15 +44,15 @@ class RaidenCache {
         if (this.initPromise) return this.initPromise;
 
         const openReq = new Promise<IDBDatabase>((resolve, reject) => {
-            console.info(`[RAIDEN_DIAG][Cache] Opening database: ${DB_NAME} v${DB_VERSION}`);
+            console.info(`[Cache] Opening database: ${DB_NAME} v${DB_VERSION}`);
             const request = indexedDB.open(DB_NAME, DB_VERSION);
 
             request.onupgradeneeded = (event) => {
-                console.info("[RAIDEN_DIAG][Cache] onupgradeneeded triggered");
+                console.info("[Cache] onupgradeneeded triggered");
                 const db = (event.target as IDBOpenDBRequest).result;
                 const oldVersion = event.oldVersion;
 
-                console.info(`[RAIDEN_DIAG][Cache] Upgrading DB from ${oldVersion} to ${DB_VERSION}`);
+                console.info(`[Cache] Upgrading DB from ${oldVersion} to ${DB_VERSION}`);
 
                 // One-time cleanup of legacy databases
                 try {
@@ -111,7 +111,7 @@ class RaidenCache {
             request.onblocked = (event) => {
                 // This event fires when an open connection usually in another tab 
                 // hasn't closed in response to a versionchange event.
-                console.warn("[RAIDEN_DIAG][Cache] Database upgrade blocked by another tab or version mismatch.", {
+                console.warn("[Cache] Database upgrade blocked by another tab or version mismatch.", {
                     oldVersion: event.oldVersion,
                     newVersion: event.newVersion
                 });
@@ -119,12 +119,12 @@ class RaidenCache {
             };
 
             request.onsuccess = () => {
-                console.info("[RAIDEN_DIAG][Cache] onsuccess triggered");
+                console.info("[Cache] onsuccess triggered");
                 const db = request.result;
 
                 // CRITICAL: Handle version changes from OTHER tabs to prevent locking
                 db.onversionchange = () => {
-                    console.warn("[RAIDEN_DIAG][Cache] Database version changed in another tab, closing connection.");
+                    console.warn("[Cache] Database version changed in another tab, closing connection.");
                     db.close();
                     this.db = null;
                     this.initPromise = null;
@@ -132,7 +132,7 @@ class RaidenCache {
 
                 // Double check if all stores exist
                 if (!this.validateSchema(db)) {
-                    console.warn("[RAIDEN_DIAG][Cache] Schema validation failed after open, triggering recovery...");
+                    console.warn("[Cache] Schema validation failed after open, triggering recovery...");
                     db.close();
                     this.db = null;
                     this.initPromise = null;
@@ -147,10 +147,10 @@ class RaidenCache {
 
             request.onerror = () => {
                 const error = request.error;
-                console.error("[RAIDEN_DIAG][Cache] onerror triggered:", error);
+                console.error("Cache initialization failed:", request.error);
 
                 if (retryOnVersionMismatch && (error?.name === "VersionError" || error?.name === "NotFoundError")) {
-                    console.warn("[RAIDEN_DIAG][Cache] Version/Store mismatch, deleting stale database and retrying...");
+                    console.warn("Version/Store mismatch, deleting stale database and retrying...");
                     this.initPromise = null;
                     this.handleRecovery(resolve, reject);
                     return;
@@ -162,10 +162,9 @@ class RaidenCache {
         });
 
         // Race against a timeout to prevent infinite hangs
-        // Increased to 10s as IndexedDB can be very slow if other tabs are fighting for access
+        // Increased to 10s as IndexedDB can be very slow in parallel tests
         const timeout = new Promise<IDBDatabase>((_, reject) =>
             setTimeout(() => {
-                console.warn("[RAIDEN_DIAG][Cache] Initialization timeout reached (10s)");
                 reject(new Error("Cache init timed out"));
             }, 10000)
         );
@@ -195,19 +194,19 @@ class RaidenCache {
             const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
 
             deleteRequest.onblocked = () => {
-                console.warn("[RAIDEN_DIAG][Cache] Database deletion blocked by another tab.");
+                console.warn("[Cache] Database deletion blocked by another tab.");
                 // We cannot force close other tabs from here. 
                 // Failing fast allows the caller to catch this and potentially bypass cache.
                 delReject(new Error("Database deletion blocked"));
             };
 
             deleteRequest.onsuccess = () => {
-                console.info("[RAIDEN_DIAG][Cache] Stale database deleted, retrying init...");
+                console.info("[Cache] Stale database deleted, retrying init...");
                 delResolve();
             };
 
             deleteRequest.onerror = () => {
-                console.error("[RAIDEN_DIAG][Cache] Failed to delete stale database:", deleteRequest.error);
+                console.error("[Cache] Failed to delete stale database:", deleteRequest.error);
                 delReject(new Error("Failed to recover stale database"));
             };
         });
@@ -219,7 +218,7 @@ class RaidenCache {
         Promise.race([deletePromise, timeout])
             .then(() => this.init(false).then(resolve).catch(reject))
             .catch((err) => {
-                console.error("[RAIDEN_DIAG][Cache] Recovery failed completely:", err);
+                console.error("[Cache] Recovery failed completely:", err);
                 // If recovery fails, we reject the original init promise. 
                 // The app should catch this and proceed without cache.
                 reject(err);
@@ -233,7 +232,7 @@ class RaidenCache {
             return transaction.objectStore(storeName);
         } catch (err) {
             if (err instanceof DOMException && err.name === "NotFoundError") {
-                console.warn(`[RAIDEN_DIAG][Cache] Store "${storeName}" not found after init, triggering full refresh...`);
+                console.warn(`[Cache] Store "${storeName}" not found after init, triggering full refresh...`);
                 this.close(); // Force clean slate
                 const freshDb = await this.init();
                 const transaction = freshDb.transaction(storeName, mode);
@@ -256,7 +255,7 @@ class RaidenCache {
                 request.onerror = () => reject(request.error);
             });
         } catch (err) {
-            console.warn(`[RAIDEN_DIAG][Cache] Get failed for ${storeName}/${key}:`, err);
+            console.warn(`[Cache] Get failed for ${storeName}/${key}:`, err);
             return undefined;
         }
     }
@@ -271,7 +270,7 @@ class RaidenCache {
                 request.onerror = () => reject(request.error);
             });
         } catch (err) {
-            console.error(`[RAIDEN_DIAG][Cache] Put failed for ${storeName}:`, err);
+            console.error(`[Cache] Put failed for ${storeName}:`, err);
         }
     }
 
@@ -292,7 +291,7 @@ class RaidenCache {
                 });
             });
         } catch (err) {
-            console.error(`[RAIDEN_DIAG][Cache] PutAll failed for ${storeName}:`, err);
+            console.error(`[Cache] PutAll failed for ${storeName}:`, err);
         }
     }
 
@@ -306,7 +305,7 @@ class RaidenCache {
                 request.onerror = () => reject(request.error);
             });
         } catch (err) {
-            console.warn(`[RAIDEN_DIAG][Cache] Delete failed for ${storeName}/${key}:`, err);
+            console.warn(`[Cache] Delete failed for ${storeName}/${key}:`, err);
         }
     }
 
@@ -320,7 +319,7 @@ class RaidenCache {
                 request.onerror = () => reject(request.error);
             });
         } catch (err) {
-            console.warn(`[RAIDEN_DIAG][Cache] GetAll failed for ${storeName}:`, err);
+            console.warn(`[Cache] GetAll failed for ${storeName}:`, err);
             return [];
         }
     }
@@ -335,7 +334,7 @@ class RaidenCache {
                 request.onerror = () => reject(request.error);
             });
         } catch (err) {
-            console.warn(`[RAIDEN_DIAG][Cache] GetAllKeys failed for ${storeName}:`, err);
+            console.warn(`[Cache] GetAllKeys failed for ${storeName}:`, err);
             return [];
         }
     }
@@ -350,7 +349,7 @@ class RaidenCache {
                 request.onerror = () => reject(request.error);
             });
         } catch (err) {
-            console.warn(`[RAIDEN_DIAG][Cache] Clear failed for ${storeName}:`, err);
+            console.warn(`[Cache] Clear failed for ${storeName}:`, err);
         }
     }
 }

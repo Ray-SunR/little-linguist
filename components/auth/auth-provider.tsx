@@ -9,9 +9,9 @@ import { usePathname } from "next/navigation";
 
 const DEBUG = process.env.NODE_ENV === "development";
 const Log = {
-  info: (msg: string, ...args: any[]) => DEBUG && console.info(`[RAIDEN_DIAG][Auth] ${msg}`, ...args),
-  warn: (msg: string, ...args: any[]) => DEBUG && console.warn(`[RAIDEN_DIAG][Auth] ${msg}`, ...args),
-  error: (msg: string, ...args: any[]) => console.error(`[RAIDEN_DIAG][Auth] ${msg}`, ...args),
+  info: (msg: string, ...args: any[]) => DEBUG && console.info(`[Auth] ${msg}`, ...args),
+  warn: (msg: string, ...args: any[]) => DEBUG && console.warn(`[Auth] ${msg}`, ...args),
+  error: (msg: string, ...args: any[]) => console.error(`[Auth] ${msg}`, ...args),
 };
 
 export type AuthStatus = 'loading' | 'hydrating' | 'ready' | 'error';
@@ -95,7 +95,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const currentSession = await supabase.auth.getSession();
         const currentUid = currentSession.data.session?.user.id;
         if (uid && currentUid !== uid) {
-          console.info("[RAIDEN_DIAG][Auth] Skipping hydrate: UID changed during async load.");
           return [];
         }
 
@@ -120,7 +119,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return cached.profiles;
         }
       } catch (err) {
-        console.warn("[RAIDEN_DIAG][Auth] Failed to hydrate profile cache:", err);
+        console.warn("Failed to hydrate profile cache:", err);
       }
       return [];
     })();
@@ -128,7 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       return await Promise.race([hydrationTask, hydrationTimeout]);
     } catch (e) {
-      console.warn("[RAIDEN_DIAG][Auth] Cache hydration ceiling reached (2s), skipping to network.");
+      console.warn("Cache hydration ceiling reached (2s), skipping to network.");
       return [];
     }
   }, [supabase]);
@@ -144,7 +143,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
       window.localStorage.setItem(`raiden:has_profiles_cache:${uid}`, "true");
     } catch (err) {
-      console.warn("[RAIDEN_DIAG][Auth] Failed to persist profile cache:", err);
+      console.warn("[Auth] Failed to persist profile cache:", err);
     }
   }, []);
 
@@ -328,7 +327,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     async function init() {
       if (isLoggingOutRef.current) return;
-      console.info("[RAIDEN_DIAG][Auth] User initialization starting...");
 
       // Cleanup any previous controller
       if (abortControllerRef.current) abortControllerRef.current.abort();
@@ -474,7 +472,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             });
           }
         }
-        
+
         // Ensure status isn't stuck in loading/hydrating for guests
         if (statusRef.current === 'loading' || statusRef.current === 'hydrating') {
           setStatus('ready');

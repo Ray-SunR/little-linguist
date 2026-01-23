@@ -9,6 +9,9 @@ export default defineConfig({
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
+      "**/.worktrees/**",
+      "**/e2e/**",
+      "**/playwright-report/**"
     ],
     coverage: {
       provider: 'v8',

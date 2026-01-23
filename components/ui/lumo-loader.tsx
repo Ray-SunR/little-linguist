@@ -48,7 +48,7 @@ export default function LumoLoader({ fullPage = true }: LumoLoaderProps) {
             .animate-lumo-float-large { animation: lumo-float-large 4s ease-in-out infinite; }
             .animate-progress-slide { animation: progress-slide 2s linear infinite; }
         `}</style>
-        
+
         {/* Glow effect */}
         <div className="absolute inset-0 bg-amber-400/30 blur-3xl rounded-full animate-glow-pulse" />
 
@@ -111,10 +111,10 @@ function Sparkle({ delay, top, left, right }: { delay: number; top?: string; lef
   return (
     <div
       className="absolute text-2xl z-20"
-      style={{ 
-          top, left, right,
-          animation: `sparkle-anim 2s ease-in-out infinite`,
-          animationDelay: `${delay}s`
+      style={{
+        top, left, right,
+        animation: `sparkle-anim 2s ease-in-out infinite`,
+        animationDelay: `${delay}s`
       }}
     >
       <style jsx>{`

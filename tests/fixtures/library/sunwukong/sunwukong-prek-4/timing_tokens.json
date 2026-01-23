@@ -1,0 +1,322 @@
+[
+  {
+    "absIndex": 0,
+    "shardIndex": 0,
+    "start": 0.0,
+    "end": 0.33,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 1,
+    "shardIndex": 0,
+    "start": 0.33,
+    "end": 0.84,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 2,
+    "shardIndex": 0,
+    "start": 0.85,
+    "end": 1.24,
+    "offset": 0.0,
+    "word": "plays"
+  },
+  {
+    "absIndex": 3,
+    "shardIndex": 0,
+    "start": 1.24,
+    "end": 1.38,
+    "offset": 0.0,
+    "word": "with"
+  },
+  {
+    "absIndex": 4,
+    "shardIndex": 0,
+    "start": 1.38,
+    "end": 1.55,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 5,
+    "shardIndex": 0,
+    "start": 1.55,
+    "end": 1.89,
+    "offset": 0.0,
+    "word": "monkey"
+  },
+  {
+    "absIndex": 6,
+    "shardIndex": 0,
+    "start": 1.89,
+    "end": 2.32,
+    "offset": 0.0,
+    "word": "friends"
+  },
+  {
+    "absIndex": 7,
+    "shardIndex": 0,
+    "start": 2.34,
+    "end": 2.52,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 8,
+    "shardIndex": 0,
+    "start": 2.52,
+    "end": 2.9,
+    "offset": 0.0,
+    "word": "Flower"
+  },
+  {
+    "absIndex": 9,
+    "shardIndex": 0,
+    "start": 2.9,
+    "end": 3.14,
+    "offset": 0.0,
+    "word": "Fruit"
+  },
+  {
+    "absIndex": 10,
+    "shardIndex": 0,
+    "start": 3.14,
+    "end": 3.72,
+    "offset": 0.0,
+    "word": "Mountain"
+  },
+  {
+    "absIndex": 11,
+    "shardIndex": 0,
+    "start": 4.62,
+    "end": 4.84,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 12,
+    "shardIndex": 0,
+    "start": 4.84,
+    "end": 5.2,
+    "offset": 0.0,
+    "word": "jump"
+  },
+  {
+    "absIndex": 13,
+    "shardIndex": 0,
+    "start": 5.2,
+    "end": 5.36,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 14,
+    "shardIndex": 0,
+    "start": 5.36,
+    "end": 5.73,
+    "offset": 0.0,
+    "word": "swing"
+  },
+  {
+    "absIndex": 15,
+    "shardIndex": 0,
+    "start": 5.73,
+    "end": 5.96,
+    "offset": 0.0,
+    "word": "from"
+  },
+  {
+    "absIndex": 16,
+    "shardIndex": 0,
+    "start": 5.96,
+    "end": 6.22,
+    "offset": 0.0,
+    "word": "tree"
+  },
+  {
+    "absIndex": 17,
+    "shardIndex": 0,
+    "start": 6.22,
+    "end": 6.33,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 18,
+    "shardIndex": 0,
+    "start": 6.33,
+    "end": 6.8,
+    "offset": 0.0,
+    "word": "tree"
+  },
+  {
+    "absIndex": 19,
+    "shardIndex": 0,
+    "start": 7.71,
+    "end": 8.0,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 20,
+    "shardIndex": 0,
+    "start": 8.0,
+    "end": 8.44,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 21,
+    "shardIndex": 0,
+    "start": 8.45,
+    "end": 8.87,
+    "offset": 0.0,
+    "word": "laughs"
+  },
+  {
+    "absIndex": 22,
+    "shardIndex": 0,
+    "start": 8.89,
+    "end": 9.11,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 23,
+    "shardIndex": 0,
+    "start": 9.11,
+    "end": 9.62,
+    "offset": 0.0,
+    "word": "laughs"
+  },
+  {
+    "absIndex": 24,
+    "shardIndex": 0,
+    "start": 11.37,
+    "end": 11.66,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 25,
+    "shardIndex": 0,
+    "start": 11.66,
+    "end": 12.11,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 26,
+    "shardIndex": 0,
+    "start": 12.12,
+    "end": 12.33,
+    "offset": 0.0,
+    "word": "does"
+  },
+  {
+    "absIndex": 27,
+    "shardIndex": 0,
+    "start": 12.33,
+    "end": 12.91,
+    "offset": 0.0,
+    "word": "somersaults"
+  },
+  {
+    "absIndex": 28,
+    "shardIndex": 0,
+    "start": 12.91,
+    "end": 13.01,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 29,
+    "shardIndex": 0,
+    "start": 13.02,
+    "end": 13.16,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 30,
+    "shardIndex": 0,
+    "start": 13.16,
+    "end": 13.5,
+    "offset": 0.0,
+    "word": "air"
+  },
+  {
+    "absIndex": 31,
+    "shardIndex": 0,
+    "start": 14.41,
+    "end": 14.66,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 32,
+    "shardIndex": 0,
+    "start": 14.66,
+    "end": 15.06,
+    "offset": 0.0,
+    "word": "friends"
+  },
+  {
+    "absIndex": 33,
+    "shardIndex": 0,
+    "start": 15.06,
+    "end": 15.46,
+    "offset": 0.0,
+    "word": "clap"
+  },
+  {
+    "absIndex": 34,
+    "shardIndex": 0,
+    "start": 15.46,
+    "end": 15.64,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 35,
+    "shardIndex": 0,
+    "start": 15.65,
+    "end": 16.14,
+    "offset": 0.0,
+    "word": "cheer"
+  },
+  {
+    "absIndex": 36,
+    "shardIndex": 0,
+    "start": 17.04,
+    "end": 17.52,
+    "offset": 0.0,
+    "word": "Everyone"
+  },
+  {
+    "absIndex": 37,
+    "shardIndex": 0,
+    "start": 17.52,
+    "end": 17.65,
+    "offset": 0.0,
+    "word": "is"
+  },
+  {
+    "absIndex": 38,
+    "shardIndex": 0,
+    "start": 17.65,
+    "end": 17.98,
+    "offset": 0.0,
+    "word": "happy"
+  },
+  {
+    "absIndex": 39,
+    "shardIndex": 0,
+    "start": 17.98,
+    "end": 18.53,
+    "offset": 0.0,
+    "word": "together"
+  }
+]

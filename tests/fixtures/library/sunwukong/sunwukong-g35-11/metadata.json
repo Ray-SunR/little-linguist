@@ -1,0 +1,12577 @@
+{
+  "id": "sunwukong-g35-11",
+  "title": "Monkey King Escapes Spider Trap",
+  "original_concept_title": "The Spider Demons' Web",
+  "category": "sunwukong",
+  "level": "G3-5",
+  "is_nonfiction": false,
+  "description": "Sun Wukong, the legendary Monkey King, must use his magical powers and cunning when he discovers that seven beautiful women offering shelter are actually Spider Demons in disguise. As the demons weave their sticky webs to trap him and his traveling companions on their sacred journey West, Wukong faces one of his most challenging battles yet. Can the mighty warrior escape the demons' trap and save his master from their underground lair?",
+  "keywords": [
+    "monkey",
+    "journey",
+    "demons",
+    "spiders",
+    "magic",
+    "rescue",
+    "trap",
+    "hero",
+    "adventure",
+    "disguise",
+    "forest",
+    "battle"
+  ],
+  "series_id": "sunwukong_series",
+  "cover_image_path": "cover.webp",
+  "cover_prompt": "Sun Wukong, spunky anthropomorphic male golden macaque with bright golden fur and fiery-gold eyes, stands heroically in center frame inside a dark spider demon cave. He has a confident mischievous boyish grin, masculine jawline, strong muscular build with broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Gripping his red-and-gold iron staff in fighting stance. Seven spider demons with women's upper bodies and giant spider lower bodies surround him, shooting sticky white webs. Thick spider silk covers cave walls. Golden magical energy glows around Wukong as he prepares to transform. Wrapped cocoons hang in background. Dramatic lighting from above.",
+  "stats": {
+    "word_count": 1311,
+    "char_count": 7988,
+    "scene_count": 8,
+    "reading_time_seconds": 525,
+    "length_category": "Long"
+  },
+  "scenes": [
+    {
+      "index": 0,
+      "text": "Sun Wukong, the legendary Monkey King, walked confidently through a dark forest alongside his master, the monk Xuanzang, and his fellow travelers. They were on their sacred journey to the West to retrieve holy Buddhist scriptures. The trees grew thick and twisted, their branches forming strange shadows on the ground. Suddenly, Wukong's keen golden eyes spotted something unusual ahead—a beautiful mansion with glowing lanterns and the sweet smell of incense floating through the air. His master was tired and hungry from the long day of travel. The mansion seemed like the perfect place to rest for the night. But Wukong's magical senses tingled with warning. Something about this place felt wrong, like a trap waiting to spring shut. He gripped his iron staff tighter, his muscles tensing beneath his golden armor. Despite his concerns, his master insisted they ask for shelter, and Wukong reluctantly agreed to investigate.",
+      "imagePrompt": "A mysterious mansion with glowing red lanterns in a dark twisted forest, thick fog rolling across the ground, gnarled trees with reaching branches, moonlight filtering through leaves, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_0.webp",
+      "after_word_index": 147
+    },
+    {
+      "index": 1,
+      "text": "As they entered the mansion, seven beautiful women greeted them with sweet smiles and welcoming words. They offered the travelers warm tea and promised comfortable beds for the night. The women wore elegant silk robes and moved gracefully across the polished wooden floors. Wukong's fiery-gold eyes narrowed with suspicion as he watched them carefully. His supernatural vision allowed him to see through disguises and illusions that fooled ordinary people. When he focused his magical sight, he gasped at what he discovered—these were not women at all, but Spider Demons in disguise! These creatures were known throughout the land for trapping travelers in their sticky webs and devouring them. The demons had already captured many innocent people in their underground cave. Wukong knew he had to protect his master and companions from these dangerous monsters. He pretended not to notice their true nature, playing along with their trick while planning his own clever counter-attack.",
+      "imagePrompt": "Inside an ornate mansion with red pillars and silk curtains, seven women in elegant robes serving tea, polished wooden floors reflecting lantern light, decorative scrolls on walls, suspicious atmosphere, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_1.webp",
+      "after_word_index": 301
+    },
+    {
+      "index": 2,
+      "text": "That night, after everyone had gone to sleep, the Spider Demons revealed their true forms. Their beautiful disguises melted away to show their real appearance—creatures with the upper bodies of women but the lower bodies of giant spiders, complete with eight hairy legs and venomous fangs. They began spinning thick, sticky webs throughout the mansion, creating a massive trap. The magical silk shot from their bodies like ropes, covering walls, floors, and ceilings. Within minutes, the entire building was transformed into a giant spider's nest. Wukong's companions were quickly wrapped up in the sticky threads, unable to move or escape. The demons laughed wickedly, thinking they had captured everyone. But Wukong had been waiting for this moment, staying alert while pretending to sleep. He jumped to his feet, his red-and-gold staff spinning in his powerful hands. His golden fur bristled with anger as he prepared to fight these evil creatures and rescue his friends from their terrible trap.",
+      "imagePrompt": "A transformed mansion interior covered in thick white spider webs, seven spider demons with women's upper bodies and giant spider lower bodies with eight legs, sticky silk covering walls and furniture, trapped travelers wrapped in cocoons, dark and dangerous atmosphere, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_2.webp",
+      "after_word_index": 460
+    },
+    {
+      "index": 3,
+      "text": "Wukong fought bravely, swinging his magical staff with incredible speed and power. The iron rod grew longer and shorter according to his commands, smashing through webs and striking at the demons. However, the seven Spider Demons were cunning and worked together perfectly as a team. They shot web after web at the Monkey King, trying to bind his arms and legs. More demons appeared from hidden doorways, surrounding him from all sides. Despite his great strength and skill, Wukong found himself being overwhelmed by the sheer number of sticky threads. The webs piled higher and higher, wrapping around his muscular body. His golden armor became covered in the white silk. Soon, even his powerful arms were trapped against his sides, and he couldn't swing his staff anymore. The demons cackled with delight, thinking they had finally captured the famous Monkey King. They began wrapping him tighter and tighter, creating a thick cocoon around his body until he couldn't move at all.",
+      "imagePrompt": "An intense battle scene inside a web-covered mansion, multiple spider demons shooting webs from all directions, white silk threads flying through the air, broken furniture, shattered lanterns, webs wrapping around a struggling warrior, chaotic action scene, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_3.webp",
+      "after_word_index": 621
+    },
+    {
+      "index": 4,
+      "text": "The Spider Demons dragged Wukong's wrapped body down into their underground cave, a dark and horrible place filled with old bones and more webs. They hung him from the ceiling like a trophy, celebrating their victory over the legendary warrior. The cave was damp and cold, lit only by eerie green lights from glowing mushrooms. Pools of dark water reflected the shadows of countless victims who had been trapped there before. The demons began preparing their feast, gathering around their captured prey. But what they didn't know was that Sun Wukong possessed seventy-two transformations, a powerful magic he had learned from his Taoist master centuries ago. These transformations allowed him to change his shape into anything he could imagine—animals, objects, or even other people. Inside the cocoon, Wukong concentrated his magical energy, his body beginning to glow with a soft golden light. He smiled his mischievous grin, knowing that these foolish demons had made a terrible mistake by underestimating the Great Sage Equal to Heaven.",
+      "imagePrompt": "A dark underground cave with stalactites hanging from ceiling, pools of dark water on ground, eerie green glowing mushrooms, spider webs everywhere, old bones scattered around, a large cocoon hanging from cave ceiling, spider demons celebrating below, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_4.webp",
+      "after_word_index": 787
+    },
+    {
+      "index": 5,
+      "text": "With a flash of golden light, Wukong transformed his body into something tiny—a small mosquito! His entire form shrank down to the size of a grain of rice, easily slipping through the gaps in the spider silk. The transformation was instant and perfect, one of his most useful abilities. The sticky webs that had held him so tightly now hung empty as he buzzed away on delicate wings. The mosquito flew silently through the dark cave, so small that the demons never noticed it. Wukong's mind remained sharp and clever even in this tiny form, allowing him to think and plan his next move. He flew up to the cave ceiling, surveying the entire area from above. He could see his master and companions still trapped in their cocoons, hanging helplessly from the walls. The Spider Demons were gathered around a large stone table, arguing about how to divide their prisoners. Wukong knew he needed to free his friends and teach these evil creatures a lesson they would never forget.",
+      "imagePrompt": "A tiny mosquito with a golden glow flying through a dark spider cave, empty torn cocoon hanging nearby, massive spider webs from a tiny perspective, huge spider demons in the background around a stone table, dramatic scale difference, shafts of light from above, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_5.webp",
+      "after_word_index": 958
+    },
+    {
+      "index": 6,
+      "text": "Wukong transformed again, this time becoming a mighty eagle with powerful wings and sharp talons. The golden light flashed once more as his body grew larger and larger, his feathers shimmering with magical energy. As an eagle, he could fight more effectively and carry his friends to safety. He swooped down from the ceiling with a fierce screech that echoed through the cave. His talons ripped through the spider webs, tearing apart the cocoons that held his companions. The Spider Demons shrieked in anger and confusion, unable to understand how their prisoner had escaped. They shot webs at the eagle, but Wukong was too fast and agile in this form. He dodged and weaved through the air, his sharp beak pecking at the demons. Then, in another flash, he transformed back into his true form—the Monkey King himself, landing on the ground with his iron staff ready. His fiery-gold eyes blazed with determination as he spun his weapon in a dazzling display of skill and power.",
+      "imagePrompt": "A magnificent golden eagle with glowing feathers swooping through an underground cave, torn spider webs falling, freed companions dropping from broken cocoons, angry spider demons shooting webs upward, dramatic action scene with motion blur, cave walls with ancient markings, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_6.webp",
+      "after_word_index": 1125
+    },
+    {
+      "index": 7,
+      "text": "Now free and in his true form, Sun Wukong fought with unstoppable fury and skill. His red-and-gold staff became a blur of motion, striking the Spider Demons from every direction. The demons tried to use their webs again, but Wukong was ready this time, transforming briefly into different forms whenever they tried to trap him—a bird to fly away, a stone to let webs pass over him, a gust of wind to blow them back. His seventy-two transformations made him impossible to catch or defeat. One by one, the Spider Demons fled in terror, scurrying back into the deepest parts of their cave. Wukong rescued all his companions, breaking their bonds and leading them safely out of the underground prison. As they emerged into the fresh morning air, his master thanked him for his bravery and cleverness. Wukong grinned his boyish, mischievous grin, twirling his staff proudly. The Spider Demons had learned an important lesson—never try to trap the Monkey King, for his magic and cunning are greater than any web. The travelers continued their journey westward, and Wukong's legend grew even greater.",
+      "imagePrompt": "A victorious scene outside a cave entrance at sunrise, defeated spider demons retreating into darkness, freed travelers emerging into golden morning light, broken webs scattered on ground, mountains and forest in background, triumphant atmosphere with rays of sunlight breaking through clouds, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_7.webp",
+      "after_word_index": 1310
+    }
+  ],
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 239,
+        "timings": []
+      },
+      {
+        "index": 1,
+        "path": "audio/1.mp3",
+        "start_word_index": 240,
+        "end_word_index": 491,
+        "timings": []
+      },
+      {
+        "index": 2,
+        "path": "audio/2.mp3",
+        "start_word_index": 492,
+        "end_word_index": 746,
+        "timings": []
+      },
+      {
+        "index": 3,
+        "path": "audio/3.mp3",
+        "start_word_index": 747,
+        "end_word_index": 1006,
+        "timings": []
+      },
+      {
+        "index": 4,
+        "path": "audio/4.mp3",
+        "start_word_index": 1007,
+        "end_word_index": 1273,
+        "timings": []
+      },
+      {
+        "index": 5,
+        "path": "audio/5.mp3",
+        "start_word_index": 1274,
+        "end_word_index": 1310,
+        "timings": []
+      }
+    ]
+  },
+  "tokens": [
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 0
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 1
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 2
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "legendary",
+      "type": "w",
+      "i": 3
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Monkey",
+      "type": "w",
+      "i": 4
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 5
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "walked",
+      "type": "w",
+      "i": 6
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "confidently",
+      "type": "w",
+      "i": 7
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 8
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 9
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dark",
+      "type": "w",
+      "i": 10
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "forest",
+      "type": "w",
+      "i": 11
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "alongside",
+      "type": "w",
+      "i": 12
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 13
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "master",
+      "type": "w",
+      "i": 14
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 15
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "monk",
+      "type": "w",
+      "i": 16
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Xuanzang",
+      "type": "w",
+      "i": 17
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 18
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 19
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fellow",
+      "type": "w",
+      "i": 20
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "travelers",
+      "type": "w",
+      "i": 21
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 22
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 23
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 24
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 25
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sacred",
+      "type": "w",
+      "i": 26
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "journey",
+      "type": "w",
+      "i": 27
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 28
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 29
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "West",
+      "type": "w",
+      "i": 30
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 31
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "retrieve",
+      "type": "w",
+      "i": 32
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "holy",
+      "type": "w",
+      "i": 33
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Buddhist",
+      "type": "w",
+      "i": 34
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "scriptures",
+      "type": "w",
+      "i": 35
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 36
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trees",
+      "type": "w",
+      "i": 37
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grew",
+      "type": "w",
+      "i": 38
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "thick",
+      "type": "w",
+      "i": 39
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 40
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "twisted",
+      "type": "w",
+      "i": 41
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 42
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "branches",
+      "type": "w",
+      "i": 43
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "forming",
+      "type": "w",
+      "i": 44
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "strange",
+      "type": "w",
+      "i": 45
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shadows",
+      "type": "w",
+      "i": 46
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 47
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 48
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ground",
+      "type": "w",
+      "i": 49
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Suddenly",
+      "type": "w",
+      "i": 50
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 51
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "keen",
+      "type": "w",
+      "i": 52
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "golden",
+      "type": "w",
+      "i": 53
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eyes",
+      "type": "w",
+      "i": 54
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spotted",
+      "type": "w",
+      "i": 55
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "something",
+      "type": "w",
+      "i": 56
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "unusual",
+      "type": "w",
+      "i": 57
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ahead",
+      "type": "w",
+      "i": 58
+    },
+    {
+      "t": "—",
+      "type": "p"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 59
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beautiful",
+      "type": "w",
+      "i": 60
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mansion",
+      "type": "w",
+      "i": 61
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 62
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "glowing",
+      "type": "w",
+      "i": 63
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lanterns",
+      "type": "w",
+      "i": 64
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 65
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 66
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sweet",
+      "type": "w",
+      "i": 67
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "smell",
+      "type": "w",
+      "i": 68
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 69
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "incense",
+      "type": "w",
+      "i": 70
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "floating",
+      "type": "w",
+      "i": 71
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 72
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 73
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "air",
+      "type": "w",
+      "i": 74
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 75
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "master",
+      "type": "w",
+      "i": 76
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 77
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tired",
+      "type": "w",
+      "i": 78
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 79
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hungry",
+      "type": "w",
+      "i": 80
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 81
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 82
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "long",
+      "type": "w",
+      "i": 83
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "day",
+      "type": "w",
+      "i": 84
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 85
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "travel",
+      "type": "w",
+      "i": 86
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 87
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mansion",
+      "type": "w",
+      "i": 88
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "seemed",
+      "type": "w",
+      "i": 89
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "like",
+      "type": "w",
+      "i": 90
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 91
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "perfect",
+      "type": "w",
+      "i": 92
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "place",
+      "type": "w",
+      "i": 93
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 94
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rest",
+      "type": "w",
+      "i": 95
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 96
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 97
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "night",
+      "type": "w",
+      "i": 98
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "But",
+      "type": "w",
+      "i": 99
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 100
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 101
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "senses",
+      "type": "w",
+      "i": 102
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tingled",
+      "type": "w",
+      "i": 103
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 104
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "warning",
+      "type": "w",
+      "i": 105
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Something",
+      "type": "w",
+      "i": 106
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "about",
+      "type": "w",
+      "i": 107
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "this",
+      "type": "w",
+      "i": 108
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "place",
+      "type": "w",
+      "i": 109
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "felt",
+      "type": "w",
+      "i": 110
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wrong",
+      "type": "w",
+      "i": 111
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "like",
+      "type": "w",
+      "i": 112
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 113
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trap",
+      "type": "w",
+      "i": 114
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "waiting",
+      "type": "w",
+      "i": 115
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 116
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spring",
+      "type": "w",
+      "i": 117
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shut",
+      "type": "w",
+      "i": 118
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 119
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gripped",
+      "type": "w",
+      "i": 120
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 121
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "iron",
+      "type": "w",
+      "i": 122
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 123
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tighter",
+      "type": "w",
+      "i": 124
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 125
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "muscles",
+      "type": "w",
+      "i": 126
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tensing",
+      "type": "w",
+      "i": 127
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beneath",
+      "type": "w",
+      "i": 128
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 129
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "golden",
+      "type": "w",
+      "i": 130
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "armor",
+      "type": "w",
+      "i": 131
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Despite",
+      "type": "w",
+      "i": 132
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 133
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "concerns",
+      "type": "w",
+      "i": 134
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 135
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "master",
+      "type": "w",
+      "i": 136
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "insisted",
+      "type": "w",
+      "i": 137
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 138
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ask",
+      "type": "w",
+      "i": 139
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 140
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shelter",
+      "type": "w",
+      "i": 141
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 142
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 143
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "reluctantly",
+      "type": "w",
+      "i": 144
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "agreed",
+      "type": "w",
+      "i": 145
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 146
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "investigate",
+      "type": "w",
+      "i": 147
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "As",
+      "type": "w",
+      "i": 148
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 149
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "entered",
+      "type": "w",
+      "i": 150
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 151
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mansion",
+      "type": "w",
+      "i": 152
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "seven",
+      "type": "w",
+      "i": 153
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beautiful",
+      "type": "w",
+      "i": 154
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "women",
+      "type": "w",
+      "i": 155
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "greeted",
+      "type": "w",
+      "i": 156
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "them",
+      "type": "w",
+      "i": 157
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 158
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sweet",
+      "type": "w",
+      "i": 159
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "smiles",
+      "type": "w",
+      "i": 160
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 161
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "welcoming",
+      "type": "w",
+      "i": 162
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "words",
+      "type": "w",
+      "i": 163
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 164
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "offered",
+      "type": "w",
+      "i": 165
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 166
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "travelers",
+      "type": "w",
+      "i": 167
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "warm",
+      "type": "w",
+      "i": 168
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tea",
+      "type": "w",
+      "i": 169
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 170
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "promised",
+      "type": "w",
+      "i": 171
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "comfortable",
+      "type": "w",
+      "i": 172
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beds",
+      "type": "w",
+      "i": 173
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 174
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 175
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "night",
+      "type": "w",
+      "i": 176
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 177
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "women",
+      "type": "w",
+      "i": 178
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wore",
+      "type": "w",
+      "i": 179
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "elegant",
+      "type": "w",
+      "i": 180
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "silk",
+      "type": "w",
+      "i": 181
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "robes",
+      "type": "w",
+      "i": 182
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 183
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "moved",
+      "type": "w",
+      "i": 184
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gracefully",
+      "type": "w",
+      "i": 185
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "across",
+      "type": "w",
+      "i": 186
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 187
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "polished",
+      "type": "w",
+      "i": 188
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wooden",
+      "type": "w",
+      "i": 189
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "floors",
+      "type": "w",
+      "i": 190
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 191
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fiery-gold",
+      "type": "w",
+      "i": 192
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eyes",
+      "type": "w",
+      "i": 193
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "narrowed",
+      "type": "w",
+      "i": 194
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 195
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "suspicion",
+      "type": "w",
+      "i": 196
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 197
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 198
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "watched",
+      "type": "w",
+      "i": 199
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "them",
+      "type": "w",
+      "i": 200
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "carefully",
+      "type": "w",
+      "i": 201
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 202
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "supernatural",
+      "type": "w",
+      "i": 203
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "vision",
+      "type": "w",
+      "i": 204
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "allowed",
+      "type": "w",
+      "i": 205
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 206
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 207
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "see",
+      "type": "w",
+      "i": 208
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 209
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "disguises",
+      "type": "w",
+      "i": 210
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 211
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "illusions",
+      "type": "w",
+      "i": 212
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "that",
+      "type": "w",
+      "i": 213
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fooled",
+      "type": "w",
+      "i": 214
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ordinary",
+      "type": "w",
+      "i": 215
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "people",
+      "type": "w",
+      "i": 216
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "When",
+      "type": "w",
+      "i": 217
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 218
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "focused",
+      "type": "w",
+      "i": 219
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 220
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 221
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sight",
+      "type": "w",
+      "i": 222
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 223
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gasped",
+      "type": "w",
+      "i": 224
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 225
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "what",
+      "type": "w",
+      "i": 226
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 227
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "discovered",
+      "type": "w",
+      "i": 228
+    },
+    {
+      "t": "—",
+      "type": "p"
+    },
+    {
+      "t": "these",
+      "type": "w",
+      "i": 229
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 230
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "not",
+      "type": "w",
+      "i": 231
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "women",
+      "type": "w",
+      "i": 232
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 233
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "all",
+      "type": "w",
+      "i": 234
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "but",
+      "type": "w",
+      "i": 235
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 236
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 237
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 238
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "disguise",
+      "type": "w",
+      "i": 239
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "These",
+      "type": "w",
+      "i": 240
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "creatures",
+      "type": "w",
+      "i": 241
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 242
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "known",
+      "type": "w",
+      "i": 243
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "throughout",
+      "type": "w",
+      "i": 244
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 245
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "land",
+      "type": "w",
+      "i": 246
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 247
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trapping",
+      "type": "w",
+      "i": 248
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "travelers",
+      "type": "w",
+      "i": 249
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 250
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 251
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sticky",
+      "type": "w",
+      "i": 252
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 253
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 254
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "devouring",
+      "type": "w",
+      "i": 255
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "them",
+      "type": "w",
+      "i": 256
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 257
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 258
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 259
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "already",
+      "type": "w",
+      "i": 260
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "captured",
+      "type": "w",
+      "i": 261
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "many",
+      "type": "w",
+      "i": 262
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "innocent",
+      "type": "w",
+      "i": 263
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "people",
+      "type": "w",
+      "i": 264
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 265
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 266
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "underground",
+      "type": "w",
+      "i": 267
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cave",
+      "type": "w",
+      "i": 268
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 269
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "knew",
+      "type": "w",
+      "i": 270
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 271
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 272
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 273
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "protect",
+      "type": "w",
+      "i": 274
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 275
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "master",
+      "type": "w",
+      "i": 276
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 277
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "companions",
+      "type": "w",
+      "i": 278
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 279
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "these",
+      "type": "w",
+      "i": 280
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dangerous",
+      "type": "w",
+      "i": 281
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "monsters",
+      "type": "w",
+      "i": 282
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 283
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pretended",
+      "type": "w",
+      "i": 284
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "not",
+      "type": "w",
+      "i": 285
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 286
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "notice",
+      "type": "w",
+      "i": 287
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 288
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "true",
+      "type": "w",
+      "i": 289
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "nature",
+      "type": "w",
+      "i": 290
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "playing",
+      "type": "w",
+      "i": 291
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "along",
+      "type": "w",
+      "i": 292
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 293
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 294
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trick",
+      "type": "w",
+      "i": 295
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "while",
+      "type": "w",
+      "i": 296
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "planning",
+      "type": "w",
+      "i": 297
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 298
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "own",
+      "type": "w",
+      "i": 299
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "clever",
+      "type": "w",
+      "i": 300
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "counter-attack",
+      "type": "w",
+      "i": 301
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "That",
+      "type": "w",
+      "i": 302
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "night",
+      "type": "w",
+      "i": 303
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "after",
+      "type": "w",
+      "i": 304
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "everyone",
+      "type": "w",
+      "i": 305
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 306
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gone",
+      "type": "w",
+      "i": 307
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 308
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sleep",
+      "type": "w",
+      "i": 309
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 310
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 311
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 312
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "revealed",
+      "type": "w",
+      "i": 313
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 314
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "true",
+      "type": "w",
+      "i": 315
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "forms",
+      "type": "w",
+      "i": 316
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Their",
+      "type": "w",
+      "i": 317
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beautiful",
+      "type": "w",
+      "i": 318
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "disguises",
+      "type": "w",
+      "i": 319
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "melted",
+      "type": "w",
+      "i": 320
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "away",
+      "type": "w",
+      "i": 321
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 322
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "show",
+      "type": "w",
+      "i": 323
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 324
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "real",
+      "type": "w",
+      "i": 325
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "appearance",
+      "type": "w",
+      "i": 326
+    },
+    {
+      "t": "—",
+      "type": "p"
+    },
+    {
+      "t": "creatures",
+      "type": "w",
+      "i": 327
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 328
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 329
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "upper",
+      "type": "w",
+      "i": 330
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bodies",
+      "type": "w",
+      "i": 331
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 332
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "women",
+      "type": "w",
+      "i": 333
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "but",
+      "type": "w",
+      "i": 334
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 335
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lower",
+      "type": "w",
+      "i": 336
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bodies",
+      "type": "w",
+      "i": 337
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 338
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "giant",
+      "type": "w",
+      "i": 339
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spiders",
+      "type": "w",
+      "i": 340
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "complete",
+      "type": "w",
+      "i": 341
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 342
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eight",
+      "type": "w",
+      "i": 343
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hairy",
+      "type": "w",
+      "i": 344
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "legs",
+      "type": "w",
+      "i": 345
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 346
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "venomous",
+      "type": "w",
+      "i": 347
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fangs",
+      "type": "w",
+      "i": 348
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 349
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "began",
+      "type": "w",
+      "i": 350
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spinning",
+      "type": "w",
+      "i": 351
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "thick",
+      "type": "w",
+      "i": 352
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sticky",
+      "type": "w",
+      "i": 353
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 354
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "throughout",
+      "type": "w",
+      "i": 355
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 356
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mansion",
+      "type": "w",
+      "i": 357
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "creating",
+      "type": "w",
+      "i": 358
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 359
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "massive",
+      "type": "w",
+      "i": 360
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trap",
+      "type": "w",
+      "i": 361
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 362
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 363
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "silk",
+      "type": "w",
+      "i": 364
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shot",
+      "type": "w",
+      "i": 365
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 366
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 367
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bodies",
+      "type": "w",
+      "i": 368
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "like",
+      "type": "w",
+      "i": 369
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ropes",
+      "type": "w",
+      "i": 370
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "covering",
+      "type": "w",
+      "i": 371
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "walls",
+      "type": "w",
+      "i": 372
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "floors",
+      "type": "w",
+      "i": 373
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 374
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ceilings",
+      "type": "w",
+      "i": 375
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Within",
+      "type": "w",
+      "i": 376
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "minutes",
+      "type": "w",
+      "i": 377
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 378
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "entire",
+      "type": "w",
+      "i": 379
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "building",
+      "type": "w",
+      "i": 380
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 381
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transformed",
+      "type": "w",
+      "i": 382
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 383
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 384
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "giant",
+      "type": "w",
+      "i": 385
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spider's",
+      "type": "w",
+      "i": 386
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "nest",
+      "type": "w",
+      "i": 387
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 388
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "companions",
+      "type": "w",
+      "i": 389
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 390
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "quickly",
+      "type": "w",
+      "i": 391
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wrapped",
+      "type": "w",
+      "i": 392
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "up",
+      "type": "w",
+      "i": 393
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 394
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 395
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sticky",
+      "type": "w",
+      "i": 396
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "threads",
+      "type": "w",
+      "i": 397
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "unable",
+      "type": "w",
+      "i": 398
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 399
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "move",
+      "type": "w",
+      "i": 400
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "or",
+      "type": "w",
+      "i": 401
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "escape",
+      "type": "w",
+      "i": 402
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 403
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 404
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "laughed",
+      "type": "w",
+      "i": 405
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wickedly",
+      "type": "w",
+      "i": 406
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "thinking",
+      "type": "w",
+      "i": 407
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 408
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 409
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "captured",
+      "type": "w",
+      "i": 410
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "everyone",
+      "type": "w",
+      "i": 411
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "But",
+      "type": "w",
+      "i": 412
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 413
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 414
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "been",
+      "type": "w",
+      "i": 415
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "waiting",
+      "type": "w",
+      "i": 416
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 417
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "this",
+      "type": "w",
+      "i": 418
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "moment",
+      "type": "w",
+      "i": 419
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staying",
+      "type": "w",
+      "i": 420
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "alert",
+      "type": "w",
+      "i": 421
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "while",
+      "type": "w",
+      "i": 422
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pretending",
+      "type": "w",
+      "i": 423
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 424
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sleep",
+      "type": "w",
+      "i": 425
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 426
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "jumped",
+      "type": "w",
+      "i": 427
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 428
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 429
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "feet",
+      "type": "w",
+      "i": 430
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 431
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "red-and-gold",
+      "type": "w",
+      "i": 432
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 433
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spinning",
+      "type": "w",
+      "i": 434
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 435
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 436
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "powerful",
+      "type": "w",
+      "i": 437
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hands",
+      "type": "w",
+      "i": 438
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 439
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "golden",
+      "type": "w",
+      "i": 440
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fur",
+      "type": "w",
+      "i": 441
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bristled",
+      "type": "w",
+      "i": 442
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 443
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "anger",
+      "type": "w",
+      "i": 444
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 445
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 446
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "prepared",
+      "type": "w",
+      "i": 447
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 448
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fight",
+      "type": "w",
+      "i": 449
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "these",
+      "type": "w",
+      "i": 450
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "evil",
+      "type": "w",
+      "i": 451
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "creatures",
+      "type": "w",
+      "i": 452
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 453
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rescue",
+      "type": "w",
+      "i": 454
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 455
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "friends",
+      "type": "w",
+      "i": 456
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 457
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 458
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "terrible",
+      "type": "w",
+      "i": 459
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trap",
+      "type": "w",
+      "i": 460
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 461
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fought",
+      "type": "w",
+      "i": 462
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bravely",
+      "type": "w",
+      "i": 463
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "swinging",
+      "type": "w",
+      "i": 464
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 465
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 466
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 467
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 468
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "incredible",
+      "type": "w",
+      "i": 469
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "speed",
+      "type": "w",
+      "i": 470
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 471
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "power",
+      "type": "w",
+      "i": 472
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 473
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "iron",
+      "type": "w",
+      "i": 474
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rod",
+      "type": "w",
+      "i": 475
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grew",
+      "type": "w",
+      "i": 476
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "longer",
+      "type": "w",
+      "i": 477
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 478
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shorter",
+      "type": "w",
+      "i": 479
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "according",
+      "type": "w",
+      "i": 480
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 481
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 482
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "commands",
+      "type": "w",
+      "i": 483
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "smashing",
+      "type": "w",
+      "i": 484
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 485
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 486
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 487
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "striking",
+      "type": "w",
+      "i": 488
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 489
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 490
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 491
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "However",
+      "type": "w",
+      "i": 492
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 493
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "seven",
+      "type": "w",
+      "i": 494
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 495
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 496
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 497
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cunning",
+      "type": "w",
+      "i": 498
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 499
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "worked",
+      "type": "w",
+      "i": 500
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "together",
+      "type": "w",
+      "i": 501
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "perfectly",
+      "type": "w",
+      "i": 502
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 503
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 504
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "team",
+      "type": "w",
+      "i": 505
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 506
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shot",
+      "type": "w",
+      "i": 507
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "web",
+      "type": "w",
+      "i": 508
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "after",
+      "type": "w",
+      "i": 509
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "web",
+      "type": "w",
+      "i": 510
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 511
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 512
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Monkey",
+      "type": "w",
+      "i": 513
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 514
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trying",
+      "type": "w",
+      "i": 515
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 516
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bind",
+      "type": "w",
+      "i": 517
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 518
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "arms",
+      "type": "w",
+      "i": 519
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 520
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "legs",
+      "type": "w",
+      "i": 521
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "More",
+      "type": "w",
+      "i": 522
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 523
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "appeared",
+      "type": "w",
+      "i": 524
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 525
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hidden",
+      "type": "w",
+      "i": 526
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "doorways",
+      "type": "w",
+      "i": 527
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "surrounding",
+      "type": "w",
+      "i": 528
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 529
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 530
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "all",
+      "type": "w",
+      "i": 531
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sides",
+      "type": "w",
+      "i": 532
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Despite",
+      "type": "w",
+      "i": 533
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 534
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "great",
+      "type": "w",
+      "i": 535
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "strength",
+      "type": "w",
+      "i": 536
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 537
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "skill",
+      "type": "w",
+      "i": 538
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 539
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "found",
+      "type": "w",
+      "i": 540
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "himself",
+      "type": "w",
+      "i": 541
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "being",
+      "type": "w",
+      "i": 542
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "overwhelmed",
+      "type": "w",
+      "i": 543
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "by",
+      "type": "w",
+      "i": 544
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 545
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sheer",
+      "type": "w",
+      "i": 546
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "number",
+      "type": "w",
+      "i": 547
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 548
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sticky",
+      "type": "w",
+      "i": 549
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "threads",
+      "type": "w",
+      "i": 550
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 551
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 552
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "piled",
+      "type": "w",
+      "i": 553
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "higher",
+      "type": "w",
+      "i": 554
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 555
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "higher",
+      "type": "w",
+      "i": 556
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wrapping",
+      "type": "w",
+      "i": 557
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "around",
+      "type": "w",
+      "i": 558
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 559
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "muscular",
+      "type": "w",
+      "i": 560
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "body",
+      "type": "w",
+      "i": 561
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 562
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "golden",
+      "type": "w",
+      "i": 563
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "armor",
+      "type": "w",
+      "i": 564
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "became",
+      "type": "w",
+      "i": 565
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "covered",
+      "type": "w",
+      "i": 566
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 567
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 568
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "white",
+      "type": "w",
+      "i": 569
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "silk",
+      "type": "w",
+      "i": 570
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Soon",
+      "type": "w",
+      "i": 571
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "even",
+      "type": "w",
+      "i": 572
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 573
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "powerful",
+      "type": "w",
+      "i": 574
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "arms",
+      "type": "w",
+      "i": 575
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 576
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trapped",
+      "type": "w",
+      "i": 577
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "against",
+      "type": "w",
+      "i": 578
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 579
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sides",
+      "type": "w",
+      "i": 580
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 581
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 582
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "couldn't",
+      "type": "w",
+      "i": 583
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "swing",
+      "type": "w",
+      "i": 584
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 585
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 586
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "anymore",
+      "type": "w",
+      "i": 587
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 588
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 589
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cackled",
+      "type": "w",
+      "i": 590
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 591
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "delight",
+      "type": "w",
+      "i": 592
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "thinking",
+      "type": "w",
+      "i": 593
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 594
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 595
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "finally",
+      "type": "w",
+      "i": 596
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "captured",
+      "type": "w",
+      "i": 597
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 598
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "famous",
+      "type": "w",
+      "i": 599
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Monkey",
+      "type": "w",
+      "i": 600
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 601
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 602
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "began",
+      "type": "w",
+      "i": 603
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wrapping",
+      "type": "w",
+      "i": 604
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 605
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tighter",
+      "type": "w",
+      "i": 606
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 607
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tighter",
+      "type": "w",
+      "i": 608
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "creating",
+      "type": "w",
+      "i": 609
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 610
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "thick",
+      "type": "w",
+      "i": 611
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cocoon",
+      "type": "w",
+      "i": 612
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "around",
+      "type": "w",
+      "i": 613
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 614
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "body",
+      "type": "w",
+      "i": 615
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "until",
+      "type": "w",
+      "i": 616
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 617
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "couldn't",
+      "type": "w",
+      "i": 618
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "move",
+      "type": "w",
+      "i": 619
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 620
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "all",
+      "type": "w",
+      "i": 621
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 622
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 623
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 624
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dragged",
+      "type": "w",
+      "i": 625
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 626
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wrapped",
+      "type": "w",
+      "i": 627
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "body",
+      "type": "w",
+      "i": 628
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "down",
+      "type": "w",
+      "i": 629
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 630
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 631
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "underground",
+      "type": "w",
+      "i": 632
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cave",
+      "type": "w",
+      "i": 633
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 634
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dark",
+      "type": "w",
+      "i": 635
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 636
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "horrible",
+      "type": "w",
+      "i": 637
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "place",
+      "type": "w",
+      "i": 638
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "filled",
+      "type": "w",
+      "i": 639
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 640
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "old",
+      "type": "w",
+      "i": 641
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bones",
+      "type": "w",
+      "i": 642
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 643
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "more",
+      "type": "w",
+      "i": 644
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 645
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 646
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hung",
+      "type": "w",
+      "i": 647
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 648
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 649
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 650
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ceiling",
+      "type": "w",
+      "i": 651
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "like",
+      "type": "w",
+      "i": 652
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 653
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trophy",
+      "type": "w",
+      "i": 654
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "celebrating",
+      "type": "w",
+      "i": 655
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 656
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "victory",
+      "type": "w",
+      "i": 657
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "over",
+      "type": "w",
+      "i": 658
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 659
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "legendary",
+      "type": "w",
+      "i": 660
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "warrior",
+      "type": "w",
+      "i": 661
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 662
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cave",
+      "type": "w",
+      "i": 663
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 664
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "damp",
+      "type": "w",
+      "i": 665
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 666
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cold",
+      "type": "w",
+      "i": 667
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lit",
+      "type": "w",
+      "i": 668
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "only",
+      "type": "w",
+      "i": 669
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "by",
+      "type": "w",
+      "i": 670
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eerie",
+      "type": "w",
+      "i": 671
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "green",
+      "type": "w",
+      "i": 672
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lights",
+      "type": "w",
+      "i": 673
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 674
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "glowing",
+      "type": "w",
+      "i": 675
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mushrooms",
+      "type": "w",
+      "i": 676
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Pools",
+      "type": "w",
+      "i": 677
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 678
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dark",
+      "type": "w",
+      "i": 679
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "water",
+      "type": "w",
+      "i": 680
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "reflected",
+      "type": "w",
+      "i": 681
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 682
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shadows",
+      "type": "w",
+      "i": 683
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 684
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "countless",
+      "type": "w",
+      "i": 685
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "victims",
+      "type": "w",
+      "i": 686
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "who",
+      "type": "w",
+      "i": 687
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 688
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "been",
+      "type": "w",
+      "i": 689
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trapped",
+      "type": "w",
+      "i": 690
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "there",
+      "type": "w",
+      "i": 691
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "before",
+      "type": "w",
+      "i": 692
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 693
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 694
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "began",
+      "type": "w",
+      "i": 695
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "preparing",
+      "type": "w",
+      "i": 696
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 697
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "feast",
+      "type": "w",
+      "i": 698
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gathering",
+      "type": "w",
+      "i": 699
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "around",
+      "type": "w",
+      "i": 700
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 701
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "captured",
+      "type": "w",
+      "i": 702
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "prey",
+      "type": "w",
+      "i": 703
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "But",
+      "type": "w",
+      "i": 704
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "what",
+      "type": "w",
+      "i": 705
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 706
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "didn't",
+      "type": "w",
+      "i": 707
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "know",
+      "type": "w",
+      "i": 708
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 709
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "that",
+      "type": "w",
+      "i": 710
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 711
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 712
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "possessed",
+      "type": "w",
+      "i": 713
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "seventy-two",
+      "type": "w",
+      "i": 714
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transformations",
+      "type": "w",
+      "i": 715
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 716
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "powerful",
+      "type": "w",
+      "i": 717
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magic",
+      "type": "w",
+      "i": 718
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 719
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 720
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "learned",
+      "type": "w",
+      "i": 721
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 722
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 723
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Taoist",
+      "type": "w",
+      "i": 724
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "master",
+      "type": "w",
+      "i": 725
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "centuries",
+      "type": "w",
+      "i": 726
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ago",
+      "type": "w",
+      "i": 727
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "These",
+      "type": "w",
+      "i": 728
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transformations",
+      "type": "w",
+      "i": 729
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "allowed",
+      "type": "w",
+      "i": 730
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 731
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 732
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "change",
+      "type": "w",
+      "i": 733
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 734
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shape",
+      "type": "w",
+      "i": 735
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 736
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "anything",
+      "type": "w",
+      "i": 737
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 738
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "could",
+      "type": "w",
+      "i": 739
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "imagine",
+      "type": "w",
+      "i": 740
+    },
+    {
+      "t": "—",
+      "type": "p"
+    },
+    {
+      "t": "animals",
+      "type": "w",
+      "i": 741
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "objects",
+      "type": "w",
+      "i": 742
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "or",
+      "type": "w",
+      "i": 743
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "even",
+      "type": "w",
+      "i": 744
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "other",
+      "type": "w",
+      "i": 745
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "people",
+      "type": "w",
+      "i": 746
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Inside",
+      "type": "w",
+      "i": 747
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 748
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cocoon",
+      "type": "w",
+      "i": 749
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 750
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "concentrated",
+      "type": "w",
+      "i": 751
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 752
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 753
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "energy",
+      "type": "w",
+      "i": 754
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 755
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "body",
+      "type": "w",
+      "i": 756
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beginning",
+      "type": "w",
+      "i": 757
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 758
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "glow",
+      "type": "w",
+      "i": 759
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 760
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 761
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "soft",
+      "type": "w",
+      "i": 762
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "golden",
+      "type": "w",
+      "i": 763
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "light",
+      "type": "w",
+      "i": 764
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 765
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "smiled",
+      "type": "w",
+      "i": 766
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 767
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mischievous",
+      "type": "w",
+      "i": 768
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grin",
+      "type": "w",
+      "i": 769
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "knowing",
+      "type": "w",
+      "i": 770
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "that",
+      "type": "w",
+      "i": 771
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "these",
+      "type": "w",
+      "i": 772
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "foolish",
+      "type": "w",
+      "i": 773
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 774
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 775
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "made",
+      "type": "w",
+      "i": 776
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 777
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "terrible",
+      "type": "w",
+      "i": 778
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mistake",
+      "type": "w",
+      "i": 779
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "by",
+      "type": "w",
+      "i": 780
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "underestimating",
+      "type": "w",
+      "i": 781
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 782
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Great",
+      "type": "w",
+      "i": 783
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sage",
+      "type": "w",
+      "i": 784
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Equal",
+      "type": "w",
+      "i": 785
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 786
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Heaven",
+      "type": "w",
+      "i": 787
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "With",
+      "type": "w",
+      "i": 788
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 789
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "flash",
+      "type": "w",
+      "i": 790
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 791
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "golden",
+      "type": "w",
+      "i": 792
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "light",
+      "type": "w",
+      "i": 793
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 794
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transformed",
+      "type": "w",
+      "i": 795
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 796
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "body",
+      "type": "w",
+      "i": 797
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 798
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "something",
+      "type": "w",
+      "i": 799
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tiny",
+      "type": "w",
+      "i": 800
+    },
+    {
+      "t": "—",
+      "type": "p"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 801
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "small",
+      "type": "w",
+      "i": 802
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mosquito",
+      "type": "w",
+      "i": 803
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 804
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "entire",
+      "type": "w",
+      "i": 805
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "form",
+      "type": "w",
+      "i": 806
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shrank",
+      "type": "w",
+      "i": 807
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "down",
+      "type": "w",
+      "i": 808
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 809
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 810
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "size",
+      "type": "w",
+      "i": 811
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 812
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 813
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grain",
+      "type": "w",
+      "i": 814
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 815
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rice",
+      "type": "w",
+      "i": 816
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "easily",
+      "type": "w",
+      "i": 817
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "slipping",
+      "type": "w",
+      "i": 818
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 819
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 820
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gaps",
+      "type": "w",
+      "i": 821
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 822
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 823
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spider",
+      "type": "w",
+      "i": 824
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "silk",
+      "type": "w",
+      "i": 825
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 826
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transformation",
+      "type": "w",
+      "i": 827
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 828
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "instant",
+      "type": "w",
+      "i": 829
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 830
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "perfect",
+      "type": "w",
+      "i": 831
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "one",
+      "type": "w",
+      "i": 832
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 833
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 834
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "most",
+      "type": "w",
+      "i": 835
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "useful",
+      "type": "w",
+      "i": 836
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "abilities",
+      "type": "w",
+      "i": 837
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 838
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sticky",
+      "type": "w",
+      "i": 839
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 840
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "that",
+      "type": "w",
+      "i": 841
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 842
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "held",
+      "type": "w",
+      "i": 843
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 844
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "so",
+      "type": "w",
+      "i": 845
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tightly",
+      "type": "w",
+      "i": 846
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "now",
+      "type": "w",
+      "i": 847
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hung",
+      "type": "w",
+      "i": 848
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "empty",
+      "type": "w",
+      "i": 849
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 850
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 851
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "buzzed",
+      "type": "w",
+      "i": 852
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "away",
+      "type": "w",
+      "i": 853
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 854
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "delicate",
+      "type": "w",
+      "i": 855
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wings",
+      "type": "w",
+      "i": 856
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 857
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mosquito",
+      "type": "w",
+      "i": 858
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "flew",
+      "type": "w",
+      "i": 859
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "silently",
+      "type": "w",
+      "i": 860
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 861
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 862
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dark",
+      "type": "w",
+      "i": 863
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cave",
+      "type": "w",
+      "i": 864
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "so",
+      "type": "w",
+      "i": 865
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "small",
+      "type": "w",
+      "i": 866
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "that",
+      "type": "w",
+      "i": 867
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 868
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 869
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "never",
+      "type": "w",
+      "i": 870
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "noticed",
+      "type": "w",
+      "i": 871
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "it",
+      "type": "w",
+      "i": 872
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 873
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mind",
+      "type": "w",
+      "i": 874
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "remained",
+      "type": "w",
+      "i": 875
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sharp",
+      "type": "w",
+      "i": 876
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 877
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "clever",
+      "type": "w",
+      "i": 878
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "even",
+      "type": "w",
+      "i": 879
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 880
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "this",
+      "type": "w",
+      "i": 881
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tiny",
+      "type": "w",
+      "i": 882
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "form",
+      "type": "w",
+      "i": 883
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "allowing",
+      "type": "w",
+      "i": 884
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 885
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 886
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "think",
+      "type": "w",
+      "i": 887
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 888
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "plan",
+      "type": "w",
+      "i": 889
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 890
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "next",
+      "type": "w",
+      "i": 891
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "move",
+      "type": "w",
+      "i": 892
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 893
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "flew",
+      "type": "w",
+      "i": 894
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "up",
+      "type": "w",
+      "i": 895
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 896
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 897
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cave",
+      "type": "w",
+      "i": 898
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ceiling",
+      "type": "w",
+      "i": 899
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "surveying",
+      "type": "w",
+      "i": 900
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 901
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "entire",
+      "type": "w",
+      "i": 902
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "area",
+      "type": "w",
+      "i": 903
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 904
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "above",
+      "type": "w",
+      "i": 905
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 906
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "could",
+      "type": "w",
+      "i": 907
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "see",
+      "type": "w",
+      "i": 908
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 909
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "master",
+      "type": "w",
+      "i": 910
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 911
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "companions",
+      "type": "w",
+      "i": 912
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "still",
+      "type": "w",
+      "i": 913
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trapped",
+      "type": "w",
+      "i": 914
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 915
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 916
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cocoons",
+      "type": "w",
+      "i": 917
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hanging",
+      "type": "w",
+      "i": 918
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "helplessly",
+      "type": "w",
+      "i": 919
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 920
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 921
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "walls",
+      "type": "w",
+      "i": 922
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 923
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 924
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 925
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "were",
+      "type": "w",
+      "i": 926
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gathered",
+      "type": "w",
+      "i": 927
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "around",
+      "type": "w",
+      "i": 928
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 929
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "large",
+      "type": "w",
+      "i": 930
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stone",
+      "type": "w",
+      "i": 931
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "table",
+      "type": "w",
+      "i": 932
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "arguing",
+      "type": "w",
+      "i": 933
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "about",
+      "type": "w",
+      "i": 934
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "how",
+      "type": "w",
+      "i": 935
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 936
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "divide",
+      "type": "w",
+      "i": 937
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 938
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "prisoners",
+      "type": "w",
+      "i": 939
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 940
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "knew",
+      "type": "w",
+      "i": 941
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 942
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "needed",
+      "type": "w",
+      "i": 943
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 944
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "free",
+      "type": "w",
+      "i": 945
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 946
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "friends",
+      "type": "w",
+      "i": 947
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 948
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "teach",
+      "type": "w",
+      "i": 949
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "these",
+      "type": "w",
+      "i": 950
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "evil",
+      "type": "w",
+      "i": 951
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "creatures",
+      "type": "w",
+      "i": 952
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 953
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lesson",
+      "type": "w",
+      "i": 954
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 955
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "would",
+      "type": "w",
+      "i": 956
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "never",
+      "type": "w",
+      "i": 957
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "forget",
+      "type": "w",
+      "i": 958
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 959
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transformed",
+      "type": "w",
+      "i": 960
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "again",
+      "type": "w",
+      "i": 961
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "this",
+      "type": "w",
+      "i": 962
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "time",
+      "type": "w",
+      "i": 963
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "becoming",
+      "type": "w",
+      "i": 964
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 965
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mighty",
+      "type": "w",
+      "i": 966
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eagle",
+      "type": "w",
+      "i": 967
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 968
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "powerful",
+      "type": "w",
+      "i": 969
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wings",
+      "type": "w",
+      "i": 970
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 971
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sharp",
+      "type": "w",
+      "i": 972
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "talons",
+      "type": "w",
+      "i": 973
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 974
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "golden",
+      "type": "w",
+      "i": 975
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "light",
+      "type": "w",
+      "i": 976
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "flashed",
+      "type": "w",
+      "i": 977
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "once",
+      "type": "w",
+      "i": 978
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "more",
+      "type": "w",
+      "i": 979
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 980
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 981
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "body",
+      "type": "w",
+      "i": 982
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grew",
+      "type": "w",
+      "i": 983
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "larger",
+      "type": "w",
+      "i": 984
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 985
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "larger",
+      "type": "w",
+      "i": 986
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 987
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "feathers",
+      "type": "w",
+      "i": 988
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shimmering",
+      "type": "w",
+      "i": 989
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 990
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 991
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "energy",
+      "type": "w",
+      "i": 992
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "As",
+      "type": "w",
+      "i": 993
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "an",
+      "type": "w",
+      "i": 994
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eagle",
+      "type": "w",
+      "i": 995
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 996
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "could",
+      "type": "w",
+      "i": 997
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fight",
+      "type": "w",
+      "i": 998
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "more",
+      "type": "w",
+      "i": 999
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "effectively",
+      "type": "w",
+      "i": 1000
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1001
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "carry",
+      "type": "w",
+      "i": 1002
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1003
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "friends",
+      "type": "w",
+      "i": 1004
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1005
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "safety",
+      "type": "w",
+      "i": 1006
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 1007
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "swooped",
+      "type": "w",
+      "i": 1008
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "down",
+      "type": "w",
+      "i": 1009
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 1010
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1011
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ceiling",
+      "type": "w",
+      "i": 1012
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 1013
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 1014
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fierce",
+      "type": "w",
+      "i": 1015
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "screech",
+      "type": "w",
+      "i": 1016
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "that",
+      "type": "w",
+      "i": 1017
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "echoed",
+      "type": "w",
+      "i": 1018
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 1019
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1020
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cave",
+      "type": "w",
+      "i": 1021
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 1022
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "talons",
+      "type": "w",
+      "i": 1023
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ripped",
+      "type": "w",
+      "i": 1024
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 1025
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1026
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spider",
+      "type": "w",
+      "i": 1027
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 1028
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tearing",
+      "type": "w",
+      "i": 1029
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "apart",
+      "type": "w",
+      "i": 1030
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1031
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cocoons",
+      "type": "w",
+      "i": 1032
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "that",
+      "type": "w",
+      "i": 1033
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "held",
+      "type": "w",
+      "i": 1034
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1035
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "companions",
+      "type": "w",
+      "i": 1036
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 1037
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 1038
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 1039
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shrieked",
+      "type": "w",
+      "i": 1040
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 1041
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "anger",
+      "type": "w",
+      "i": 1042
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1043
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "confusion",
+      "type": "w",
+      "i": 1044
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "unable",
+      "type": "w",
+      "i": 1045
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1046
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "understand",
+      "type": "w",
+      "i": 1047
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "how",
+      "type": "w",
+      "i": 1048
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 1049
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "prisoner",
+      "type": "w",
+      "i": 1050
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 1051
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "escaped",
+      "type": "w",
+      "i": 1052
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "They",
+      "type": "w",
+      "i": 1053
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shot",
+      "type": "w",
+      "i": 1054
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 1055
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 1056
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1057
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eagle",
+      "type": "w",
+      "i": 1058
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "but",
+      "type": "w",
+      "i": 1059
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 1060
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 1061
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "too",
+      "type": "w",
+      "i": 1062
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fast",
+      "type": "w",
+      "i": 1063
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1064
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "agile",
+      "type": "w",
+      "i": 1065
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 1066
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "this",
+      "type": "w",
+      "i": 1067
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "form",
+      "type": "w",
+      "i": 1068
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 1069
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dodged",
+      "type": "w",
+      "i": 1070
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1071
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "weaved",
+      "type": "w",
+      "i": 1072
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 1073
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1074
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "air",
+      "type": "w",
+      "i": 1075
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1076
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sharp",
+      "type": "w",
+      "i": 1077
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beak",
+      "type": "w",
+      "i": 1078
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pecking",
+      "type": "w",
+      "i": 1079
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "at",
+      "type": "w",
+      "i": 1080
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1081
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 1082
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Then",
+      "type": "w",
+      "i": 1083
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 1084
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "another",
+      "type": "w",
+      "i": 1085
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "flash",
+      "type": "w",
+      "i": 1086
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 1087
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transformed",
+      "type": "w",
+      "i": 1088
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "back",
+      "type": "w",
+      "i": 1089
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 1090
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1091
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "true",
+      "type": "w",
+      "i": 1092
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "form",
+      "type": "w",
+      "i": 1093
+    },
+    {
+      "t": "—",
+      "type": "p"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1094
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Monkey",
+      "type": "w",
+      "i": 1095
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 1096
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "himself",
+      "type": "w",
+      "i": 1097
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "landing",
+      "type": "w",
+      "i": 1098
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 1099
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1100
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ground",
+      "type": "w",
+      "i": 1101
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 1102
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1103
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "iron",
+      "type": "w",
+      "i": 1104
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 1105
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ready",
+      "type": "w",
+      "i": 1106
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 1107
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fiery-gold",
+      "type": "w",
+      "i": 1108
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eyes",
+      "type": "w",
+      "i": 1109
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "blazed",
+      "type": "w",
+      "i": 1110
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 1111
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "determination",
+      "type": "w",
+      "i": 1112
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 1113
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 1114
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spun",
+      "type": "w",
+      "i": 1115
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1116
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "weapon",
+      "type": "w",
+      "i": 1117
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 1118
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 1119
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dazzling",
+      "type": "w",
+      "i": 1120
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "display",
+      "type": "w",
+      "i": 1121
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 1122
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "skill",
+      "type": "w",
+      "i": 1123
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1124
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "power",
+      "type": "w",
+      "i": 1125
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Now",
+      "type": "w",
+      "i": 1126
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "free",
+      "type": "w",
+      "i": 1127
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1128
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 1129
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1130
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "true",
+      "type": "w",
+      "i": 1131
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "form",
+      "type": "w",
+      "i": 1132
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 1133
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 1134
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fought",
+      "type": "w",
+      "i": 1135
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 1136
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "unstoppable",
+      "type": "w",
+      "i": 1137
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fury",
+      "type": "w",
+      "i": 1138
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1139
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "skill",
+      "type": "w",
+      "i": 1140
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 1141
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "red-and-gold",
+      "type": "w",
+      "i": 1142
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 1143
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "became",
+      "type": "w",
+      "i": 1144
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 1145
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "blur",
+      "type": "w",
+      "i": 1146
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 1147
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "motion",
+      "type": "w",
+      "i": 1148
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "striking",
+      "type": "w",
+      "i": 1149
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1150
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 1151
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 1152
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "from",
+      "type": "w",
+      "i": 1153
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "every",
+      "type": "w",
+      "i": 1154
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "direction",
+      "type": "w",
+      "i": 1155
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 1156
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "demons",
+      "type": "w",
+      "i": 1157
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tried",
+      "type": "w",
+      "i": 1158
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1159
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "use",
+      "type": "w",
+      "i": 1160
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 1161
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 1162
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "again",
+      "type": "w",
+      "i": 1163
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "but",
+      "type": "w",
+      "i": 1164
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 1165
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 1166
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ready",
+      "type": "w",
+      "i": 1167
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "this",
+      "type": "w",
+      "i": 1168
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "time",
+      "type": "w",
+      "i": 1169
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transforming",
+      "type": "w",
+      "i": 1170
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "briefly",
+      "type": "w",
+      "i": 1171
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 1172
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "different",
+      "type": "w",
+      "i": 1173
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "forms",
+      "type": "w",
+      "i": 1174
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "whenever",
+      "type": "w",
+      "i": 1175
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 1176
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tried",
+      "type": "w",
+      "i": 1177
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1178
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trap",
+      "type": "w",
+      "i": 1179
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 1180
+    },
+    {
+      "t": "—",
+      "type": "p"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 1181
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bird",
+      "type": "w",
+      "i": 1182
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1183
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fly",
+      "type": "w",
+      "i": 1184
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "away",
+      "type": "w",
+      "i": 1185
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 1186
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stone",
+      "type": "w",
+      "i": 1187
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1188
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "let",
+      "type": "w",
+      "i": 1189
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "webs",
+      "type": "w",
+      "i": 1190
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pass",
+      "type": "w",
+      "i": 1191
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "over",
+      "type": "w",
+      "i": 1192
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 1193
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 1194
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gust",
+      "type": "w",
+      "i": 1195
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 1196
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wind",
+      "type": "w",
+      "i": 1197
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1198
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "blow",
+      "type": "w",
+      "i": 1199
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "them",
+      "type": "w",
+      "i": 1200
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "back",
+      "type": "w",
+      "i": 1201
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 1202
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "seventy-two",
+      "type": "w",
+      "i": 1203
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "transformations",
+      "type": "w",
+      "i": 1204
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "made",
+      "type": "w",
+      "i": 1205
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 1206
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "impossible",
+      "type": "w",
+      "i": 1207
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1208
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "catch",
+      "type": "w",
+      "i": 1209
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "or",
+      "type": "w",
+      "i": 1210
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "defeat",
+      "type": "w",
+      "i": 1211
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "One",
+      "type": "w",
+      "i": 1212
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "by",
+      "type": "w",
+      "i": 1213
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "one",
+      "type": "w",
+      "i": 1214
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1215
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 1216
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 1217
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fled",
+      "type": "w",
+      "i": 1218
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 1219
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "terror",
+      "type": "w",
+      "i": 1220
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "scurrying",
+      "type": "w",
+      "i": 1221
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "back",
+      "type": "w",
+      "i": 1222
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 1223
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1224
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "deepest",
+      "type": "w",
+      "i": 1225
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "parts",
+      "type": "w",
+      "i": 1226
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 1227
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 1228
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cave",
+      "type": "w",
+      "i": 1229
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 1230
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "rescued",
+      "type": "w",
+      "i": 1231
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "all",
+      "type": "w",
+      "i": 1232
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1233
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "companions",
+      "type": "w",
+      "i": 1234
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "breaking",
+      "type": "w",
+      "i": 1235
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 1236
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bonds",
+      "type": "w",
+      "i": 1237
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1238
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "leading",
+      "type": "w",
+      "i": 1239
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "them",
+      "type": "w",
+      "i": 1240
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "safely",
+      "type": "w",
+      "i": 1241
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "out",
+      "type": "w",
+      "i": 1242
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 1243
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1244
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "underground",
+      "type": "w",
+      "i": 1245
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "prison",
+      "type": "w",
+      "i": 1246
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "As",
+      "type": "w",
+      "i": 1247
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "they",
+      "type": "w",
+      "i": 1248
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "emerged",
+      "type": "w",
+      "i": 1249
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 1250
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1251
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fresh",
+      "type": "w",
+      "i": 1252
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "morning",
+      "type": "w",
+      "i": 1253
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "air",
+      "type": "w",
+      "i": 1254
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1255
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "master",
+      "type": "w",
+      "i": 1256
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "thanked",
+      "type": "w",
+      "i": 1257
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 1258
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 1259
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1260
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bravery",
+      "type": "w",
+      "i": 1261
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1262
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cleverness",
+      "type": "w",
+      "i": 1263
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 1264
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grinned",
+      "type": "w",
+      "i": 1265
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1266
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "boyish",
+      "type": "w",
+      "i": 1267
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mischievous",
+      "type": "w",
+      "i": 1268
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grin",
+      "type": "w",
+      "i": 1269
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "twirling",
+      "type": "w",
+      "i": 1270
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1271
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 1272
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "proudly",
+      "type": "w",
+      "i": 1273
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 1274
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Spider",
+      "type": "w",
+      "i": 1275
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Demons",
+      "type": "w",
+      "i": 1276
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "had",
+      "type": "w",
+      "i": 1277
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "learned",
+      "type": "w",
+      "i": 1278
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "an",
+      "type": "w",
+      "i": 1279
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "important",
+      "type": "w",
+      "i": 1280
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lesson",
+      "type": "w",
+      "i": 1281
+    },
+    {
+      "t": "—",
+      "type": "p"
+    },
+    {
+      "t": "never",
+      "type": "w",
+      "i": 1282
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "try",
+      "type": "w",
+      "i": 1283
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 1284
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "trap",
+      "type": "w",
+      "i": 1285
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 1286
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Monkey",
+      "type": "w",
+      "i": 1287
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 1288
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 1289
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 1290
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magic",
+      "type": "w",
+      "i": 1291
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1292
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "cunning",
+      "type": "w",
+      "i": 1293
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "are",
+      "type": "w",
+      "i": 1294
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "greater",
+      "type": "w",
+      "i": 1295
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "than",
+      "type": "w",
+      "i": 1296
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "any",
+      "type": "w",
+      "i": 1297
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "web",
+      "type": "w",
+      "i": 1298
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 1299
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "travelers",
+      "type": "w",
+      "i": 1300
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "continued",
+      "type": "w",
+      "i": 1301
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "their",
+      "type": "w",
+      "i": 1302
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "journey",
+      "type": "w",
+      "i": 1303
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "westward",
+      "type": "w",
+      "i": 1304
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 1305
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 1306
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "legend",
+      "type": "w",
+      "i": 1307
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grew",
+      "type": "w",
+      "i": 1308
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "even",
+      "type": "w",
+      "i": 1309
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "greater",
+      "type": "w",
+      "i": 1310
+    },
+    {
+      "t": ".",
+      "type": "p"
+    }
+  ],
+  "character_anchor": "Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution."
+}

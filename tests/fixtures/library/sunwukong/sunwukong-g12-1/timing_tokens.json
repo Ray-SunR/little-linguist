@@ -1,0 +1,2770 @@
+[
+  {
+    "absIndex": 0,
+    "shardIndex": 0,
+    "start": 0.04,
+    "end": 0.33,
+    "offset": 0.0,
+    "word": "Long"
+  },
+  {
+    "absIndex": 1,
+    "shardIndex": 0,
+    "start": 0.33,
+    "end": 0.8,
+    "offset": 0.0,
+    "word": "ago"
+  },
+  {
+    "absIndex": 2,
+    "shardIndex": 0,
+    "start": 1.02,
+    "end": 1.18,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 3,
+    "shardIndex": 0,
+    "start": 1.18,
+    "end": 1.24,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 4,
+    "shardIndex": 0,
+    "start": 1.24,
+    "end": 1.71,
+    "offset": 0.0,
+    "word": "mountain"
+  },
+  {
+    "absIndex": 5,
+    "shardIndex": 0,
+    "start": 1.71,
+    "end": 1.97,
+    "offset": 0.0,
+    "word": "called"
+  },
+  {
+    "absIndex": 6,
+    "shardIndex": 0,
+    "start": 1.97,
+    "end": 2.39,
+    "offset": 0.0,
+    "word": "Flower"
+  },
+  {
+    "absIndex": 7,
+    "shardIndex": 0,
+    "start": 2.39,
+    "end": 2.63,
+    "offset": 0.0,
+    "word": "Fruit"
+  },
+  {
+    "absIndex": 8,
+    "shardIndex": 0,
+    "start": 2.63,
+    "end": 3.17,
+    "offset": 0.0,
+    "word": "Mountain"
+  },
+  {
+    "absIndex": 9,
+    "shardIndex": 0,
+    "start": 3.46,
+    "end": 3.77,
+    "offset": 0.0,
+    "word": "many"
+  },
+  {
+    "absIndex": 10,
+    "shardIndex": 0,
+    "start": 3.77,
+    "end": 4.23,
+    "offset": 0.0,
+    "word": "monkeys"
+  },
+  {
+    "absIndex": 11,
+    "shardIndex": 0,
+    "start": 4.23,
+    "end": 4.45,
+    "offset": 0.0,
+    "word": "lived"
+  },
+  {
+    "absIndex": 12,
+    "shardIndex": 0,
+    "start": 4.45,
+    "end": 5.0,
+    "offset": 0.0,
+    "word": "together"
+  },
+  {
+    "absIndex": 13,
+    "shardIndex": 0,
+    "start": 5.86,
+    "end": 6.07,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 14,
+    "shardIndex": 0,
+    "start": 6.07,
+    "end": 6.38,
+    "offset": 0.0,
+    "word": "played"
+  },
+  {
+    "absIndex": 15,
+    "shardIndex": 0,
+    "start": 6.38,
+    "end": 6.47,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 16,
+    "shardIndex": 0,
+    "start": 6.47,
+    "end": 6.56,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 17,
+    "shardIndex": 0,
+    "start": 6.56,
+    "end": 7.01,
+    "offset": 0.0,
+    "word": "trees"
+  },
+  {
+    "absIndex": 18,
+    "shardIndex": 0,
+    "start": 7.01,
+    "end": 7.15,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 19,
+    "shardIndex": 0,
+    "start": 7.15,
+    "end": 7.34,
+    "offset": 0.0,
+    "word": "ate"
+  },
+  {
+    "absIndex": 20,
+    "shardIndex": 0,
+    "start": 7.34,
+    "end": 7.66,
+    "offset": 0.0,
+    "word": "sweet"
+  },
+  {
+    "absIndex": 21,
+    "shardIndex": 0,
+    "start": 7.66,
+    "end": 7.91,
+    "offset": 0.0,
+    "word": "fruit"
+  },
+  {
+    "absIndex": 22,
+    "shardIndex": 0,
+    "start": 7.91,
+    "end": 8.05,
+    "offset": 0.0,
+    "word": "all"
+  },
+  {
+    "absIndex": 23,
+    "shardIndex": 0,
+    "start": 8.05,
+    "end": 8.25,
+    "offset": 0.0,
+    "word": "day"
+  },
+  {
+    "absIndex": 24,
+    "shardIndex": 0,
+    "start": 8.25,
+    "end": 8.66,
+    "offset": 0.0,
+    "word": "long"
+  },
+  {
+    "absIndex": 25,
+    "shardIndex": 0,
+    "start": 10.41,
+    "end": 10.65,
+    "offset": 0.0,
+    "word": "One"
+  },
+  {
+    "absIndex": 26,
+    "shardIndex": 0,
+    "start": 10.65,
+    "end": 11.03,
+    "offset": 0.0,
+    "word": "day"
+  },
+  {
+    "absIndex": 27,
+    "shardIndex": 0,
+    "start": 11.06,
+    "end": 11.2,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 28,
+    "shardIndex": 0,
+    "start": 11.2,
+    "end": 11.6,
+    "offset": 0.0,
+    "word": "monkeys"
+  },
+  {
+    "absIndex": 29,
+    "shardIndex": 0,
+    "start": 11.6,
+    "end": 11.88,
+    "offset": 0.0,
+    "word": "found"
+  },
+  {
+    "absIndex": 30,
+    "shardIndex": 0,
+    "start": 11.88,
+    "end": 11.93,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 31,
+    "shardIndex": 0,
+    "start": 11.93,
+    "end": 12.39,
+    "offset": 0.0,
+    "word": "beautiful"
+  },
+  {
+    "absIndex": 32,
+    "shardIndex": 0,
+    "start": 12.39,
+    "end": 13.07,
+    "offset": 0.0,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 33,
+    "shardIndex": 0,
+    "start": 13.31,
+    "end": 13.44,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 34,
+    "shardIndex": 0,
+    "start": 13.44,
+    "end": 13.79,
+    "offset": 0.0,
+    "word": "water"
+  },
+  {
+    "absIndex": 35,
+    "shardIndex": 0,
+    "start": 13.79,
+    "end": 14.2,
+    "offset": 0.0,
+    "word": "crashed"
+  },
+  {
+    "absIndex": 36,
+    "shardIndex": 0,
+    "start": 14.2,
+    "end": 14.49,
+    "offset": 0.0,
+    "word": "down"
+  },
+  {
+    "absIndex": 37,
+    "shardIndex": 0,
+    "start": 14.49,
+    "end": 14.75,
+    "offset": 0.0,
+    "word": "into"
+  },
+  {
+    "absIndex": 38,
+    "shardIndex": 0,
+    "start": 14.75,
+    "end": 14.81,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 39,
+    "shardIndex": 0,
+    "start": 14.81,
+    "end": 15.11,
+    "offset": 0.0,
+    "word": "pool"
+  },
+  {
+    "absIndex": 40,
+    "shardIndex": 0,
+    "start": 15.11,
+    "end": 15.65,
+    "offset": 0.0,
+    "word": "below"
+  },
+  {
+    "absIndex": 41,
+    "shardIndex": 0,
+    "start": 16.67,
+    "end": 17.09,
+    "offset": 0.0,
+    "word": "Behind"
+  },
+  {
+    "absIndex": 42,
+    "shardIndex": 0,
+    "start": 17.12,
+    "end": 17.23,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 43,
+    "shardIndex": 0,
+    "start": 17.23,
+    "end": 17.59,
+    "offset": 0.0,
+    "word": "rushing"
+  },
+  {
+    "absIndex": 44,
+    "shardIndex": 0,
+    "start": 17.59,
+    "end": 18.05,
+    "offset": 0.0,
+    "word": "water"
+  },
+  {
+    "absIndex": 45,
+    "shardIndex": 0,
+    "start": 18.11,
+    "end": 18.32,
+    "offset": 0.0,
+    "word": "they"
+  },
+  {
+    "absIndex": 46,
+    "shardIndex": 0,
+    "start": 18.32,
+    "end": 18.53,
+    "offset": 0.0,
+    "word": "saw"
+  },
+  {
+    "absIndex": 47,
+    "shardIndex": 0,
+    "start": 18.53,
+    "end": 18.98,
+    "offset": 0.0,
+    "word": "something"
+  },
+  {
+    "absIndex": 48,
+    "shardIndex": 0,
+    "start": 18.98,
+    "end": 19.39,
+    "offset": 0.0,
+    "word": "dark"
+  },
+  {
+    "absIndex": 49,
+    "shardIndex": 0,
+    "start": 19.4,
+    "end": 19.6,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 50,
+    "shardIndex": 0,
+    "start": 19.61,
+    "end": 20.41,
+    "offset": 0.0,
+    "word": "mysterious"
+  },
+  {
+    "absIndex": 51,
+    "shardIndex": 0,
+    "start": 21.27,
+    "end": 21.38,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 52,
+    "shardIndex": 0,
+    "start": 21.38,
+    "end": 21.89,
+    "offset": 0.0,
+    "word": "monkeys"
+  },
+  {
+    "absIndex": 53,
+    "shardIndex": 0,
+    "start": 21.89,
+    "end": 22.03,
+    "offset": 0.0,
+    "word": "were"
+  },
+  {
+    "absIndex": 54,
+    "shardIndex": 0,
+    "start": 22.03,
+    "end": 22.37,
+    "offset": 0.0,
+    "word": "very"
+  },
+  {
+    "absIndex": 55,
+    "shardIndex": 0,
+    "start": 22.37,
+    "end": 23.06,
+    "offset": 0.0,
+    "word": "curious"
+  },
+  {
+    "absIndex": 56,
+    "shardIndex": 0,
+    "start": 23.29,
+    "end": 23.49,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 57,
+    "shardIndex": 0,
+    "start": 23.49,
+    "end": 23.92,
+    "offset": 0.0,
+    "word": "wondered"
+  },
+  {
+    "absIndex": 58,
+    "shardIndex": 0,
+    "start": 23.92,
+    "end": 24.08,
+    "offset": 0.0,
+    "word": "what"
+  },
+  {
+    "absIndex": 59,
+    "shardIndex": 0,
+    "start": 24.08,
+    "end": 24.24,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 60,
+    "shardIndex": 0,
+    "start": 24.24,
+    "end": 24.58,
+    "offset": 0.0,
+    "word": "hiding"
+  },
+  {
+    "absIndex": 61,
+    "shardIndex": 0,
+    "start": 24.58,
+    "end": 24.9,
+    "offset": 0.0,
+    "word": "behind"
+  },
+  {
+    "absIndex": 62,
+    "shardIndex": 0,
+    "start": 24.9,
+    "end": 24.97,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 63,
+    "shardIndex": 0,
+    "start": 24.97,
+    "end": 25.64,
+    "offset": 0.0,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 64,
+    "shardIndex": 0,
+    "start": 27.38,
+    "end": 27.58,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 65,
+    "shardIndex": 0,
+    "start": 27.58,
+    "end": 27.95,
+    "offset": 0.0,
+    "word": "oldest"
+  },
+  {
+    "absIndex": 66,
+    "shardIndex": 0,
+    "start": 27.95,
+    "end": 28.29,
+    "offset": 0.0,
+    "word": "monkey"
+  },
+  {
+    "absIndex": 67,
+    "shardIndex": 0,
+    "start": 28.29,
+    "end": 28.59,
+    "offset": 0.0,
+    "word": "spoke"
+  },
+  {
+    "absIndex": 68,
+    "shardIndex": 0,
+    "start": 28.59,
+    "end": 28.94,
+    "offset": 0.0,
+    "word": "up"
+  },
+  {
+    "absIndex": 69,
+    "shardIndex": 0,
+    "start": 29.84,
+    "end": 30.05,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 70,
+    "shardIndex": 0,
+    "start": 30.05,
+    "end": 30.27,
+    "offset": 0.0,
+    "word": "said"
+  },
+  {
+    "absIndex": 71,
+    "shardIndex": 0,
+    "start": 30.27,
+    "end": 30.69,
+    "offset": 0.0,
+    "word": "whoever"
+  },
+  {
+    "absIndex": 72,
+    "shardIndex": 0,
+    "start": 30.69,
+    "end": 30.89,
+    "offset": 0.0,
+    "word": "could"
+  },
+  {
+    "absIndex": 73,
+    "shardIndex": 0,
+    "start": 30.89,
+    "end": 31.16,
+    "offset": 0.0,
+    "word": "jump"
+  },
+  {
+    "absIndex": 74,
+    "shardIndex": 0,
+    "start": 31.16,
+    "end": 31.36,
+    "offset": 0.0,
+    "word": "through"
+  },
+  {
+    "absIndex": 75,
+    "shardIndex": 0,
+    "start": 31.36,
+    "end": 31.46,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 76,
+    "shardIndex": 0,
+    "start": 31.46,
+    "end": 32.15,
+    "offset": 0.0,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 77,
+    "shardIndex": 0,
+    "start": 32.16,
+    "end": 32.36,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 78,
+    "shardIndex": 0,
+    "start": 32.36,
+    "end": 32.73,
+    "offset": 0.0,
+    "word": "become"
+  },
+  {
+    "absIndex": 79,
+    "shardIndex": 0,
+    "start": 32.73,
+    "end": 32.94,
+    "offset": 0.0,
+    "word": "their"
+  },
+  {
+    "absIndex": 80,
+    "shardIndex": 0,
+    "start": 32.94,
+    "end": 33.39,
+    "offset": 0.0,
+    "word": "king"
+  },
+  {
+    "absIndex": 81,
+    "shardIndex": 0,
+    "start": 34.43,
+    "end": 34.63,
+    "offset": 0.0,
+    "word": "All"
+  },
+  {
+    "absIndex": 82,
+    "shardIndex": 0,
+    "start": 34.63,
+    "end": 34.72,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 83,
+    "shardIndex": 0,
+    "start": 34.72,
+    "end": 35.18,
+    "offset": 0.0,
+    "word": "monkeys"
+  },
+  {
+    "absIndex": 84,
+    "shardIndex": 0,
+    "start": 35.18,
+    "end": 35.39,
+    "offset": 0.0,
+    "word": "looked"
+  },
+  {
+    "absIndex": 85,
+    "shardIndex": 0,
+    "start": 35.39,
+    "end": 35.5,
+    "offset": 0.0,
+    "word": "at"
+  },
+  {
+    "absIndex": 86,
+    "shardIndex": 0,
+    "start": 35.5,
+    "end": 35.66,
+    "offset": 0.0,
+    "word": "each"
+  },
+  {
+    "absIndex": 87,
+    "shardIndex": 0,
+    "start": 35.66,
+    "end": 35.86,
+    "offset": 0.0,
+    "word": "other"
+  },
+  {
+    "absIndex": 88,
+    "shardIndex": 0,
+    "start": 35.86,
+    "end": 36.55,
+    "offset": 0.0,
+    "word": "nervously"
+  },
+  {
+    "absIndex": 89,
+    "shardIndex": 0,
+    "start": 36.77,
+    "end": 36.89,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 90,
+    "shardIndex": 0,
+    "start": 36.89,
+    "end": 37.44,
+    "offset": 0.0,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 91,
+    "shardIndex": 0,
+    "start": 37.44,
+    "end": 37.65,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 92,
+    "shardIndex": 0,
+    "start": 37.66,
+    "end": 38.0,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 93,
+    "shardIndex": 0,
+    "start": 38.0,
+    "end": 38.14,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 94,
+    "shardIndex": 0,
+    "start": 38.16,
+    "end": 38.84,
+    "offset": 0.0,
+    "word": "powerful"
+  },
+  {
+    "absIndex": 95,
+    "shardIndex": 0,
+    "start": 39.07,
+    "end": 39.2,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 96,
+    "shardIndex": 0,
+    "start": 39.2,
+    "end": 39.59,
+    "offset": 0.0,
+    "word": "water"
+  },
+  {
+    "absIndex": 97,
+    "shardIndex": 0,
+    "start": 39.59,
+    "end": 39.85,
+    "offset": 0.0,
+    "word": "fell"
+  },
+  {
+    "absIndex": 98,
+    "shardIndex": 0,
+    "start": 39.85,
+    "end": 40.36,
+    "offset": 0.0,
+    "word": "fast"
+  },
+  {
+    "absIndex": 99,
+    "shardIndex": 0,
+    "start": 40.36,
+    "end": 40.52,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 100,
+    "shardIndex": 0,
+    "start": 40.52,
+    "end": 40.97,
+    "offset": 0.0,
+    "word": "hard"
+  },
+  {
+    "absIndex": 101,
+    "shardIndex": 0,
+    "start": 41.84,
+    "end": 42.15,
+    "offset": 0.0,
+    "word": "Many"
+  },
+  {
+    "absIndex": 102,
+    "shardIndex": 0,
+    "start": 42.15,
+    "end": 42.65,
+    "offset": 0.0,
+    "word": "monkeys"
+  },
+  {
+    "absIndex": 103,
+    "shardIndex": 0,
+    "start": 42.65,
+    "end": 42.78,
+    "offset": 0.0,
+    "word": "were"
+  },
+  {
+    "absIndex": 104,
+    "shardIndex": 0,
+    "start": 42.78,
+    "end": 43.01,
+    "offset": 0.0,
+    "word": "too"
+  },
+  {
+    "absIndex": 105,
+    "shardIndex": 0,
+    "start": 43.01,
+    "end": 43.39,
+    "offset": 0.0,
+    "word": "scared"
+  },
+  {
+    "absIndex": 106,
+    "shardIndex": 0,
+    "start": 43.4,
+    "end": 43.5,
+    "offset": 0.0,
+    "word": "to"
+  },
+  {
+    "absIndex": 107,
+    "shardIndex": 0,
+    "start": 43.5,
+    "end": 44.0,
+    "offset": 0.0,
+    "word": "try"
+  },
+  {
+    "absIndex": 108,
+    "shardIndex": 0,
+    "start": 44.23,
+    "end": 44.44,
+    "offset": 0.0,
+    "word": "They"
+  },
+  {
+    "absIndex": 109,
+    "shardIndex": 0,
+    "start": 44.44,
+    "end": 44.73,
+    "offset": 0.0,
+    "word": "stepped"
+  },
+  {
+    "absIndex": 110,
+    "shardIndex": 0,
+    "start": 44.76,
+    "end": 45.02,
+    "offset": 0.0,
+    "word": "back"
+  },
+  {
+    "absIndex": 111,
+    "shardIndex": 0,
+    "start": 45.02,
+    "end": 45.18,
+    "offset": 0.0,
+    "word": "from"
+  },
+  {
+    "absIndex": 112,
+    "shardIndex": 0,
+    "start": 45.18,
+    "end": 45.34,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 113,
+    "shardIndex": 0,
+    "start": 45.34,
+    "end": 45.76,
+    "offset": 0.0,
+    "word": "edge"
+  },
+  {
+    "absIndex": 114,
+    "shardIndex": 0,
+    "start": 46.82,
+    "end": 47.05,
+    "offset": 0.0,
+    "word": "But"
+  },
+  {
+    "absIndex": 115,
+    "shardIndex": 0,
+    "start": 47.05,
+    "end": 47.32,
+    "offset": 0.0,
+    "word": "one"
+  },
+  {
+    "absIndex": 116,
+    "shardIndex": 0,
+    "start": 47.32,
+    "end": 47.6,
+    "offset": 0.0,
+    "word": "brave"
+  },
+  {
+    "absIndex": 117,
+    "shardIndex": 0,
+    "start": 47.61,
+    "end": 48.08,
+    "offset": 0.0,
+    "word": "monkey"
+  },
+  {
+    "absIndex": 118,
+    "shardIndex": 0,
+    "start": 48.08,
+    "end": 48.31,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 119,
+    "shardIndex": 0,
+    "start": 48.31,
+    "end": 48.57,
+    "offset": 0.0,
+    "word": "not"
+  },
+  {
+    "absIndex": 120,
+    "shardIndex": 0,
+    "start": 48.57,
+    "end": 49.13,
+    "offset": 0.0,
+    "word": "afraid"
+  },
+  {
+    "absIndex": 121,
+    "shardIndex": 0,
+    "start": 50.0,
+    "end": 50.23,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 122,
+    "shardIndex": 0,
+    "start": 50.23,
+    "end": 50.52,
+    "offset": 0.0,
+    "word": "name"
+  },
+  {
+    "absIndex": 123,
+    "shardIndex": 0,
+    "start": 50.52,
+    "end": 50.69,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 124,
+    "shardIndex": 0,
+    "start": 50.69,
+    "end": 51.0,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 125,
+    "shardIndex": 0,
+    "start": 51.0,
+    "end": 51.61,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 126,
+    "shardIndex": 0,
+    "start": 51.86,
+    "end": 52.04,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 127,
+    "shardIndex": 0,
+    "start": 52.04,
+    "end": 52.21,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 128,
+    "shardIndex": 0,
+    "start": 52.21,
+    "end": 52.6,
+    "offset": 0.0,
+    "word": "golden"
+  },
+  {
+    "absIndex": 129,
+    "shardIndex": 0,
+    "start": 52.6,
+    "end": 52.86,
+    "offset": 0.0,
+    "word": "fur"
+  },
+  {
+    "absIndex": 130,
+    "shardIndex": 0,
+    "start": 52.86,
+    "end": 53.27,
+    "offset": 0.0,
+    "word": "shined"
+  },
+  {
+    "absIndex": 131,
+    "shardIndex": 0,
+    "start": 53.27,
+    "end": 53.35,
+    "offset": 0.0,
+    "word": "in"
+  },
+  {
+    "absIndex": 132,
+    "shardIndex": 0,
+    "start": 53.35,
+    "end": 53.45,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 133,
+    "shardIndex": 0,
+    "start": 53.45,
+    "end": 54.08,
+    "offset": 0.0,
+    "word": "sunlight"
+  },
+  {
+    "absIndex": 134,
+    "shardIndex": 0,
+    "start": 56.1,
+    "end": 56.15,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 135,
+    "shardIndex": 0,
+    "start": 56.15,
+    "end": 56.61,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 136,
+    "shardIndex": 0,
+    "start": 56.62,
+    "end": 57.11,
+    "offset": 0.0,
+    "word": "smiled"
+  },
+  {
+    "absIndex": 137,
+    "shardIndex": 0,
+    "start": 57.11,
+    "end": 57.28,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 138,
+    "shardIndex": 0,
+    "start": 57.28,
+    "end": 57.91,
+    "offset": 0.0,
+    "word": "mischievous"
+  },
+  {
+    "absIndex": 139,
+    "shardIndex": 0,
+    "start": 57.91,
+    "end": 58.47,
+    "offset": 0.0,
+    "word": "smile"
+  },
+  {
+    "absIndex": 140,
+    "shardIndex": 0,
+    "start": 58.72,
+    "end": 58.9,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 141,
+    "shardIndex": 0,
+    "start": 58.9,
+    "end": 59.1,
+    "offset": 0.0,
+    "word": "took"
+  },
+  {
+    "absIndex": 142,
+    "shardIndex": 0,
+    "start": 59.1,
+    "end": 59.19,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 143,
+    "shardIndex": 0,
+    "start": 59.2,
+    "end": 59.45,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 144,
+    "shardIndex": 0,
+    "start": 59.46,
+    "end": 59.85,
+    "offset": 0.0,
+    "word": "breath"
+  },
+  {
+    "absIndex": 145,
+    "shardIndex": 0,
+    "start": 59.88,
+    "end": 60.11,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 146,
+    "shardIndex": 0,
+    "start": 60.11,
+    "end": 60.38,
+    "offset": 0.0,
+    "word": "ran"
+  },
+  {
+    "absIndex": 147,
+    "shardIndex": 0,
+    "start": 60.38,
+    "end": 60.7,
+    "offset": 0.0,
+    "word": "toward"
+  },
+  {
+    "absIndex": 148,
+    "shardIndex": 0,
+    "start": 60.7,
+    "end": 60.77,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 149,
+    "shardIndex": 0,
+    "start": 60.77,
+    "end": 61.44,
+    "offset": 0.0,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 150,
+    "shardIndex": 0,
+    "start": 61.71,
+    "end": 61.93,
+    "offset": 0.0,
+    "word": "His"
+  },
+  {
+    "absIndex": 151,
+    "shardIndex": 0,
+    "start": 61.93,
+    "end": 62.32,
+    "offset": 0.0,
+    "word": "strong"
+  },
+  {
+    "absIndex": 152,
+    "shardIndex": 0,
+    "start": 62.32,
+    "end": 62.71,
+    "offset": 0.0,
+    "word": "legs"
+  },
+  {
+    "absIndex": 153,
+    "shardIndex": 0,
+    "start": 62.71,
+    "end": 63.04,
+    "offset": 0.0,
+    "word": "pushed"
+  },
+  {
+    "absIndex": 154,
+    "shardIndex": 0,
+    "start": 63.04,
+    "end": 63.22,
+    "offset": 0.0,
+    "word": "off"
+  },
+  {
+    "absIndex": 155,
+    "shardIndex": 0,
+    "start": 63.22,
+    "end": 63.33,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 156,
+    "shardIndex": 0,
+    "start": 63.33,
+    "end": 63.84,
+    "offset": 0.0,
+    "word": "ground"
+  },
+  {
+    "absIndex": 157,
+    "shardIndex": 0,
+    "start": 64.13,
+    "end": 64.32,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 158,
+    "shardIndex": 0,
+    "start": 64.32,
+    "end": 64.6,
+    "offset": 0.0,
+    "word": "jumped"
+  },
+  {
+    "absIndex": 159,
+    "shardIndex": 0,
+    "start": 64.6,
+    "end": 64.89,
+    "offset": 0.0,
+    "word": "high"
+  },
+  {
+    "absIndex": 160,
+    "shardIndex": 0,
+    "start": 64.89,
+    "end": 65.1,
+    "offset": 0.0,
+    "word": "into"
+  },
+  {
+    "absIndex": 161,
+    "shardIndex": 0,
+    "start": 65.1,
+    "end": 65.27,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 162,
+    "shardIndex": 0,
+    "start": 65.27,
+    "end": 65.61,
+    "offset": 0.0,
+    "word": "air"
+  },
+  {
+    "absIndex": 163,
+    "shardIndex": 0,
+    "start": 66.48,
+    "end": 66.61,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 164,
+    "shardIndex": 0,
+    "start": 66.61,
+    "end": 66.96,
+    "offset": 0.0,
+    "word": "water"
+  },
+  {
+    "absIndex": 165,
+    "shardIndex": 0,
+    "start": 66.96,
+    "end": 67.27,
+    "offset": 0.0,
+    "word": "rushed"
+  },
+  {
+    "absIndex": 166,
+    "shardIndex": 0,
+    "start": 67.27,
+    "end": 67.61,
+    "offset": 0.0,
+    "word": "around"
+  },
+  {
+    "absIndex": 167,
+    "shardIndex": 0,
+    "start": 67.61,
+    "end": 67.88,
+    "offset": 0.0,
+    "word": "him"
+  },
+  {
+    "absIndex": 168,
+    "shardIndex": 0,
+    "start": 67.89,
+    "end": 68.07,
+    "offset": 0.0,
+    "word": "as"
+  },
+  {
+    "absIndex": 169,
+    "shardIndex": 0,
+    "start": 68.07,
+    "end": 68.21,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 170,
+    "shardIndex": 0,
+    "start": 68.21,
+    "end": 68.49,
+    "offset": 0.0,
+    "word": "flew"
+  },
+  {
+    "absIndex": 171,
+    "shardIndex": 0,
+    "start": 68.49,
+    "end": 68.66,
+    "offset": 0.0,
+    "word": "through"
+  },
+  {
+    "absIndex": 172,
+    "shardIndex": 0,
+    "start": 68.66,
+    "end": 68.76,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 173,
+    "shardIndex": 0,
+    "start": 68.76,
+    "end": 69.41,
+    "offset": 0.0,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 174,
+    "shardIndex": 0,
+    "start": 69.65,
+    "end": 69.84,
+    "offset": 0.0,
+    "word": "For"
+  },
+  {
+    "absIndex": 175,
+    "shardIndex": 0,
+    "start": 69.84,
+    "end": 69.89,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 176,
+    "shardIndex": 0,
+    "start": 69.89,
+    "end": 70.42,
+    "offset": 0.0,
+    "word": "moment"
+  },
+  {
+    "absIndex": 177,
+    "shardIndex": 0,
+    "start": 70.64,
+    "end": 71.14,
+    "offset": 0.0,
+    "word": "everything"
+  },
+  {
+    "absIndex": 178,
+    "shardIndex": 0,
+    "start": 71.14,
+    "end": 71.33,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 179,
+    "shardIndex": 0,
+    "start": 71.33,
+    "end": 71.7,
+    "offset": 0.0,
+    "word": "wet"
+  },
+  {
+    "absIndex": 180,
+    "shardIndex": 0,
+    "start": 71.72,
+    "end": 71.95,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 181,
+    "shardIndex": 0,
+    "start": 71.95,
+    "end": 72.39,
+    "offset": 0.0,
+    "word": "loud"
+  },
+  {
+    "absIndex": 182,
+    "shardIndex": 0,
+    "start": 73.44,
+    "end": 73.71,
+    "offset": 0.0,
+    "word": "Then"
+  },
+  {
+    "absIndex": 183,
+    "shardIndex": 0,
+    "start": 73.71,
+    "end": 74.3,
+    "offset": 0.0,
+    "word": "suddenly"
+  },
+  {
+    "absIndex": 184,
+    "shardIndex": 0,
+    "start": 74.49,
+    "end": 74.65,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 185,
+    "shardIndex": 0,
+    "start": 74.65,
+    "end": 74.83,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 186,
+    "shardIndex": 0,
+    "start": 74.83,
+    "end": 74.96,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 187,
+    "shardIndex": 0,
+    "start": 74.96,
+    "end": 75.08,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 188,
+    "shardIndex": 0,
+    "start": 75.08,
+    "end": 75.3,
+    "offset": 0.0,
+    "word": "other"
+  },
+  {
+    "absIndex": 189,
+    "shardIndex": 0,
+    "start": 75.3,
+    "end": 75.8,
+    "offset": 0.0,
+    "word": "side"
+  },
+  {
+    "absIndex": 190,
+    "shardIndex": 0,
+    "start": 76.08,
+    "end": 76.34,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 191,
+    "shardIndex": 0,
+    "start": 76.34,
+    "end": 76.89,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 192,
+    "shardIndex": 0,
+    "start": 76.91,
+    "end": 77.12,
+    "offset": 0.0,
+    "word": "had"
+  },
+  {
+    "absIndex": 193,
+    "shardIndex": 0,
+    "start": 77.12,
+    "end": 77.33,
+    "offset": 0.0,
+    "word": "made"
+  },
+  {
+    "absIndex": 194,
+    "shardIndex": 0,
+    "start": 77.33,
+    "end": 77.47,
+    "offset": 0.0,
+    "word": "it"
+  },
+  {
+    "absIndex": 195,
+    "shardIndex": 0,
+    "start": 77.47,
+    "end": 77.92,
+    "offset": 0.0,
+    "word": "through"
+  },
+  {
+    "absIndex": 196,
+    "shardIndex": 0,
+    "start": 78.17,
+    "end": 78.33,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 197,
+    "shardIndex": 0,
+    "start": 78.33,
+    "end": 78.67,
+    "offset": 0.0,
+    "word": "landed"
+  },
+  {
+    "absIndex": 198,
+    "shardIndex": 0,
+    "start": 78.67,
+    "end": 79.11,
+    "offset": 0.0,
+    "word": "safely"
+  },
+  {
+    "absIndex": 199,
+    "shardIndex": 0,
+    "start": 79.11,
+    "end": 79.24,
+    "offset": 0.0,
+    "word": "on"
+  },
+  {
+    "absIndex": 200,
+    "shardIndex": 0,
+    "start": 79.24,
+    "end": 79.4,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 201,
+    "shardIndex": 0,
+    "start": 79.4,
+    "end": 79.84,
+    "offset": 0.0,
+    "word": "feet"
+  },
+  {
+    "absIndex": 202,
+    "shardIndex": 0,
+    "start": 81.56,
+    "end": 81.99,
+    "offset": 0.0,
+    "word": "Behind"
+  },
+  {
+    "absIndex": 203,
+    "shardIndex": 0,
+    "start": 82.02,
+    "end": 82.11,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 204,
+    "shardIndex": 0,
+    "start": 82.11,
+    "end": 82.81,
+    "offset": 0.0,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 205,
+    "shardIndex": 0,
+    "start": 83.07,
+    "end": 83.33,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 206,
+    "shardIndex": 0,
+    "start": 83.33,
+    "end": 83.84,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 207,
+    "shardIndex": 0,
+    "start": 83.85,
+    "end": 84.15,
+    "offset": 0.0,
+    "word": "found"
+  },
+  {
+    "absIndex": 208,
+    "shardIndex": 0,
+    "start": 84.16,
+    "end": 84.54,
+    "offset": 0.0,
+    "word": "something"
+  },
+  {
+    "absIndex": 209,
+    "shardIndex": 0,
+    "start": 84.54,
+    "end": 85.13,
+    "offset": 0.0,
+    "word": "amazing"
+  },
+  {
+    "absIndex": 210,
+    "shardIndex": 0,
+    "start": 86.2,
+    "end": 86.41,
+    "offset": 0.0,
+    "word": "There"
+  },
+  {
+    "absIndex": 211,
+    "shardIndex": 0,
+    "start": 86.41,
+    "end": 86.56,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 212,
+    "shardIndex": 0,
+    "start": 86.56,
+    "end": 86.64,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 213,
+    "shardIndex": 0,
+    "start": 86.65,
+    "end": 86.9,
+    "offset": 0.0,
+    "word": "big"
+  },
+  {
+    "absIndex": 214,
+    "shardIndex": 0,
+    "start": 86.91,
+    "end": 87.34,
+    "offset": 0.0,
+    "word": "cave"
+  },
+  {
+    "absIndex": 215,
+    "shardIndex": 0,
+    "start": 87.34,
+    "end": 87.49,
+    "offset": 0.0,
+    "word": "with"
+  },
+  {
+    "absIndex": 216,
+    "shardIndex": 0,
+    "start": 87.49,
+    "end": 87.85,
+    "offset": 0.0,
+    "word": "stone"
+  },
+  {
+    "absIndex": 217,
+    "shardIndex": 0,
+    "start": 87.85,
+    "end": 88.24,
+    "offset": 0.0,
+    "word": "chairs"
+  },
+  {
+    "absIndex": 218,
+    "shardIndex": 0,
+    "start": 88.24,
+    "end": 88.39,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 219,
+    "shardIndex": 0,
+    "start": 88.39,
+    "end": 88.98,
+    "offset": 0.0,
+    "word": "tables"
+  },
+  {
+    "absIndex": 220,
+    "shardIndex": 0,
+    "start": 89.21,
+    "end": 89.36,
+    "offset": 0.0,
+    "word": "It"
+  },
+  {
+    "absIndex": 221,
+    "shardIndex": 0,
+    "start": 89.36,
+    "end": 89.52,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 222,
+    "shardIndex": 0,
+    "start": 89.52,
+    "end": 89.73,
+    "offset": 0.0,
+    "word": "like"
+  },
+  {
+    "absIndex": 223,
+    "shardIndex": 0,
+    "start": 89.73,
+    "end": 89.77,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 224,
+    "shardIndex": 0,
+    "start": 89.77,
+    "end": 90.23,
+    "offset": 0.0,
+    "word": "palace"
+  },
+  {
+    "absIndex": 225,
+    "shardIndex": 0,
+    "start": 90.23,
+    "end": 90.65,
+    "offset": 0.0,
+    "word": "inside"
+  },
+  {
+    "absIndex": 226,
+    "shardIndex": 0,
+    "start": 90.65,
+    "end": 90.73,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 227,
+    "shardIndex": 0,
+    "start": 90.73,
+    "end": 91.26,
+    "offset": 0.0,
+    "word": "mountain"
+  },
+  {
+    "absIndex": 228,
+    "shardIndex": 0,
+    "start": 92.15,
+    "end": 92.31,
+    "offset": 0.0,
+    "word": "The"
+  },
+  {
+    "absIndex": 229,
+    "shardIndex": 0,
+    "start": 92.31,
+    "end": 92.61,
+    "offset": 0.0,
+    "word": "cave"
+  },
+  {
+    "absIndex": 230,
+    "shardIndex": 0,
+    "start": 92.61,
+    "end": 92.78,
+    "offset": 0.0,
+    "word": "was"
+  },
+  {
+    "absIndex": 231,
+    "shardIndex": 0,
+    "start": 92.78,
+    "end": 93.1,
+    "offset": 0.0,
+    "word": "dry"
+  },
+  {
+    "absIndex": 232,
+    "shardIndex": 0,
+    "start": 93.1,
+    "end": 93.24,
+    "offset": 0.0,
+    "word": "and"
+  },
+  {
+    "absIndex": 233,
+    "shardIndex": 0,
+    "start": 93.25,
+    "end": 93.88,
+    "offset": 0.0,
+    "word": "comfortable"
+  },
+  {
+    "absIndex": 234,
+    "shardIndex": 0,
+    "start": 94.13,
+    "end": 94.29,
+    "offset": 0.0,
+    "word": "It"
+  },
+  {
+    "absIndex": 235,
+    "shardIndex": 0,
+    "start": 94.29,
+    "end": 94.41,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 236,
+    "shardIndex": 0,
+    "start": 94.42,
+    "end": 94.57,
+    "offset": 0.0,
+    "word": "be"
+  },
+  {
+    "absIndex": 237,
+    "shardIndex": 0,
+    "start": 94.57,
+    "end": 94.63,
+    "offset": 0.0,
+    "word": "a"
+  },
+  {
+    "absIndex": 238,
+    "shardIndex": 0,
+    "start": 94.63,
+    "end": 95.06,
+    "offset": 0.0,
+    "word": "perfect"
+  },
+  {
+    "absIndex": 239,
+    "shardIndex": 0,
+    "start": 95.06,
+    "end": 95.32,
+    "offset": 0.0,
+    "word": "home"
+  },
+  {
+    "absIndex": 240,
+    "shardIndex": 0,
+    "start": 95.32,
+    "end": 95.49,
+    "offset": 0.0,
+    "word": "for"
+  },
+  {
+    "absIndex": 241,
+    "shardIndex": 0,
+    "start": 95.5,
+    "end": 95.76,
+    "offset": 0.0,
+    "word": "all"
+  },
+  {
+    "absIndex": 242,
+    "shardIndex": 0,
+    "start": 95.76,
+    "end": 95.85,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 243,
+    "shardIndex": 0,
+    "start": 95.85,
+    "end": 96.47,
+    "offset": 0.0,
+    "word": "monkeys"
+  },
+  {
+    "absIndex": 244,
+    "shardIndex": 0,
+    "start": 97.37,
+    "end": 97.65,
+    "offset": 0.0,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 245,
+    "shardIndex": 0,
+    "start": 97.65,
+    "end": 98.09,
+    "offset": 0.0,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 246,
+    "shardIndex": 0,
+    "start": 98.1,
+    "end": 98.61,
+    "offset": 0.0,
+    "word": "explored"
+  },
+  {
+    "absIndex": 247,
+    "shardIndex": 0,
+    "start": 98.63,
+    "end": 98.97,
+    "offset": 0.0,
+    "word": "every"
+  },
+  {
+    "absIndex": 248,
+    "shardIndex": 0,
+    "start": 98.97,
+    "end": 99.36,
+    "offset": 0.0,
+    "word": "corner"
+  },
+  {
+    "absIndex": 249,
+    "shardIndex": 0,
+    "start": 99.36,
+    "end": 99.53,
+    "offset": 0.0,
+    "word": "of"
+  },
+  {
+    "absIndex": 250,
+    "shardIndex": 0,
+    "start": 99.53,
+    "end": 99.6,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 251,
+    "shardIndex": 0,
+    "start": 99.6,
+    "end": 100.01,
+    "offset": 0.0,
+    "word": "wonderful"
+  },
+  {
+    "absIndex": 252,
+    "shardIndex": 0,
+    "start": 100.01,
+    "end": 100.48,
+    "offset": 0.0,
+    "word": "cave"
+  },
+  {
+    "absIndex": 253,
+    "shardIndex": 0,
+    "start": 100.74,
+    "end": 100.93,
+    "offset": 0.0,
+    "word": "He"
+  },
+  {
+    "absIndex": 254,
+    "shardIndex": 0,
+    "start": 100.93,
+    "end": 101.15,
+    "offset": 0.0,
+    "word": "knew"
+  },
+  {
+    "absIndex": 255,
+    "shardIndex": 0,
+    "start": 101.16,
+    "end": 101.34,
+    "offset": 0.0,
+    "word": "his"
+  },
+  {
+    "absIndex": 256,
+    "shardIndex": 0,
+    "start": 101.34,
+    "end": 101.66,
+    "offset": 0.0,
+    "word": "monkey"
+  },
+  {
+    "absIndex": 257,
+    "shardIndex": 0,
+    "start": 101.66,
+    "end": 102.03,
+    "offset": 0.0,
+    "word": "friends"
+  },
+  {
+    "absIndex": 258,
+    "shardIndex": 0,
+    "start": 102.03,
+    "end": 102.19,
+    "offset": 0.0,
+    "word": "would"
+  },
+  {
+    "absIndex": 259,
+    "shardIndex": 0,
+    "start": 102.19,
+    "end": 102.43,
+    "offset": 0.0,
+    "word": "love"
+  },
+  {
+    "absIndex": 260,
+    "shardIndex": 0,
+    "start": 102.44,
+    "end": 102.63,
+    "offset": 0.0,
+    "word": "this"
+  },
+  {
+    "absIndex": 261,
+    "shardIndex": 0,
+    "start": 102.64,
+    "end": 103.11,
+    "offset": 0.0,
+    "word": "place"
+  },
+  {
+    "absIndex": 262,
+    "shardIndex": 0,
+    "start": 104.15,
+    "end": 104.38,
+    "offset": 0.0,
+    "word": "Then"
+  },
+  {
+    "absIndex": 263,
+    "shardIndex": 0,
+    "start": 104.38,
+    "end": 104.53,
+    "offset": 0.0,
+    "word": "he"
+  },
+  {
+    "absIndex": 264,
+    "shardIndex": 0,
+    "start": 104.53,
+    "end": 104.73,
+    "offset": 0.0,
+    "word": "took"
+  },
+  {
+    "absIndex": 265,
+    "shardIndex": 0,
+    "start": 104.73,
+    "end": 105.1,
+    "offset": 0.0,
+    "word": "another"
+  },
+  {
+    "absIndex": 266,
+    "shardIndex": 0,
+    "start": 105.1,
+    "end": 105.43,
+    "offset": 0.0,
+    "word": "brave"
+  },
+  {
+    "absIndex": 267,
+    "shardIndex": 0,
+    "start": 105.43,
+    "end": 105.64,
+    "offset": 0.0,
+    "word": "jump"
+  },
+  {
+    "absIndex": 268,
+    "shardIndex": 0,
+    "start": 105.65,
+    "end": 105.95,
+    "offset": 0.0,
+    "word": "back"
+  },
+  {
+    "absIndex": 269,
+    "shardIndex": 0,
+    "start": 105.95,
+    "end": 106.11,
+    "offset": 0.0,
+    "word": "through"
+  },
+  {
+    "absIndex": 270,
+    "shardIndex": 0,
+    "start": 106.11,
+    "end": 106.22,
+    "offset": 0.0,
+    "word": "the"
+  },
+  {
+    "absIndex": 271,
+    "shardIndex": 0,
+    "start": 106.22,
+    "end": 106.87,
+    "offset": 0.0,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 272,
+    "shardIndex": 1,
+    "start": 107.439,
+    "end": 107.639,
+    "offset": 107.389,
+    "word": "All"
+  },
+  {
+    "absIndex": 273,
+    "shardIndex": 1,
+    "start": 107.639,
+    "end": 107.719,
+    "offset": 107.389,
+    "word": "the"
+  },
+  {
+    "absIndex": 274,
+    "shardIndex": 1,
+    "start": 107.719,
+    "end": 108.149,
+    "offset": 107.389,
+    "word": "monkeys"
+  },
+  {
+    "absIndex": 275,
+    "shardIndex": 1,
+    "start": 108.159,
+    "end": 108.579,
+    "offset": 107.389,
+    "word": "cheered"
+  },
+  {
+    "absIndex": 276,
+    "shardIndex": 1,
+    "start": 108.579,
+    "end": 108.769,
+    "offset": 107.389,
+    "word": "when"
+  },
+  {
+    "absIndex": 277,
+    "shardIndex": 1,
+    "start": 108.779,
+    "end": 109.019,
+    "offset": 107.389,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 278,
+    "shardIndex": 1,
+    "start": 109.019,
+    "end": 109.459,
+    "offset": 107.389,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 279,
+    "shardIndex": 1,
+    "start": 109.469,
+    "end": 109.679,
+    "offset": 107.389,
+    "word": "came"
+  },
+  {
+    "absIndex": 280,
+    "shardIndex": 1,
+    "start": 109.679,
+    "end": 110.119,
+    "offset": 107.389,
+    "word": "back"
+  },
+  {
+    "absIndex": 281,
+    "shardIndex": 1,
+    "start": 110.999,
+    "end": 111.179,
+    "offset": 107.389,
+    "word": "He"
+  },
+  {
+    "absIndex": 282,
+    "shardIndex": 1,
+    "start": 111.179,
+    "end": 111.449,
+    "offset": 107.389,
+    "word": "told"
+  },
+  {
+    "absIndex": 283,
+    "shardIndex": 1,
+    "start": 111.449,
+    "end": 111.559,
+    "offset": 107.389,
+    "word": "them"
+  },
+  {
+    "absIndex": 284,
+    "shardIndex": 1,
+    "start": 111.559,
+    "end": 111.839,
+    "offset": 107.389,
+    "word": "about"
+  },
+  {
+    "absIndex": 285,
+    "shardIndex": 1,
+    "start": 111.839,
+    "end": 111.929,
+    "offset": 107.389,
+    "word": "the"
+  },
+  {
+    "absIndex": 286,
+    "shardIndex": 1,
+    "start": 111.929,
+    "end": 112.349,
+    "offset": 107.389,
+    "word": "beautiful"
+  },
+  {
+    "absIndex": 287,
+    "shardIndex": 1,
+    "start": 112.349,
+    "end": 112.709,
+    "offset": 107.389,
+    "word": "cave"
+  },
+  {
+    "absIndex": 288,
+    "shardIndex": 1,
+    "start": 112.729,
+    "end": 113.129,
+    "offset": 107.389,
+    "word": "behind"
+  },
+  {
+    "absIndex": 289,
+    "shardIndex": 1,
+    "start": 113.149,
+    "end": 113.239,
+    "offset": 107.389,
+    "word": "the"
+  },
+  {
+    "absIndex": 290,
+    "shardIndex": 1,
+    "start": 113.239,
+    "end": 113.929,
+    "offset": 107.389,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 291,
+    "shardIndex": 1,
+    "start": 114.789,
+    "end": 114.909,
+    "offset": 107.389,
+    "word": "The"
+  },
+  {
+    "absIndex": 292,
+    "shardIndex": 1,
+    "start": 114.909,
+    "end": 115.339,
+    "offset": 107.389,
+    "word": "monkeys"
+  },
+  {
+    "absIndex": 293,
+    "shardIndex": 1,
+    "start": 115.339,
+    "end": 115.479,
+    "offset": 107.389,
+    "word": "were"
+  },
+  {
+    "absIndex": 294,
+    "shardIndex": 1,
+    "start": 115.479,
+    "end": 115.759,
+    "offset": 107.389,
+    "word": "so"
+  },
+  {
+    "absIndex": 295,
+    "shardIndex": 1,
+    "start": 115.759,
+    "end": 116.179,
+    "offset": 107.389,
+    "word": "happy"
+  },
+  {
+    "absIndex": 296,
+    "shardIndex": 1,
+    "start": 116.179,
+    "end": 116.319,
+    "offset": 107.389,
+    "word": "and"
+  },
+  {
+    "absIndex": 297,
+    "shardIndex": 1,
+    "start": 116.319,
+    "end": 116.959,
+    "offset": 107.389,
+    "word": "excited"
+  },
+  {
+    "absIndex": 298,
+    "shardIndex": 1,
+    "start": 117.999,
+    "end": 118.219,
+    "offset": 107.389,
+    "word": "They"
+  },
+  {
+    "absIndex": 299,
+    "shardIndex": 1,
+    "start": 118.219,
+    "end": 118.369,
+    "offset": 107.389,
+    "word": "all"
+  },
+  {
+    "absIndex": 300,
+    "shardIndex": 1,
+    "start": 118.369,
+    "end": 118.749,
+    "offset": 107.389,
+    "word": "bowed"
+  },
+  {
+    "absIndex": 301,
+    "shardIndex": 1,
+    "start": 118.749,
+    "end": 118.909,
+    "offset": 107.389,
+    "word": "to"
+  },
+  {
+    "absIndex": 302,
+    "shardIndex": 1,
+    "start": 118.909,
+    "end": 119.149,
+    "offset": 107.389,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 303,
+    "shardIndex": 1,
+    "start": 119.149,
+    "end": 119.689,
+    "offset": 107.389,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 304,
+    "shardIndex": 1,
+    "start": 120.769,
+    "end": 121.009,
+    "offset": 107.389,
+    "word": "From"
+  },
+  {
+    "absIndex": 305,
+    "shardIndex": 1,
+    "start": 121.009,
+    "end": 121.239,
+    "offset": 107.389,
+    "word": "that"
+  },
+  {
+    "absIndex": 306,
+    "shardIndex": 1,
+    "start": 121.239,
+    "end": 121.469,
+    "offset": 107.389,
+    "word": "day"
+  },
+  {
+    "absIndex": 307,
+    "shardIndex": 1,
+    "start": 121.469,
+    "end": 121.859,
+    "offset": 107.389,
+    "word": "on"
+  },
+  {
+    "absIndex": 308,
+    "shardIndex": 1,
+    "start": 121.879,
+    "end": 122.129,
+    "offset": 107.389,
+    "word": "he"
+  },
+  {
+    "absIndex": 309,
+    "shardIndex": 1,
+    "start": 122.129,
+    "end": 122.349,
+    "offset": 107.389,
+    "word": "was"
+  },
+  {
+    "absIndex": 310,
+    "shardIndex": 1,
+    "start": 122.349,
+    "end": 122.539,
+    "offset": 107.389,
+    "word": "their"
+  },
+  {
+    "absIndex": 311,
+    "shardIndex": 1,
+    "start": 122.539,
+    "end": 122.979,
+    "offset": 107.389,
+    "word": "king"
+  },
+  {
+    "absIndex": 312,
+    "shardIndex": 1,
+    "start": 123.869,
+    "end": 124.079,
+    "offset": 107.389,
+    "word": "They"
+  },
+  {
+    "absIndex": 313,
+    "shardIndex": 1,
+    "start": 124.079,
+    "end": 124.389,
+    "offset": 107.389,
+    "word": "called"
+  },
+  {
+    "absIndex": 314,
+    "shardIndex": 1,
+    "start": 124.389,
+    "end": 124.679,
+    "offset": 107.389,
+    "word": "him"
+  },
+  {
+    "absIndex": 315,
+    "shardIndex": 1,
+    "start": 124.679,
+    "end": 124.799,
+    "offset": 107.389,
+    "word": "the"
+  },
+  {
+    "absIndex": 316,
+    "shardIndex": 1,
+    "start": 124.799,
+    "end": 125.199,
+    "offset": 107.389,
+    "word": "Handsome"
+  },
+  {
+    "absIndex": 317,
+    "shardIndex": 1,
+    "start": 125.199,
+    "end": 125.529,
+    "offset": 107.389,
+    "word": "Monkey"
+  },
+  {
+    "absIndex": 318,
+    "shardIndex": 1,
+    "start": 125.609,
+    "end": 125.919,
+    "offset": 107.389,
+    "word": "King"
+  },
+  {
+    "absIndex": 319,
+    "shardIndex": 1,
+    "start": 125.929,
+    "end": 125.959,
+    "offset": 107.389,
+    "word": "Sun"
+  },
+  {
+    "absIndex": 320,
+    "shardIndex": 1,
+    "start": 127.749,
+    "end": 128.479,
+    "offset": 107.389,
+    "word": "Wukong"
+  },
+  {
+    "absIndex": 321,
+    "shardIndex": 1,
+    "start": 128.489,
+    "end": 128.739,
+    "offset": 107.389,
+    "word": "led"
+  },
+  {
+    "absIndex": 322,
+    "shardIndex": 1,
+    "start": 128.749,
+    "end": 128.969,
+    "offset": 107.389,
+    "word": "all"
+  },
+  {
+    "absIndex": 323,
+    "shardIndex": 1,
+    "start": 128.969,
+    "end": 129.159,
+    "offset": 107.389,
+    "word": "his"
+  },
+  {
+    "absIndex": 324,
+    "shardIndex": 1,
+    "start": 129.159,
+    "end": 129.479,
+    "offset": 107.389,
+    "word": "monkey"
+  },
+  {
+    "absIndex": 325,
+    "shardIndex": 1,
+    "start": 129.479,
+    "end": 129.869,
+    "offset": 107.389,
+    "word": "friends"
+  },
+  {
+    "absIndex": 326,
+    "shardIndex": 1,
+    "start": 129.869,
+    "end": 130.039,
+    "offset": 107.389,
+    "word": "through"
+  },
+  {
+    "absIndex": 327,
+    "shardIndex": 1,
+    "start": 130.039,
+    "end": 130.139,
+    "offset": 107.389,
+    "word": "the"
+  },
+  {
+    "absIndex": 328,
+    "shardIndex": 1,
+    "start": 130.139,
+    "end": 130.739,
+    "offset": 107.389,
+    "word": "waterfall"
+  },
+  {
+    "absIndex": 329,
+    "shardIndex": 1,
+    "start": 130.769,
+    "end": 130.879,
+    "offset": 107.389,
+    "word": "to"
+  },
+  {
+    "absIndex": 330,
+    "shardIndex": 1,
+    "start": 130.879,
+    "end": 131.059,
+    "offset": 107.389,
+    "word": "their"
+  },
+  {
+    "absIndex": 331,
+    "shardIndex": 1,
+    "start": 131.059,
+    "end": 131.259,
+    "offset": 107.389,
+    "word": "new"
+  },
+  {
+    "absIndex": 332,
+    "shardIndex": 1,
+    "start": 131.259,
+    "end": 131.669,
+    "offset": 107.389,
+    "word": "home"
+  },
+  {
+    "absIndex": 333,
+    "shardIndex": 1,
+    "start": 132.739,
+    "end": 132.969,
+    "offset": 107.389,
+    "word": "They"
+  },
+  {
+    "absIndex": 334,
+    "shardIndex": 1,
+    "start": 132.969,
+    "end": 133.189,
+    "offset": 107.389,
+    "word": "lived"
+  },
+  {
+    "absIndex": 335,
+    "shardIndex": 1,
+    "start": 133.199,
+    "end": 133.639,
+    "offset": 107.389,
+    "word": "happily"
+  },
+  {
+    "absIndex": 336,
+    "shardIndex": 1,
+    "start": 133.639,
+    "end": 134.189,
+    "offset": 107.389,
+    "word": "together"
+  },
+  {
+    "absIndex": 337,
+    "shardIndex": 1,
+    "start": 134.199,
+    "end": 134.339,
+    "offset": 107.389,
+    "word": "in"
+  },
+  {
+    "absIndex": 338,
+    "shardIndex": 1,
+    "start": 134.339,
+    "end": 134.429,
+    "offset": 107.389,
+    "word": "the"
+  },
+  {
+    "absIndex": 339,
+    "shardIndex": 1,
+    "start": 134.429,
+    "end": 134.779,
+    "offset": 107.389,
+    "word": "Water"
+  },
+  {
+    "absIndex": 340,
+    "shardIndex": 1,
+    "start": 134.779,
+    "end": 135.139,
+    "offset": 107.389,
+    "word": "Curtain"
+  },
+  {
+    "absIndex": 341,
+    "shardIndex": 1,
+    "start": 135.139,
+    "end": 135.579,
+    "offset": 107.389,
+    "word": "Cave"
+  },
+  {
+    "absIndex": 342,
+    "shardIndex": 1,
+    "start": 135.619,
+    "end": 135.809,
+    "offset": 107.389,
+    "word": "on"
+  },
+  {
+    "absIndex": 343,
+    "shardIndex": 1,
+    "start": 135.819,
+    "end": 136.219,
+    "offset": 107.389,
+    "word": "Flower"
+  },
+  {
+    "absIndex": 344,
+    "shardIndex": 1,
+    "start": 136.219,
+    "end": 136.499,
+    "offset": 107.389,
+    "word": "Fruit"
+  },
+  {
+    "absIndex": 345,
+    "shardIndex": 1,
+    "start": 136.499,
+    "end": 137.059,
+    "offset": 107.389,
+    "word": "Mountain"
+  }
+]

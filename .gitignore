@@ -21,3 +21,6 @@ output
 coverage
 docs
 .sisyphus.worktrees/
+.worktrees/
+.test-results/
+.playwright-report/

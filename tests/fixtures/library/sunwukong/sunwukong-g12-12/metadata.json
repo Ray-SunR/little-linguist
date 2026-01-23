@@ -1,0 +1,3586 @@
+{
+  "id": "sunwukong-g12-12",
+  "title": "The Monkey King's Magic Staff",
+  "original_concept_title": "The Golden Cudgel's Weight",
+  "category": "sunwukong",
+  "level": "G1-2",
+  "is_nonfiction": false,
+  "description": "Sun Wukong the Monkey King searches for the perfect weapon in the Dragon King's underwater palace and discovers the legendary Ruyi Jingu Bang—a magical iron pillar that weighs as much as the ocean. Only the mighty Monkey King can lift this incredible staff that shrinks and grows at his command, making him ready for any adventure that awaits.",
+  "keywords": [
+    "monkey",
+    "king",
+    "underwater",
+    "palace",
+    "weapon",
+    "magic",
+    "staff",
+    "strength",
+    "dragon",
+    "treasure",
+    "adventure",
+    "hero"
+  ],
+  "series_id": "sunwukong_series",
+  "cover_image_path": "cover.webp",
+  "cover_prompt": "Sun Wukong, a spunky anthropomorphic male golden macaque with bright golden fur and fiery-gold eyes, stands triumphantly in an underwater palace made of shining coral and glowing pearls. He grips the massive glowing Ruyi Jingu Bang iron pillar with both hands, his strong muscular build and broad shoulders flexed with effort. Water swirls dramatically around him as the red-and-gold staff radiates magical light. He wears golden chainmail armor over a red tunic, tiger-skin kilt, black trousers, and black combat boots. His golden fillet headband displays two extremely long red pheasant feathers curving back. His masculine jawline shows a confident mischievous boyish grin. The Dragon King watches in amazement from the background as treasure room artifacts glow around them.",
+  "stats": {
+    "word_count": 361,
+    "char_count": 1943,
+    "scene_count": 5,
+    "reading_time_seconds": 145,
+    "length_category": "Long"
+  },
+  "scenes": [
+    {
+      "index": 0,
+      "text": "Sun Wukong the Monkey King walked through the underwater palace of the Dragon King. The palace was made of shining coral and glowing pearls. Sun Wukong needed a weapon to fight bad guys. The Dragon King showed him many swords and spears. But Sun Wukong was very strong. Every weapon he touched broke into pieces. \"I need something better,\" said Sun Wukong with a big grin.",
+      "imagePrompt": "An underwater palace throne room with glowing coral walls, pearl decorations, and scattered broken weapons on the crystal floor, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_0.webp",
+      "after_word_index": 65
+    },
+    {
+      "index": 1,
+      "text": "The Dragon King pointed to a dark corner of his treasure room. There stood a huge iron pillar covered in seaweed. It glowed with a red and gold light. \"That is the Ruyi Jingu Bang,\" said the Dragon King. \"It was used by the gods to measure the sea long ago. It weighs as much as the whole ocean. Nobody can lift it.\" Sun Wukong's eyes sparkled with excitement. He walked toward the magical pillar.",
+      "imagePrompt": "A dim underwater treasure room filled with ancient chests and glowing artifacts, with a massive glowing red-and-gold iron pillar covered in seaweed standing in the center, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_1.webp",
+      "after_word_index": 140
+    },
+    {
+      "index": 2,
+      "text": "Sun Wukong grabbed the giant pillar with both hands. His muscles grew tight and strong. He pulled with all his might. The pillar began to shake and glow brighter. Then, slowly, it lifted off the ground! The Dragon King gasped in surprise. The water in the palace swirled and bubbled. Sun Wukong laughed with joy. \"This is perfect for me!\" he shouted.",
+      "imagePrompt": "Inside the underwater palace with swirling water currents and bubbles everywhere, the massive glowing pillar lifting off the ground while the shocked Dragon King watches from the side, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_2.webp",
+      "after_word_index": 202
+    },
+    {
+      "index": 3,
+      "text": "The magical staff began to change in Sun Wukong's hands. \"Smaller!\" he said, and the huge pillar shrank down to the size of a walking stick. The staff became light and easy to hold. Golden words appeared on it that said it could grow or shrink as he wished. Sun Wukong spun the staff around and around. It made a whooshing sound through the water. \"This staff and I are meant to be together!\" he said proudly.",
+      "imagePrompt": "The underwater palace courtyard with decorative columns and floating fish, showing the magical staff shrinking with golden light and glowing words appearing on its surface, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_3.webp",
+      "after_word_index": 279
+    },
+    {
+      "index": 4,
+      "text": "Sun Wukong jumped out of the ocean with his new magical staff. He landed on the beach with a big splash. The sun was shining bright in the sky. He made the staff grow as tall as a mountain, then shrink to fit behind his ear. Only the Monkey King could lift this special weapon. It was as heavy as the sea, but felt light in his hands. Sun Wukong smiled his biggest smile. Now he was ready for any adventure!",
+      "imagePrompt": "A sunny beach with crashing waves and blue sky, showing the magical staff growing enormous like a mountain reaching into the clouds, then shrinking small, with water splashing around, featuring Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.",
+      "image_path": "scenes/scene_4.webp",
+      "after_word_index": 360
+    }
+  ],
+  "audio": {
+    "voice_id": "Ruth",
+    "engine": "generative",
+    "shards": [
+      {
+        "index": 0,
+        "path": "audio/0.mp3",
+        "start_word_index": 0,
+        "end_word_index": 276,
+        "timings": []
+      },
+      {
+        "index": 1,
+        "path": "audio/1.mp3",
+        "start_word_index": 277,
+        "end_word_index": 360,
+        "timings": []
+      }
+    ]
+  },
+  "tokens": [
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 0
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 1
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 2
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Monkey",
+      "type": "w",
+      "i": 3
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 4
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "walked",
+      "type": "w",
+      "i": 5
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 6
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 7
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "underwater",
+      "type": "w",
+      "i": 8
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "palace",
+      "type": "w",
+      "i": 9
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 10
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 11
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Dragon",
+      "type": "w",
+      "i": 12
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 13
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 14
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "palace",
+      "type": "w",
+      "i": 15
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 16
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "made",
+      "type": "w",
+      "i": 17
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 18
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shining",
+      "type": "w",
+      "i": 19
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "coral",
+      "type": "w",
+      "i": 20
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 21
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "glowing",
+      "type": "w",
+      "i": 22
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pearls",
+      "type": "w",
+      "i": 23
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 24
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 25
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "needed",
+      "type": "w",
+      "i": 26
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 27
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "weapon",
+      "type": "w",
+      "i": 28
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 29
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fight",
+      "type": "w",
+      "i": 30
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bad",
+      "type": "w",
+      "i": 31
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "guys",
+      "type": "w",
+      "i": 32
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 33
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Dragon",
+      "type": "w",
+      "i": 34
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 35
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "showed",
+      "type": "w",
+      "i": 36
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "him",
+      "type": "w",
+      "i": 37
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "many",
+      "type": "w",
+      "i": 38
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "swords",
+      "type": "w",
+      "i": 39
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 40
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spears",
+      "type": "w",
+      "i": 41
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "But",
+      "type": "w",
+      "i": 42
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 43
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 44
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 45
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "very",
+      "type": "w",
+      "i": 46
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "strong",
+      "type": "w",
+      "i": 47
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Every",
+      "type": "w",
+      "i": 48
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "weapon",
+      "type": "w",
+      "i": 49
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 50
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "touched",
+      "type": "w",
+      "i": 51
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "broke",
+      "type": "w",
+      "i": 52
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "into",
+      "type": "w",
+      "i": 53
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pieces",
+      "type": "w",
+      "i": 54
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": "I",
+      "type": "w",
+      "i": 55
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "need",
+      "type": "w",
+      "i": 56
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "something",
+      "type": "w",
+      "i": 57
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "better",
+      "type": "w",
+      "i": 58
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "said",
+      "type": "w",
+      "i": 59
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 60
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 61
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 62
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 63
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "big",
+      "type": "w",
+      "i": 64
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grin",
+      "type": "w",
+      "i": 65
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 66
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Dragon",
+      "type": "w",
+      "i": 67
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 68
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pointed",
+      "type": "w",
+      "i": 69
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 70
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 71
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "dark",
+      "type": "w",
+      "i": 72
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "corner",
+      "type": "w",
+      "i": 73
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 74
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 75
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "treasure",
+      "type": "w",
+      "i": 76
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "room",
+      "type": "w",
+      "i": 77
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "There",
+      "type": "w",
+      "i": 78
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stood",
+      "type": "w",
+      "i": 79
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 80
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "huge",
+      "type": "w",
+      "i": 81
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "iron",
+      "type": "w",
+      "i": 82
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pillar",
+      "type": "w",
+      "i": 83
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "covered",
+      "type": "w",
+      "i": 84
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 85
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "seaweed",
+      "type": "w",
+      "i": 86
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 87
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "glowed",
+      "type": "w",
+      "i": 88
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 89
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 90
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "red",
+      "type": "w",
+      "i": 91
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 92
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gold",
+      "type": "w",
+      "i": 93
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "light",
+      "type": "w",
+      "i": 94
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": "That",
+      "type": "w",
+      "i": 95
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "is",
+      "type": "w",
+      "i": 96
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 97
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Ruyi",
+      "type": "w",
+      "i": 98
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Jingu",
+      "type": "w",
+      "i": 99
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Bang",
+      "type": "w",
+      "i": 100
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "said",
+      "type": "w",
+      "i": 101
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 102
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Dragon",
+      "type": "w",
+      "i": 103
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 104
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 105
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 106
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "used",
+      "type": "w",
+      "i": 107
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "by",
+      "type": "w",
+      "i": 108
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 109
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gods",
+      "type": "w",
+      "i": 110
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 111
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "measure",
+      "type": "w",
+      "i": 112
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 113
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sea",
+      "type": "w",
+      "i": 114
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "long",
+      "type": "w",
+      "i": 115
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ago",
+      "type": "w",
+      "i": 116
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 117
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "weighs",
+      "type": "w",
+      "i": 118
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 119
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "much",
+      "type": "w",
+      "i": 120
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 121
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 122
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "whole",
+      "type": "w",
+      "i": 123
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ocean",
+      "type": "w",
+      "i": 124
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Nobody",
+      "type": "w",
+      "i": 125
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "can",
+      "type": "w",
+      "i": 126
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lift",
+      "type": "w",
+      "i": 127
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "it",
+      "type": "w",
+      "i": 128
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 129
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 130
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "eyes",
+      "type": "w",
+      "i": 131
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sparkled",
+      "type": "w",
+      "i": 132
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 133
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "excitement",
+      "type": "w",
+      "i": 134
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 135
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "walked",
+      "type": "w",
+      "i": 136
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "toward",
+      "type": "w",
+      "i": 137
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 138
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 139
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pillar",
+      "type": "w",
+      "i": 140
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 141
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 142
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grabbed",
+      "type": "w",
+      "i": 143
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 144
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "giant",
+      "type": "w",
+      "i": 145
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pillar",
+      "type": "w",
+      "i": 146
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 147
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "both",
+      "type": "w",
+      "i": 148
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hands",
+      "type": "w",
+      "i": 149
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "His",
+      "type": "w",
+      "i": 150
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "muscles",
+      "type": "w",
+      "i": 151
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grew",
+      "type": "w",
+      "i": 152
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tight",
+      "type": "w",
+      "i": 153
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 154
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "strong",
+      "type": "w",
+      "i": 155
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 156
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pulled",
+      "type": "w",
+      "i": 157
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 158
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "all",
+      "type": "w",
+      "i": 159
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 160
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "might",
+      "type": "w",
+      "i": 161
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 162
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pillar",
+      "type": "w",
+      "i": 163
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "began",
+      "type": "w",
+      "i": 164
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 165
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shake",
+      "type": "w",
+      "i": 166
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 167
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "glow",
+      "type": "w",
+      "i": 168
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "brighter",
+      "type": "w",
+      "i": 169
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Then",
+      "type": "w",
+      "i": 170
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "slowly",
+      "type": "w",
+      "i": 171
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "it",
+      "type": "w",
+      "i": 172
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lifted",
+      "type": "w",
+      "i": 173
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "off",
+      "type": "w",
+      "i": 174
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 175
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ground",
+      "type": "w",
+      "i": 176
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 177
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Dragon",
+      "type": "w",
+      "i": 178
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 179
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "gasped",
+      "type": "w",
+      "i": 180
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 181
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "surprise",
+      "type": "w",
+      "i": 182
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 183
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "water",
+      "type": "w",
+      "i": 184
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 185
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 186
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "palace",
+      "type": "w",
+      "i": 187
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "swirled",
+      "type": "w",
+      "i": 188
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 189
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bubbled",
+      "type": "w",
+      "i": 190
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 191
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 192
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "laughed",
+      "type": "w",
+      "i": 193
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 194
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "joy",
+      "type": "w",
+      "i": 195
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": "This",
+      "type": "w",
+      "i": 196
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "is",
+      "type": "w",
+      "i": 197
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "perfect",
+      "type": "w",
+      "i": 198
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 199
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "me",
+      "type": "w",
+      "i": 200
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 201
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shouted",
+      "type": "w",
+      "i": 202
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 203
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 204
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 205
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "began",
+      "type": "w",
+      "i": 206
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 207
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "change",
+      "type": "w",
+      "i": 208
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 209
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 210
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong's",
+      "type": "w",
+      "i": 211
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hands",
+      "type": "w",
+      "i": 212
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": "Smaller",
+      "type": "w",
+      "i": 213
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 214
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "said",
+      "type": "w",
+      "i": 215
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 216
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 217
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "huge",
+      "type": "w",
+      "i": 218
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "pillar",
+      "type": "w",
+      "i": 219
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shrank",
+      "type": "w",
+      "i": 220
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "down",
+      "type": "w",
+      "i": 221
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 222
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 223
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "size",
+      "type": "w",
+      "i": 224
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 225
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 226
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "walking",
+      "type": "w",
+      "i": 227
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "stick",
+      "type": "w",
+      "i": 228
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 229
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 230
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "became",
+      "type": "w",
+      "i": 231
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "light",
+      "type": "w",
+      "i": 232
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 233
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "easy",
+      "type": "w",
+      "i": 234
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 235
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hold",
+      "type": "w",
+      "i": 236
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Golden",
+      "type": "w",
+      "i": 237
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "words",
+      "type": "w",
+      "i": 238
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "appeared",
+      "type": "w",
+      "i": 239
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 240
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "it",
+      "type": "w",
+      "i": 241
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "that",
+      "type": "w",
+      "i": 242
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "said",
+      "type": "w",
+      "i": 243
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "it",
+      "type": "w",
+      "i": 244
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "could",
+      "type": "w",
+      "i": 245
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grow",
+      "type": "w",
+      "i": 246
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "or",
+      "type": "w",
+      "i": 247
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shrink",
+      "type": "w",
+      "i": 248
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 249
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 250
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "wished",
+      "type": "w",
+      "i": 251
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 252
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 253
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "spun",
+      "type": "w",
+      "i": 254
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 255
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 256
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "around",
+      "type": "w",
+      "i": 257
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 258
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "around",
+      "type": "w",
+      "i": 259
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 260
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "made",
+      "type": "w",
+      "i": 261
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 262
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "whooshing",
+      "type": "w",
+      "i": 263
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sound",
+      "type": "w",
+      "i": 264
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "through",
+      "type": "w",
+      "i": 265
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 266
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "water",
+      "type": "w",
+      "i": 267
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": "This",
+      "type": "w",
+      "i": 268
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 269
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "and",
+      "type": "w",
+      "i": 270
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "I",
+      "type": "w",
+      "i": 271
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "are",
+      "type": "w",
+      "i": 272
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "meant",
+      "type": "w",
+      "i": 273
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 274
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "be",
+      "type": "w",
+      "i": 275
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "together",
+      "type": "w",
+      "i": 276
+    },
+    {
+      "t": "!",
+      "type": "p"
+    },
+    {
+      "t": "\"",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 277
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "said",
+      "type": "w",
+      "i": 278
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "proudly",
+      "type": "w",
+      "i": 279
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": "\n\n",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 280
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 281
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "jumped",
+      "type": "w",
+      "i": 282
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "out",
+      "type": "w",
+      "i": 283
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "of",
+      "type": "w",
+      "i": 284
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 285
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ocean",
+      "type": "w",
+      "i": 286
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 287
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 288
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "new",
+      "type": "w",
+      "i": 289
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "magical",
+      "type": "w",
+      "i": 290
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 291
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 292
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "landed",
+      "type": "w",
+      "i": 293
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "on",
+      "type": "w",
+      "i": 294
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 295
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "beach",
+      "type": "w",
+      "i": 296
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "with",
+      "type": "w",
+      "i": 297
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 298
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "big",
+      "type": "w",
+      "i": 299
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "splash",
+      "type": "w",
+      "i": 300
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "The",
+      "type": "w",
+      "i": 301
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sun",
+      "type": "w",
+      "i": 302
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 303
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shining",
+      "type": "w",
+      "i": 304
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "bright",
+      "type": "w",
+      "i": 305
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 306
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 307
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sky",
+      "type": "w",
+      "i": 308
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "He",
+      "type": "w",
+      "i": 309
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "made",
+      "type": "w",
+      "i": 310
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 311
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "staff",
+      "type": "w",
+      "i": 312
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "grow",
+      "type": "w",
+      "i": 313
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 314
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "tall",
+      "type": "w",
+      "i": 315
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 316
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "a",
+      "type": "w",
+      "i": 317
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "mountain",
+      "type": "w",
+      "i": 318
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "then",
+      "type": "w",
+      "i": 319
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "shrink",
+      "type": "w",
+      "i": 320
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "to",
+      "type": "w",
+      "i": 321
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "fit",
+      "type": "w",
+      "i": 322
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "behind",
+      "type": "w",
+      "i": 323
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 324
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ear",
+      "type": "w",
+      "i": 325
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Only",
+      "type": "w",
+      "i": 326
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 327
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Monkey",
+      "type": "w",
+      "i": 328
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "King",
+      "type": "w",
+      "i": 329
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "could",
+      "type": "w",
+      "i": 330
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "lift",
+      "type": "w",
+      "i": 331
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "this",
+      "type": "w",
+      "i": 332
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "special",
+      "type": "w",
+      "i": 333
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "weapon",
+      "type": "w",
+      "i": 334
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "It",
+      "type": "w",
+      "i": 335
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 336
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 337
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "heavy",
+      "type": "w",
+      "i": 338
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "as",
+      "type": "w",
+      "i": 339
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "the",
+      "type": "w",
+      "i": 340
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "sea",
+      "type": "w",
+      "i": 341
+    },
+    {
+      "t": ",",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "but",
+      "type": "w",
+      "i": 342
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "felt",
+      "type": "w",
+      "i": 343
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "light",
+      "type": "w",
+      "i": 344
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "in",
+      "type": "w",
+      "i": 345
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 346
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "hands",
+      "type": "w",
+      "i": 347
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Sun",
+      "type": "w",
+      "i": 348
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Wukong",
+      "type": "w",
+      "i": 349
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "smiled",
+      "type": "w",
+      "i": 350
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "his",
+      "type": "w",
+      "i": 351
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "biggest",
+      "type": "w",
+      "i": 352
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "smile",
+      "type": "w",
+      "i": 353
+    },
+    {
+      "t": ".",
+      "type": "p"
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "Now",
+      "type": "w",
+      "i": 354
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "he",
+      "type": "w",
+      "i": 355
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "was",
+      "type": "w",
+      "i": 356
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "ready",
+      "type": "w",
+      "i": 357
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "for",
+      "type": "w",
+      "i": 358
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "any",
+      "type": "w",
+      "i": 359
+    },
+    {
+      "t": " ",
+      "type": "s"
+    },
+    {
+      "t": "adventure",
+      "type": "w",
+      "i": 360
+    },
+    {
+      "t": "!",
+      "type": "p"
+    }
+  ],
+  "character_anchor": "Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution."
+}
