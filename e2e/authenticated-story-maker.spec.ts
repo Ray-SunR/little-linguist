@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { completeOnboarding } from './e2e-utils';
 
 test('Authenticated Story Maker Workflow', async ({ page, context }) => {
   test.setTimeout(120000);
@@ -44,17 +45,7 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
 
   // If we landed on onboarding, handle it
   if (page.url().includes('/onboarding')) {
-    console.log('Onboarding detected after login, completing wizard...');
-    const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
-    await expect(nameInput).toBeVisible({ timeout: 15000 });
-    await nameInput.fill('AuthKid');
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByRole('button', { name: 'Yep!' }).click();
-    await page.getByRole('button', { name: 'Boy' }).click();
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByRole('button', { name: 'Skip' }).click();
-    await page.getByText('Space').first().click();
-    await page.getByRole('button', { name: 'Finish!' }).click();
+    await completeOnboarding(page, 'AuthKid');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
   }
 

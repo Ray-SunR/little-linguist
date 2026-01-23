@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { completeOnboarding } from './e2e-utils';
 
 test('Full Guest to Story Workflow', async ({ page, context }) => {
   test.setTimeout(120000);
@@ -69,25 +70,7 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
 
     // If we landed on onboarding, handle it (ChildGate might have pushed us here)
     if (page.url().includes('/onboarding')) {
-      console.log('Onboarding detected after login, completing wizard...');
-      const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
-      await expect(nameInput).toBeVisible({ timeout: 15000 });
-      await nameInput.fill('LeoHero');
-      await page.getByRole('button', { name: 'Continue' }).click();
-      
-      // Step: Age
-      await page.getByRole('button', { name: 'Yep!' }).click();
-
-      // Step: Gender
-      await page.getByRole('button', { name: 'Boy' }).click();
-      await page.getByRole('button', { name: 'Next' }).click();
-
-      // Step: Avatar
-      await page.getByRole('button', { name: 'Skip' }).click();
-
-      // Step: Interests
-      await page.getByText('Space').first().click();
-      await page.getByRole('button', { name: 'Finish!' }).click();
+      await completeOnboarding(page, 'LeoHero');
       
       // After onboarding, we should be redirected back to story-maker
       console.log('Onboarding finished, navigating back to story-maker to resume...');
