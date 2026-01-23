@@ -185,7 +185,11 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
 
     const goNextBook = useCallback(async () => {
         if (!books.length) return;
-        await saveProgress({ force: true, isExiting: true });
+        try {
+            await saveProgress({ force: true, isExiting: true });
+        } catch (error) {
+            console.error("Failed to save progress before next book:", error);
+        }
         const currentIndex = books.findIndex((book) => book.id === selectedBookId);
         const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % books.length;
         const nextBookId = books[nextIndex].id;
