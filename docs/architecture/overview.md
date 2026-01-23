@@ -9,23 +9,30 @@ The project strictly follows the **Repository** and **Service** patterns to ensu
 ### Repositories (`lib/core/*/repository.server.ts`)
 Repositories are the ONLY layer that interacts directly with the Supabase client.
 -   **Abstraction**: They hide complex SQL/RPC calls behind clean, domain-specific methods (e.g., `getRecommendedBooks`).
--   **Server-Side**: They are designed to run in Server Components or API routes.
+-   **Server-Side**: They are designed to run in Server Components, API routes, or Server Actions.
 -   **Security**: They handle permission checks and data filtering before returning objects to the services or UI.
 
 ### Services (`lib/features/*/service.server.ts`)
 Services contain the "business logic" and orchestrate multiple repositories or external APIs.
+-   **Consolidation**: Services like `ProgressService` unify logic across different entry points (Server Actions vs. API routes).
 -   **AI Orchestration**: Services like `StoryService` manage the flow between Claude (text generation) and Gemini (image generation).
 -   **State Transitions**: They handle complex logic like "claiming a reward," which involves both database updates and external triggers.
 
 ---
 
-## 🌐 API Structure (`app/api/`)
+## 🌐 Entry Points: Actions & APIs
 
-Raiden uses Next.js Route Handlers for its backend functionality.
+Raiden uses a hybrid approach for server-side operations:
 
--   **Standardized Responses**: All endpoints return `NextResponse.json` with consistent error formats.
--   **Authentication**: Middleware and helper functions ensure that sensitive routes are protected by Supabase Auth.
--   **Heavy Lifting**: API routes are used for long-running or computationally expensive tasks, such as AI generation and media processing.
+### 1. Server Actions (`app/actions/`)
+Used for user-initiated state changes (e.g., saving progress, switching profiles).
+-   **Cache Invalidation**: Leverages `revalidatePath` to automatically purge the Next.js client-side router cache.
+-   **Direct UI Integration**: Allows the UI to `await` completion and reflect changes immediately (e.g., mission completion stamps).
+
+### 2. API Routes (`app/api/`)
+Used for background tasks, external integrations, or "fire-and-forget" persistence.
+-   **Long-Running Tasks**: AI generation and media processing.
+-   **Reliability**: Used with `navigator.sendBeacon` or `fetch({ keepalive: true })` to ensure data reaches the server during page unloads where Server Actions may be unreliable.
 
 ---
 
@@ -43,9 +50,10 @@ Performance is critical for a smooth reading experience. Raiden employs a multi-
 -   **Mechanism**: A custom wrapper around IndexedDB.
 -   **Benefit**: Persists large datasets that would exceed `localStorage` limits.
 
-### 3. Server-Side Caching
--   **Scope**: Frequently accessed public books and category lists.
--   **Mechanism**: Uses Next.js `revalidate` and `unstable_cache` to cache database results at the edge.
+### 3. Server-Side & Router Caching
+-   **Data Cache**: Uses Next.js `revalidate` and `unstable_cache` to cache database results.
+-   **Router Cache**: Client-side snapshot of pages. Invalidated via `revalidatePath` inside Server Actions to ensure UI consistency after state changes.
+
 
 ---
 

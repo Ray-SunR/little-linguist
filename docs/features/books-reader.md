@@ -61,3 +61,24 @@ The `AssetCache` service uses the browser's **Cache API** to store audio Blobs.
 -   **Resolution**: When the reader requests an audio URL, `resolveMediaUrl` first checks the local `AssetCache`.
 -   **Blob URLs**: If cached, it returns a `blob:` URL for immediate, zero-latency playback.
 -   **Reference Counting**: Blob URLs are revoked only when the component unmounts and no other component is using the asset.
+
+---
+
+## 💾 Progress & Persistence (`useReaderPersistence`)
+
+To ensure a seamless experience, Raiden tracks reading progress with a dual-persistence strategy:
+
+### 1. Synchronous Saves (Server Actions)
+Triggered on **Pause**, **Stop**, or when the user clicks the **Back** button.
+-   **Implementation**: Uses `saveBookProgressAction` (Server Action).
+-   **Benefit**: Triggers `revalidatePath('/dashboard')`, ensuring the "Mission Accomplished" stamp and XP rewards are visible immediately upon returning to the dashboard.
+-   **Coordination**: Navigation is awaited until the save completes to guarantee cache invalidation.
+
+### 2. Exit-Safe Saves (API Routes)
+Triggered on **Page Unload**, **Tab Close**, or **Visibility Change**.
+-   **Implementation**: Uses `/api/books/[id]/progress` via `navigator.sendBeacon` or `fetch({ keepalive: true })`.
+-   **Benefit**: Ensures progress is saved even in scenarios where React components or Server Actions would be interrupted.
+
+### 3. Completion Logic
+-   **Threshold**: A book is marked as `is_completed` when the user reaches **>= 95%** of the word tokens.
+-   **Rewards**: Completion automatically triggers the `MISSION_COMPLETED` or `BOOK_COMPLETED` reward flow via `ProgressService`.

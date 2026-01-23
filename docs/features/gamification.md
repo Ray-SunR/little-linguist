@@ -69,6 +69,8 @@ Daily Missions provide a curated set of 3 books tailored to the child's interest
 ## 🛡️ Integrity & Idempotency
 
 To prevent "gaming" the system or duplicate rewards from network retries:
+
 1.  **Idempotency Key**: Every reward claim requires a unique key (e.g., `v1:book_completed:{book_id}:{child_id}`).
-2.  **Ledger**: All rewards are recorded in `point_transactions`. The database enforces a `UNIQUE` constraint on the `idempotency_key`.
-3.  **Atomic Updates**: XP, level, and streak updates happen inside a single database transaction via the `claim_lumo_reward` RPC.
+2.  **In-Memory De-duplication**: The `ProgressService` uses a timed in-memory map (5-second window) to de-duplicate `BOOK_OPENED` events triggered by React Strict Mode or rapid page refreshes.
+3.  **Ledger**: All rewards are recorded in `point_transactions`. The database enforces a `UNIQUE` constraint on the `idempotency_key`.
+4.  **Atomic Updates**: XP, level, and streak updates happen inside a single database transaction via the `claim_lumo_reward` RPC.
