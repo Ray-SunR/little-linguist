@@ -19,10 +19,16 @@ export default function DashboardContent({ stats = null }: DashboardContentProps
   // Refresh stats when activeChild changes to ensure up-to-date points/progress
   useEffect(() => {
     // Only refresh if activeChild exists AND it's different from what we had at mount
-    // This avoids the double-refresh on initial page load
-    if (activeChild?.id && activeChild.id !== initialActiveChildId.current) {
+    // We also check if we HAD an initialActiveChildId to avoid refreshing on the very first
+    // hydration when transitioning from null -> actual child. The server stats
+    // passed as props already account for the initial active child from cookies.
+    if (activeChild?.id && initialActiveChildId.current && activeChild.id !== initialActiveChildId.current) {
       console.log("[DashboardContent] Active child changed, refreshing route...");
       router.refresh();
+    }
+    
+    // Always keep the ref in sync with the current active child
+    if (activeChild?.id) {
       initialActiveChildId.current = activeChild.id;
     }
   }, [activeChild?.id, router]);
