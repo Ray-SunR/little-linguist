@@ -125,7 +125,7 @@ export class RewardService {
             case RewardType.WORD_INSIGHT_VIEWED:
                 return XP_REWARDS.WORD_INSIGHT_VIEWED;
             case RewardType.WORD_ADDED:
-                return 10; // Standard reward for adding a word
+                return XP_REWARDS.WORD_ADDED;
             default:
                 return 10;
         }

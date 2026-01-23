@@ -9,6 +9,7 @@ export const XP_REWARDS = {
     STORY_GENERATED: 200,
     MAGIC_SENTENCE_GENERATED: 25,
     WORD_INSIGHT_VIEWED: 5,
+    WORD_ADDED: 10,
     DAILY_LOGIN: 20,
 } as const;
 
