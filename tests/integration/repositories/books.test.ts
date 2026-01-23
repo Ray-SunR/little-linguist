@@ -102,4 +102,48 @@ describe('BookRepository Integration', () => {
         const recs = await bookRepo.getRecommendedBooksWithCovers(testUser.id, testChild.id);
         expect(recs.length).toBeGreaterThan(0);
     });
+
+    it('should persist daily mission books throughout the day', async () => {
+        const recs1 = await bookRepo.getRecommendedBooksWithCovers(testUser.id, testChild.id);
+        const ids1 = recs1.map(b => b.id);
+        
+        const recs2 = await bookRepo.getRecommendedBooksWithCovers(testUser.id, testChild.id);
+        const ids2 = recs2.map(b => b.id);
+        
+        expect(ids1).toEqual(ids2);
+    });
+
+    it('should include completed books in mission list if they were part of today mission', async () => {
+        const recs = await bookRepo.getRecommendedBooksWithCovers(testUser.id, testChild.id);
+        const bookToComplete = recs[0].id;
+        
+        await supabase.from('child_books').upsert({ 
+            child_id: testChild.id, 
+            book_id: bookToComplete, 
+            is_completed: true 
+        });
+        
+        const recsAfter = await bookRepo.getRecommendedBooksWithCovers(testUser.id, testChild.id);
+        expect(recsAfter.map(b => b.id)).toContain(bookToComplete);
+    });
+
+    it('should rotate daily mission books on a new day', async () => {
+        const recs1 = await bookRepo.getRecommendedBooksWithCovers(testUser.id, testChild.id);
+        
+        // Manually set mission date to yesterday
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        
+        await supabase.from('children').update({ 
+            daily_mission: { date: yesterdayStr, book_ids: recs1.map(b => b.id) } 
+        }).eq('id', testChild.id);
+        
+        const recs2 = await bookRepo.getRecommendedBooksWithCovers(testUser.id, testChild.id);
+        
+        // Check that the date in DB is now today
+        const { data: child } = await supabase.from('children').select('daily_mission').eq('id', testChild.id).single();
+        const todayStr = new Date().toISOString().split('T')[0];
+        expect(child.daily_mission.date).toBe(todayStr);
+    });
 });

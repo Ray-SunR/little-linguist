@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
         const repo = new BookRepository();
         const { searchParams } = new URL(request.url);
         
-        const limit = parseInt(searchParams.get('limit') || '20', 10);
+        const limit = parseInt(searchParams.get('limit') || '3', 10);
         const offset = parseInt(searchParams.get('offset') || '0', 10);
         const childId = searchParams.get('childId');
         
@@ -39,42 +39,12 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized access to child profile' }, { status: 403 });
         }
 
-        // 1. Get Recommendations (Public Books Only)
-        // Note: Pagination offset is passed here to get "next best" matches
-        const recommendations = await repo.recommendBooksForChild(childId, { 
-            limit,
-            offset,
-            level,
-            category,
-            isNonFiction,
-            duration
-        });
-        
-        if (recommendations.length === 0) {
-            return NextResponse.json([]);
-        }
-
-        const semanticIds = recommendations.map((r: any) => r.id);
-
-        // 2. Hydrate with full details
-        let booksWithCovers = await repo.getAvailableBooksWithCovers(
+        // Use the persistence-aware repository method
+        const booksWithCovers = await repo.getRecommendedBooksWithCovers(
             user.id,
             childId,
-            {
-                ids: semanticIds,
-                limit: semanticIds.length,
-                offset: 0
-            }
+            limit
         );
-
-        // 3. Re-sort to match relevance
-        const idMap = new Map();
-        semanticIds.forEach((id, index) => idMap.set(id, index));
-        booksWithCovers = booksWithCovers.sort((a, b) => {
-            const indexA = idMap.has(a.id) ? idMap.get(a.id) : 999;
-            const indexB = idMap.has(b.id) ? idMap.get(b.id) : 999;
-            return indexA - indexB;
-        });
 
         return NextResponse.json(booksWithCovers);
 
