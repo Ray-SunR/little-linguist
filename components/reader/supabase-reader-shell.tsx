@@ -374,7 +374,12 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                         id="reader-back-to-library"
                         data-tour-target="reader-back-to-library"
                         onClick={async () => {
-                            await saveProgress({ force: true, isExiting: true });
+                            try {
+                                await saveProgress({ force: true, isExiting: true });
+                            } catch (error) {
+                                console.error("Failed to save progress on exit:", error);
+                            }
+
                             if (window.history.length > 1) {
                                 router.back();
                             } else {
