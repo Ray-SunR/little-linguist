@@ -35,7 +35,7 @@ class RaidenCache {
     }
 
     async init(retryOnVersionMismatch = true): Promise<IDBDatabase> {
-        if (typeof indexedDB === 'undefined') {
+        if (typeof window === 'undefined' || typeof indexedDB === 'undefined') {
             throw new Error("indexedDB not available in this environment");
         }
         if (this.db) {

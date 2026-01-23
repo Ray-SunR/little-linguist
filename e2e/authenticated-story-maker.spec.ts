@@ -31,13 +31,35 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
   await passwordInput.press('Enter');
 
   // Wait for login to complete and any automatic redirects to begin
-  await expect(page).not.toHaveURL(/\/login/, { timeout: 30000 });
+  try {
+    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 30000 });
+  } catch (e) {
+    const onPageText = await page.evaluate(() => document.body.innerText);
+    throw new Error(`Login redirect failed. Current URL: ${page.url()}. Page text: ${onPageText.slice(0, 500)}`);
+  }
 
   // WebKit can be finicky with rapid navigations. 
-  // Wait for the URL to settle (e.g., reached /dashboard or stabilized)
+  // Wait for the URL to settle (e.g., reached /dashboard or onboarding)
   await page.waitForTimeout(2000);
 
+  // If we landed on onboarding, handle it
+  if (page.url().includes('/onboarding')) {
+    console.log('Onboarding detected after login, completing wizard...');
+    const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
+    await expect(nameInput).toBeVisible({ timeout: 15000 });
+    await nameInput.fill('AuthKid');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Yep!' }).click();
+    await page.getByRole('button', { name: 'Boy' }).click();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await page.getByRole('button', { name: 'Skip' }).click();
+    await page.getByText('Space').first().click();
+    await page.getByRole('button', { name: 'Finish!' }).click();
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
+  }
+
   // Now navigate to our target page
+  console.log('Navigating to story-maker...');
   await page.goto('/story-maker', { waitUntil: 'load' });
   await expect(page.getByText('Wait for it...')).not.toBeVisible({ timeout: 60000 });
 

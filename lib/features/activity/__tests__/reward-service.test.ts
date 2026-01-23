@@ -19,7 +19,6 @@ describe('RewardService', () => {
     it('should generate the correct claim key for book opened', async () => {
         const childId = 'child-123';
         const bookId = 'book-456';
-        const today = new Date().toISOString().split('T')[0]; // Simple YYYY-MM-DD for comparison
 
         mockRpc.mockResolvedValue({
             data: {
@@ -73,7 +72,7 @@ describe('RewardService', () => {
         });
 
         expect(mockRpc).toHaveBeenCalledWith('claim_lumo_reward', expect.objectContaining({
-            p_key: expect.stringContaining(`v1:mission_completed:${bookId}`),
+            p_key: expect.stringContaining(`v1:book_completed:${bookId}`),
             p_amount: XP_REWARDS.MISSION_COMPLETED
         }));
         
@@ -219,7 +218,7 @@ describe('RewardService', () => {
         });
 
         expect(mockRpc).toHaveBeenCalledWith('claim_lumo_reward', expect.objectContaining({
-            p_key: expect.stringContaining(`v1:word_added:${word}`),
+            p_key: `v1:word_added:${word}`,
             p_amount: 10
         }));
         

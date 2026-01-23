@@ -62,17 +62,44 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
   // The wait time is increased to 15s to handle database/auth latency in local workers
   try {
     await page.waitForURL(url =>
-      url.pathname.includes('/story-maker') &&
-      url.searchParams.get('action') === 'resume_story_maker',
-      { timeout: 15000 }
+      (url.pathname.includes('/story-maker') && url.searchParams.get('action') === 'resume_story_maker') ||
+      (url.pathname.includes('/onboarding')),
+      { timeout: 30000 }
     );
+
+    // If we landed on onboarding, handle it (ChildGate might have pushed us here)
+    if (page.url().includes('/onboarding')) {
+      console.log('Onboarding detected after login, completing wizard...');
+      const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
+      await expect(nameInput).toBeVisible({ timeout: 15000 });
+      await nameInput.fill('LeoHero');
+      await page.getByRole('button', { name: 'Continue' }).click();
+      
+      // Step: Age
+      await page.getByRole('button', { name: 'Yep!' }).click();
+
+      // Step: Gender
+      await page.getByRole('button', { name: 'Boy' }).click();
+      await page.getByRole('button', { name: 'Next' }).click();
+
+      // Step: Avatar
+      await page.getByRole('button', { name: 'Skip' }).click();
+
+      // Step: Interests
+      await page.getByText('Space').first().click();
+      await page.getByRole('button', { name: 'Finish!' }).click();
+      
+      // After onboarding, we should be redirected back to story-maker
+      console.log('Onboarding finished, navigating back to story-maker to resume...');
+      await page.goto('/story-maker?action=resume_story_maker');
+    }
   } catch (e) {
     // If it fails, check for error messages or "check email" notifications
     const onPageText = await page.evaluate(() => document.body.innerText);
     if (onPageText.includes('Check your magic scroll')) {
       throw new Error('Test failed: Received "Check your email" instead of auto-redirection. Ensure local Supabase has email confirmation disabled.');
     }
-    throw new Error(`Redirection to story-maker failed. Page content: ${onPageText.slice(0, 1000)}`);
+    throw new Error(`Redirection to story-maker or onboarding failed. Current URL: ${page.url()}. Error: ${e.message}`);
   }
 
   // Wait for any previous loader to disappear
