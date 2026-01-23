@@ -42,6 +42,7 @@ import TutorialOverlay from "@/components/tutorial/tutorial-overlay";
 import { CookieConsent } from "@/components/ui/cookie-consent";
 import { DeepLinkHandler } from "@/components/auth/DeepLinkHandler";
 import { NativeIntegrations } from "@/components/layout/native-integrations";
+import { DevEnvironmentIndicator } from "@/components/debug/DevEnvironmentIndicator";
 
 export default function RootLayout({
   children,
@@ -77,6 +78,7 @@ export default function RootLayout({
         </AuthProvider>
         <CookieConsent />
         <Analytics />
+        <DevEnvironmentIndicator />
         <Toaster />
       </body>
     </html>
