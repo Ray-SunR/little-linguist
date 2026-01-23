@@ -82,9 +82,7 @@ export class GeminiProvider implements AIProvider {
     async generateStory(words: string[], profile: UserProfile, options?: { signal?: AbortSignal, storyLengthMinutes?: number, imageSceneCount?: number, idempotencyKey?: string }): Promise<GeneratedStoryContent> {
         // ... existing implementation ...
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
-                ? "/api/mock/story"
-                : "/api/story";
+            const apiUrl = "/api/story";
 
             const response = await fetch(apiUrl, {
                 method: "POST",

@@ -1,4 +1,3 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
@@ -6,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 import { Tokenizer } from "@/lib/core/books/tokenizer";
 import { TextChunker } from "@/lib/core/books/text-chunker";
-import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
+import { NarrationFactory } from "@/lib/features/narration/factory.server";
 import { alignSpeechMarksToTokens, getWordTokensForChunk } from "@/lib/core/books/speech-mark-aligner";
 import { createClient as createAuthClient } from "@/lib/supabase/server";
 import { StoryRepository } from "@/lib/core/stories/repository.server";
@@ -16,19 +15,13 @@ import {
     refundCredits,
     UsageIdentity
 } from "@/lib/features/usage/usage-service.server";
-import { BedrockEmbeddingService } from "@/lib/features/bedrock/bedrock-embedding.server";
+import { AIFactory } from "@/lib/core/integrations/ai/factory.server";
 import { RewardService, RewardType } from "@/lib/features/activity/reward-service.server";
 import { cookies } from "next/headers";
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
-    const apiKey = process.env.GEMINI_API_KEY;
-
-    if (!apiKey) {
-        return NextResponse.json({ error: "API Key missing on server" }, { status: 500 });
-    }
-
     const authClient = createAuthClient();
     let { data: { user } } = await authClient.auth.getUser();
 
@@ -181,48 +174,6 @@ export async function POST(req: Request) {
         const wordsList = words.join(", ");
         const bookId = crypto.randomUUID();
 
-        const systemInstruction = "You are a creative storyteller for children. You output structured JSON stories with section-by-section descriptions. You must strictly follow the requested number of image scenes.";
-
-        // Determine complexity based on age
-        let complexityInstruction = "The story should be fun, educational, and age-appropriate.";
-        if (age <= 5) {
-            complexityInstruction = "Use simple, rhythmic, and repetitive text with short sentences which are perfect for early readers.";
-        } else if (age <= 8) {
-            complexityInstruction = "Write an engaging adventure with moderate vocabulary suitable for elementary schoolers.";
-        } else {
-            complexityInstruction = "Create a more complex narrative with richer vocabulary and deeper themes suitable for older children.";
-        }
-
-        const userPrompt = `Write a children's story for a ${age}-year-old ${gender} named ${name}. 
-The story SHOULD BE AT LEAST ${targetWordCount} words long. This is a ${storyLengthMinutes}-minute story, so ensure each of the ${totalSections} sections is descriptive and substantial (approx. ${Math.round(targetWordCount / totalSections)} words per section).
-${topic ? `The story topic is: ${topic}.` : ''}
-${setting ? `The story setting is: ${setting}.` : ''}
-${wordsList ? `The story MUST include the following words: ${wordsList}.` : ''}
-${complexityInstruction}
-
-Split the story into exactly ${totalSections} distinct sections.
-
-For the JSON output:
-1. In the "text" field: Use the name "${name}" naturally to tell the story. Each section should be a paragraph of approximately ${Math.round(targetWordCount / totalSections)} words.
-2. In the "image_scenes" array: 
-   - You MUST provide EXACTLY ${imageSceneCount} items in this array.
-   - Each item must have a 'section_index' (the index of the section in the 'sections' array it belongs to, 0 to ${totalSections - 1}).
-   - Each item must have an 'image_prompt'.
-   - ALWAYS use the placeholder "[1]" to represent the main character ${name} in the 'image_prompt'. Do NOT use the name "${name}".
-   - ALWAYS start the 'image_prompt' with "[1]" doing an action. Example: "[1] is running through a forest".
-
-IMPORTANT INSTRUCTION FOR IMAGES:
-1. The 'image_scenes' array MUST have a length of EXACTLY ${imageSceneCount}.
-2. Distribute these ${imageSceneCount} illustrations at regular intervals throughout the ${totalSections} sections.
-3. Every 'image_prompt' MUST contain "[1]" at least once.
-
-Also, provide a "mainCharacterDescription" which is a consistent physical description of ${name} (e.g., "A 6-year-old boy with curly brown hair wearing a green t-shirt").
-
-FINAL RECAP:
-- Total Sections (in 'sections' array): ${totalSections}
-- Total Illustrations (in 'image_scenes' array): ${imageSceneCount}
-- Target Total Words: ${targetWordCount}`;
-
         // 1.5 Usage Tracking & Quotas (Executed BEFORE expensive AI generation)
         identity = await getOrCreateIdentity(user);
 
@@ -270,7 +221,6 @@ FINAL RECAP:
             identityKey: identity?.identity_key,
             childId: childId,
             details: {
-                prompt: userPrompt?.substring(0, 100),
                 imageCount: imageSceneCount,
                 bookId: bookId
             }
@@ -279,52 +229,21 @@ FINAL RECAP:
 
         let creditsRefunded = 0; // Track refunds to avoid double-dipping
 
+        let data: any;
+        let rawPrompt: string = "";
+
         try {
-            const genAI = new GoogleGenAI({ apiKey });
-            const response = await genAI.models.generateContent({
-                model: "gemini-2.0-flash-exp",
-                contents: userPrompt,
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: Type.OBJECT,
-                        properties: {
-                            title: { type: Type.STRING },
-                            content: { type: Type.STRING, description: "A full text version of the story" },
-                            mainCharacterDescription: { type: Type.STRING },
-                            sections: {
-                                type: Type.ARRAY,
-                                items: {
-                                    type: Type.OBJECT,
-                                    properties: {
-                                        text: { type: Type.STRING }
-                                    },
-                                    required: ["text"]
-                                }
-                            },
-                            image_scenes: {
-                                type: Type.ARRAY,
-                                description: `Provide exactly ${imageSceneCount} image scenes.`,
-                                items: {
-                                    type: Type.OBJECT,
-                                    properties: {
-                                        section_index: { type: Type.NUMBER, description: "The index of the section this image belongs to (0-based)" },
-                                        image_prompt: { type: Type.STRING }
-                                    },
-                                    required: ["section_index", "image_prompt"]
-                                }
-                            }
-                        },
-                        required: ["title", "content", "sections", "mainCharacterDescription", "image_scenes"]
-                    },
-                    systemInstruction: systemInstruction,
-                    temperature: 0.8,
-                }
+            const aiProvider = AIFactory.getProvider();
+            const generated = await aiProvider.generateStory(words, {
+                name, age, gender, topic, setting
+            }, {
+                storyLengthMinutes,
+                imageSceneCount,
+                idempotencyKey: storyIdempotencyKey
             });
 
-            const rawPrompt = `System: ${systemInstruction}\n\nUser: ${userPrompt}`;
-            const rawResponseText = response.text || '{}';
-            const data = JSON.parse(rawResponseText);
+            data = generated.rawResponse;
+            rawPrompt = generated.rawPrompt || "";
 
             // 1.5 Validate LLM output structure
             if (!data.title || !data.content || !data.mainCharacterDescription || !Array.isArray(data.sections) || data.sections.length === 0 || !Array.isArray(data.image_scenes)) {
@@ -400,8 +319,7 @@ FINAL RECAP:
             let bookEmbedding: number[] | null = null;
             try {
                 const embeddingText = `Title: ${data.title}. Description: ${data.content.substring(0, 500)}. Keywords: ${wordsList}.`;
-                const embeddingService = new BedrockEmbeddingService();
-                bookEmbedding = await embeddingService.generateEmbedding(embeddingText);
+                bookEmbedding = await AIFactory.getProvider().generateEmbedding(embeddingText);
             } catch (err) {
                 console.error("[StoryAPI] Failed to generate embedding:", err);
                 // We don't fail the whole request if embedding fails, but we log it
@@ -506,7 +424,7 @@ FINAL RECAP:
 
                     // Narration Task
                     const textChunks = TextChunker.chunk(fullContent);
-                    const polly = new PollyNarrationService();
+                    const polly = NarrationFactory.getProvider();
 
                     for (const chunk of textChunks) {
                         const { audioBuffer, speechMarks } = await polly.synthesize(chunk.text);

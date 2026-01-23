@@ -44,9 +44,7 @@ export class StoryService implements IStoryService {
      */
     async generateImageForSection(bookId: string, sectionIndex: number): Promise<void> {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_USE_MOCK_STORY === 'true'
-                ? "/api/mock/story/images"
-                : "/api/story/images";
+            const apiUrl = "/api/story/images";
 
             fetch(apiUrl, {
                 method: "POST",

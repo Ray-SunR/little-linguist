@@ -41,15 +41,17 @@ vi.mock('@/lib/features/narration/polly-service.server', () => {
     };
 });
 
-vi.mock('@/lib/features/word-insight/server/factory', () => ({
-    getWordAnalysisProvider: () => ({
-        analyzeWord: async (word: string) => ({
-            word: word,
-            definition: `A trial or experiment of ${word}.`,
-            pronunciation: word,
-            examples: [`This is a test of ${word}.`]
+vi.mock('@/lib/core/integrations/ai/factory.server', () => ({
+    AIFactory: {
+        getProvider: () => ({
+            getWordInsight: async (word: string) => ({
+                word: word,
+                definition: `A trial or experiment of ${word}.`,
+                pronunciation: word,
+                examples: [`This is a test of ${word}.`]
+            })
         })
-    })
+    }
 }));
 
 describe('Remaining API Routes Integration', () => {

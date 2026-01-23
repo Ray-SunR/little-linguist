@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { GeminiWordAnalysisProvider } from '../server/gemini-provider';
+import { GeminiServerProvider } from '@/lib/core/integrations/ai/gemini-server-provider';
 import { MagicSentenceService } from '../magic-sentence-service.server';
 import { GoogleGenAI } from '@google/genai';
 import { ClaudeStoryService } from '@/lib/features/bedrock/claude-service.server';
@@ -81,13 +81,13 @@ afterAll(() => {
     vi.unstubAllGlobals();
 });
 
-describe('GeminiWordAnalysisProvider', () => {
-  let provider: GeminiWordAnalysisProvider;
+describe('GeminiServerProvider', () => {
+  let provider: GeminiServerProvider;
 
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.GEMINI_API_KEY = 'test-key';
-    provider = new GeminiWordAnalysisProvider('test-key');
+    provider = new GeminiServerProvider();
   });
 
   it('should analyze word successfully', async () => {
@@ -102,7 +102,7 @@ describe('GeminiWordAnalysisProvider', () => {
       text: JSON.stringify(mockResult)
     });
 
-    const result = await provider.analyzeWord('cat');
+    const result = await provider.getWordInsight('cat');
 
     expect(result).toEqual(mockResult);
     expect(mockGenerateContent).toHaveBeenCalledWith(expect.objectContaining({
@@ -113,8 +113,13 @@ describe('GeminiWordAnalysisProvider', () => {
   it('should return empty object on empty response', async () => {
     mockGenerateContent.mockResolvedValueOnce({});
 
-    const result = await provider.analyzeWord('cat');
-    expect(result).toEqual({});
+    const result = await provider.getWordInsight('cat');
+    expect(result).toEqual({
+        word: 'cat',
+        definition: undefined,
+        pronunciation: undefined,
+        examples: []
+    });
   });
 });
 

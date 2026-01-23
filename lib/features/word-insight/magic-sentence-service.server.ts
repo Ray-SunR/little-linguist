@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { ClaudeStoryService } from "@/lib/features/bedrock/claude-service.server";
-import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
 import { NovaStoryService } from "@/lib/features/nova/nova-service.server";
 import { Tokenizer } from "@/lib/core/books/tokenizer";
+import { NarrationFactory } from "@/lib/features/narration/factory.server";
 import { getOrCreateIdentity, reserveCredits } from "@/lib/features/usage/usage-service.server";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 import { RewardService, RewardType } from "@/lib/features/activity/reward-service.server";
@@ -101,7 +101,7 @@ export class MagicSentenceService {
         let generationSuccessful = false;
         try {
             const claude = new ClaudeStoryService();
-            const polly = new PollyNarrationService();
+            const polly = NarrationFactory.getProvider();
             const nova = new NovaStoryService();
 
             // A. Generate content

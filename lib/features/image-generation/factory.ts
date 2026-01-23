@@ -4,6 +4,10 @@ import { MockImageProvider } from './implementations/mock-image-provider';
 
 export class ImageGenerationFactory {
     static getProvider(type: ImageGenerationProviderType = 'google'): IImageGenerationProvider {
+        if (process.env.MOCK_AI_SERVICES === "true") {
+            return new MockImageProvider();
+        }
+
         // Allow override via environment variable
         const envType = process.env.IMAGE_GENERATION_PROVIDER as ImageGenerationProviderType;
         const actualType = envType || type;

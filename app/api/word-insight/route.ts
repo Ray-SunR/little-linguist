@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
-import { PollyNarrationService } from "@/lib/features/narration/polly-service.server";
+import { NarrationFactory } from "@/lib/features/narration/factory.server";
 import { normalizeWord } from "@/lib/core";
-import { getWordAnalysisProvider } from "@/lib/features/word-insight/server/factory";
 import { createClient as createAuthClient } from "@/lib/supabase/server";
 import { getOrCreateIdentity, checkUsageLimit, tryIncrementUsage } from "@/lib/features/usage/usage-service.server";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 import { RewardService, RewardType } from "@/lib/features/activity/reward-service.server";
+import { AIFactory } from "@/lib/core/integrations/ai/factory.server";
 
 export const dynamic = 'force-dynamic';
 
@@ -195,11 +195,11 @@ export async function POST(req: Request): Promise<NextResponse> {
         let generationSuccessful = false;
         try {
             // 4. Generation
-            const insight = await getWordAnalysisProvider().analyzeWord(word);
-            const polly = new PollyNarrationService();
+            const insight = await AIFactory.getProvider().getWordInsight(word);
+            const polly = NarrationFactory.getProvider();
             const bucket = "word-insights-audio";
 
-            async function synthesizeAndUpload(text: string, path: string) {
+            async function synthesizeAndUpload(text: string, path: string): Promise<{ path: string, url: string, timings: any } | null> {
                 try {
                     const { audioBuffer, speechMarks } = await polly.synthesize(text);
                     await adminSupabase.storage.from(bucket).upload(path, audioBuffer, {

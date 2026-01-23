@@ -1,11 +1,7 @@
 import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
+import type { INarrationService, NarrationResponse } from "./server-types";
 
-export interface PollyResponse {
-    audioBuffer: Buffer;
-    speechMarks: any[];
-}
-
-export class PollyNarrationService {
+export class PollyNarrationService implements INarrationService {
     private client: PollyClient;
     private voiceId: string;
 
@@ -27,7 +23,7 @@ export class PollyNarrationService {
             voiceId?: string,
             engine?: "neural" | "generative" | "standard"
         } = {}
-    ): Promise<PollyResponse> {
+    ): Promise<NarrationResponse> {
         const textType = options.textType || "text";
         const voiceId = options.voiceId || this.voiceId;
         const engine = options.engine || "neural";

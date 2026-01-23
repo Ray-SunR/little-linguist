@@ -1,6 +1,5 @@
 import { IImageGenerationProvider, ImageGenerationOptions, ImageGenerationResult } from '../types';
-import fs from 'fs/promises';
-import path from 'path';
+import sharp from 'sharp';
 
 export class MockImageProvider implements IImageGenerationProvider {
     async generateImage(options: ImageGenerationOptions): Promise<ImageGenerationResult> {
@@ -9,10 +8,15 @@ export class MockImageProvider implements IImageGenerationProvider {
         // Simulate network latency
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Use a placeholder image from the repo if it exists, otherwise a generic one
-        // In a real mock we might use something like sharp to generate a buffered image
-        // For now, let's just return a dummy 1x1 pixel PNG buffer
-        const dummyImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+        // Generate a visible dummy image (magenta block)
+        const dummyImage = await sharp({
+            create: {
+                width: 800,
+                height: 600,
+                channels: 3,
+                background: { r: 255, g: 0, b: 255 }
+            }
+        }).png().toBuffer();
 
         return {
             imageBuffer: dummyImage,

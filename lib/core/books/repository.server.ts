@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from "../../supabase/server";
 import { AuditService, AuditAction, EntityType } from "../../features/audit/audit-service.server";
 import { Book } from '../types';
-import { BedrockEmbeddingService } from "../../features/bedrock/bedrock-embedding.server";
+import { AIFactory } from "../integrations/ai/factory.server";
 
 // Types for optimized library fetching
 // ~580 tokens reads in 100s = 348 tokens/min. Rounded to 350 for simplicity.
@@ -633,8 +633,7 @@ export class BookRepository {
 
         const embeddingText = `Title: ${book.title}. Description: ${description}. Keywords: ${keywords.join(', ')}.`;
 
-        const embeddingService = new BedrockEmbeddingService();
-        const embedding = await embeddingService.generateEmbedding(embeddingText);
+        const embedding = await AIFactory.getProvider().generateEmbedding(embeddingText);
 
         const { error: updateError } = await this.supabase
             .from('books')
@@ -705,8 +704,7 @@ export class BookRepository {
         isNonFiction?: boolean,
         duration?: string
     } = {}): Promise<any[]> {
-        const embeddingService = new BedrockEmbeddingService();
-        const queryEmbedding = await embeddingService.generateEmbedding(query);
+        const queryEmbedding = await AIFactory.getProvider().generateEmbedding(query);
 
         const { minGrade, maxGrade } = options.level ? this._mapLevelToGradeRange(options.level) : { minGrade: null, maxGrade: null };
         const { minDuration, maxDuration } = options.duration ? this._mapDurationToRange(options.duration) : { minDuration: null, maxDuration: null };
@@ -758,8 +756,7 @@ export class BookRepository {
 
         const interestText = `Interests: ${interests.join(', ')}.`;
 
-        const embeddingService = new BedrockEmbeddingService();
-        const interestEmbedding = await embeddingService.generateEmbedding(interestText);
+        const interestEmbedding = await AIFactory.getProvider().generateEmbedding(interestText);
 
         const { minGrade, maxGrade } = options.level ? this._mapLevelToGradeRange(options.level) : { minGrade: null, maxGrade: null };
         const { minDuration, maxDuration } = options.duration ? this._mapDurationToRange(options.duration) : { minDuration: null, maxDuration: null };
