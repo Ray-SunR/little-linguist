@@ -311,30 +311,54 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             const userDraftKey = `draft:${user.id}`;
             const childDraftKey = activeChild?.id ? `draft:${user.id}:${activeChild.id}` : null;
 
-            let draft = await raidenCache.get<any>(CacheStore.DRAFTS, userDraftKey);
-            if (!draft && childDraftKey) {
-                draft = await raidenCache.get<any>(CacheStore.DRAFTS, childDraftKey);
+            // Robust Lookup with Retries (to handle slow IndexedDB init in parallel workers)
+            let draft = null;
+            let retryCount = 0;
+            const maxRetries = 5;
+
+            while (retryCount < maxRetries) {
+                draft = await raidenCache.get<any>(CacheStore.DRAFTS, userDraftKey);
+                if (!draft && childDraftKey) {
+                    draft = await raidenCache.get<any>(CacheStore.DRAFTS, childDraftKey);
+                }
+
+                if (!draft && user.id) {
+                    draft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
+                }
+
+                // If no draft in IndexedDB, check localStorage as final fallback
+                const localStorageResumeFlag = localStorage.getItem('lumo:resume_requested');
+                if (!draft && localStorageResumeFlag === 'true') {
+                    console.debug("[StoryMakerClient] Draft missing in IDB but found resume_requested in localStorage. Checking legacy storage...");
+                    const legacyDraft = localStorage.getItem("raiden:story_maker_draft");
+                    if (legacyDraft) {
+                        try {
+                            draft = JSON.parse(legacyDraft);
+                        } catch (e) { }
+                    }
+                }
+
+                if (draft && draft.resumeRequested) break;
+
+                // Wait 200ms before retry
+                console.debug(`[StoryMakerClient] Draft not found or resumeRequested false. Retry ${retryCount + 1}/${maxRetries}...`);
+                await new Promise(r => setTimeout(r, 200));
+                retryCount++;
             }
 
-            // Migration fallback
-            let guestDraftWasUsed = false;
-            if (!draft && user.id) {
-                const guestDraft = await raidenCache.get<any>(CacheStore.DRAFTS, "draft:guest");
-                if (guestDraft) {
-                    console.debug("[StoryMakerClient] Found guest draft to migrate.");
-                    draft = guestDraft;
-                    guestDraftWasUsed = true;
-                }
-            }
+            // CLEANUP localStorage flag immediately
+            localStorage.removeItem('lumo:resume_requested');
 
             // GATE: Only proceed if we have a draft AND it has the resume flag
-            // This prevents manual URL entry or "Back" button from re-triggering generation
             if (!draft || !draft.resumeRequested) {
-                console.debug("[StoryMakerClient] Auto-resume skipped: no draft or resumeRequested flag is false.");
+                console.debug("[StoryMakerClient] Auto-resume skipped: no valid draft found after retries.");
                 processingRef.current = false;
-                if (isResumingIntent) setStep("profile"); // Fallback to profile if auto-resume was optimistic
+                if (isResumingIntent) setStep("profile");
                 return;
             }
+
+            // Migration tracking
+            const guestDraftWasUsed = !(await raidenCache.get(CacheStore.DRAFTS, userDraftKey)) && !!(await raidenCache.get(CacheStore.DRAFTS, "draft:guest"));
 
             // CLEANUP FLAG & MIGRATE IMMEDIATELY in storage
             const finalDraft = { ...draft, resumeRequested: false };
@@ -479,17 +503,29 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         const finalWords = overrideWords || selectedWords;
         const finalProfile = overrideProfile || profile;
         const finalStoryLengthMinutes = overrideStoryLengthMinutes || storyLengthMinutes;
+        const finalImageSceneCount = overrideImageSceneCount ?? imageSceneCount;
 
         if (!user) {
-            await raidenCache.put(CacheStore.DRAFTS, {
-                id: "draft:guest",
+            const guestDraftKey = "draft:guest";
+            const guestDraftData = {
+                id: guestDraftKey,
                 profile: finalProfile,
                 selectedWords: finalWords,
                 storyLengthMinutes: finalStoryLengthMinutes,
-                imageSceneCount: imageSceneCount,
+                imageSceneCount: finalImageSceneCount,
                 idempotencyKey: currentIdempotencyKey || generateUUID(),
                 resumeRequested: true
-            });
+            };
+
+            // Non-blocking sync
+            try {
+                localStorage.setItem('raiden:story_maker_draft', JSON.stringify(guestDraftData));
+                localStorage.setItem('lumo:resume_requested', 'true');
+            } catch (e) { }
+
+            raidenCache.put(CacheStore.DRAFTS, guestDraftData)
+                .catch(err => console.warn("[StoryMakerClient] Background guest draft save failed:", err));
+
             router.push("/login?returnTo=/story-maker&action=generate");
             return;
         }
@@ -502,24 +538,30 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         if (overrideProfile) setProfile(finalProfile);
         if (overrideWords) setSelectedWords(finalWords);
         if (overrideStoryLengthMinutes) setStoryLengthMinutes(finalStoryLengthMinutes);
-        const finalImageSceneCount = overrideImageSceneCount ?? imageSceneCount;
 
         // Idempotency: Use override, or current state, or generate new
         const finalIdempotencyKey = overrideIdempotencyKey || currentIdempotencyKey || generateUUID();
 
-        // Persist key immediately to handle reload/resume
+        // 1. FAST STATE SYNC (localStorage)
+        try {
+            localStorage.setItem(`raiden:generating:${currentUid}`, 'true');
+        } catch (e) { }
+
+        // 2. Persist key and draft immediately (NON-BLOCKING)
         if (finalIdempotencyKey !== currentIdempotencyKey) {
             setCurrentIdempotencyKey(finalIdempotencyKey);
-            // Must save to cache immediately
             const draftKey = (activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`);
-            await raidenCache.put(CacheStore.DRAFTS, {
+            const draftData = {
                 id: draftKey,
                 profile: finalProfile,
                 selectedWords: finalWords,
                 storyLengthMinutes: finalStoryLengthMinutes,
                 imageSceneCount: finalImageSceneCount,
                 idempotencyKey: finalIdempotencyKey
-            });
+            };
+
+            raidenCache.put(CacheStore.DRAFTS, draftData)
+                .catch(err => console.warn("[StoryMakerClient] Background draft save failed:", err));
         }
 
         setStep("generating");

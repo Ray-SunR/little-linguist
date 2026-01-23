@@ -55,13 +55,17 @@ class RaidenCache {
                 console.info(`[Cache] Upgrading DB from ${oldVersion} to ${DB_VERSION}`);
 
                 // One-time cleanup of legacy databases
-                try {
-                    indexedDB.deleteDatabase("raiden-tts-cache");
-                    indexedDB.deleteDatabase("polly-cache");
-                    indexedDB.deleteDatabase("polly-cache-v1");
-                } catch (e) {
-                    // Ignore cleanup errors
-                }
+                // In high-concurrency tests, multiple workers might try to delete the same legacy DB.
+                // We wrap it in a safe, non-blocking way.
+                const legacyDBs = ["raiden-tts-cache", "polly-cache", "polly-cache-v1"];
+                legacyDBs.forEach(ldb => {
+                    try {
+                        const delReq = indexedDB.deleteDatabase(ldb);
+                        delReq.onblocked = () => console.debug(`[Cache] Deletion of legacy ${ldb} blocked - skipping.`);
+                    } catch (e) {
+                        // Ignore cleanup errors
+                    }
+                });
 
                 // Books store (keyed by id)
                 if (!db.objectStoreNames.contains(CacheStore.BOOKS)) {

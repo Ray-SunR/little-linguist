@@ -5,10 +5,11 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
 
   // Ensure fresh state by clearing all cookies/storage
   await context.clearCookies();
+
+  // Set required flags and clear session data
   await page.addInitScript(() => {
     window.localStorage.clear();
     window.sessionStorage.clear();
-    indexedDB.deleteDatabase('raiden-local-cache');
     window.localStorage.setItem('lumo_tutorial_completed_v2', 'true');
     window.localStorage.setItem('lumo-cookie-consent', 'accepted');
   });
@@ -84,7 +85,17 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
 
   await expect(loader.or(readerHeader)).toBeVisible({ timeout: 60000 });
 
-  await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
+  // Reader redirection
+  try {
+    await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
+  } catch (e) {
+    const errorAlert = page.locator('.bg-red-50, .text-red-600, [role="alert"]');
+    if (await errorAlert.count() > 0) {
+      const errorText = await errorAlert.innerText();
+      throw new Error(`Test failed during generation. App error visible: "${errorText.trim()}"`);
+    }
+    throw new Error(`Reader redirection timed out. URL: ${page.url()}. Error: ${e.message}`);
+  }
   await expect(page.getByText('Leo').first()).toBeVisible();
   await page.screenshot({ path: 'test-results/mock-result.png' });
 });

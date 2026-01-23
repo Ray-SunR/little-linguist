@@ -5,14 +5,17 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
 
   // Ensure fresh state by clearing all cookies/storage
   await context.clearCookies();
+
+  // Set required flags and clear previous session data safely
   await page.addInitScript(() => {
     window.localStorage.clear();
     window.sessionStorage.clear();
-    // Aggressively clear IndexedDB to prevent cache leaks
-    indexedDB.deleteDatabase('raiden-local-cache');
     window.localStorage.setItem('lumo_tutorial_completed_v2', 'true');
     window.localStorage.setItem('lumo-cookie-consent', 'accepted');
   });
+
+  page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+  page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
 
   page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
   page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
@@ -49,17 +52,49 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
   await page.getByRole('button', { name: 'Continue' }).click();
 
   await page.getByPlaceholder('Secret Word').fill('password123');
-  await page.getByRole('button', { name: 'Enter Realm' }).click();
 
-  await expect(page).toHaveURL(/\/story-maker/);
-  await expect(page).toHaveURL(/action=resume_story_maker/);
+  // Ensure button is ready
+  const enterButton = page.getByRole('button', { name: 'Enter Realm' });
+  await expect(enterButton).toBeEnabled();
+  await enterButton.click();
+
+  // Wait for redirect to story-maker with action=resume_story_maker
+  // The wait time is increased to 15s to handle database/auth latency in local workers
+  try {
+    await page.waitForURL(url =>
+      url.pathname.includes('/story-maker') &&
+      url.searchParams.get('action') === 'resume_story_maker',
+      { timeout: 15000 }
+    );
+  } catch (e) {
+    // If it fails, check for error messages or "check email" notifications
+    const onPageText = await page.evaluate(() => document.body.innerText);
+    if (onPageText.includes('Check your magic scroll')) {
+      throw new Error('Test failed: Received "Check your email" instead of auto-redirection. Ensure local Supabase has email confirmation disabled.');
+    }
+    throw new Error(`Redirection to story-maker failed. Page content: ${onPageText.slice(0, 1000)}`);
+  }
 
   // Wait for any previous loader to disappear
   await expect(page.getByText('Wait for it...')).not.toBeVisible({ timeout: 30000 });
 
   await expect(page.getByText('Making Magic...')).toBeVisible({ timeout: 30000 });
 
-  await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
+  // Wait for the redirect to reader
+  try {
+    await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
+  } catch (e) {
+    // DIAGNOSTIC: Check if an error alert is visible
+    const errorAlert = page.locator('.bg-red-50, .text-red-600, [role="alert"]');
+    if (await errorAlert.count() > 0) {
+      const errorText = await errorAlert.innerText();
+      throw new Error(`Test failed during generation. App error visible: "${errorText.trim()}"`);
+    }
+
+    // Capture state to see if we are stuck on loader or fell back
+    const isLoaderVisible = await page.getByText('Making Magic...').isVisible();
+    throw new Error(`Reader redirection timed out. URL: ${page.url()}. Loader visible: ${isLoaderVisible}. Error: ${e.message}`);
+  }
   await expect(page.getByText('Leo').first()).toBeVisible();
 
   // Assert that image blocks exist (skeleton or actual)

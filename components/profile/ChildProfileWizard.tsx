@@ -151,30 +151,42 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
         setError(null);
 
         try {
-            const draft = {
+            const draftData = {
                 profile: {
                     name: formData.first_name,
                     age: new Date().getFullYear() - formData.birth_year,
                     gender: formData.gender,
-                    avatarUrl: avatarStoragePath ? undefined : avatarPreview, // Don't cache blob URLs if we have storage path
+                    avatarUrl: avatarStoragePath ? undefined : avatarPreview,
                     avatarStoragePath: avatarStoragePath,
                     interests: formData.interests,
                     topic: formData.topic,
                     setting: formData.setting
                 },
                 selectedWords: formData.selectedWords,
-                storyLengthMinutes: 5, // Default for guest
-                imageSceneCount: 5,    // Default for guest
+                storyLengthMinutes: 5,
+                imageSceneCount: 5,
                 isGuestFlow: true,
                 resumeRequested: true
             };
 
-            await raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", ...draft });
+            // 1. FAST PERSISTENCE: Use localStorage as the primary reliable store during transitions
+            // This is synchronous and non-blocking, ensuring the redirect happens immediately.
+            try {
+                localStorage.setItem('raiden:story_maker_draft', JSON.stringify(draftData));
+                localStorage.setItem('lumo:resume_requested', 'true');
+            } catch (e) {
+                console.warn("[ChildProfileWizard] LocalStorage failed, falling back to IDB only.");
+            }
 
+            // 2. IDB PERSISTENCE: Fire and forget (or short-timeout) to avoid blocking the UI
+            // We still want it in IDB for long-term logic, but we don't wait for it to block the login page.
+            raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", ...draftData })
+                .catch(err => console.warn("[ChildProfileWizard] Background IDB save failed:", err));
+
+            // 3. PROCEED IMMEDIATELY
             if (user) {
-                // If already logged in, just refresh and go to library or let parent handle
-                // Actually, for mode='story', we probably want to resume story maker
-                await refreshProfiles();
+                // Fire and forget refresh, the next page (story-maker) will handle hydration/loading states
+                refreshProfiles().catch(console.error);
                 router.push('/story-maker?action=resume_story_maker');
             } else {
                 const returnUrl = encodeURIComponent('/story-maker?action=resume_story_maker');
