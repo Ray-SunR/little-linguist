@@ -154,6 +154,8 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
             // Transitions to completed! Trigger a forced save to get the reward
             saveProgress({ force: true }).then((res: any) => {
                 dispatchXpEvent(res?.reward);
+            }).catch(error => {
+                console.error("Failed to save progress on completion:", error);
             });
         }
         lastCompletedRef.current = isCompleted;
@@ -164,6 +166,8 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         if (selectedBookId && isMounted) {
             saveProgress({ force: true, isOpening: true }).then((res: any) => {
                 dispatchXpEvent(res?.reward);
+            }).catch(error => {
+                console.error("Failed to save progress on opening:", error);
             });
         }
     }, [selectedBookId, isMounted, saveProgress, dispatchXpEvent]);
@@ -200,7 +204,9 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         if (!selectedBookId) return;
         pause();
         await seekToWord(0);
-        saveProgress({ force: true });
+        saveProgress({ force: true }).catch(error => {
+            console.error("Failed to save progress on restart:", error);
+        });
         lastScrolledBookIdRef.current = null;
     }, [selectedBookId, pause, seekToWord, saveProgress]);
 
@@ -245,7 +251,9 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         if (wordIndex === null) return;
         closeWordInspector();
         await seekToWord(wordIndex);
-        saveProgress({ force: true });
+        saveProgress({ force: true }).catch(error => {
+            console.error("Failed to save progress on play from word:", error);
+        });
         await play();
     }, [inspectorSelectedWordIndex, closeWordInspector, seekToWord, play, saveProgress]);
 
