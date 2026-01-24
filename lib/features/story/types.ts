@@ -34,6 +34,19 @@ export type Story = {
 };
 
 /**
+ * Draft state for story generation
+ */
+export type StoryDraft = {
+    id: string; // The draft key (e.g. draft:guest or draft:userId:childId)
+    profile: UserProfile;
+    selectedWords: string[];
+    storyLengthMinutes: number;
+    imageSceneCount: number;
+    idempotencyKey?: string;
+    updatedAt: number;
+};
+
+/**
  * Service interface for story generation and persistence
  */
 export interface IStoryService {
