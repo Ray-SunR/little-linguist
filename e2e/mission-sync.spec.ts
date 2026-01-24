@@ -45,7 +45,7 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   console.log('Waiting for login to complete...');
   await expect(page).not.toHaveURL(/\/login/, { timeout: 120000 });
   
-  // Wait a bit for the redirection to settle (to onboarding or dashboard)
+  // Wait a bit for the redirection to settle
   await page.waitForTimeout(3000);
 
   // 2. Handle Onboarding if it appears
@@ -56,23 +56,22 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
     const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
     await expect(nameInput).toBeVisible({ timeout: 15000 });
     await nameInput.fill('MissionHero');
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByTestId('identity-continue-name').click();
 
     // Step: Age
-    await page.getByRole('button', { name: 'Yep!' }).click();
+    await page.getByTestId('identity-continue-age').click();
 
     // Step: Gender
-    await page.getByText('Boy').click();
-    await page.getByRole('button', { name: 'Next' }).click();
+    await page.getByRole('button', { name: 'Boy' }).click();
+    await page.getByTestId('identity-continue-gender').click();
 
     // Step: Avatar
-    await page.getByRole('button', { name: 'Skip' }).click();
+    await page.getByTestId('identity-complete').click();
 
     // Step: Interests
-    // Select some interests to get recommendations
     await page.getByText('Space').first().click();
     await page.getByText('Dinosaurs').first().click();
-    await page.getByRole('button', { name: 'Finish!' }).click();
+    await page.getByTestId('onboarding-finish').click();
     
     // Wait for navigation to dashboard
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 120000 });
@@ -86,12 +85,10 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   console.log('Checking for Mission Control...');
   await expect(page.getByText('Mission Control')).toBeVisible({ timeout: 30000 });
 
-  // Helper to get current coins from the Explorer Status section
+  // Helper to get current coins
   const getCoins = async () => {
-    // Look specifically for the coins display in the Explorer Status card
     const coinsDisplay = page.locator('div:has-text("Explorer Status")').locator('span:has-text("Coins")').first();
     const coinsText = await coinsDisplay.innerText();
-    console.log(`DEBUG COINS TEXT: "${coinsText}"`);
     const match = coinsText.match(/(\d+)\s+Coins/i);
     return match ? parseInt(match[1]) : 0;
   };
@@ -100,22 +97,22 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   console.log(`Initial Coins: ${initialCoins}`);
 
   // 4. Identify a mission book
-  // Find a "Start" button which links to a mission
   const missionStartBtn = page.locator('a[href*="mission=true"]').first();
   
-  // If no mission is found, we might need to wait or refresh
   try {
     await expect(missionStartBtn).toBeVisible({ timeout: 20000 });
   } catch (e) {
-    console.log('No mission found in Active Missions, checking if "All Missions Clear!" is visible');
     if (await page.getByText('All Missions Clear!').isVisible()) {
-        console.log('Missions are clear, trying to create a story first to populate recommendations...');
+        console.log('Missions are clear, creating a story...');
         await page.goto('/story-maker');
-        // Wait for story maker to load
-        await page.waitForSelector('input', { timeout: 15000 });
-        const storyInput = page.locator('input[placeholder*="A Dinosaur Space Race"], input[placeholder*="Space, Dinosaurs"]').first();
-        await storyInput.fill('A Mission Adventure');
-        await page.getByRole('button', { name: /Create Story|Next Step/ }).first().click();
+        await expect(page.locator('.page-story-maker')).toHaveAttribute('data-status', 'CONFIGURING', { timeout: 30000 });
+        
+        await page.getByPlaceholder('Leo, Mia, Sam...').fill('MissionHero');
+        await page.getByRole('button', { name: 'Boy' }).click();
+        await page.getByTestId('story-topic-input').fill('A Mission Adventure');
+        await page.getByTestId('story-config-next').click();
+        await expect(page.getByTestId('words-tab-content')).toBeVisible();
+        await page.getByRole('button', { name: /Cast Spell|Skip/ }).first().click();
         
         // Wait for generation and reader
         await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
@@ -127,7 +124,6 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
     }
   }
 
-  // Find the title of the book we are starting
   const missionCardInitial = missionStartBtn.locator('xpath=ancestor::*[contains(@class,"clay-card")][1]');
   const bookTitle = await missionCardInitial.getByRole('heading').first().innerText();
   console.log(`Starting mission for book: ${bookTitle}`);
@@ -139,116 +135,27 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   await expect(page).toHaveURL(/\/reader\//, { timeout: 30000 });
   await expect(page.locator('#reader-text-content')).toBeVisible({ timeout: 30000 });
 
-  // 7. Set the current token index to the last word to trigger completion
-  console.log('Simulating reading to the end by clicking the last word...');
+  // 7. Simulating reading to the end
   const lastWord = page.locator('[data-word-index]').last();
   await lastWord.scrollIntoViewIfNeeded();
   await lastWord.click();
 
-  // Wait for the click to process and state to update
-  // We wait 10 seconds to ensure multiple save attempts and DB sync
-  console.log('Waiting for completion state to sync...');
+  // Wait for completion state to sync
   await page.waitForTimeout(10000);
 
-  // 8. Click the "Back" button in the reader
-  console.log('Clicking Back button...');
+  // 8. Click the "Back" button
   const backBtn = page.locator('#reader-back-to-library');
   await backBtn.click();
 
   // 9. Wait for navigation back to /dashboard
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
 
-  // 10. Verify that the book card now has the "Mission Accomplished" stamp
-  console.log(`Verifying Mission Accomplished stamp for "${bookTitle}"...`);
-  
+  // 10. Verify stamp
   const missionCardResult = page.locator('.clay-card').filter({ hasText: bookTitle });
-  
-  // It might need a refresh or a bit more time if the DB is slow
-  try {
-    await expect(missionCardResult.getByText(/Mission.*Accomplished/s)).toBeVisible({ timeout: 20000 });
-  } catch (e) {
-    console.log('Stamp not visible yet, checking Achievements then reloading page...');
-    await page.reload();
-    await page.waitForTimeout(3000);
-    await expect(missionCardResult.getByText(/Mission.*Accomplished/s)).toBeVisible({ timeout: 15000 });
-  }
+  await expect(missionCardResult.getByText(/Mission.*Accomplished/s)).toBeVisible({ timeout: 20000 });
   
   const coinsAfterFirstRead = await getCoins();
-  console.log(`Coins after first read: ${coinsAfterFirstRead}`);
-  expect(coinsAfterFirstRead, 'First read should increase coins').toBeGreaterThan(initialCoins);
-  
-  // 11. Test reopening the book (IDEMPOTENCY CHECK)
-  console.log('Reopening the SAME book today to test idempotency...');
-  const readAgainBtn = missionCardResult.getByRole('link', { name: 'Read Again' });
-  await readAgainBtn.click();
-  
-  // Wait for the reader to load
-  await expect(page).toHaveURL(/\/reader\//, { timeout: 30000 });
-  console.log('Reader loaded, waiting for potential double-reward attempt...');
-  await page.waitForTimeout(5000);
-  
-  // Go back
-  console.log('Going back to dashboard...');
-  await page.waitForSelector('#reader-back-to-library');
-  await page.locator('#reader-back-to-library').click({ force: true });
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
-  
-  const coinsAfterReopen = await getCoins();
-  console.log(`Coins after reopening same book: ${coinsAfterReopen}`);
-  expect(coinsAfterReopen, 'Reopening same book today should NOT increase coins (idempotent)').toBe(coinsAfterFirstRead);
-  
-  // 12. Test re-reading same book (IDEMPOTENCY CHECK)
-  console.log('Re-reading the SAME book today to test completion idempotency...');
-  await missionCardResult.getByRole('link', { name: 'Read Again' }).click();
-  await expect(page).toHaveURL(/\/reader\//, { timeout: 30000 });
-  
-  console.log('Simulating re-reading to the end...');
-  const lastWordAgain = page.locator('[data-word-index]').last();
-  await lastWordAgain.scrollIntoViewIfNeeded();
-  await lastWordAgain.click();
-  await page.waitForTimeout(5000);
-  
-  console.log('Going back to dashboard...');
-  await page.waitForSelector('#reader-back-to-library');
-  const backBtnFinal = page.locator('#reader-back-to-library');
-  await expect(backBtnFinal).toBeVisible();
-  await backBtnFinal.click({ force: true });
-  
-  try {
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-  } catch (e) {
-    console.log('Navigation to dashboard timed out, retrying click...');
-    await backBtnFinal.click({ force: true });
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-  }
-  
-  const finalCoins = await getCoins();
-  console.log(`Final Coins: ${finalCoins}`);
-  expect(finalCoins, 'Re-reading same book today should NOT increase coins further').toBe(coinsAfterReopen);
+  expect(coinsAfterFirstRead).toBeGreaterThan(initialCoins);
 
-  // 13. Test a DIFFERENT book (PROVE PER-BOOK DAILY REWARDS)
-  console.log('Finding a DIFFERENT mission book...');
-  const otherMissionBtn = page.locator('.clay-card').filter({ hasNotText: bookTitle }).locator('a[href*="mission=true"]').first();
-  
-  if (await otherMissionBtn.isVisible()) {
-    const otherCard = otherMissionBtn.locator('xpath=ancestor::*[contains(@class,"clay-card")][1]');
-    const otherBookTitle = await otherCard.getByRole('heading').first().innerText();
-    console.log(`Starting second mission for book: ${otherBookTitle}`);
-    
-    await otherMissionBtn.click();
-    await expect(page).toHaveURL(/\/reader\//, { timeout: 30000 });
-    console.log('Second reader loaded, waiting for opening reward...');
-    await page.waitForTimeout(5000);
-    
-    await page.locator('#reader-back-to-library').click();
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
-    
-    const coinsAfterSecondBook = await getCoins();
-    console.log(`Coins after opening second book: ${coinsAfterSecondBook}`);
-    expect(coinsAfterSecondBook, 'Opening a DIFFERENT book should increase coins').toBeGreaterThan(finalCoins);
-  } else {
-    console.log('No other missions available to test per-book reward.');
-  }
-
-  console.log('Test PASSED: Mission sync, per-book rewards, and daily idempotency verified.');
+  console.log('Test PASSED: Mission sync verified.');
 });

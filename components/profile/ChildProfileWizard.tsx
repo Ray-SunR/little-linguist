@@ -17,15 +17,12 @@ interface ChildProfileWizardProps {
     mode?: 'onboarding' | 'story';
 }
 
-
-
 const SUGGESTED_INTERESTS = {
     "Themes 🎭": ["Adventure", "Friendship", "Magic", "Mystery", "Kindness", "Courage"],
     "Topics 🦖": ["Nature", "Animals", "Science", "Pets", "Space", "Dinosaurs", "Transport"],
     "Characters 🦸": ["Princesses", "Superheroes", "Fairies", "Knights"],
     "Activities 🚀": ["Sports", "Building", "Exploration"]
 };
-
 
 const GUEST_MAGIC_WORDS = [
     'Magic', 'Adventure', 'Friendship', 'Dragon', 'Space',
@@ -37,8 +34,8 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
     const { refreshProfiles, user } = useAuth();
     const [step, setStep] = useState<Step>('name');
     const [formData, setFormData] = useState({
-        first_name: '',
-        birth_year: new Date().getFullYear() - 6,
+        firstName: '',
+        birthYear: new Date().getFullYear() - 6,
         gender: '' as 'boy' | 'girl' | '',
         interests: [] as string[],
         avatar_asset_path: '',
@@ -49,7 +46,6 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
     const objectUrlRef = useRef<string | null>(null);
 
-    // Clean up Object URL on unmount or when preview changes
     useEffect(() => {
         const currentUrl = objectUrlRef.current;
         return () => {
@@ -94,7 +90,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
     }
 
     function validateRequiredFields(): boolean {
-        if (!formData.first_name.trim()) {
+        if (!formData.firstName.trim()) {
             setError("Hero's name is required!");
             setStep('name');
             return false;
@@ -136,7 +132,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
             if (result.error) throw new Error(result.error);
 
             await refreshProfiles();
-            router.push('/library');
+            router.push('/dashboard');
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Something went wrong';
             setError(message);
@@ -153,8 +149,8 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
         try {
             const draftData = {
                 profile: {
-                    name: formData.first_name,
-                    age: new Date().getFullYear() - formData.birth_year,
+                    name: formData.firstName,
+                    age: new Date().getFullYear() - formData.birthYear,
                     gender: formData.gender,
                     avatarUrl: avatarStoragePath ? undefined : avatarPreview,
                     avatarStoragePath: avatarStoragePath,
@@ -164,13 +160,11 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                 },
                 selectedWords: formData.selectedWords,
                 storyLengthMinutes: 5,
-                imageSceneCount: 5,
+                imageSceneCount: 3,
                 isGuestFlow: true,
                 resumeRequested: true
             };
 
-            // 1. FAST PERSISTENCE: Use localStorage as the primary reliable store during transitions
-            // This is synchronous and non-blocking, ensuring the redirect happens immediately.
             try {
                 localStorage.setItem('raiden:story_maker_draft', JSON.stringify(draftData));
                 localStorage.setItem('lumo:resume_requested', 'true');
@@ -178,14 +172,10 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                 console.warn("[ChildProfileWizard] LocalStorage failed, falling back to IDB only.");
             }
 
-            // 2. IDB PERSISTENCE: Fire and forget (or short-timeout) to avoid blocking the UI
-            // We still want it in IDB for long-term logic, but we don't wait for it to block the login page.
             raidenCache.put(CacheStore.DRAFTS, { id: "draft:guest", ...draftData })
                 .catch(err => console.warn("[ChildProfileWizard] Background IDB save failed:", err));
 
-            // 3. PROCEED IMMEDIATELY
             if (user) {
-                // Fire and forget refresh, the next page (story-maker) will handle hydration/loading states
                 refreshProfiles().catch(console.error);
                 router.push('/story-maker?action=resume_story_maker');
             } else {
@@ -257,19 +247,19 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                         {['name', 'age', 'gender', 'avatar'].includes(step) && (
                             <HeroIdentityForm
                                 initialData={{
-                                    firstName: formData.first_name,
-                                    birthYear: formData.birth_year,
+                                    firstName: formData.firstName,
+                                    birthYear: formData.birthYear,
                                     gender: formData.gender,
                                     avatarPreview: avatarPreview,
                                     avatarStoragePath: avatarStoragePath
                                 }}
                                 initialStep={step as any}
-                                onStepChange={(s) => setStep(s)}
-                                onComplete={(data) => {
+                                onStepChange={(s) => setStep(s as Step)}
+                                onComplete={(data: HeroIdentity) => {
                                     setFormData(prev => ({
                                         ...prev,
-                                        first_name: data.firstName,
-                                        birth_year: data.birthYear,
+                                        firstName: data.firstName,
+                                        birthYear: data.birthYear,
                                         gender: data.gender
                                     }));
                                     setAvatarPreview(data.avatarPreview);
@@ -285,10 +275,9 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                             <div className="w-full h-full flex flex-col space-y-4">
                                 <div className="text-center space-y-1">
                                     <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Magic Interests!</h2>
-                                    <p className="text-ink-muted font-bold font-nunito text-[10px]">Optional: What does <span className="text-purple-600 font-black">{formData.first_name}</span> love most?</p>
+                                    <p className="text-ink-muted font-bold font-nunito text-[10px]">Optional: What does <span className="text-purple-600 font-black">{formData.firstName}</span> love most?</p>
                                 </div>
 
-                                {/* Manual Input */}
                                 <div className="relative group max-w-sm mx-auto w-full">
                                     <input
                                         type="text"
@@ -311,9 +300,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     </div>
                                 </div>
 
-                                {/* Interests Area */}
                                 <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-4">
-                                    {/* Selected Interests Bar (if any) */}
                                     {formData.interests.length > 0 && (
                                         <div className="flex flex-wrap gap-2 p-2 bg-purple-50/50 rounded-xl border-2 border-white min-h-[44px]">
                                             {formData.interests.map(interest => (
@@ -332,7 +319,6 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         </div>
                                     )}
 
-                                    {/* Suggested Categories */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                         {Object.entries(SUGGESTED_INTERESTS).map(([category, items]) => (
                                             <div key={category} className="space-y-3">
@@ -372,6 +358,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         onClick={handleFinish}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
+                                        data-testid="onboarding-finish"
                                         className="primary-btn h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
                                     >
                                         {mode === 'onboarding' ? "Finish! ✨" : "Continue"} <ChevronRight className="w-5 h-5" />
@@ -388,7 +375,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         <BookOpen className="w-8 h-8 text-orange-600" />
                                     </div>
                                     <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka uppercase">What&apos;s the Story About?</h2>
-                                    <p className="text-ink-muted font-bold font-nunito text-[10px] max-w-sm mx-auto">Optional: Tell us a theme for <span className="text-purple-600 font-black">{formData.first_name}</span>&apos;s adventure.</p>
+                                    <p className="text-ink-muted font-bold font-nunito text-[10px] max-w-sm mx-auto">Optional: Tell us a theme for <span className="text-purple-600 font-black">{formData.firstName}</span>&apos;s adventure.</p>
                                 </div>
 
                                 <div className="relative max-w-sm mx-auto">
@@ -400,6 +387,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         onKeyDown={(e) => e.key === 'Enter' && nextStep('setting')}
                                         className="w-full h-12 px-8 rounded-xl border-4 border-orange-50 bg-white/50 focus:bg-white focus:border-orange-200 outline-none transition-all font-fredoka text-lg font-black text-ink placeholder:text-slate-200 shadow-inner text-center"
                                         placeholder="Space, Dinosaurs, Tea Party..."
+                                        data-testid="story-topic-input"
                                     />
                                 </div>
 
@@ -412,6 +400,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         className="primary-btn h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
+                                        data-testid="onboarding-topic-next"
                                     >
                                         Next <ChevronRight className="w-5 h-5" />
                                     </motion.button>
@@ -440,6 +429,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         onKeyDown={(e) => e.key === 'Enter' && nextStep('words')}
                                         className="w-full h-12 px-8 rounded-xl border-4 border-blue-50 bg-white/50 focus:bg-white focus:border-blue-200 outline-none transition-all font-fredoka text-lg font-black text-ink placeholder:text-slate-200 shadow-inner text-center"
                                         placeholder="Enchanted Forest, Mars, Underwater..."
+                                        data-testid="story-setting-input"
                                     />
                                 </div>
 
@@ -452,6 +442,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         className="primary-btn h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
+                                        data-testid="onboarding-setting-next"
                                     >
                                         Next <ChevronRight className="w-5 h-5" />
                                     </motion.button>
@@ -462,7 +453,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
                         {/* --- STEP: WORDS --- */}
                         {step === 'words' && (
-                            <div className="w-full h-full flex flex-col space-y-4 text-center">
+                            <div className="w-full h-full flex flex-col space-y-4 text-center" data-testid="words-tab-content">
                                 <div className="space-y-1">
                                     <div className="w-16 h-16 bg-purple-100/50 rounded-[1.25rem] flex items-center justify-center mx-auto shadow-clay-purple-sm border-2 border-white">
                                         <Wand2 className="w-8 h-8 text-purple-600" />
@@ -478,6 +469,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                             <motion.button
                                                 key={word}
                                                 type="button"
+                                                data-testid={`magic-word-${word.toLowerCase()}`}
                                                 onClick={() => toggleWord(word)}
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
@@ -501,6 +493,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     </button>
                                     <motion.button
                                         onClick={handleCompleteStoryDraft}
+                                        data-testid="onboarding-create-story"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         className="primary-btn h-12 px-4 sm:px-6 text-sm sm:text-base font-black font-fredoka uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
@@ -511,7 +504,6 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                 {error && <p className="text-rose-500 font-bold font-nunito mt-4">{error}</p>}
                             </div>
                         )}
-
 
                         {/* --- STEP: SAVING --- */}
                         {step === 'saving' && (
@@ -533,14 +525,13 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                 </div>
                                 <div className="space-y-4">
                                     <h2 className="text-3xl font-black text-ink font-fredoka">Creating Your World...</h2>
-                                    <p className="text-ink-muted font-bold font-nunito">We&apos;re getting things ready for <span className="text-purple-600">{formData.first_name}</span>.</p>
+                                    <p className="text-ink-muted font-bold font-nunito">We&apos;re getting things ready for <span className="text-purple-600">{formData.firstName}</span>.</p>
                                 </div>
                             </div>
                         )}
                     </motion.div>
                 </AnimatePresence>
             </div>
-
         </div>
     );
 }

@@ -7,7 +7,7 @@ import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { useAuth } from '@/components/auth/auth-provider';
-import HeroIdentityForm from './HeroIdentityForm';
+import HeroIdentityForm, { HeroIdentity } from './HeroIdentityForm';
 import { CachedImage } from '@/components/ui/cached-image';
 
 type OnboardingStep = 'identity' | 'interests' | 'saving';
@@ -24,8 +24,8 @@ export default function OnboardingWizard() {
     const { refreshProfiles } = useAuth();
     const [step, setStep] = useState<OnboardingStep>('identity');
     const [formData, setFormData] = useState({
-        first_name: '',
-        birth_year: new Date().getFullYear() - 6,
+        firstName: '',
+        birthYear: new Date().getFullYear() - 6,
         gender: '' as 'boy' | 'girl' | '',
         interests: [] as string[],
         avatar_asset_path: ''
@@ -63,8 +63,8 @@ export default function OnboardingWizard() {
 
         try {
             const result = await createChildProfile({
-                first_name: formData.first_name,
-                birth_year: formData.birth_year,
+                first_name: formData.firstName,
+                birth_year: formData.birthYear,
                 gender: formData.gender,
                 interests: formData.interests,
                 avatar_asset_path: formData.avatar_asset_path
@@ -75,7 +75,7 @@ export default function OnboardingWizard() {
             }
 
             await refreshProfiles();
-            router.push('/library');
+            router.push('/dashboard');
         } catch (err: any) {
             setError(err.message || 'Something went wrong');
             setStep('interests');
@@ -133,34 +133,35 @@ export default function OnboardingWizard() {
                         className="flex-grow flex flex-col items-center justify-center w-full overflow-hidden"
                     >
                         {step === 'identity' && (
-                            <HeroIdentityForm
-                                initialData={{
-                                    firstName: formData.first_name,
-                                    birthYear: formData.birth_year,
-                                    gender: formData.gender,
-                                    avatarPreview: avatarPreview,
-                                    avatarStoragePath: formData.avatar_asset_path
-                                }}
-                                onComplete={(data) => {
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        first_name: data.firstName,
-                                        birth_year: data.birthYear,
-                                        gender: data.gender,
-                                        avatar_asset_path: data.avatarStoragePath || ''
-                                    }));
-                                    setAvatarPreview(data.avatarPreview);
-                                    nextStep('interests');
-                                }}
-                                mode="onboarding"
-                            />
+                                <HeroIdentityForm
+                                    initialData={{
+                                        firstName: formData.firstName,
+                                        birthYear: formData.birthYear,
+                                        gender: formData.gender,
+                                        avatarPreview: avatarPreview,
+                                        avatarStoragePath: formData.avatar_asset_path
+                                    }}
+                                    onComplete={(data: HeroIdentity) => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            firstName: data.firstName,
+                                            birthYear: data.birthYear,
+                                            gender: data.gender,
+                                            avatar_asset_path: data.avatarStoragePath || ''
+                                        }));
+                                        setAvatarPreview(data.avatarPreview);
+                                        nextStep('interests');
+                                    }}
+                                    mode="onboarding"
+                                />
+
                         )}
 
                         {step === 'interests' && (
                             <div className="w-full h-full flex flex-col space-y-4">
                                 <div className="text-center space-y-1">
                                     <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Magic Interests!</h2>
-                                    <p className="text-ink-muted font-bold font-nunito text-[10px]">Optional: What does <span className="text-purple-600 font-black">{formData.first_name}</span> love most?</p>
+                                    <p className="text-ink-muted font-bold font-nunito text-[10px]">Optional: What does <span className="text-purple-600 font-black">{formData.firstName}</span> love most?</p>
                                 </div>
 
                                 <div className="relative group max-w-sm mx-auto w-full">
@@ -240,6 +241,7 @@ export default function OnboardingWizard() {
                                         <ChevronLeft className="w-5 h-5" /> Back
                                     </button>
                                     <motion.button
+                                        data-testid="onboarding-finish"
                                         onClick={handleFinish}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
@@ -271,7 +273,7 @@ export default function OnboardingWizard() {
                                 </div>
                                 <div className="space-y-4">
                                     <h2 className="text-3xl font-black text-ink font-fredoka">Creating Your World...</h2>
-                                    <p className="text-ink-muted font-bold font-nunito">We&apos;re getting things ready for <span className="text-purple-600">{formData.first_name}</span>.</p>
+                                    <p className="text-ink-muted font-bold font-nunito">We&apos;re getting things ready for <span className="text-purple-600">{formData.firstName}</span>.</p>
                                 </div>
                             </div>
                         )}

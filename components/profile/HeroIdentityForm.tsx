@@ -15,15 +15,15 @@ export interface HeroIdentity {
     avatarStoragePath?: string;
 }
 
-type Step = 'name' | 'age' | 'gender' | 'avatar';
+export type HeroIdentityStep = 'name' | 'age' | 'gender' | 'avatar';
 
 interface HeroIdentityFormProps {
     initialData: HeroIdentity;
     onComplete: (data: HeroIdentity) => void;
     onBack?: () => void;
-    onStepChange?: (step: Step) => void;
+    onStepChange?: (step: HeroIdentityStep) => void;
     onFormDataChange?: (data: HeroIdentity) => void;
-    initialStep?: Step;
+    initialStep?: HeroIdentityStep;
     mode: 'onboarding' | 'story';
     isInline?: boolean;
 }
@@ -38,7 +38,7 @@ export default function HeroIdentityForm({
     mode,
     isInline = false
 }: HeroIdentityFormProps) {
-    const [step, setStep] = useState<Step>(initialStep);
+    const [step, setStep] = useState<HeroIdentityStep>(initialStep);
     const [formData, setFormData] = useState<HeroIdentity>(initialData);
 
     const onFormDataChangeRef = useRef(onFormDataChange);
@@ -49,7 +49,6 @@ export default function HeroIdentityForm({
     const handleFieldChange = useCallback((updates: Partial<HeroIdentity>) => {
         setFormData(prev => {
             const next = { ...prev, ...updates };
-            // Use a timeout to avoid synchronous update loops with parent
             setTimeout(() => {
                 onFormDataChangeRef.current?.(next);
             }, 0);
@@ -82,12 +81,12 @@ export default function HeroIdentityForm({
 
     const age = new Date().getFullYear() - formData.birthYear;
 
-    function nextStep(next: Step): void {
+    function nextStep(next: HeroIdentityStep): void {
         setError(null);
         setStep(next);
     }
 
-    function prevStep(prev: Step): void {
+    function prevStep(prev: HeroIdentityStep): void {
         setError(null);
         if (prev === 'name' && step === 'name') {
             onBack?.();
@@ -106,7 +105,6 @@ export default function HeroIdentityForm({
             if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
             objectUrlRef.current = localUrl;
             
-            // Show local preview immediately
             setFormData(prev => ({ ...prev, avatarPreview: localUrl }));
 
             const result = await getAvatarUploadUrl(file.name);
@@ -133,27 +131,7 @@ export default function HeroIdentityForm({
         }
     };
 
-    const stepVariants = {
-        enter: (direction: number) => ({
-            x: direction > 0 ? 100 : -100,
-            opacity: 0,
-            scale: 0.95
-        }),
-        center: {
-            zIndex: 1,
-            x: 0,
-            opacity: 1,
-            scale: 1
-        },
-        exit: (direction: number) => ({
-            zIndex: 0,
-            x: direction < 0 ? 100 : -100,
-            opacity: 0,
-            scale: 0.95
-        })
-    };
-
-    const AvatarField = (
+    const renderAvatarField = () => (
         <div className="flex items-center justify-center">
             <label className={cn(
                 "rounded-[2.5rem] border-4 border-dashed transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group shadow-inner bg-white/30",
@@ -216,7 +194,7 @@ export default function HeroIdentityForm({
         </div>
     );
 
-    const NameField = (
+    const renderNameField = () => (
         <div className={cn("w-full space-y-6 text-center", isInline ? "max-w-sm mx-auto" : "")}>
             {!isInline && (
                 <div className="space-y-2">
@@ -258,7 +236,7 @@ export default function HeroIdentityForm({
         </div>
     );
 
-    const AgeField = (
+    const renderAgeField = () => (
         <div className={cn("w-full space-y-6 text-center", isInline ? "max-w-sm mx-auto" : "")}>
             {!isInline && (
                 <div className="space-y-2">
@@ -311,7 +289,7 @@ export default function HeroIdentityForm({
         </div>
     );
 
-    const GenderField = (
+    const renderGenderField = () => (
         <div className={cn("w-full space-y-6 text-center", isInline ? "max-w-sm mx-auto" : "")}>
             {!isInline && (
                 <div className="space-y-2">
@@ -374,10 +352,10 @@ export default function HeroIdentityForm({
     if (isInline) {
         return (
             <div className="w-full space-y-8 flex flex-col items-center py-4 overflow-y-auto" data-testid="hero-identity-form" data-step="inline">
-                {AvatarField}
-                {NameField}
-                {AgeField}
-                {GenderField}
+                {renderAvatarField()}
+                {renderNameField()}
+                {renderAgeField()}
+                {renderGenderField()}
                 {error && <div className="mt-2 text-rose-500 font-bold font-nunito text-center text-sm">{error}</div>}
             </div>
         );
@@ -385,25 +363,25 @@ export default function HeroIdentityForm({
 
     return (
         <div className="w-full h-full flex flex-col" data-testid="hero-identity-form" data-step={step}>
-            <AnimatePresence mode="wait" custom={1}>
+            <AnimatePresence mode="wait">
                 <motion.div
                     key={step}
-                    custom={1}
-                    variants={stepVariants}
-                    initial="enter" animate="center" exit="exit"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
                     transition={{ type: 'spring', damping: 20, stiffness: 100 }}
                     className="flex-grow flex flex-col items-center justify-center w-full overflow-hidden"
                 >
-                    {step === 'name' && NameField}
-                    {step === 'age' && AgeField}
-                    {step === 'gender' && GenderField}
+                    {step === 'name' && renderNameField()}
+                    {step === 'age' && renderAgeField()}
+                    {step === 'gender' && renderGenderField()}
                     {step === 'avatar' && (
                         <div className="w-full space-y-4 text-center">
                             <div className="space-y-1">
                                 <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Strike a pose!</h2>
                                 <p className="text-ink-muted font-bold font-nunito text-[10px]">Add a photo of <span className="text-purple-600 font-black">{formData.firstName}</span>.</p>
                             </div>
-                            {AvatarField}
+                            {renderAvatarField()}
                             <div className="flex items-center justify-center gap-2 sm:gap-4">
                                 <button onClick={() => prevStep('gender')} className="ghost-btn h-12 px-4 sm:px-8 flex items-center gap-2 text-ink/70"><ChevronLeft /> Back</button>
                                 <motion.button

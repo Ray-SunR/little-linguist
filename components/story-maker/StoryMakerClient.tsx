@@ -34,6 +34,10 @@ interface GenerationState {
 
 const generations: Record<string, GenerationState> = {};
 
+export function clearStoryMakerGlobals() {
+    Object.keys(generations).forEach(key => delete generations[key]);
+}
+
 function getGenerationState(userId: string): GenerationState {
     if (!generations[userId]) {
         generations[userId] = { isGenerating: false, result: null };
@@ -129,7 +133,6 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         overrideImageSceneCount?: number, 
         overrideIdempotencyKey?: string
     ): Promise<void> => {
-        console.debug("[StoryMakerClient] generateStory starting...");
         const finalWords = overrideWords || selectedWords;
         const finalProfile = overrideProfile || profile;
         const finalStoryLengthMinutes = overrideStoryLengthMinutes || storyLengthMinutes;
@@ -139,7 +142,6 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         setGeneratingHeroName(finalProfile.name || "our hero");
 
         if (!user) {
-            console.debug("[StoryMakerClient] Guest flow, saving draft");
             const guestDraftData = { profile: finalProfile, selectedWords: finalWords, storyLengthMinutes: finalStoryLengthMinutes, imageSceneCount: finalImageSceneCount, idempotencyKey: finalIdempotencyKey, resumeRequested: true };
             await draftManager.saveDraft("draft:guest", guestDraftData);
             localStorage.setItem("lumo:resume_requested", "true");
@@ -161,7 +163,6 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         try {
             let currentProfile = finalProfile;
             if (!currentProfile.id) {
-                console.debug("[StoryMakerClient] Creating profile for user...");
                 const result = await createChildProfile({ 
                     first_name: currentProfile.name, 
                     birth_year: new Date().getFullYear() - currentProfile.age, 
@@ -180,10 +181,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                 }
             }
 
-            console.debug("[StoryMakerClient] Calling AI service...");
             const content = await service.generateStoryContent(finalWords, currentProfile, finalStoryLengthMinutes, finalImageSceneCount, finalIdempotencyKey);
             
-            console.debug("[StoryMakerClient] AI content received, building story object...");
             const initialStory: Story = { id: generateUUID(), book_id: content.book_id, title: content.title, content: content.content, sections: content.sections, createdAt: Date.now(), wordsUsed: finalWords, userProfile: currentProfile, mainCharacterDescription: content.mainCharacterDescription };
             const initialSupabaseBook = { id: content.book_id, title: content.title, text: content.content, tokens: content.tokens || [], shards: [], images: content.sections.map((section: any, idx: number) => ({ id: `section-${idx}`, src: "", afterWordIndex: Number(section.after_word_index), caption: "Drawing Magic...", prompt: section.image_prompt, isPlaceholder: true, sectionIndex: idx })) };
 
@@ -192,14 +191,12 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             await raidenCache.put(CacheStore.BOOKS, initialSupabaseBook as any);
             if (user?.id) await raidenCache.delete(CacheStore.LIBRARY_METADATA, user.id);
             
-            console.debug("[StoryMakerClient] Finalizing SUCCESS state and navigating...");
             setSuccess(initialStory.id);
             router.push(`/reader/${content.book_id}`);
         } catch (err: any) {
             console.error("[StoryMakerClient] ERROR during generation:", err);
             setMachineError(err.message || "Oops! Something went wrong.");
         } finally {
-            console.debug("[StoryMakerClient] generateStory cleanup");
             setIsStoryGenerating(false);
             state.isGenerating = false;
             processingRef.current = false;
@@ -242,7 +239,6 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         const checkResult = () => {
             const state = getGenerationState(user.id);
             if (state.result && isMountedRef.current) {
-                console.debug("[StoryMakerClient] Picking up background story result.");
                 const result = state.result;
                 state.result = null;
                 setSuccess(result.id);
@@ -361,7 +357,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             avatarStoragePath: profile.avatarStoragePath 
                                         }} 
                                         onFormDataChange={handleHeroDataChange}
-                                        onComplete={() => {}} 
+                                        onComplete={(data: HeroIdentity) => handleHeroDataChange(data)} 
                                         mode="story"
                                         isInline={true}
                                     />

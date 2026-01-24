@@ -4,28 +4,36 @@ import { useAuth } from "@/components/auth/auth-provider";
 import StoryMakerClient from "@/components/story-maker/StoryMakerClient";
 import type { UserProfile } from "@/lib/features/story";
 import LumoLoader from "@/components/ui/lumo-loader";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 
 import ChildProfileWizard from "@/components/profile/ChildProfileWizard";
 
 function StoryMakerPageContent() {
-    const { activeChild, user, status, authResolved } = useAuth();
+    const { activeChild, user, status, authResolved, isLoading } = useAuth();
     const searchParams = useSearchParams();
 
+    // Map active child to initial profile - Move to top to avoid Rules of Hooks violation
+    const initialProfile: UserProfile = useMemo(() => activeChild ? {
+        name: activeChild.first_name,
+        age: activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : 6,
+        gender: activeChild.gender === "girl" ? "girl" : "boy",
+        avatarUrl: activeChild.avatar_asset_path || undefined,
+        avatarStoragePath: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
+        updatedAt: activeChild.updated_at,
+        id: activeChild.id
+    } : {
+        name: "",
+        age: 6,
+        gender: "boy",
+    }, [activeChild]);
 
     // Check if we are in a resume flow
     const action = searchParams.get("action");
     const isResuming = action === "resume_story_maker" || action === "generate";
 
     // Wait for auth to definitively resolve before rendering content
-    if (!authResolved) {
-        return <LumoLoader />;
-    }
-
-    // If we have a user and NOT in resume flow, wait for hydration to complete.
-    // This ensures that the activeChild is populated so the profile form isn't empty.
-    if (user && !isResuming && (status === 'loading' || status === 'hydrating')) {
+    if (!authResolved || isLoading) {
         return <LumoLoader />;
     }
 
@@ -38,24 +46,9 @@ function StoryMakerPageContent() {
         );
     }
 
-    // Map active child to initial profile
-    const initialProfile: UserProfile = activeChild ? {
-        name: activeChild.first_name,
-        age: activeChild.birth_year ? new Date().getFullYear() - activeChild.birth_year : 6,
-        gender: activeChild.gender === "girl" ? "girl" : "boy",
-        avatarUrl: activeChild.avatar_asset_path || undefined,
-        avatarStoragePath: (activeChild.avatar_paths && activeChild.avatar_paths.length > 0) ? activeChild.avatar_paths[0] : undefined,
-        updatedAt: activeChild.updated_at,
-        id: activeChild.id
-    } : {
-        name: "",
-        age: 6,
-        gender: "boy",
-    };
-
     return (
         <StoryMakerClient
-            key={user.id}
+            key={`${user.id}:${activeChild?.id || 'none'}`}
             initialProfile={initialProfile}
         />
     );

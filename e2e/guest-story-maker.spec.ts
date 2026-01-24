@@ -53,28 +53,46 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
   await expect(nameInput).toBeVisible({ timeout: 60000 });
   
   await nameInput.fill('Leo');
+  await page.getByTestId('identity-continue-name').click();
   
+  // Step: Age
+  await page.getByTestId('identity-continue-age').click();
+
   // Click the Boy gender button
   console.log('Selecting Boy gender...');
   const boyBtn = page.getByTestId('gender-button-boy');
   await boyBtn.scrollIntoViewIfNeeded();
   await boyBtn.click({ force: true });
+  await page.getByTestId('identity-continue-gender').click();
+
+  // Step: Avatar
+  await page.getByTestId('identity-complete').click();
   
+  // Step: Interests
+  await page.getByText('Space').first().click();
+  await page.getByTestId('onboarding-finish').click();
+
   console.log('Filling topic...');
   await page.getByTestId('story-topic-input').fill('Dinosaurs');
+  await page.getByTestId('onboarding-topic-next').click();
+
   await page.getByTestId('story-setting-input').fill('Space');
-  
-  // Click Next Step
-  await page.getByTestId('story-config-next').click();
+  await page.getByTestId('onboarding-setting-next').click();
   
   // Wait for words tab
-  await expect(page.getByTestId('words-tab-content')).toBeVisible({ timeout: 30000 });
-  const castSpellBtn = page.getByTestId('cast-spell-button');
+  console.log('Waiting for words tab...');
+  await page.waitForTimeout(1000); // Wait for transition
+  const wordsTab = page.locator('[data-testid="words-tab-content"]');
+  await expect(wordsTab).toBeVisible({ timeout: 30000 });
+  
+  const castSpellBtn = page.getByTestId('onboarding-create-story');
   const skipBtn = page.getByRole('button', { name: 'Skip and create anyway' });
   
   if (await skipBtn.isVisible()) {
+    console.log('Clicking skip button...');
     await skipBtn.click();
   } else {
+    console.log('Clicking create story button...');
     await castSpellBtn.click({ force: true });
   }
 
