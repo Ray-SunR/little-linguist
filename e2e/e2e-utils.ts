@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import path from 'path';
+
 /**
  * Completes the onboarding wizard if the page is currently on the onboarding route.
  * @param page Playwright Page object
@@ -14,21 +15,22 @@ export async function completeOnboarding(page: Page, childName: string = 'LeoHer
     const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
     await expect(nameInput).toBeVisible({ timeout: 15000 });
     await nameInput.fill(childName);
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByTestId('identity-continue-name').click();
     
     // Step: Age - "Are you at least 3 years old?" or similar
-    await page.getByRole('button', { name: 'Yep!' }).click();
+    await page.getByTestId('identity-continue-age').click();
 
     // Step: Gender
-    await page.getByRole('button', { name: 'Boy' }).click();
-    await page.getByRole('button', { name: 'Next' }).click();
+    await page.getByTestId('gender-button-boy').click();
+    await page.getByTestId('identity-continue-gender').click();
 
     // Step: Avatar
-    await page.getByRole('button', { name: 'Skip' }).click();
+    await page.getByTestId('identity-complete').click();
 
     // Step: Interests
+    console.log('Selecting interests...');
     await page.getByText('Space').first().click();
-    await page.getByRole('button', { name: 'Finish!' }).click();
+    await page.getByTestId('onboarding-finish').click();
   }
 }
 
