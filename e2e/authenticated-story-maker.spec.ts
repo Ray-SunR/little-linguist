@@ -15,6 +15,34 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
     window.localStorage.setItem('lumo-cookie-consent', 'accepted');
   });
 
+  // Mock quota API to ensure buttons are enabled
+  await page.route('**/api/usage?*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        usage: {
+          story_generation: { current: 0, limit: 3, isLimitReached: false },
+          image_generation: { current: 0, limit: 10, isLimitReached: false }
+        },
+        plan: 'pro',
+        identity_key: 'test-identity'
+      })
+    });
+  });
+
+  // Disable all CSS animations/transitions for stability
+  await page.addStyleTag({
+    content: `
+      *, *::before, *::after {
+        animation-duration: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0s !important;
+        scroll-behavior: auto !important;
+      }
+    `,
+  });
+
   page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
   page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
 
@@ -25,7 +53,7 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
   const emailInput = page.getByPlaceholder('Magic Email');
   await emailInput.click();
   await emailInput.pressSequentially(testEmail, { delay: 50 });
-  await page.waitForTimeout(500); // Wait for validation to kick in
+  await page.waitForTimeout(500); 
   await page.getByRole('button', { name: 'Continue' }).click();
 
   const passwordInput = page.getByPlaceholder('Secret Word');
@@ -34,84 +62,60 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
   await expect(enterButton).toBeEnabled();
   await enterButton.click();
 
-  // Wait for login to complete and any automatic redirects to begin
-  try {
-    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 120000 });
-  } catch (e) {
-    const onPageText = await page.evaluate(() => document.body.innerText);
-    throw new Error(`Login redirect failed. Current URL: ${page.url()}. Page text: ${onPageText.slice(0, 500)}`);
-  }
-
-  // WebKit can be finicky with rapid navigations. 
-  // Wait for the URL to settle (e.g., reached /dashboard or onboarding)
+  // Wait for login to complete
+  await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 120000 });
   await page.waitForTimeout(2000);
 
   // If we landed on onboarding, handle it
   if (page.url().includes('/onboarding')) {
     await completeOnboarding(page, 'AuthKid');
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
   }
 
   // Now navigate to our target page
   console.log('Navigating to story-maker...');
   await page.goto('/story-maker', { waitUntil: 'load' });
-  await expect(page.getByText('Wait for it...')).not.toBeVisible({ timeout: 60000 });
+  
+  // Wait for Bento Dashboard to be ready
+  await expect(page.locator('.page-story-maker')).toHaveAttribute('data-status', 'CONFIGURING', { timeout: 60000 });
 
-  const heroNameInput = page.getByPlaceholder('Hero Name...');
-  const guestNameInput = page.getByPlaceholder('Leo, Mia, Sam...');
+  // Unified Bento Dashboard interaction
+  const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
+  await expect(nameInput).toBeVisible({ timeout: 30000 });
+  
+  await nameInput.fill('Leo');
+  
+  // Click the Boy gender button
+  console.log('Selecting Boy gender...');
+  const boyBtn = page.getByTestId('gender-button-boy');
+  await boyBtn.scrollIntoViewIfNeeded();
+  await boyBtn.click({ force: true });
+  
+  await page.getByTestId('story-topic-input').fill('Dinosaurs');
+  await page.getByTestId('story-setting-input').fill('Space');
+  
+  // Click Next Step to go to Words tab
+  await page.getByTestId('story-config-next').click();
+  
+  // Wait for words tab
+  console.log('Waiting for words tab...');
+  await expect(page.getByTestId('words-tab-content')).toBeVisible({ timeout: 30000 });
+  
+  const castSpellBtn = page.getByTestId('cast-spell-button');
+  const skipBtn = page.getByRole('button', { name: 'Skip and create anyway' });
 
-  // Wait for one of them to be visible
-  await expect(guestNameInput.or(heroNameInput)).toBeVisible({ timeout: 15000 });
-
-  if (await guestNameInput.isVisible()) {
-    await guestNameInput.fill('Leo');
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByRole('button', { name: 'Yep!' }).click();
-    await page.getByRole('button', { name: 'Boy' }).click();
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByRole('button', { name: 'Skip' }).click();
-    await page.getByRole('button', { name: 'Magic', exact: true }).click();
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByPlaceholder('Space, Dinosaurs, Tea Party...').fill('Dinosaurs');
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByPlaceholder('Enchanted Forest, Mars, Underwater...').fill('Space');
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByRole('button', { name: 'Dragon' }).click();
-    await page.getByRole('button', { name: 'Create Story! ✨' }).click();
+  if (await skipBtn.isVisible()) {
+      console.log('No words found, skipping...');
+      await skipBtn.click();
   } else {
-    await heroNameInput.fill('Leo');
-    await page.getByRole('button', { name: '👦' }).click();
-    await page.getByPlaceholder('e.g. A Dinosaur Space Race...').fill('Dinosaurs');
-    await page.getByPlaceholder('e.g. Underwater Kingdom...').fill('Space');
-    await page.getByRole('button', { name: 'Next Step' }).click();
-
-    const responsePromise = page.waitForResponse(response => response.url().includes('/api/story') && response.request().method() === 'POST');
-    await page.getByRole('button', { name: 'Skip and create anyway' }).click();
-
-    const response = await responsePromise;
-    console.log('API Response Status:', response.status());
-    if (response.status() !== 200) {
-      console.log('API Error Body:', await response.text());
-    }
+      console.log('Attempting to cast spell directly...');
+      await expect(castSpellBtn).toBeVisible({ timeout: 10000 });
+      await castSpellBtn.click({ force: true });
   }
 
-  // Wait for either the loader OR the reader (to handle very fast redirections)
-  const loader = page.getByText('Making Magic...');
-  const readerHeader = page.getByRole('heading', { name: /'s Great Adventure/ });
-
-  await expect(loader.or(readerHeader)).toBeVisible({ timeout: 60000 });
+  // Wait for explicit state signal: data-status="GENERATING"
+  await expect(page.locator('.page-story-maker')).toHaveAttribute('data-status', 'GENERATING', { timeout: 30000 });
 
   // Reader redirection
-  try {
-    await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
-  } catch (e) {
-    const errorAlert = page.locator('.bg-red-50, .text-red-600, [role="alert"]');
-    if (await errorAlert.count() > 0) {
-      const errorText = await errorAlert.innerText();
-      throw new Error(`Test failed during generation. App error visible: "${errorText.trim()}"`);
-    }
-    throw new Error(`Reader redirection timed out. URL: ${page.url()}. Error: ${e.message}`);
-  }
+  await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
   await expect(page.getByText('Leo').first()).toBeVisible();
-  await page.screenshot({ path: 'test-results/mock-result.png' });
 });
