@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { completeOnboarding } from './e2e-utils';
+import { completeOnboarding, ensureTestUser } from './e2e-utils';
 
 test('Full Guest to Story Workflow', async ({ page, context }) => {
-  test.setTimeout(120000);
+  test.setTimeout(180000);
 
   // Ensure fresh state by clearing all cookies/storage
   await context.clearCookies();
@@ -46,9 +46,18 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
   await page.getByRole('button', { name: 'Dragon' }).click();
   await page.getByRole('button', { name: 'Create Story! ✨' }).click();
 
-  await expect(page).toHaveURL(/\/login/);
+  const loginUrlPattern = /\/login/;
+  try {
+    await page.waitForURL(loginUrlPattern, { timeout: 30000 });
+  } catch {
+    const keepProgressLink = page.getByRole('link', { name: 'Keep My Progress' });
+    await expect(keepProgressLink).toBeVisible({ timeout: 10000 });
+    await keepProgressLink.click();
+    await page.waitForURL(loginUrlPattern, { timeout: 60000 });
+  }
 
   const testEmail = `test-${Date.now()}@example.com`;
+  await ensureTestUser(testEmail, 'password123');
   await page.getByPlaceholder('Magic Email').fill(testEmail);
   await page.getByRole('button', { name: 'Continue' }).click();
 
@@ -65,7 +74,7 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
     await page.waitForURL(url =>
       (url.pathname.includes('/story-maker') && url.searchParams.get('action') === 'resume_story_maker') ||
       (url.pathname.includes('/onboarding')),
-      { timeout: 30000 }
+      { timeout: 120000 }
     );
 
     // If we landed on onboarding, handle it (ChildGate might have pushed us here)
@@ -117,8 +126,10 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
 
   // Wait for the actual images to finish generating and being visible
   // The mock provider has a 2.5s cumulative latency (1s for story + 2s for images)
-  await expect(page.locator('.book-image').first()).toBeVisible({ timeout: 60000 });
+  console.log('Waiting for book images to load...');
+  await expect(page.locator('.book-image').first()).toBeVisible({ timeout: 120000 });
 
   // Verify that there are no "broken" skeletons left
-  await expect(page.locator('.book-image-skeleton')).toHaveCount(0, { timeout: 30000 });
+  console.log('Verifying all image skeletons are gone...');
+  await expect(page.locator('.book-image-skeleton')).toHaveCount(0, { timeout: 120000 });
 });

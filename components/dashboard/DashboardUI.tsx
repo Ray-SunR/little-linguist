@@ -239,7 +239,7 @@ export default function DashboardUI({ activeChild, stats }: Props) {
                                             <div className="mt-4 flex items-center justify-between gap-4">
                                                 {mission.isRead ? (
                                                     <Link 
-                                                        href={`/reader/${mission.id}`} 
+                                                        href={`/reader/${mission.id}?mission=true`} 
                                                         className="px-6 py-2 rounded-xl bg-slate-200 text-slate-600 font-black font-fredoka border border-slate-300 hover:bg-slate-300 transition-all flex items-center gap-2 text-sm pointer-events-auto"
                                                     >
                                                         Read Again

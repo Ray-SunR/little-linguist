@@ -386,11 +386,11 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                         id="reader-back-to-library"
                         data-tour-target="reader-back-to-library"
                         onClick={async () => {
-                            try {
-                                await saveProgress({ force: true, isExiting: true });
-                            } catch (error) {
-                                console.error("Failed to save progress on exit:", error);
-                            }
+                            console.log("[Reader] Back button clicked. isMission:", isMission);
+                            // Fire and forget progress save on exit to avoid blocking UI
+                            saveProgress({ force: true, isExiting: true }).catch(err => {
+                                console.error("[Reader] Failed to save progress on exit:", err);
+                            });
 
                             if (isMission) {
                                 router.push('/dashboard');

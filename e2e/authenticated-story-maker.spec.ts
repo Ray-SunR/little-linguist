@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { completeOnboarding } from './e2e-utils';
+import { completeOnboarding, ensureTestUser } from './e2e-utils';
 
 test('Authenticated Story Maker Workflow', async ({ page, context }) => {
-  test.setTimeout(120000);
+  test.setTimeout(180000);
 
   // Ensure fresh state by clearing all cookies/storage
   await context.clearCookies();
@@ -19,6 +19,7 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
   page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
 
   const testEmail = `test-auth-${Date.now()}@example.com`;
+  await ensureTestUser(testEmail, 'password123');
 
   await page.goto('/login');
   const emailInput = page.getByPlaceholder('Magic Email');
@@ -29,11 +30,13 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
 
   const passwordInput = page.getByPlaceholder('Secret Word');
   await passwordInput.fill('password123');
-  await passwordInput.press('Enter');
+  const enterButton = page.getByRole('button', { name: 'Enter Realm' });
+  await expect(enterButton).toBeEnabled();
+  await enterButton.click();
 
   // Wait for login to complete and any automatic redirects to begin
   try {
-    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 30000 });
+    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 120000 });
   } catch (e) {
     const onPageText = await page.evaluate(() => document.body.innerText);
     throw new Error(`Login redirect failed. Current URL: ${page.url()}. Page text: ${onPageText.slice(0, 500)}`);

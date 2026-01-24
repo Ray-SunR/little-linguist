@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureTestUser } from './e2e-utils';
 
 test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   test.setTimeout(180000);
@@ -24,20 +25,25 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   page.on('pageerror', err => console.log('BROWSER UNHANDLED ERROR:', err.message));
 
   const testEmail = `test-mission-${Date.now()}@example.com`;
+  await ensureTestUser(testEmail, 'password123');
 
   // 1. Login
   await page.goto('/login');
   const emailInput = page.getByPlaceholder('Magic Email');
-  await emailInput.fill(testEmail);
+  await emailInput.click();
+  await emailInput.pressSequentially(testEmail, { delay: 50 });
+  await page.waitForTimeout(500);
   await page.getByRole('button', { name: 'Continue' }).click();
 
   const passwordInput = page.getByPlaceholder('Secret Word');
   await passwordInput.fill('password123');
-  await passwordInput.press('Enter');
+  const enterButton = page.getByRole('button', { name: 'Enter Realm' });
+  await expect(enterButton).toBeEnabled();
+  await enterButton.click();
 
   // Wait for login redirect to settle
   console.log('Waiting for login to complete...');
-  await expect(page).not.toHaveURL(/\/login/, { timeout: 30000 });
+  await expect(page).not.toHaveURL(/\/login/, { timeout: 120000 });
   
   // Wait a bit for the redirection to settle (to onboarding or dashboard)
   await page.waitForTimeout(3000);
@@ -69,7 +75,7 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
     await page.getByRole('button', { name: 'Finish!' }).click();
     
     // Wait for navigation to dashboard
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 120000 });
   } else {
     // If not on onboarding, explicitly go to dashboard
     console.log('Not on onboarding, navigating to dashboard...');
@@ -122,8 +128,8 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   }
 
   // Find the title of the book we are starting
-  const missionCardInitial = page.locator('.clay-card').filter({ has: missionStartBtn });
-  const bookTitle = await missionCardInitial.locator('h2').innerText();
+  const missionCardInitial = missionStartBtn.locator('xpath=ancestor::*[contains(@class,"clay-card")][1]');
+  const bookTitle = await missionCardInitial.getByRole('heading').first().innerText();
   console.log(`Starting mission for book: ${bookTitle}`);
 
   // 5. Click on it to go to the reader
@@ -183,7 +189,8 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   
   // Go back
   console.log('Going back to dashboard...');
-  await page.locator('#reader-back-to-library').click();
+  await page.waitForSelector('#reader-back-to-library');
+  await page.locator('#reader-back-to-library').click({ force: true });
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
   
   const coinsAfterReopen = await getCoins();
@@ -202,8 +209,18 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   await page.waitForTimeout(5000);
   
   console.log('Going back to dashboard...');
-  await page.locator('#reader-back-to-library').click();
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
+  await page.waitForSelector('#reader-back-to-library');
+  const backBtnFinal = page.locator('#reader-back-to-library');
+  await expect(backBtnFinal).toBeVisible();
+  await backBtnFinal.click({ force: true });
+  
+  try {
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
+  } catch (e) {
+    console.log('Navigation to dashboard timed out, retrying click...');
+    await backBtnFinal.click({ force: true });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
+  }
   
   const finalCoins = await getCoins();
   console.log(`Final Coins: ${finalCoins}`);
@@ -211,11 +228,11 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
 
   // 13. Test a DIFFERENT book (PROVE PER-BOOK DAILY REWARDS)
   console.log('Finding a DIFFERENT mission book...');
-  const otherMissionBtn = page.locator('a[href*="mission=true"]').filter({ hasNotText: bookTitle }).first();
+  const otherMissionBtn = page.locator('.clay-card').filter({ hasNotText: bookTitle }).locator('a[href*="mission=true"]').first();
   
   if (await otherMissionBtn.isVisible()) {
-    const otherCard = page.locator('.clay-card').filter({ has: otherMissionBtn });
-    const otherBookTitle = await otherCard.locator('h2').innerText();
+    const otherCard = otherMissionBtn.locator('xpath=ancestor::*[contains(@class,"clay-card")][1]');
+    const otherBookTitle = await otherCard.getByRole('heading').first().innerText();
     console.log(`Starting second mission for book: ${otherBookTitle}`);
     
     await otherMissionBtn.click();

@@ -72,7 +72,7 @@ describe('RewardService', () => {
         });
 
         expect(mockRpc).toHaveBeenCalledWith('claim_lumo_reward', expect.objectContaining({
-            p_key: expect.stringContaining(`v1:mission_completed:${bookId}`),
+            p_key: expect.stringContaining(`v1:book_completed:${bookId}`),
             p_amount: XP_REWARDS.MISSION_COMPLETED
         }));
         

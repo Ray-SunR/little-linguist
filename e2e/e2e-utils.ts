@@ -1,5 +1,7 @@
-import { Page, expect } from '@playwright/test';
-
+import { expect, type Page } from '@playwright/test';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import path from 'path';
 /**
  * Completes the onboarding wizard if the page is currently on the onboarding route.
  * @param page Playwright Page object
@@ -27,5 +29,46 @@ export async function completeOnboarding(page: Page, childName: string = 'LeoHer
     // Step: Interests
     await page.getByText('Space').first().click();
     await page.getByRole('button', { name: 'Finish!' }).click();
+  }
+}
+
+dotenv.config({ path: path.resolve(__dirname, '..', '.env.development.local') });
+
+let adminClient: ReturnType<typeof createClient> | null = null;
+
+function getAdminClient() {
+  if (adminClient) return adminClient;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    throw new Error('Missing Supabase service role env vars for e2e tests.');
+  }
+  adminClient = createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  return adminClient;
+}
+
+export async function ensureTestUser(email: string, password: string) {
+  const supabase = getAdminClient();
+  const { error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+
+  if (error && !error.message.toLowerCase().includes('already')) {
+    throw error;
+  }
+
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle<{ id: string }>();
+    if (data?.id) return;
+    await new Promise(resolve => setTimeout(resolve, 200));
   }
 }

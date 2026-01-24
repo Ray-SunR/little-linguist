@@ -23,6 +23,37 @@ The `tests/setup/global.ts` script ensures that:
 - `supabase start` is executed before any test runs.
 - `.env.development.local` is loaded into the test process.
 
+### 3. E2E Test Setup
+E2E tests require a running app server and an explicit `BASE_URL`. For local development, always use `MOCK_AI_SERVICES=true` to ensure stability and reduce costs.
+
+```bash
+# In one terminal
+MOCK_AI_SERVICES=true npm run dev
+
+# In another terminal
+BASE_URL=http://localhost:3000 npm run test:e2e
+```
+If `BASE_URL` is missing, Playwright will fail with “Cannot navigate to invalid URL” when calling `page.goto('/login')` or similar routes.
+
+### 4. E2E With Production Build
+To avoid dev compile latency and HMR flakiness, you can run the production build locally. Using a deterministic port (e.g., 3001) is recommended to avoid conflicts.
+
+```bash
+# Build once
+npm run build
+
+# In one terminal
+MOCK_AI_SERVICES=true PORT=3001 npx dotenv-cli -e .env.development.local -- npm run start
+
+# In another terminal
+BASE_URL=http://localhost:3001 npm run test:e2e
+```
+
+### 5. Troubleshooting E2E Failures
+- **Navigation Timeouts**: If a test fails because it didn't navigate fast enough (especially after clicking "Back" or "Login"), check if the button interaction needs a retry or if the application is awaiting a slow background task.
+- **Image Skeletons**: Generated stories may take time to produce images even with mocks. Increase timeouts for `.book-image-skeleton` checks if they persist beyond 60s.
+- **Idempotency**: Rewards and mission completion are tied to real database state. Use `ensureTestUser` (in `e2e/e2e-utils.ts`) to ensure fresh state or handle existing records gracefully.
+
 ---
 
 ## 🏗️ Testing Patterns
@@ -36,6 +67,7 @@ beforeAll(async () => {
     await truncateAllTables();
 });
 ```
+Truncation only clears user-owned records (`owner_user_id` or user-linked tables). Public seed data like system books, badges, subscription plans, and word insights are retained across test runs.
 
 ### 2. Smart Seeding
 Instead of hardcoding objects, use the real library data from the `output/expanded-library/` folder:

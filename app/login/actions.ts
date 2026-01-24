@@ -1,13 +1,13 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 
 
 export async function checkEmail(email: string) {
-    const supabase = createClient()
+    const supabase = createAdminClient()
 
     if (!email) {
         return { error: 'Magic Email is required.' }

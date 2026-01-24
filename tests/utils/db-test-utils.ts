@@ -1,26 +1,26 @@
 import { createAdminClient } from '@/lib/supabase/server';
 
-export const TEST_TABLES = [
+const OWNED_TABLES = [
     "audit_logs",
     "feature_usage",
     "point_transactions",
+    "feedbacks",
+    "book_media",
+    "book_audios",
+    "stories",
+    "children",
+    "books",
+];
+
+const FULL_TRUNCATE_TABLES = [
     "learning_sessions",
     "child_vocab",
     "child_books",
     "child_magic_sentences",
     "child_badges",
-    "badges",
-    "feedbacks",
-    "word_insights",
-    "book_media",
-    "book_audios",
-    "book_contents",
-    "stories",
-    "children",
-    "books",
     "profiles",
-    "subscription_plans",
 ];
+
 
 export async function ensureBucketExists(bucketName: string) {
     const supabase = createAdminClient();
@@ -43,11 +43,24 @@ export async function truncateAllTables() {
     await ensureBucketExists('user-assets');
     await ensureBucketExists('book-assets');
 
-    for (const table of [...TEST_TABLES]) {
-        const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000' as any);
+    for (const table of OWNED_TABLES) {
+        const { error } = await supabase
+            .from(table)
+            .delete()
+            .not('owner_user_id', 'is', null);
         if (error && error.code !== 'PGRST116') {
         }
     }
+
+    for (const table of FULL_TRUNCATE_TABLES) {
+        const { error } = await supabase
+            .from(table)
+            .delete()
+            .neq('id', '00000000-0000-0000-0000-000000000000' as any);
+        if (error && error.code !== 'PGRST116') {
+        }
+    }
+
 }
 
 export async function createTestUser(email: string = 'test@example.com') {
