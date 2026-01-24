@@ -47,6 +47,21 @@ export type StoryDraft = {
 };
 
 /**
+ * Story state machine statuses
+ */
+export type StoryStatus = 'IDLE' | 'CONFIGURING' | 'MIGRATING' | 'GENERATING' | 'SUCCESS' | 'ERROR';
+
+/**
+ * State object for the story machine
+ */
+export type StoryMachineState = {
+    status: StoryStatus;
+    error?: string;
+    storyId?: string;
+    idempotencyKey?: string;
+};
+
+/**
  * Service interface for story generation and persistence
  */
 export interface IStoryService {
