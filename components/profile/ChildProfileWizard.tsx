@@ -51,9 +51,10 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
     // Clean up Object URL on unmount or when preview changes
     useEffect(() => {
+        const currentUrl = objectUrlRef.current;
         return () => {
-            if (objectUrlRef.current) {
-                URL.revokeObjectURL(objectUrlRef.current);
+            if (currentUrl) {
+                URL.revokeObjectURL(currentUrl);
             }
         };
     }, []);

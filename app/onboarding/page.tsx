@@ -1,6 +1,6 @@
 "use client";
 
-import ChildProfileWizard from '@/components/profile/ChildProfileWizard';
+import OnboardingWizard from '@/components/profile/OnboardingWizard';
 // import { motion } from 'framer-motion'; // Removed unused import
 
 import { useAuth } from '@/components/auth/auth-provider';
@@ -69,7 +69,7 @@ export default function OnboardingPage() {
         {/* === Content Container === */}
         <div className="z-10 w-full relative">
           {/* The Wizard Component */}
-          <ChildProfileWizard />
+          <OnboardingWizard />
         </div>
       </main>
 

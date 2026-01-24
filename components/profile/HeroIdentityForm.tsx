@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Camera, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
@@ -47,9 +47,10 @@ export default function HeroIdentityForm({
 
     // Clean up Object URL on unmount or when preview changes
     useEffect(() => {
+        const currentUrl = objectUrlRef.current;
         return () => {
-            if (objectUrlRef.current) {
-                URL.revokeObjectURL(objectUrlRef.current);
+            if (currentUrl) {
+                URL.revokeObjectURL(currentUrl);
             }
         };
     }, []);
