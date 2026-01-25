@@ -59,16 +59,20 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
     await page.getByTestId('identity-continue-name').click();
 
     // Step: Age
+    await expect(page.getByTestId('hero-identity-form')).toHaveAttribute('data-step', 'age', { timeout: 15000 });
     await page.getByTestId('identity-continue-age').click();
 
     // Step: Gender
-    await page.getByRole('button', { name: 'Boy' }).click();
+    await expect(page.getByTestId('hero-identity-form')).toHaveAttribute('data-step', 'gender', { timeout: 15000 });
+    await page.getByTestId('gender-button-boy').click();
     await page.getByTestId('identity-continue-gender').click();
 
     // Step: Avatar
+    await expect(page.getByTestId('hero-identity-form')).toHaveAttribute('data-step', 'avatar', { timeout: 15000 });
     await page.getByTestId('identity-complete').click();
 
     // Step: Interests
+    await expect(page.getByText('Magic Interests!')).toBeVisible({ timeout: 15000 });
     await page.getByText('Space').first().click();
     await page.getByText('Dinosaurs').first().click();
     await page.getByTestId('onboarding-finish').click();
@@ -108,8 +112,9 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
         await expect(page.locator('.page-story-maker')).toHaveAttribute('data-status', 'CONFIGURING', { timeout: 30000 });
         
         await page.getByPlaceholder('Leo, Mia, Sam...').fill('MissionHero');
-        await page.getByRole('button', { name: 'Boy' }).click();
+        await page.getByTestId('gender-button-boy').click();
         await page.getByTestId('story-topic-input').fill('A Mission Adventure');
+        await page.getByTestId('story-setting-input').fill('Space');
         await page.getByTestId('story-config-next').click();
         await expect(page.getByTestId('words-tab-content')).toBeVisible();
         await page.getByRole('button', { name: /Cast Spell|Skip/ }).first().click();

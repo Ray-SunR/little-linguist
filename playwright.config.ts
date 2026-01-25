@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.PLAYWRIGHT_WORKERS ? Number(process.env.PLAYWRIGHT_WORKERS) : 1,
   reporter: 'html',
   use: {
-    baseURL: process.env.BASE_URL,
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
   },

@@ -18,19 +18,24 @@ export async function completeOnboarding(page: Page, childName: string = 'LeoHer
     await page.getByTestId('identity-continue-name').click();
     
     // Step: Age - "Are you at least 3 years old?" or similar
+    await expect(page.getByTestId('hero-identity-form')).toHaveAttribute('data-step', 'age', { timeout: 15000 });
     await page.getByTestId('identity-continue-age').click();
 
     // Step: Gender
+    await expect(page.getByTestId('hero-identity-form')).toHaveAttribute('data-step', 'gender', { timeout: 15000 });
     await page.getByTestId('gender-button-boy').click();
     await page.getByTestId('identity-continue-gender').click();
 
     // Step: Avatar
+    await expect(page.getByTestId('hero-identity-form')).toHaveAttribute('data-step', 'avatar', { timeout: 15000 });
     await page.getByTestId('identity-complete').click();
 
     // Step: Interests
     console.log('Selecting interests...');
+    await expect(page.getByText('Magic Interests!')).toBeVisible({ timeout: 15000 });
     await page.getByText('Space').first().click();
     await page.getByTestId('onboarding-finish').click();
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 120000 });
   }
 }
 

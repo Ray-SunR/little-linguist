@@ -86,11 +86,14 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
   
   // Click the Boy gender button
   console.log('Selecting Boy gender...');
+  await expect(page.getByTestId('gender-button-boy')).toBeVisible({ timeout: 15000 });
   const boyBtn = page.getByTestId('gender-button-boy');
   await boyBtn.scrollIntoViewIfNeeded();
   await boyBtn.click({ force: true });
   
+  await expect(page.getByTestId('story-topic-input')).toBeVisible({ timeout: 15000 });
   await page.getByTestId('story-topic-input').fill('Dinosaurs');
+  await expect(page.getByTestId('story-setting-input')).toBeVisible({ timeout: 15000 });
   await page.getByTestId('story-setting-input').fill('Space');
   
   // Click Next Step to go to Words tab
