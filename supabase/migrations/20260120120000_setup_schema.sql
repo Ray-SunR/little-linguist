@@ -542,8 +542,10 @@ BEGIN
         CASE WHEN p_sort_by = 'newest' AND NOT p_sort_asc THEN b.updated_at END DESC,
         CASE WHEN p_sort_by = 'title' AND p_sort_asc THEN b.title END ASC,
         CASE WHEN p_sort_by = 'title' AND NOT p_sort_asc THEN b.title END DESC,
-        CASE WHEN p_sort_by = 'reading_time' AND p_sort_asc THEN b.estimated_reading_time END ASC,
-        CASE WHEN p_sort_by = 'reading_time' AND NOT p_sort_asc THEN b.estimated_reading_time END DESC,
+        CASE WHEN p_sort_by = 'reading_time' AND p_sort_asc THEN b.estimated_reading_time END ASC NULLS LAST,
+        CASE WHEN p_sort_by = 'reading_time' AND NOT p_sort_asc THEN b.estimated_reading_time END DESC NULLS LAST,
+        CASE WHEN p_sort_by = 'lexile_level' AND p_sort_asc THEN b.min_grade END ASC NULLS LAST,
+        CASE WHEN p_sort_by = 'lexile_level' AND NOT p_sort_asc THEN b.min_grade END DESC NULLS LAST,
         b.title ASC,
         b.id ASC
     LIMIT p_limit
