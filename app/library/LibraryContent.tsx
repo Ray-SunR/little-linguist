@@ -436,6 +436,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                         coverImageUrl: book.coverImageUrl,
                         coverPath: book.coverPath,
                         updated_at: book.updated_at,
+                        createdAt: book.createdAt || book.created_at,
                         voice_id: book.voice_id,
                         owner_user_id: book.owner_user_id,
                         progress: book.progress || undefined,
