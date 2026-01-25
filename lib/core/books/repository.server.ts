@@ -653,12 +653,10 @@ export class BookRepository {
         let maxGrade: number | null = null;
         switch (level.toLowerCase()) {
             case 'toddler':
-            case 'preschool':
-                minGrade = -2;
+                minGrade = null;
                 maxGrade = -1;
                 break;
-            case 'kindergarten':
-            case 'starting':
+            case 'preschool':
                 minGrade = 0;
                 maxGrade = 0;
                 break;
@@ -668,7 +666,7 @@ export class BookRepository {
                 break;
             case 'intermediate':
                 minGrade = 3;
-                maxGrade = 5;
+                maxGrade = null;
                 break;
         }
         return { minGrade, maxGrade };

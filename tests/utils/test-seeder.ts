@@ -71,6 +71,14 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
                     ? JSON.parse(fs.readFileSync(embeddingsPath, 'utf8'))
                     : null;
 
+                // Calculate min_grade from level
+                let minGrade = 0;
+                const level = metadata.level || "PreK";
+                if (level.includes("PreK")) minGrade = -1;
+                else if (level === "K") minGrade = 0;
+                else if (level === "G1-2") minGrade = 1;
+                else if (level === "G3-5") minGrade = 3;
+
                 // 1. Initial Upsert to get ID (or use provided key)
                 const { data: book, error: bookError } = await supabase
                     .from('books')
@@ -80,6 +88,7 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
                         description: metadata.description,
                         keywords: metadata.keywords,
                         level: metadata.level,
+                        min_grade: minGrade,
                         categories: metadata.category ? [metadata.category] : [],
                         is_nonfiction: metadata.is_nonfiction,
                         origin: category,

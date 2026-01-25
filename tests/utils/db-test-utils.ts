@@ -1,17 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/server';
 
-const OWNED_TABLES = [
-    "audit_logs",
-    "feature_usage",
-    "point_transactions",
-    "feedbacks",
-    "book_media",
-    "book_audios",
-    "stories",
-    "children",
-    "books",
-];
-
 const FULL_TRUNCATE_TABLES = [
     "learning_sessions",
     "child_vocab",
@@ -19,6 +7,16 @@ const FULL_TRUNCATE_TABLES = [
     "child_magic_sentences",
     "child_badges",
     "profiles",
+    "book_contents",
+    "book_audios",
+    "book_media",
+    "books",
+    "stories",
+    "audit_logs",
+    "feature_usage",
+    "point_transactions",
+    "feedbacks",
+    "children",
 ];
 
 
@@ -43,24 +41,19 @@ export async function truncateAllTables() {
     await ensureBucketExists('user-assets');
     await ensureBucketExists('book-assets');
 
-    for (const table of OWNED_TABLES) {
-        const { error } = await supabase
-            .from(table)
-            .delete()
-            .not('owner_user_id', 'is', null);
-        if (error && error.code !== 'PGRST116') {
-        }
-    }
-
+    // Truncate all tables in reverse dependency order
     for (const table of FULL_TRUNCATE_TABLES) {
         const { error } = await supabase
             .from(table)
             .delete()
             .neq('id', '00000000-0000-0000-0000-000000000000' as any);
-        if (error && error.code !== 'PGRST116') {
+        if (error && error.code !== 'PGRST116' && error.code !== '42703') {
+             // Handle case where 'id' column doesn't exist (e.g. child_books)
+             if (error.message.includes('column "id" does not exist')) {
+                 await supabase.from(table).delete().not('created_at', 'is', null);
+             }
         }
     }
-
 }
 
 export async function createTestUser(email: string = 'test@example.com') {
