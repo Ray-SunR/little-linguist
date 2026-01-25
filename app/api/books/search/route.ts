@@ -29,6 +29,8 @@ export async function GET(request: NextRequest) {
         const category = searchParams.get('category');
         const duration = searchParams.get('duration');
         const type = searchParams.get('type');
+        const sortBy = searchParams.get('sortBy');
+        const sortOrder = searchParams.get('sortOrder') as 'asc' | 'desc' | null;
         const isNonFiction = type === 'nonfiction' ? true : (type === 'fiction' ? false : undefined);
 
         // Validate child access if provided
@@ -69,19 +71,23 @@ export async function GET(request: NextRequest) {
             {
                 ids: semanticIds,
                 limit: semanticIds.length, // Ensure we get all matched IDs
-                offset: 0 // We handled pagination in the search step
+                offset: 0, // We handled pagination in the search step
+                sortBy: sortBy || undefined,
+                sortOrder: sortOrder || undefined
             }
         );
 
-        // 3. Re-sort to match semantic relevance order
+        // 3. Re-sort to match semantic relevance order ONLY IF not custom sorting
         // The database retrieval might reorder based on ID or default sort
-        const idMap = new Map();
-        semanticIds.forEach((id, index) => idMap.set(id, index));
-        booksWithCovers = booksWithCovers.sort((a, b) => {
-            const indexA = idMap.has(a.id) ? idMap.get(a.id) : 999;
-            const indexB = idMap.has(b.id) ? idMap.get(b.id) : 999;
-            return indexA - indexB;
-        });
+        if (!sortBy || sortBy === 'relevance') {
+            const idMap = new Map();
+            semanticIds.forEach((id, index) => idMap.set(id, index));
+            booksWithCovers = booksWithCovers.sort((a, b) => {
+                const indexA = idMap.has(a.id) ? idMap.get(a.id) : 999;
+                const indexB = idMap.has(b.id) ? idMap.get(b.id) : 999;
+                return indexA - indexB;
+            });
+        }
 
         return NextResponse.json(booksWithCovers);
 
