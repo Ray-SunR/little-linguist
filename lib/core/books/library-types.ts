@@ -25,4 +25,5 @@ export interface LibraryBookCard {
     isNonFiction?: boolean;
     origin?: string;
     description?: string;
+    minGrade?: number;
 }

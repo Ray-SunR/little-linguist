@@ -43,6 +43,7 @@ interface BookWithCover {
     origin?: string;
     description?: string;
     keywords?: string[];
+    minGrade?: number;
     progress?: {
         last_token_index?: number;
         is_completed?: boolean;
@@ -247,6 +248,7 @@ export class BookRepository {
                 origin: book.origin,
                 description: book.description,
                 keywords: book.keywords,
+                minGrade: book.min_grade,
                 progress: progress ? {
                     last_token_index: progress.last_token_index,
                     is_completed: progress.is_completed,

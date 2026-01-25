@@ -83,4 +83,64 @@ describe('Search Custom Sorting Integration', () => {
 
         vi.restoreAllMocks();
     });
+
+    it('should sort search results by reading level asc', async () => {
+        const { data: dbBooks } = await supabase
+            .from('books')
+            .select('id, title, embedding, min_grade')
+            .not('embedding', 'is', null)
+            .order('min_grade', { ascending: true, nullsFirst: false });
+
+        if (!dbBooks || dbBooks.length < 2) {
+            throw new Error('Not enough books with embeddings found in DB');
+        }
+
+        const mockProvider = {
+            generateEmbedding: vi.fn().mockResolvedValue(dbBooks[0].embedding)
+        };
+        vi.spyOn(AIFactory, 'getProvider').mockReturnValue(mockProvider as any);
+
+        const mockClient = createAdminClient();
+        vi.spyOn(mockClient.auth, 'getUser').mockResolvedValue({ data: { user: testUser }, error: null });
+        vi.spyOn(supabaseServer, 'createClient').mockReturnValue(mockClient as any);
+
+        const req = new Request('http://localhost/api/books/search?q=test&sortBy=lexile_level&sortOrder=asc');
+        const res = await searchBooks(req as any);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        const grades = body.map((b: any) => b.min_grade).filter((g: any) => g !== null && g !== undefined);
+        const sortedGrades = [...grades].sort((a, b) => a - b);
+        expect(grades).toEqual(sortedGrades);
+
+        vi.restoreAllMocks();
+    });
+
+    it('should sort search results by reading level desc', async () => {
+        const { data: dbBooks } = await supabase
+            .from('books')
+            .select('id, title, embedding, min_grade')
+            .not('embedding', 'is', null)
+            .order('min_grade', { ascending: true });
+
+        const mockProvider = {
+            generateEmbedding: vi.fn().mockResolvedValue(dbBooks![0].embedding)
+        };
+        vi.spyOn(AIFactory, 'getProvider').mockReturnValue(mockProvider as any);
+
+        const mockClient = createAdminClient();
+        vi.spyOn(mockClient.auth, 'getUser').mockResolvedValue({ data: { user: testUser }, error: null });
+        vi.spyOn(supabaseServer, 'createClient').mockReturnValue(mockClient as any);
+
+        const req = new Request('http://localhost/api/books/search?q=test&sortBy=lexile_level&sortOrder=desc');
+        const res = await searchBooks(req as any);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        const grades = body.map((b: any) => b.min_grade).filter((g: any) => g !== null && g !== undefined);
+        const sortedGradesDesc = [...grades].sort((a, b) => b - a);
+        expect(grades).toEqual(sortedGradesDesc);
+
+        vi.restoreAllMocks();
+    });
 });

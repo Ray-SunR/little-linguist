@@ -137,6 +137,18 @@ Since tests share a single local Supabase instance, they **MUST** run serially i
 - Vitest is configured with `singleThread: true` for this reason.
 - Ensure any `vi.mock` calls are scoped correctly to avoid leaking into other tests.
 
+## 🏃 Running Tests
+
+Vitest defaults to watch mode in interactive environments. To prevent hanging processes, **always execute tests in non-watch mode** by using the `run` command or the predefined npm script.
+
+```bash
+# Recommended (runs once and exits)
+npm run test [path/to/test]
+
+# Direct vitest call
+npx vitest run [path/to/test]
+```
+
 ---
 
 ## 📊 Coverage Targets

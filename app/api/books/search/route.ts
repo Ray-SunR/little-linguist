@@ -62,6 +62,8 @@ export async function GET(request: NextRequest) {
         }
 
         const semanticIds = searchResults.map((r: any) => r.id);
+        const semanticMap = new Map();
+        searchResults.forEach((r: any) => semanticMap.set(r.id, r.similarity));
 
         // 2. Hydrate with full details (covers, progress, etc.)
         // We use the ID filter functionality of the main retrieval method
@@ -86,6 +88,20 @@ export async function GET(request: NextRequest) {
                 const indexA = idMap.has(a.id) ? idMap.get(a.id) : 999;
                 const indexB = idMap.has(b.id) ? idMap.get(b.id) : 999;
                 return indexA - indexB;
+            });
+        }
+
+        if (sortBy === 'lexile_level') {
+            booksWithCovers = booksWithCovers.sort((a, b) => {
+                const gradeA = a.minGrade ?? 0;
+                const gradeB = b.minGrade ?? 0;
+                if (gradeA !== gradeB) {
+                    return sortOrder === 'desc' ? gradeB - gradeA : gradeA - gradeB;
+                }
+                // Tie-breaker: Similarity
+                const simA = semanticMap.get(a.id) || 0;
+                const simB = semanticMap.get(b.id) || 0;
+                return simB - simA; // Always higher similarity first
             });
         }
 

@@ -56,7 +56,7 @@ After the setup script completes, you can verify that everything is correctly co
 npm run test:local-setup
 ```
 
-This will check table existence, storage bucket availability, and Realtime publication status.
+This will check table existence, storage bucket availability, and Realtime publication status. **Note: All test verification should be performed in non-watch mode (using `run` or npm scripts) to avoid hanging processes.**
 
 ---
 

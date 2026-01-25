@@ -463,7 +463,8 @@ RETURNS TABLE (
     progress_is_favorite BOOLEAN,
     progress_is_completed BOOLEAN,
     progress_last_token_index INT,
-    progress_last_read_at TIMESTAMPTZ
+    progress_last_read_at TIMESTAMPTZ,
+    min_grade SMALLINT
 ) 
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -488,7 +489,8 @@ BEGIN
         cb.is_favorite AS progress_is_favorite,
         cb.is_completed AS progress_is_completed,
         cb.last_token_index AS progress_last_token_index,
-        cb.last_read_at AS progress_last_read_at
+        cb.last_read_at AS progress_last_read_at,
+        b.min_grade
     FROM 
         books b
     LEFT JOIN 
