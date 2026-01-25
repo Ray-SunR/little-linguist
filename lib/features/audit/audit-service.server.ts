@@ -191,7 +191,11 @@ export class AuditService {
             if (!childId) {
                 try {
                     const cookieStore = cookies();
-                    childId = cookieStore.get("activeChildId")?.value;
+                    const cookieChildId = cookieStore.get("activeChildId")?.value;
+                    // Validate UUID format to prevent obvious junk from causing FK errors
+                    if (cookieChildId && /^[0-9a-f-]{36}$/i.test(cookieChildId)) {
+                        childId = cookieChildId;
+                    }
                 } catch (e) {
                     // Not in request scope
                 }
@@ -205,7 +209,7 @@ export class AuditService {
 
             const supabase = this.getServiceRoleClient();
 
-            const { error } = await supabase.from('audit_logs').insert({
+            const logEntry = {
                 identity_key: identityKey,
                 owner_user_id: payload.userId || null,
                 child_id: childId || null,
@@ -215,11 +219,26 @@ export class AuditService {
                 details: sanitizedDetails,
                 ip_address: ipAddress,
                 status: 'success'
-            });
+            };
+
+            const { error } = await supabase.from('audit_logs').insert(logEntry);
 
             if (error) {
-                // Log to console so our log drain catches it
-                console.error('[AuditService] Failed to write log:', error);
+                // Handle foreign key violation on child_id (23503)
+                // This can happen if the activeChildId cookie is stale or belongs to a different environment
+                if (error.code === '23503' && error.message?.includes('child_id') && logEntry.child_id) {
+                    console.warn(`[AuditService] Invalid child_id ${logEntry.child_id} in log for ${payload.action}. Retrying without child_id.`);
+                    const { error: retryError } = await supabase.from('audit_logs').insert({
+                        ...logEntry,
+                        child_id: null
+                    });
+                    if (retryError) {
+                        console.error(`[AuditService] Failed to write log for ${payload.action} after retry:`, retryError);
+                    }
+                } else {
+                    // Log to console so our log drain catches it
+                    console.error(`[AuditService] Failed to write log for ${payload.action}:`, error);
+                }
             } else {
                 console.info(`[AuditService] Log success: ${payload.action} for ${identityKey}`);
             }

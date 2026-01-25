@@ -66,4 +66,32 @@ describe('AuditService Integration', () => {
         
         expect(data?.length).toBe(1);
     });
+
+    it('should retry without childId if foreign key violation occurs', async () => {
+        const testUserId = testUser.id;
+        const invalidChildId = '00000000-0000-0000-0000-000000000002';
+
+        // Log an action with an invalid child ID (that doesn't exist in the children table)
+        await AuditService.log({
+            action: AuditAction.BOOK_OPENED,
+            entityType: EntityType.BOOK,
+            entityId: 'invalid-child-test-book',
+            userId: testUserId,
+            childId: invalidChildId
+        });
+
+        // Verify that the log was still written (but with child_id = null)
+        const { data, error } = await supabase
+            .from('audit_logs')
+            .select('*')
+            .eq('owner_user_id', testUserId)
+            .eq('action_type', AuditAction.BOOK_OPENED)
+            .eq('entity_id', 'invalid-child-test-book')
+            .single();
+
+        expect(error).toBeNull();
+        expect(data).toBeDefined();
+        expect(data.child_id).toBeNull();
+        expect(data.owner_user_id).toBe(testUserId);
+    });
 });
