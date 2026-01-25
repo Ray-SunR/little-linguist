@@ -13,7 +13,7 @@ import { CachedImage } from "@/components/ui/cached-image";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { Capacitor } from "@capacitor/core";
-import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { safeHaptics, ImpactStyle } from "@/lib/core";
 
 // Dynamic Imports for Below-the-Fold components
 const SocialProof = dynamic(() => import("@/components/landing-page/SocialProof"), { ssr: true });
@@ -178,13 +178,7 @@ export default function LandingPageContent() {
         const x = e.clientX / window.innerWidth;
         const y = e.clientY / window.innerHeight;
 
-        try {
-            Haptics.impact({ style: ImpactStyle.Medium });
-        } catch (err) {
-            if (process.env.NODE_ENV === 'development') {
-                console.warn("Haptics impact failed:", err);
-            }
-        }
+        safeHaptics.impact({ style: ImpactStyle.Medium });
 
         confetti({
             origin: { x, y },
@@ -368,14 +362,8 @@ export default function LandingPageContent() {
                         <div className="flex flex-wrap items-center gap-4">
                             <motion.a
                                 href="/library"
-                                onClick={() => {
-                                    try {
-                                        Haptics.impact({ style: ImpactStyle.Heavy });
-                                    } catch (e) {
-                                        if (process.env.NODE_ENV === 'development') {
-                                            console.warn("Haptics impact failed:", e);
-                                        }
-                                    }
+                                 onClick={() => {
+                                    safeHaptics.impact({ style: ImpactStyle.Heavy });
                                 }}
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.98 }}
