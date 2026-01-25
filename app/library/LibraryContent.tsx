@@ -164,6 +164,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const sortOrderRef = useRef(sortOrder);
     const globalLoadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isDirtyRef = useRef(false);
+    const prevSearchQuery = useRef(urlQuery);
     const searchQueryRef = useRef("");
     const pendingInternalPathsRef = useRef<Set<string>>(new Set());
     const booksRef = useRef<LibraryBookCard[]>([]);
@@ -175,6 +176,16 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
         }, 500);
         return () => clearTimeout(timer);
     }, [searchQuery]);
+
+    useEffect(() => {
+        if (debouncedSearchQuery && !prevSearchQuery.current && sortBy === 'last_opened') {
+            setSortBy('relevance');
+            setSortOrder('desc');
+            isDirtyRef.current = true;
+        }
+        prevSearchQuery.current = debouncedSearchQuery;
+    }, [debouncedSearchQuery, sortBy, setSortBy, setSortOrder]);
+
     useEffect(() => {
         booksRef.current = books;
     }, [books]);
@@ -372,6 +383,8 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
                     searchParams.set('limit', LIMIT.toString());
                     searchParams.set('offset', currentOffset.toString());
                     if (resolvedActiveChild?.id) searchParams.set('childId', resolvedActiveChild.id);
+                    searchParams.set('sortBy', currentSort);
+                    searchParams.set('sortOrder', currentSortOrder);
 
                     // Add filters to search too!
                     if (currentFilters.level) searchParams.set('level', currentFilters.level);
@@ -603,7 +616,7 @@ export default function LibraryContent({ serverProfiles }: LibraryContentProps) 
     const handleSortChange = useCallback((newSort: string) => {
         setSortBy(newSort);
         isDirtyRef.current = true;
-        if (newSort === 'newest' || newSort === 'last_opened') setSortOrder('desc');
+        if (newSort === 'newest' || newSort === 'last_opened' || newSort === 'relevance') setSortOrder('desc');
         else setSortOrder('asc');
     }, []);
 
