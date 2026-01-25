@@ -691,13 +691,13 @@ export function BookshelfToolbar({
                                                     )}
                                                 >
                                                     <span>{option.label}</span>
-                                                    {sortBy === option.id && (
+                                                    {sortBy === option.id && sortBy !== 'relevance' && (
                                                         <div
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc');
                                                             }}
-                                                            className="p-1 hover:bg-indigo-100 rounded-md transition-colors"
+                                                            className="p-1 hover:bg-indigo-100 rounded-md transition-colors cursor-pointer"
                                                         >
                                                             <ArrowUpDown className={cn("w-3 h-3 transition-transform", sortOrder === 'asc' && "rotate-180")} />
                                                         </div>
@@ -712,7 +712,7 @@ export function BookshelfToolbar({
                             {/* Reordered Mobile Search Trigger */}
                             <button
                                 onClick={() => setIsSearchExpanded(true)}
-                                className="lg:hidden p-2 rounded-xl bg-purple-50/30 border border-purple-100/50 text-purple-600/70 hover:bg-purple-50 hover:text-purple-600 transition-all active:scale-95"
+                                className="lg:hidden p-2 rounded-xl bg-purple-50/30 border border-purple-100/50 text-purple-600/70 hover:bg-purple-50 hover:text-purple-600 transition-all active:scale-95 cursor-pointer"
                             >
                                 <Search className="w-5 h-5" />
                             </button>
