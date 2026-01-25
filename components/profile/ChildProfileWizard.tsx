@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createChildProfile, getAvatarUploadUrl } from '@/app/actions/profiles';
 import { Camera, Check, ChevronRight, ChevronLeft, Sparkles, Wand2, BookOpen } from 'lucide-react';
@@ -121,7 +121,10 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
         try {
             const result = await createChildProfile({
-                ...formData,
+                first_name: formData.firstName,
+                birth_year: formData.birthYear,
+                gender: formData.gender,
+                interests: formData.interests,
                 avatar_asset_path: avatarStoragePath || ''
             });
 
