@@ -6,6 +6,7 @@ import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
+import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
 
 const state = {
     activeChildId: 'test-child-id'
@@ -26,14 +27,6 @@ vi.mock('next/headers', () => ({
     })
 }));
 
-vi.mock('@/lib/core/integrations/ai/factory.server', () => ({
-    AIFactory: {
-        getProvider: vi.fn(() => ({
-            generateEmbedding: vi.fn().mockResolvedValue(new Array(1024).fill(0.1))
-        }))
-    }
-}));
-
 describe('Search and Recommendations API Integration', () => {
     let testUser: any;
     let testChild: any;
@@ -45,12 +38,9 @@ describe('Search and Recommendations API Integration', () => {
         await seedBooksFromOutput(5);
         testUser = await createTestUser();
 
-        const { data: book } = await supabase.from('books').select('*').limit(1).single();
-        testBook = book;
-
-        await supabase.from('books').update({
-            embedding: new Array(1024).fill(0.1)
-        }).eq('id', testBook.id);
+        // Fetch a book from the seeded data
+        const { data: books } = await supabase.from('books').select('*').limit(1);
+        testBook = books[0];
 
         const { data: child } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
@@ -69,6 +59,23 @@ describe('Search and Recommendations API Integration', () => {
     });
 
     it('should search books', async () => {
+        // Fetch a book with an embedding from the DB (seeded from fixtures)
+        const { data: targetBook } = await supabase
+            .from('books')
+            .select('id, embedding')
+            .not('embedding', 'is', null)
+            .limit(1)
+            .single();
+
+        if (!targetBook) {
+            throw new Error('No books with embeddings found in DB. Ensure seedBooksFromOutput worked.');
+        }
+
+        const mockProvider = {
+            generateEmbedding: vi.fn().mockResolvedValue(targetBook.embedding)
+        };
+        vi.spyOn(AIFactory, 'getProvider').mockReturnValue(mockProvider as any);
+
         const mockClient = createAdminClient();
         vi.spyOn(mockClient.auth, 'getUser').mockResolvedValue({ data: { user: testUser }, error: null });
         vi.spyOn(supabaseServer, 'createClient').mockReturnValue(mockClient as any);
@@ -80,12 +87,29 @@ describe('Search and Recommendations API Integration', () => {
         expect(res.status).toBe(200);
         expect(Array.isArray(body)).toBe(true);
         expect(body.length).toBeGreaterThan(0);
-        expect(body[0].id).toBe(testBook.id);
+        expect(body.some((b: any) => b.id === targetBook.id)).toBe(true);
 
         vi.restoreAllMocks();
     });
 
     it('should get recommendations for child', async () => {
+        // Fetch a book with an embedding from the DB (seeded from fixtures)
+        const { data: targetBook } = await supabase
+            .from('books')
+            .select('id, embedding')
+            .not('embedding', 'is', null)
+            .limit(1)
+            .single();
+
+        if (!targetBook) {
+            throw new Error('No books with embeddings found in DB');
+        }
+
+        const mockProvider = {
+            generateEmbedding: vi.fn().mockResolvedValue(targetBook.embedding)
+        };
+        vi.spyOn(AIFactory, 'getProvider').mockReturnValue(mockProvider as any);
+
         const mockClient = createAdminClient();
         vi.spyOn(mockClient.auth, 'getUser').mockResolvedValue({ data: { user: testUser }, error: null });
         vi.spyOn(supabaseServer, 'createClient').mockReturnValue(mockClient as any);
@@ -96,6 +120,8 @@ describe('Search and Recommendations API Integration', () => {
 
         expect(res.status).toBe(200);
         expect(Array.isArray(body)).toBe(true);
+        expect(body.length).toBeGreaterThan(0);
+        expect(body.some((b: any) => b.id === targetBook.id)).toBe(true);
 
         vi.restoreAllMocks();
     });

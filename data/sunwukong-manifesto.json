@@ -1,0 +1,182 @@
+[
+  {
+    "id": "sunwukong-g35-100",
+    "title": "The Stone Monkey's Birth",
+    "concept_prompt": "The birth of Sun Wukong from a mystical stone on Flower-Fruit Mountain.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-101",
+    "title": "The Waterfall Cave",
+    "concept_prompt": "Wukong leads the monkeys through the waterfall to find their new home.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-102",
+    "title": "The Quest for Immortality",
+    "concept_prompt": "Wukong travels across the seas to find Master Subhuti and learn magic.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-103",
+    "title": "The 72 Transformations",
+    "concept_prompt": "Wukong masters the art of transformation and cloud-somersaulting.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-104",
+    "title": "The Dragon King's Staff",
+    "concept_prompt": "Wukong visits the Eastern Sea Dragon King to claim the Ruyi Jingu Bang.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-105",
+    "title": "The Book of Life and Death",
+    "concept_prompt": "Wukong enters the Underworld and erases his name from the scrolls of mortality.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-106",
+    "title": "The Great Sage Equal to Heaven",
+    "concept_prompt": "Wukong demands respect from the Jade Emperor and takes a title in heaven.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-107",
+    "title": "The Heavenly Peach Garden",
+    "concept_prompt": "Wukong's mischief at the Peach Banquet leading to chaos in heaven.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-108",
+    "title": "Havoc in Heaven",
+    "concept_prompt": "Wukong fights the 100,000 celestial soldiers single-handedly.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-109",
+    "title": "The Five Finger Mountain",
+    "concept_prompt": "Buddha traps the rebellious Wukong under a mountain for 500 years.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-110",
+    "title": "The Monk's Journey",
+    "concept_prompt": "Tang Sanzang receives the mission from Guan Yin to fetch the scriptures.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-111",
+    "title": "The White Dragon Horse",
+    "concept_prompt": "Wukong and the Monk meet a dragon prince who becomes their steed.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-112",
+    "title": "The Gao Village Rescue",
+    "concept_prompt": "Wukong meets and recruits the gluttonous Zhu Bajie.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-113",
+    "title": "The Flowing Sands River",
+    "concept_prompt": "The team battles and eventually recruits the quiet warrior Sha Wujing.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-114",
+    "title": "The Ginseng Fruit Incident",
+    "concept_prompt": "The disciples get into trouble at the Temple of Five Immortals.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-115",
+    "title": "Three Strikes at the Bone Demon",
+    "concept_prompt": "Wukong sees through the disguises of the White Bone Demon.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-116",
+    "title": "The Red Boy's Fire",
+    "concept_prompt": "The team faces the True Fire of Samadhi from the formidable Red Boy.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-117",
+    "title": "The Kingdom of Women",
+    "concept_prompt": "A challenging stop in a land where the group must escape tricky enchantments.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-118",
+    "title": "The True and False Monkey King",
+    "concept_prompt": "A duplicate monkey appears, and only Buddha can tell them apart.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  },
+  {
+    "id": "sunwukong-g35-119",
+    "title": "Reaching the Western Heaven",
+    "concept_prompt": "The final arrival at Vulture Peak and receiving the true scriptures.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "journey-to-the-west"
+  }
+]

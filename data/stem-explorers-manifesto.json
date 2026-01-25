@@ -1,0 +1,92 @@
+[
+  {
+    "id": "stem-g35-200",
+    "title": "The Quantum Leap",
+    "concept_prompt": "A journey into the subatomic world to see atoms and particles.",
+    "category": "stem",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-g35-201",
+    "title": "Life on a Liquid Planet",
+    "concept_prompt": "Exploring exoplanets with vast oceans and strange weather.",
+    "category": "stem",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-g35-202",
+    "title": "The AI Brain",
+    "concept_prompt": "How neural networks work, explained as a city of busy messengers.",
+    "category": "stem",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-g35-203",
+    "title": "Infinite Energy",
+    "concept_prompt": "The science of nuclear fusion and the power of the sun.",
+    "category": "stem",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-g35-204",
+    "title": "The Micro-Universe",
+    "concept_prompt": "A deep dive into the complex machinery of a living cell.",
+    "category": "stem",
+    "level": "G3-5",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-g12-205",
+    "title": "My Robot Friend",
+    "concept_prompt": "Basics of coding and how robots follow instructions.",
+    "category": "stem",
+    "level": "G1-2",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-g12-206",
+    "title": "Rocket to the Moon",
+    "concept_prompt": "Understanding gravity and how rockets blast off.",
+    "category": "stem",
+    "level": "G1-2",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-g12-207",
+    "title": "The Helpful Honeybee",
+    "concept_prompt": "The role of pollination in the global ecosystem.",
+    "category": "stem",
+    "level": "G1-2",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-pk-208",
+    "title": "Shapes of the Galaxy",
+    "concept_prompt": "Identifying circles, triangles, and squares in stars and planets.",
+    "category": "stem",
+    "level": "PreK",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  },
+  {
+    "id": "stem-pk-209",
+    "title": "Colors of the Nebula",
+    "concept_prompt": "A visual tour of the colorful clouds in deep space.",
+    "category": "stem",
+    "level": "PreK",
+    "is_nonfiction": true,
+    "series_id": "stem-explorers"
+  }
+]

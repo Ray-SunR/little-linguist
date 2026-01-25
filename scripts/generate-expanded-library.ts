@@ -14,8 +14,8 @@ import { execSync } from "child_process";
 
 dotenv.config({ path: ".env.local" });
 
-const MANIFESTO_PATH = path.join(process.cwd(), 'data/expanded-manifesto.json');
-const OUTPUT_DIR = path.join(process.cwd(), 'output/expanded-library');
+const MANIFESTO_PATH = process.env.MANIFESTO_PATH || path.join(process.cwd(), 'data/expanded-manifesto.json');
+const OUTPUT_DIR = process.env.RAIDEN_BOOKS_PATH || path.join(process.cwd(), 'output/expanded-library');
 const STATE_FILE = path.join(OUTPUT_DIR, 'state.json');
 
 const SUN_WUKONG_ANCHOR = `Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.`;

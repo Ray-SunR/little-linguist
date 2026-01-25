@@ -1,0 +1,92 @@
+[
+  {
+    "id": "legends-g35-300",
+    "title": "Nezha: The Lotus Rebirth",
+    "concept_prompt": "The epic rebirth of the warrior boy from a lotus flower.",
+    "category": "legends",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-g35-301",
+    "title": "Chang'e: The Moon's Secret",
+    "concept_prompt": "The story of the moon goddess and the ten suns.",
+    "category": "legends",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-g35-302",
+    "title": "The White Snake's Promise",
+    "concept_prompt": "A magical tale of a snake spirit who becomes human.",
+    "category": "legends",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-g35-303",
+    "title": "Pangu: The First Giant",
+    "concept_prompt": "How Pangu separated heaven and earth.",
+    "category": "legends",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-g35-304",
+    "title": "The Weaver and the Cowherd",
+    "concept_prompt": "The legend of the bridge of magpies across the Milky Way.",
+    "category": "legends",
+    "level": "G3-5",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-g12-305",
+    "title": "Nezha and the Dragon Prince",
+    "concept_prompt": "The boy hero's first encounter with the undersea kingdom.",
+    "category": "legends",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-g12-306",
+    "title": "The Moon Fairy's Rabbit",
+    "concept_prompt": "The Jade Rabbit's adventures on the moon with Chang'e.",
+    "category": "legends",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-g12-307",
+    "title": "The Magic Paintbrush",
+    "concept_prompt": "A boy whose paintings come to life.",
+    "category": "legends",
+    "level": "G1-2",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-pk-308",
+    "title": "Nezha's Fire Wheels",
+    "concept_prompt": "A simple story about flying on magical fire wheels.",
+    "category": "legends",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  },
+  {
+    "id": "legends-pk-309",
+    "title": "Counting Mooncakes",
+    "concept_prompt": "Counting yummy mooncakes with the Moon Goddess.",
+    "category": "legends",
+    "level": "PreK",
+    "is_nonfiction": false,
+    "series_id": "chinese-legends"
+  }
+]

@@ -134,7 +134,12 @@ async function seedBook(relPath: string) {
         return;
     }
 
-    const bookId = existingBook?.id || crypto.randomUUID(); 
+    if (existingBook) {
+        console.log(`  ⏩ Skipping existing book: "${metadata.title}" (${bookKey})`);
+        return;
+    }
+
+    const bookId = crypto.randomUUID(); 
     console.log(`\n📖 Processing: "${metadata.title}" (ID: ${bookId})`);
 
     // 1. Upload Cover

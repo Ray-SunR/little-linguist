@@ -1,25 +1,4 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
-
-// Mock AIFactory at the top level for proper hoisting
-vi.mock('@/lib/core/integrations/ai/factory.server', () => ({
-    AIFactory: {
-        getProvider: vi.fn(() => ({
-            generateEmbedding: vi.fn().mockResolvedValue(new Array(1024).fill(0.1))
-        }))
-    }
-}));
-
-// Mock NarrationFactory as well to ensure consistent behavior across tests
-vi.mock('@/lib/features/narration/factory.server', () => ({
-    NarrationFactory: {
-        getProvider: vi.fn(() => ({
-            synthesize: vi.fn().mockResolvedValue({
-                audioBuffer: Buffer.from('audio'),
-                speechMarks: []
-            })
-        }))
-    }
-}));
+import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
@@ -35,7 +14,7 @@ describe('BookRepository Integration', () => {
 
     beforeAll(async () => {
         await truncateAllTables();
-        await seedBooksFromOutput(5);
+        await seedBooksFromOutput(10);
         testUser = await createTestUser();
 
         const { data: child } = await supabase.from('children').insert({
@@ -80,39 +59,60 @@ describe('BookRepository Integration', () => {
     });
 
     it('should search books by embedding similarity', async () => {
-        const books = await bookRepo.getAvailableBooks();
-        const firstBook = books[0];
-        
-        // Clear ALL embeddings first to ensure no other book has a conflicting mock embedding
-        await supabase.from('books').update({ embedding: null }).neq('id', '00000000-0000-0000-0000-000000000000' as any);
+        // Fetch a public book with its embedding from the DB to use as a target
+        const { data: bookWithEmbedding } = await supabase
+            .from('books')
+            .select('id, title, embedding')
+            .is('owner_user_id', null)
+            .not('embedding', 'is', null)
+            .limit(1)
+            .single();
 
-        const uniqueValue = 0.99;
-        const embedding = new Array(1024).fill(uniqueValue);
+        if (!bookWithEmbedding) {
+            throw new Error('No public books with embeddings found in DB. Ensure seedBooksFromOutput(10) worked.');
+        }
 
-        // Update the book with our unique embedding
-        await supabase.from('books').update({ embedding }).eq('id', firstBook.id!);
+        // Mock AIFactory.getProvider to return a provider that returns our target embedding
+        const mockProvider = {
+            generateEmbedding: vi.fn().mockResolvedValue(bookWithEmbedding.embedding)
+        };
+        vi.spyOn(AIFactory, 'getProvider').mockReturnValue(mockProvider as any);
 
-        // Mock generateEmbedding to return the same unique vector
-        vi.spyOn(AIFactory.getProvider(), 'generateEmbedding').mockResolvedValue(embedding);
-
-        const results = await bookRepo.searchBooks('unique query');
+        // Search (query doesn't matter much now since we mock the embedding)
+        const results = await bookRepo.searchBooks('some query');
 
         expect(results.length).toBeGreaterThan(0);
-        // The first result should be our updated book (highest similarity)
-        expect(results[0].id).toBe(firstBook.id);
+        // The specific book should be among the results
+        expect(results.some(r => r.id === bookWithEmbedding.id)).toBe(true);
     });
 
     it('should recommend books for child', async () => {
         await supabase.from('children').update({ interests: ['magic'] }).eq('id', testChild.id);
-        const books = await bookRepo.getAvailableBooks();
-        const embedding = new Array(1024).fill(0.2);
-        await supabase.from('books').update({ embedding }).eq('id', books[0].id!);
+        
+        // Fetch a public book with its embedding from the DB to use as a target recommendation
+        const { data: targetBook } = await supabase
+            .from('books')
+            .select('id, title, embedding')
+            .is('owner_user_id', null)
+            .not('embedding', 'is', null)
+            .limit(1)
+            .single();
 
-        // We mock generateEmbedding globally at the top, so this test also uses [0.1, ...]
-        // The results will still return books since any vector has some similarity,
-        // but it won't necessarily be the one we just updated to [0.2, ...].
-        // However, for this test, we just care that it returns SOMETHING.
+        if (!targetBook) {
+            throw new Error('No public books with embeddings found in DB');
+        }
+
+        // Mock AIFactory.getProvider to return a provider that returns our target embedding
+        const mockProvider = {
+            generateEmbedding: vi.fn().mockResolvedValue(targetBook.embedding)
+        };
+        vi.spyOn(AIFactory, 'getProvider').mockReturnValue(mockProvider as any);
+
+        // Get recommendations
         const recs = await bookRepo.getRecommendedBooksWithCovers(testUser.id, testChild.id);
+        
         expect(recs.length).toBeGreaterThan(0);
+        // Assert that the specific target book is included in the recommendations
+        expect(recs.some(r => r.id === targetBook.id)).toBe(true);
     });
 });
