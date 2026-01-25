@@ -22,6 +22,7 @@ vi.mock('@/lib/features/narration/factory.server', () => ({
 }));
 
 import { BookRepository } from '@/lib/core/books/repository.server';
+import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
 import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
@@ -45,6 +46,10 @@ describe('BookRepository Integration', () => {
         testChild = child;
 
         bookRepo = new BookRepository(supabase);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     it('should fetch available books', async () => {
@@ -77,12 +82,20 @@ describe('BookRepository Integration', () => {
     it('should search books by embedding similarity', async () => {
         const books = await bookRepo.getAvailableBooks();
         const firstBook = books[0];
-        const embedding = new Array(1024).fill(0.1);
+        
+        // Clear ALL embeddings first to ensure no other book has a conflicting mock embedding
+        await supabase.from('books').update({ embedding: null }).neq('id', '00000000-0000-0000-0000-000000000000' as any);
 
-        // Update the book with the same embedding we'll mock for the search query
+        const uniqueValue = 0.99;
+        const embedding = new Array(1024).fill(uniqueValue);
+
+        // Update the book with our unique embedding
         await supabase.from('books').update({ embedding }).eq('id', firstBook.id!);
 
-        const results = await bookRepo.searchBooks('test query');
+        // Mock generateEmbedding to return the same unique vector
+        vi.spyOn(AIFactory.getProvider(), 'generateEmbedding').mockResolvedValue(embedding);
+
+        const results = await bookRepo.searchBooks('unique query');
 
         expect(results.length).toBeGreaterThan(0);
         // The first result should be our updated book (highest similarity)

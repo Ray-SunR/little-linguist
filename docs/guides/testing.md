@@ -54,6 +54,21 @@ BASE_URL=http://localhost:3001 npm run test:e2e
 - **Image Skeletons**: Generated stories may take time to produce images even with mocks. Increase timeouts for `.book-image-skeleton` checks if they persist beyond 60s.
 - **Idempotency**: Rewards and mission completion are tied to real database state. Use `ensureTestUser` (in `e2e/e2e-utils.ts`) to ensure fresh state or handle existing records gracefully.
 
+### 6. Automated Full Testing
+The most reliable way to verify the entire system (Unit + Integration + Prod Build + E2E) is the `full-test.sh` script or its npm alias. This script dynamically allocates a port, starts a background production server, and cleans up after itself.
+
+```bash
+# Full check (recommended before major commits)
+npm run test:full
+
+# Skip build if you only changed client-side styles or tests
+npm run test:full -- --skip-build
+
+# Run against real AI services (use with caution)
+npm run test:full -- --no-mock
+```
+Logs for the background server are captured in `/tmp/raiden-server-*.log`.
+
 ---
 
 ## 🏗️ Testing Patterns

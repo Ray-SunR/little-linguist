@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "test:local-setup": "npx tsx scripts/verify-local-setup.ts",
     "test:e2e": "BASE_URL=$BASE_URL npx playwright test",
+    "test:full": "./scripts/full-test.sh",
     "library:generate": "npx tsx scripts/generate-expanded-library.ts",
     "mobile:build": "next build",
     "mobile:sync": "npx cap sync",
