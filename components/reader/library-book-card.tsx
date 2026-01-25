@@ -20,26 +20,24 @@ interface LibraryBookCardProps {
     onNavigate?: () => void;
 }
 
-const LEVEL_MAP: Record<string, string> = {
-    "G1-2": "Grades 1-2",
-    "G3-5": "Grades 3-5",
-    "K": "Kindergarten",
-    "Kindergarten": "Kindergarten"
+const LEVEL_CONFIG: Record<string, { label: string; style: string }> = {
+    "Pre-K": { label: "Pre-K", style: "bg-purple-100/90 text-purple-600 border-purple-200" },
+    "K": { label: "Kindergarten", style: "bg-blue-100/90 text-blue-600 border-blue-200" },
+    "Kindergarten": { label: "Kindergarten", style: "bg-blue-100/90 text-blue-600 border-blue-200" },
+    "G1-2": { label: "Grades 1-2", style: "bg-emerald-100/90 text-emerald-600 border-emerald-200" },
+    "Grades 1-2": { label: "Grades 1-2", style: "bg-emerald-100/90 text-emerald-600 border-emerald-200" },
 };
 
 const LevelBadge = ({ level }: { level: string | number }) => {
     const levelStr = String(level);
-    const displayText = LEVEL_MAP[levelStr] || levelStr;
+    const config = LEVEL_CONFIG[levelStr];
     
     return (
         <div className={cn(
             "px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border font-fredoka text-[10px] font-black uppercase tracking-tighter transition-all group-hover:scale-105",
-            levelStr === "Pre-K" ? "bg-purple-100/90 text-purple-600 border-purple-200" :
-                (levelStr === "K" || levelStr === "Kindergarten") ? "bg-blue-100/90 text-blue-600 border-blue-200" :
-                    (levelStr === "G1-2" || levelStr === "Grades 1-2") ? "bg-emerald-100/90 text-emerald-600 border-emerald-200" :
-                        "bg-orange-100/90 text-orange-600 border-orange-200"
+            config?.style || "bg-orange-100/90 text-orange-600 border-orange-200"
         )}>
-            {displayText}
+            {config?.label || levelStr}
         </div>
     );
 };
