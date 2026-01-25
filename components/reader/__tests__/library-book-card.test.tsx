@@ -39,13 +39,14 @@ describe('LibraryBookCard', () => {
     });
 
     it('has the level badge in the correct position', () => {
-        const mockBookWithLevel = {
-            ...mockBook,
+        const mockBook = {
+            id: 'book-1',
+            title: 'Test Adventure',
             level: 1,
         };
-        const { container } = render(<LibraryBookCard book={mockBookWithLevel as any} index={0} />);
-        // We expect it to be in the far right now: .top-3.right-3
-        const levelBadge = container.querySelector('.top-3.right-3');
+        const { container } = render(<LibraryBookCard book={mockBook as any} index={0} />);
+        // We expect it to be in the bottom right now: .bottom-3.right-3
+        const levelBadge = container.querySelector('.bottom-3.right-3');
         expect(levelBadge).not.toBeNull();
     });
 });

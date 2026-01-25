@@ -20,8 +20,17 @@ interface LibraryBookCardProps {
     onNavigate?: () => void;
 }
 
+const LEVEL_MAP: Record<string, string> = {
+    "G1-2": "Grades 1-2",
+    "G3-5": "Grades 3-5",
+    "K": "Kindergarten",
+    "Kindergarten": "Kindergarten"
+};
+
 const LevelBadge = ({ level }: { level: string | number }) => {
     const levelStr = String(level);
+    const displayText = LEVEL_MAP[levelStr] || levelStr;
+    
     return (
         <div className={cn(
             "px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border font-fredoka text-[10px] font-black uppercase tracking-tighter transition-all group-hover:scale-105",
@@ -30,10 +39,7 @@ const LevelBadge = ({ level }: { level: string | number }) => {
                     (levelStr === "G1-2" || levelStr === "Grades 1-2") ? "bg-emerald-100/90 text-emerald-600 border-emerald-200" :
                         "bg-orange-100/90 text-orange-600 border-orange-200"
         )}>
-            {levelStr === "G1-2" ? "Grades 1-2" :
-                levelStr === "G3-5" ? "Grades 3-5" :
-                    levelStr === "K" ? "Kindergarten" :
-                        levelStr}
+            {displayText}
         </div>
     );
 };
@@ -196,7 +202,7 @@ const LibraryBookCard = memo(({
                                     </div>
 
                                     {book.level && (
-                                        <div className="absolute top-3 right-3 z-20">
+                                        <div className="absolute bottom-3 right-3 z-20">
                                             <LevelBadge level={book.level} />
                                         </div>
                                     )}
