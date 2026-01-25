@@ -47,10 +47,9 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
     const objectUrlRef = useRef<string | null>(null);
 
     useEffect(() => {
-        const currentUrl = objectUrlRef.current;
         return () => {
-            if (currentUrl) {
-                URL.revokeObjectURL(currentUrl);
+            if (objectUrlRef.current) {
+                URL.revokeObjectURL(objectUrlRef.current);
             }
         };
     }, []);

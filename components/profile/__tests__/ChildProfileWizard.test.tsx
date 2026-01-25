@@ -117,4 +117,15 @@ describe('ChildProfileWizard', () => {
 
         expect(screen.queryByText(/Optional:/i)).toBeNull();
     });
+
+    it('revokes object URLs on unmount', () => {
+        if (typeof URL.revokeObjectURL === 'undefined') {
+            URL.revokeObjectURL = vi.fn();
+        }
+        const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+        const { unmount } = render(<ChildProfileWizard mode="onboarding" />);
+        
+        unmount();
+        expect(revokeSpy).toBeDefined();
+    });
 });

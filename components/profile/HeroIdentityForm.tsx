@@ -28,7 +28,7 @@ interface HeroIdentityFormProps {
     isInline?: boolean;
 }
 
-export default function HeroIdentityForm({ 
+const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({ 
     initialData, 
     onComplete, 
     onBack,
@@ -37,7 +37,7 @@ export default function HeroIdentityForm({
     initialStep = 'name',
     mode,
     isInline = false
-}: HeroIdentityFormProps) {
+}) => {
     const [step, setStep] = useState<HeroIdentityStep>(initialStep);
     const [formData, setFormData] = useState<HeroIdentity>(initialData);
 
@@ -400,4 +400,6 @@ export default function HeroIdentityForm({
             {error && <div className="mt-2 text-rose-500 font-bold font-nunito text-center text-sm">{error}</div>}
         </div>
     );
-}
+};
+
+export default HeroIdentityForm;

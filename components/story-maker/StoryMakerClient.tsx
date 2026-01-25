@@ -34,9 +34,9 @@ interface GenerationState {
 
 const generations: Record<string, GenerationState> = {};
 
-export function clearStoryMakerGlobals() {
+export const clearStoryMakerGlobals = () => {
     Object.keys(generations).forEach(key => delete generations[key]);
-}
+};
 
 function getGenerationState(userId: string): GenerationState {
     if (!generations[userId]) {
