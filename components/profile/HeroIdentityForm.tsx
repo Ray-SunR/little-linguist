@@ -47,14 +47,12 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
     }, [onFormDataChange]);
 
     const handleFieldChange = useCallback((updates: Partial<HeroIdentity>) => {
-        setFormData(prev => {
-            const next = { ...prev, ...updates };
-            setTimeout(() => {
-                onFormDataChangeRef.current?.(next);
-            }, 0);
-            return next;
-        });
+        setFormData(prev => ({ ...prev, ...updates }));
     }, []);
+
+    useEffect(() => {
+        onFormDataChangeRef.current?.(formData);
+    }, [formData]);
 
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
