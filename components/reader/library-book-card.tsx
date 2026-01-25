@@ -20,6 +20,24 @@ interface LibraryBookCardProps {
     onNavigate?: () => void;
 }
 
+const LevelBadge = ({ level }: { level: string | number }) => {
+    const levelStr = String(level);
+    return (
+        <div className={cn(
+            "px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border font-fredoka text-[10px] font-black uppercase tracking-tighter transition-all group-hover:scale-105",
+            levelStr === "Pre-K" ? "bg-purple-100/90 text-purple-600 border-purple-200" :
+                (levelStr === "K" || levelStr === "Kindergarten") ? "bg-blue-100/90 text-blue-600 border-blue-200" :
+                    (levelStr === "G1-2" || levelStr === "Grades 1-2") ? "bg-emerald-100/90 text-emerald-600 border-emerald-200" :
+                        "bg-orange-100/90 text-orange-600 border-orange-200"
+        )}>
+            {levelStr === "G1-2" ? "Grades 1-2" :
+                levelStr === "G3-5" ? "Grades 3-5" :
+                    levelStr === "K" ? "Kindergarten" :
+                        levelStr}
+        </div>
+    );
+};
+
 const LibraryBookCard = memo(({
     book,
     index,
@@ -178,19 +196,8 @@ const LibraryBookCard = memo(({
                                     </div>
 
                                     {book.level && (
-                                        <div className="absolute top-3 right-14 z-20">
-                                            <div className={cn(
-                                                "px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border font-fredoka text-[10px] font-black uppercase tracking-tighter transition-all group-hover:scale-105",
-                                                book.level === "Pre-K" ? "bg-purple-100/90 text-purple-600 border-purple-200" :
-                                                    (book.level === "K" || book.level === "Kindergarten") ? "bg-blue-100/90 text-blue-600 border-blue-200" :
-                                                        (book.level === "G1-2" || book.level === "Grades 1-2") ? "bg-emerald-100/90 text-emerald-600 border-emerald-200" :
-                                                            "bg-orange-100/90 text-orange-600 border-orange-200"
-                                            )}>
-                                                {book.level === "G1-2" ? "Grades 1-2" :
-                                                    book.level === "G3-5" ? "Grades 3-5" :
-                                                        book.level === "K" ? "Kindergarten" :
-                                                            book.level}
-                                            </div>
+                                        <div className="absolute top-3 right-3 z-20">
+                                            <LevelBadge level={book.level} />
                                         </div>
                                     )}
 
@@ -210,25 +217,27 @@ const LibraryBookCard = memo(({
                                     <h3 className="font-fredoka text-xl font-black text-slate-800 line-clamp-2 leading-tight transition-colors group-hover:text-blue-600">
                                         {book.title}
                                     </h3>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-black text-slate-500 uppercase tracking-wider mt-auto">
-                                        <span className="flex items-center gap-1.5">
-                                            <Clock className="w-3.5 h-3.5 text-blue-500" />
-                                            {Math.max(1, Math.round(Number(book.estimatedReadingTime) || 0))}m
-                                        </span>
-                                        {book.createdAt && (
+                                    <div className="flex flex-col gap-1.5 mt-auto px-1">
+                                        <div className="flex items-center gap-4 text-[10px] font-black text-slate-600 uppercase tracking-widest">
                                             <span className="flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                                <Clock className="w-3.5 h-3.5 text-blue-500/80" />
+                                                {Math.max(1, Math.round(Number(book.estimatedReadingTime) || 0))}M
+                                            </span>
+                                            <span className="flex items-center gap-1.5">
+                                                <Hash className="w-3.5 h-3.5 text-blue-500/80" />
+                                                {(book.totalTokens || book.progress?.total_tokens || 0).toLocaleString()} WORDS
+                                            </span>
+                                        </div>
+                                        {book.createdAt && (
+                                            <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                                                <Calendar className="w-3 h-3 text-slate-300" />
                                                 {new Date(book.createdAt).toLocaleDateString(undefined, {
                                                     month: 'short',
                                                     day: 'numeric',
                                                     year: 'numeric'
                                                 })}
-                                            </span>
+                                            </div>
                                         )}
-                                        <span className="flex items-center gap-1.5">
-                                            <Hash className="w-3.5 h-3.5 text-blue-500" />
-                                            {book.totalTokens || book.progress?.total_tokens || 0} words
-                                        </span>
                                     </div>
                                 </div>
 

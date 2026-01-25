@@ -28,4 +28,24 @@ describe('LibraryBookCard', () => {
         // Format expected: Jan 24, 2026
         expect(screen.getByText(/Jan 24, 2026/i)).toBeDefined();
     });
+
+    it('renders word count next to reading time', () => {
+        const mockBookWithTokens = {
+            ...mockBook,
+            totalTokens: 500,
+        };
+        render(<LibraryBookCard book={mockBookWithTokens as any} index={0} />);
+        expect(screen.getByText(/500 WORDS/i)).toBeDefined();
+    });
+
+    it('has the level badge in the correct position', () => {
+        const mockBookWithLevel = {
+            ...mockBook,
+            level: 1,
+        };
+        const { container } = render(<LibraryBookCard book={mockBookWithLevel as any} index={0} />);
+        // We expect it to be in the far right now: .top-3.right-3
+        const levelBadge = container.querySelector('.top-3.right-3');
+        expect(levelBadge).not.toBeNull();
+    });
 });
