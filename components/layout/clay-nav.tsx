@@ -13,8 +13,7 @@ import { ParentalLink } from "@/components/ui/parental-gate";
 import { CachedImage } from "@/components/ui/cached-image";
 import { useUsage } from "@/lib/hooks/use-usage";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
-import { Capacitor } from "@capacitor/core";
-import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { safeHaptics, ImpactStyle } from "@/lib/core";
 
 const ME_PRIMARY_PATH = "/dashboard";
 const ME_PATHS = ["/dashboard", "/profiles"];
@@ -150,10 +149,7 @@ export function ClayNav() {
     const [isExpanded, setIsExpanded] = useState(true);
     const hubModalRef = useRef<HTMLDivElement>(null);
     const pendingHrefRef = useRef<string | null>(null);
-    const triggerHaptics = useCallback((style: ImpactStyle) => {
-        if (!Capacitor.isNativePlatform()) return;
-        Haptics.impact({ style }).catch(() => {});
-    }, []);
+
     const handleNavPointerDown = useCallback((event: React.PointerEvent<HTMLAnchorElement>, href: string) => {
         if (!event.isPrimary) return;
         if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -179,8 +175,8 @@ export function ClayNav() {
             pendingHrefRef.current = href;
             setPendingHref(href);
         }
-        triggerHaptics(ImpactStyle.Light);
-    }, [triggerHaptics]);
+        safeHaptics.impact({ style: ImpactStyle.Light });
+    }, []);
     const navItemsWithLibrary = useMemo(() => (
         navItems.map((item) => (item.id === "nav-item-library" ? { ...item, href: libraryHref } : item))
     ), [libraryHref]);
@@ -321,7 +317,7 @@ export function ClayNav() {
                         <button
                             data-tour-target="nav-item-lumo-character"
                             onClick={() => {
-                                triggerHaptics(ImpactStyle.Medium);
+                                safeHaptics.impact({ style: ImpactStyle.Medium });
                                 setIsExpanded(false);
                             }}
                             className="flex items-center gap-3 group relative z-50 pl-2 shrink-0 touch-manipulation"
@@ -403,7 +399,7 @@ export function ClayNav() {
                                 {user ? (
                                     <motion.button
                                         onClick={() => {
-                                            triggerHaptics(ImpactStyle.Light);
+                                            safeHaptics.impact({ style: ImpactStyle.Light });
                                             setIsHubOpen(true);
                                         }}
                                         className="flex flex-col items-center justify-center w-14 h-14 rounded-full text-orange-500 overflow-hidden bg-white/40 border-2 border-white shadow-sm active:bg-orange-100/50 active:scale-95 transition-transform touch-manipulation"
@@ -444,7 +440,7 @@ export function ClayNav() {
                                 ) : (
                                     <motion.button
                                         onClick={() => {
-                                            triggerHaptics(ImpactStyle.Light);
+                                            safeHaptics.impact({ style: ImpactStyle.Light });
                                             setIsHubOpen(true);
                                         }}
                                         className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg border-2 border-white/50 hover:scale-105 active:scale-95 transition-transform touch-manipulation"
@@ -498,7 +494,7 @@ export function ClayNav() {
 
                             <button
                                 onClick={() => {
-                                    triggerHaptics(ImpactStyle.Medium);
+                                    safeHaptics.impact({ style: ImpactStyle.Medium });
                                     setIsExpanded(true);
                                     if (typeof window !== "undefined") {
                                         requestAnimationFrame(() => completeStep('nav-item-lumo'));
