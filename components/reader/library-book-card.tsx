@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Play, BookOpen, Star, Clock, Trash2, Compass, Heart, Hash, Sparkles, Check } from "lucide-react";
+import { Play, BookOpen, Star, Clock, Trash2, Compass, Heart, Hash, Sparkles, Check, Calendar } from "lucide-react";
 import { type LibraryBookCard } from "@/lib/core/books/library-types";
 import React, { useState, memo, useCallback, useMemo, useEffect } from "react";
 import { CachedImage } from "@/components/ui/cached-image";
@@ -215,6 +215,16 @@ const LibraryBookCard = memo(({
                                             <Clock className="w-3.5 h-3.5 text-blue-500" />
                                             {Math.max(1, Math.round(Number(book.estimatedReadingTime) || 0))}m
                                         </span>
+                                        {book.createdAt && (
+                                            <span className="flex items-center gap-1.5">
+                                                <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                                {new Date(book.createdAt).toLocaleDateString(undefined, {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })}
+                                            </span>
+                                        )}
                                         <span className="flex items-center gap-1.5">
                                             <Hash className="w-3.5 h-3.5 text-blue-500" />
                                             {book.totalTokens || book.progress?.total_tokens || 0} words
