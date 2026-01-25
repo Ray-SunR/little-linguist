@@ -24,3 +24,4 @@ docs
 .worktrees/
 test-results
 playwright-report
+*.tsbuildinfo
