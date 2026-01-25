@@ -483,7 +483,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 key={w.word} 
                                                 onClick={() => toggleWord(w.word)} 
                                                 className={cn(
-                                                    "h-16 md:h-20 px-6 rounded-xl md:rounded-2xl border-4 transition-all font-fredoka font-black text-lg md:text-xl flex items-center justify-between group overflow-hidden", 
+                                                    "h-16 md:h-20 px-6 rounded-xl md:rounded-2xl border-4 transition-all font-fredoka font-black text-lg md:text-xl flex items-center justify-between group overflow-hidden relative", 
                                                     selectedWords.includes(w.word) 
                                                         ? "bg-purple-500 text-white border-purple-400 shadow-clay-purple" 
                                                         : "bg-white text-ink border-white hover:border-purple-100 shadow-sm"
@@ -492,12 +492,14 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                                 <span className="relative z-10">{w.word}</span>
                                                 {selectedWords.includes(w.word) 
                                                     ? <Check className="h-6 w-6 text-white relative z-10 animate-bounce-subtle" /> 
-                                                    : <Plus className="h-6 w-6 text-purple-200 group-hover:text-purple-400 transition-colors" />
+                                                    : <Plus className="h-6 w-6 text-purple-200 group-hover:text-purple-400 transition-colors relative z-10" />
                                                 }
                                                 {selectedWords.includes(w.word) && (
                                                     <motion.div
-                                                        layoutId="sparkle-bg"
-                                                        className="absolute inset-0 bg-gradient-to-br from-purple-400 to-indigo-600 opacity-50"
+                                                        layoutId={`sparkle-${w.word}`}
+                                                        data-layout-id={`sparkle-${w.word}`}
+                                                        data-testid="sparkle-bg"
+                                                        className="absolute inset-0 bg-gradient-to-br from-purple-400 to-indigo-600 opacity-50 z-0"
                                                     />
                                                 )}
                                             </button>
