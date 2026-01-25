@@ -54,7 +54,7 @@ export function useStoryState(initialStatus: StoryStatus = 'IDLE') {
     // Only persist "active" states that should survive a remount
     if (state.status === 'GENERATING' || state.status === 'MIGRATING') {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } else if (state.status === 'SUCCESS' || state.status === 'IDLE') {
+    } else if (state.status === 'SUCCESS' || state.status === 'IDLE' || state.status === 'ERROR') {
       // Clear persistence when we reach a final state or reset
       sessionStorage.removeItem(STORAGE_KEY);
     }

@@ -86,6 +86,14 @@ describe('useStoryState', () => {
     expect(sessionStorage.removeItem).toHaveBeenCalledWith('raiden:story-state');
   });
 
+  it('should clear persistence on ERROR', () => {
+    const { result } = renderHook(() => useStoryState('GENERATING'));
+    act(() => {
+      result.current.setError('Failed');
+    });
+    expect(sessionStorage.removeItem).toHaveBeenCalledWith('raiden:story-state');
+  });
+
   it('should transition to MIGRATING', () => {
     const { result } = renderHook(() => useStoryState('CONFIGURING'));
     act(() => {
