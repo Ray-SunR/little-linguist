@@ -3,8 +3,16 @@ import { cookies } from "next/headers";
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 
 const getAdminClient = () => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!url || !url.startsWith('http')) {
+        throw new Error(`Invalid or missing NEXT_PUBLIC_SUPABASE_URL: ${url}`);
+    }
+    if (!key) {
+        throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+    }
+    
     return createClient(url, key);
 };
 

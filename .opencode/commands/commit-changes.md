@@ -7,8 +7,11 @@ Follow these steps to safely commit your progress:
 1. **Safety Check**: Run the automated full testing script.
    - Run: `npm run test:full`
    - You can use `./scripts/full-test.sh --skip-build` or pass arguments via npm: `npm run test:full -- --skip-build` to skip the production build if it was recently run and you haven't touched server-side code.
-   - If the command fails, stop and report the errors.
-   - Logs for the background server are available at `/tmp/raiden-server-*.log`.
+   - **Verification Required**: You MUST wait for the script to finish and then:
+     - Check the last 50 lines of output for the final test summary (ensure "0 failed").
+     - Search the FULL output (especially if truncated) for "FAIL" or "Error".
+     - Inspect background server logs at `/tmp/raiden-server-*.log` for runtime exceptions.
+   - If any errors are found, stop and report them. Do NOT proceed to commit.
 2. **Current Context**:
    - Status: !`git status`
    - Staged changes: !`git diff --cached`

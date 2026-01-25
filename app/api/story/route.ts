@@ -29,8 +29,8 @@ export async function POST(req: Request) {
     // Guard env vars to fail gracefully
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-        console.error("Missing Supabase env vars for service role client");
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseUrl.startsWith('http')) {
+        console.error("Missing or malformed Supabase env vars for service role client");
         return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
     }
     const serviceRoleClient = createClient(supabaseUrl, supabaseServiceKey);
