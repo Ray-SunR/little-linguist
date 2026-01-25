@@ -15,7 +15,7 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
     window.localStorage.setItem('lumo-cookie-consent', 'accepted');
   });
 
-  // Mock quota API to ensure buttons are enabled
+  // Mock usage quota API to ensure buttons are enabled
   await page.route('**/api/usage?*', async (route) => {
     await route.fulfill({
       status: 200,
@@ -27,6 +27,21 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
         },
         plan: 'pro',
         identity_key: 'test-identity'
+      })
+    });
+  });
+
+  // Mock words API
+  await page.route('**/api/words?*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        words: [
+          { word: 'predict', definition: 'To say what will happen in the future' },
+          { word: 'mountain', definition: 'A large natural elevation of the earth\'s surface' }
+        ],
+        total: 2
       })
     });
   });
@@ -102,18 +117,31 @@ test('Authenticated Story Maker Workflow', async ({ page, context }) => {
   // Wait for words tab
   console.log('Waiting for words tab...');
   await expect(page.getByTestId('words-tab-content')).toBeVisible({ timeout: 30000 });
+
+  // Select words
+  console.log('Selecting words...');
+  await page.getByText('predict').click();
+  await page.getByText('mountain').click();
   
   const castSpellBtn = page.getByTestId('cast-spell-button');
-  const skipBtn = page.getByRole('button', { name: 'Skip and create anyway' });
+  
+  // Intercept the /api/story request
+  const storyRequestPromise = page.waitForRequest(request => 
+    request.url().includes('/api/story') && request.method() === 'POST'
+  );
 
-  if (await skipBtn.isVisible()) {
-      console.log('No words found, skipping...');
-      await skipBtn.click();
-  } else {
-      console.log('Attempting to cast spell directly...');
-      await expect(castSpellBtn).toBeVisible({ timeout: 10000 });
-      await castSpellBtn.click({ force: true });
-  }
+  console.log('Attempting to cast spell...');
+  await expect(castSpellBtn).toBeVisible({ timeout: 10000 });
+  await castSpellBtn.click({ force: true });
+
+  const storyRequest = await storyRequestPromise;
+  const payload = storyRequest.postDataJSON();
+  console.log('Intercepted /api/story payload:', payload);
+
+  // Assert words payload
+  expect(payload.words).toContain('predict');
+  expect(payload.words).toContain('mountain');
+  expect(payload.words.length).toBe(2);
 
   // Wait for explicit state signal: data-status="GENERATING"
   await expect(page.locator('.page-story-maker')).toHaveAttribute('data-status', 'GENERATING', { timeout: 30000 });
