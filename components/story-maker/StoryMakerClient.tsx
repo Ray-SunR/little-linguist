@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Wand2, BookOpen, Sparkles, Check, ChevronRight, User, RefreshCw, Plus, Zap } from "lucide-react";
 import { useWordList } from "@/lib/features/word-insight";
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService, draftManager, useStoryState } from "@/lib/features/story";
@@ -168,7 +168,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                     birth_year: new Date().getFullYear() - currentProfile.age, 
                     gender: currentProfile.gender, 
                     interests: currentProfile.interests || [], 
-                    avatar_asset_path: currentProfile.avatarUrl, 
+                    avatar_asset_path: currentProfile.avatarStoragePath || "", 
                     avatar_paths: currentProfile.avatarStoragePath ? [currentProfile.avatarStoragePath] : [] 
                 });
                 if (result.success && result.data) {
