@@ -675,6 +675,7 @@ export function BookshelfToolbar({
                                     <PopoverContent className="w-48 p-2 rounded-2xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]" align="end">
                                         <div className="grid gap-1">
                                             {[
+                                                ...(searchQuery ? [{ id: 'relevance', label: 'Best Match' }] : []),
                                                 { id: 'last_opened', label: 'Recently Read' },
                                                 { id: 'created_at', label: 'Recently Added' },
                                                 { id: 'lexile_level', label: 'Reading Level' },
