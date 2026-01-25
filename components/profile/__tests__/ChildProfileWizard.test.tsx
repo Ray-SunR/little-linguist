@@ -24,11 +24,24 @@ vi.mock('@/app/actions/profiles', () => ({
     getAvatarUploadUrl: vi.fn(),
 }));
 
+const stripMotionProps = ({
+    whileHover,
+    whileTap,
+    layout,
+    layoutId,
+    transition,
+    initial,
+    animate,
+    exit,
+    variants,
+    ...rest
+}: any) => rest;
+
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-        button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+        div: ({ children, ...props }: any) => <div {...stripMotionProps(props)}>{children}</div>,
+        button: ({ children, ...props }: any) => <button {...stripMotionProps(props)}>{children}</button>,
     },
     AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
@@ -85,5 +98,23 @@ describe('ChildProfileWizard', () => {
                 interests: ['Adventure']
             }));
         });
+    });
+
+    it('does not label interests as optional', async () => {
+        render(<ChildProfileWizard mode="onboarding" />);
+
+        fireEvent.change(screen.getByPlaceholderText(/Leo, Mia, Sam/i), { target: { value: 'Skywalker' } });
+        fireEvent.click(screen.getByTestId('identity-continue-name'));
+
+        fireEvent.click(screen.getByTestId('identity-continue-age'));
+        fireEvent.click(screen.getByTestId('gender-button-boy'));
+        fireEvent.click(screen.getByTestId('identity-continue-gender'));
+        fireEvent.click(screen.getByText(/Skip/i));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Magic Interests!/i)).toBeTruthy();
+        });
+
+        expect(screen.queryByText(/Optional:/i)).toBeNull();
     });
 });

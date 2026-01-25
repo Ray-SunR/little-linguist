@@ -161,7 +161,7 @@ export default function OnboardingWizard() {
                             <div className="w-full h-full flex flex-col space-y-4">
                                 <div className="text-center space-y-1">
                                     <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Magic Interests!</h2>
-                                    <p className="text-ink-muted font-bold font-nunito text-[10px]">Optional: What does <span className="text-purple-600 font-black">{formData.firstName}</span> love most?</p>
+                                    <p className="text-ink-muted font-bold font-nunito text-[10px]">What does <span className="text-purple-600 font-black">{formData.firstName}</span> love most?</p>
                                 </div>
 
                                 <div className="relative group max-w-sm mx-auto w-full">

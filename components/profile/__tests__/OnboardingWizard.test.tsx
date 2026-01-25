@@ -23,11 +23,24 @@ vi.mock('@/app/actions/profiles', () => ({
     createChildProfile: vi.fn(),
 }));
 
+const stripMotionProps = ({
+    whileHover,
+    whileTap,
+    layout,
+    layoutId,
+    transition,
+    initial,
+    animate,
+    exit,
+    variants,
+    ...rest
+}: any) => rest;
+
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-        button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+        div: ({ children, ...props }: any) => <div {...stripMotionProps(props)}>{children}</div>,
+        button: ({ children, ...props }: any) => <button {...stripMotionProps(props)}>{children}</button>,
     },
     AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
@@ -102,7 +115,7 @@ describe('OnboardingWizard', () => {
 
         await waitFor(() => {
             expect(mockRefreshProfiles).toHaveBeenCalled();
-            expect(mockPush).toHaveBeenCalledWith('/library');
+            expect(mockPush).toHaveBeenCalledWith('/dashboard');
         });
     });
 
@@ -123,6 +136,8 @@ describe('OnboardingWizard', () => {
         await waitFor(() => {
             expect(screen.getByText(/Magic Interests!/i)).toBeTruthy();
         });
+
+        expect(screen.queryByText(/Optional:/i)).toBeNull();
 
         // Click Finish without selecting interests
         fireEvent.click(screen.getByText(/Finish! ✨/i));
