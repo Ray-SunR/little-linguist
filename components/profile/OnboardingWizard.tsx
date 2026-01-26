@@ -97,9 +97,14 @@ const WarpStar = ({ id }: { id: number }) => {
     );
 };
 
-export default function OnboardingWizard() {
+interface OnboardingWizardProps {
+    onFinishing?: (finishing: boolean) => void;
+}
+
+export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps) {
     const router = useRouter();
     const { refreshProfiles } = useAuth();
+    
     const [step, setStep] = useState<OnboardingStep>('identity');
     const [formData, setFormData] = useState({
         firstName: '',
@@ -112,6 +117,11 @@ export default function OnboardingWizard() {
     const [error, setError] = useState<string | null>(null);
     const [stars, setStars] = useState<{ id: number; startX: number; startY: number; endX: number; endY: number }[]>([]);
     const [isFinishing, setIsFinishing] = useState(false);
+
+    React.useEffect(() => {
+        onFinishing?.(isFinishing);
+    }, [isFinishing, onFinishing]);
+
     const targetRef = useRef<HTMLDivElement>(null);
 
     const nextStep = (next: OnboardingStep) => {
@@ -132,7 +142,7 @@ export default function OnboardingWizard() {
             const targetRect = targetRef.current.getBoundingClientRect();
             
             const newStar = {
-                id: Date.now(),
+                id: performance.now(),
                 startX: rect.left + rect.width / 2,
                 startY: rect.top + rect.height / 2,
                 endX: targetRect.left + targetRect.width / 2,
@@ -156,6 +166,10 @@ export default function OnboardingWizard() {
             return;
         }
 
+        // Signal finishing state early to block parent redirects
+        setIsFinishing(true);
+        onFinishing?.(true);
+
         setStep('saving');
         setError(null);
 
@@ -172,18 +186,22 @@ export default function OnboardingWizard() {
                 throw new Error(result?.error || 'Failed to create profile');
             }
 
+            // Refresh profiles in the background
             await refreshProfiles();
-            setIsFinishing(true);
             
-            // Wait for hyper-drive transition
+            // Wait for hyper-drive transition animation
             setTimeout(() => {
                 router.push('/dashboard');
             }, 1500);
         } catch (err: any) {
+            console.error('[OnboardingWizard] Error in handleFinish:', err);
+            setIsFinishing(false);
+            onFinishing?.(false);
             setError(err.message || 'Something went wrong');
             setStep('interests');
         }
     };
+
 
     const stepVariants = {
         enter: (direction: number) => ({
@@ -212,7 +230,53 @@ export default function OnboardingWizard() {
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto px-1 sm:px-0 flex items-center justify-center h-full">
+        <div 
+            className="w-full max-w-2xl mx-auto px-1 sm:px-0 flex items-center justify-center h-full"
+            data-test-status="ready"
+        >
+            {/* Hyper-drive Overlay (Moved outside for true full-screen) */}
+            <AnimatePresence>
+                {isFinishing && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        data-testid="hyper-drive-overlay"
+                        className="fixed inset-0 z-[300] bg-[#030014] flex items-center justify-center overflow-hidden"
+                    >
+                        {/* Starfield */}
+                        {Array.from({ length: 50 }).map((_, i) => (
+                            <WarpStar key={i} id={i} />
+                        ))}
+                        
+                        {/* Flash effect */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ 
+                                opacity: [0, 1, 0], 
+                                scale: [0.5, 2, 4] 
+                            }}
+                            transition={{ duration: 1, delay: 0.2 }}
+                            className="absolute inset-0 bg-white blur-3xl rounded-full"
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="relative z-[210] text-center"
+                        >
+                            <h2 className="text-4xl md:text-6xl font-black text-white font-fredoka tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
+                                INITIATING HYPER-DRIVE...
+                            </h2>
+                            <p className="text-purple-300 font-bold font-nunito mt-4 text-xl">
+                                Launching your adventure...
+                            </p>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="bg-white/10 backdrop-blur-xl p-3 sm:p-4 rounded-[2.5rem] md:rounded-[3rem] border border-white/20 shadow-2xl relative overflow-hidden h-[540px] w-full flex flex-col">
                 
                 {/* Progress Bar */}
@@ -263,7 +327,7 @@ export default function OnboardingWizard() {
                         {step === 'interests' && (
                             <div className="w-full h-full flex flex-col space-y-4 relative z-10">
                                 {/* Shooting Stars Container */}
-                                <div className="fixed inset-0 pointer-events-none z-[100]">
+                                <div className="fixed inset-0 pointer-events-none z-[5]">
                                     {stars.map(star => (
                                         <ShootingStar
                                             key={star.id}
@@ -411,7 +475,7 @@ export default function OnboardingWizard() {
                                         onClick={handleFinish}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-xl shadow-xl transition-all"
+                                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-xl shadow-xl transition-all relative z-50"
                                     >
                                         Finish! ✨ <ChevronRight className="w-5 h-5" />
                                     </motion.button>
@@ -444,48 +508,6 @@ export default function OnboardingWizard() {
                             </div>
                         )}
                     </motion.div>
-                </AnimatePresence>
-
-                {/* Hyper-drive Overlay */}
-                <AnimatePresence>
-                    {isFinishing && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[150] bg-[#030014] flex items-center justify-center overflow-hidden"
-                        >
-                            {/* Starfield */}
-                            {Array.from({ length: 50 }).map((_, i) => (
-                                <WarpStar key={i} id={i} />
-                            ))}
-                            
-                            {/* Flash effect */}
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                animate={{ 
-                                    opacity: [0, 1, 0], 
-                                    scale: [0.5, 2, 4] 
-                                }}
-                                transition={{ duration: 1, delay: 0.2 }}
-                                className="absolute inset-0 bg-white blur-3xl rounded-full"
-                            />
-
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.5 }}
-                                className="relative z-[210] text-center"
-                            >
-                                <h2 className="text-4xl md:text-6xl font-black text-white font-fredoka tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
-                                    HYPER-DRIVE!
-                                </h2>
-                                <p className="text-purple-300 font-bold font-nunito mt-4 text-xl">
-                                    Launching your adventure...
-                                </p>
-                            </motion.div>
-                        </motion.div>
-                    )}
                 </AnimatePresence>
             </div>
         </div>

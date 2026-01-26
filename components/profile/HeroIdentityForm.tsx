@@ -103,7 +103,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
             if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
             objectUrlRef.current = localUrl;
             
-            setFormData(prev => ({ ...prev, avatarPreview: localUrl }));
+            setFormData(prev => ({ ...prev, avatarPreview: localUrl, avatarStoragePath: undefined }));
 
             const result = await getAvatarUploadUrl(file.name);
             if (result.error || !result.data) throw new Error(result.error);
@@ -444,11 +444,16 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                                 <button onClick={() => prevStep('gender')} className="h-12 px-4 sm:px-8 flex items-center gap-2 text-white/70 hover:text-white transition-colors font-fredoka font-black uppercase tracking-wider text-sm"><ChevronLeft /> Back</button>
                                 <motion.button
                                     data-testid="identity-complete"
-                                    onClick={() => onComplete(formData)}
-                                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                                    className="bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-xl shadow-xl transition-all"
+                                    onClick={() => !isUploading && onComplete(formData)}
+                                    disabled={isUploading}
+                                    whileHover={!isUploading ? { scale: 1.05 } : {}} 
+                                    whileTap={!isUploading ? { scale: 0.95 } : {}}
+                                    className={cn(
+                                        "bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-xl shadow-xl transition-all",
+                                        isUploading && "opacity-50 cursor-not-allowed"
+                                    )}
                                 >
-                                    {formData.avatarPreview ? "Stunning!" : "Skip"} <ChevronRight className="w-5 h-5" />
+                                    {isUploading ? "Uploading..." : (formData.avatarPreview ? "Stunning!" : "Skip")} <ChevronRight className="w-5 h-5" />
                                 </motion.button>
                             </div>
                         </div>
