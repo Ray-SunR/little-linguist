@@ -1,6 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { BookFilters, BookWithCover, TOKENS_PER_MINUTE, isValidUuid } from './library-types';
-import { BookRepository } from './repository.server';
+import { BookFilters, BookWithCover, TOKENS_PER_MINUTE, isValidUuid, BookDetail, NarrationChunk } from './library-types';
 
 export class LibraryService {
     constructor(private supabase: SupabaseClient) {}
@@ -171,7 +170,7 @@ export class LibraryService {
         includeMedia?: boolean,
         includeAudio?: boolean,
         userId?: string
-    } = {}): Promise<any | null> {
+    } = {}): Promise<BookDetail | null> {
         const isUuid = isValidUuid(idOrSlug);
 
         const fields = ['id', 'book_key', 'title', 'origin', 'updated_at', 'voice_id', 'owner_user_id', 'child_id', 'metadata', 'total_tokens', 'cover_image_path', 'description', 'keywords', 'schema_version'];
@@ -194,7 +193,7 @@ export class LibraryService {
         if (!data) return null;
 
         const bookMetadata = data as any;
-        const result = {
+        const result: BookDetail = {
             ...bookMetadata,
             images: null,
             assetTimestamps: {
@@ -367,8 +366,7 @@ export class LibraryService {
         result.coverPath = coverPath;
 
         if (options.includeAudio) {
-            const repository = new BookRepository(this.supabase);
-            const audios = await repository.getNarrationChunks(bookMetadata.id, bookMetadata.voice_id);
+            const audios = await this.getNarrationChunks(bookMetadata.id, bookMetadata.voice_id);
             result.audios = await Promise.all(audios.map(async (audio: any) => {
                 let finalUrl = audio.audio_path;
                 if (finalUrl && !finalUrl.startsWith('http')) {
