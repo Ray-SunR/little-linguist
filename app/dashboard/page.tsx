@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { createClient } from "@/lib/supabase/server";
 import { getChildren, ChildProfile } from "@/app/actions/profiles";
 import LumoLoader from "@/components/ui/lumo-loader";
@@ -37,6 +38,10 @@ export default async function DashboardPage() {
   } else {
     console.error("[Dashboard] Profile fetch rejected:", profilesSettled.reason);
     fetchError = true;
+  }
+
+  if (initialProfiles.length === 0 && !fetchError) {
+    redirect('/onboarding');
   }
 
   let stats = null;
