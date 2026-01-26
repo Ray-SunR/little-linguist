@@ -209,7 +209,6 @@ export default function LibraryView({
                     onSortOrderChange={onSortOrderChange}
                     currentUserId={currentUserId}
                     activeChild={activeChild}
-                    totalStories={books.length}
                 />
 
                 {/* 3. Book Grid Area */}
