@@ -2,19 +2,31 @@
 
 import OnboardingWizard from '@/components/profile/OnboardingWizard';
 import SkyBackground from '@/components/ui/SkyBackground';
-// import { motion } from 'framer-motion'; // Removed unused import
+import React, { useEffect } from 'react';
 
 import { useAuth } from '@/components/auth/auth-provider';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import LumoLoader from '@/components/ui/lumo-loader';
 
 export default function OnboardingPage() {
   const { user, profiles, isLoading } = useAuth();
   const router = useRouter();
+  const [isFinishing, setIsFinishing] = React.useState(false);
+  const isFinishingRef = React.useRef(false);
+
+  const handleFinishing = (finishing: boolean) => {
+    if (finishing) {
+        isFinishingRef.current = true;
+        setIsFinishing(true);
+    }
+  };
 
   useEffect(() => {
-    if (isLoading) return;
+    const finishing = isFinishing || isFinishingRef.current;
+    
+    // If we are finishing (hyper-drive animation), do NOT redirect.
+    // The OnboardingWizard will handle the final navigation.
+    if (isLoading || finishing) return;
 
     if (!user) {
       router.replace('/login');
@@ -22,12 +34,11 @@ export default function OnboardingPage() {
     }
 
     // Redirect if a user with profiles lands here (manual navigation or back button)
-    // Guard against profiles being undefined, though auth provider typically initializes it
     const profileCount = profiles?.length ?? 0;
     if (profileCount > 0) {
       router.replace('/dashboard');
     }
-  }, [user, profiles, isLoading, router]);
+  }, [user, profiles, isLoading, router, isFinishing]);
 
   if (isLoading || !user || (profiles?.length ?? 0) > 0) {
     return (
@@ -46,9 +57,9 @@ export default function OnboardingPage() {
         <SkyBackground />
 
         {/* === Content Container === */}
-        <div className="z-10 w-full relative">
+        <div className="z-50 w-full relative">
           {/* The Wizard Component */}
-          <OnboardingWizard />
+          <OnboardingWizard onFinishing={handleFinishing} />
         </div>
       </main>
 

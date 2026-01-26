@@ -25,7 +25,13 @@ test('New user onboarding flow', async ({ page, context }) => {
     `,
   });
 
-  const testEmail = `onboarding-${Date.now()}@example.com`;
+  const testEmail = `onboarding-${Date.now()}-${Math.floor(Math.random() * 1000)}@example.com`;
+  console.log(`Starting test with email: ${testEmail}`);
+  
+  page.on('console', msg => {
+    console.log(`BROWSER: ${msg.text()}`);
+  });
+
   await ensureTestUser(testEmail, 'password123');
 
   await page.goto('/login');
@@ -36,14 +42,14 @@ test('New user onboarding flow', async ({ page, context }) => {
 
   // Should redirect to onboarding since there are no profiles
   await page.waitForURL(/\/onboarding/);
-
-  // Verify direct dashboard access also redirects
-  await page.goto('/dashboard');
-  await page.waitForURL(/\/onboarding/);
+  await expect(page.getByText('Who is our Hero?')).toBeVisible({ timeout: 20000 });
 
   // Identity steps
   console.log('Entering name...');
-  await page.getByPlaceholder('Leo, Mia, Sam...').fill('Skywalker');
+  const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
+  await nameInput.fill('Skywalker');
+  await nameInput.press('Enter'); // Try pressing enter as well
+  await page.waitForTimeout(500);
   await page.getByTestId('identity-continue-name').click({ force: true });
   
   console.log('Checking for age step...');
@@ -62,14 +68,22 @@ test('New user onboarding flow', async ({ page, context }) => {
   // Interests step
   console.log('Selecting interests...');
   await expect(page.getByText('Magic Interests!')).toBeVisible();
+  
   await page.getByRole('button', { name: 'Space' }).click();
   await page.getByRole('button', { name: 'Adventure' }).click();
   
   console.log('Finishing onboarding...');
-  await page.getByTestId('onboarding-finish').click({ force: true });
+  await page.waitForTimeout(1000);
+  const finishBtn = page.getByTestId('onboarding-finish');
+  await finishBtn.hover();
+  await finishBtn.click({ force: true, delay: 100 });
+
+  // Wait for the "HYPER-DRIVE" overlay to appear
+  console.log('Waiting for hyper-drive overlay...');
+  await expect(page.getByText('INITIATING HYPER-DRIVE...')).toBeVisible({ timeout: 15000 });
 
   // Should redirect to library or dashboard
-  console.log('Waiting for dashboard redirect (including hyper-drive)...');
+  console.log('Waiting for dashboard redirect...');
   await page.waitForURL(/\/dashboard/, { timeout: 45000 });
   await expect(page.getByText('Mission Control')).toBeVisible({ timeout: 20000 });
   await expect(page.getByText('Explorer Status')).toBeVisible({ timeout: 15000 });

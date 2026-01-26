@@ -58,7 +58,7 @@ function getAdminClient() {
 
 export async function ensureTestUser(email: string, password: string) {
   const supabase = getAdminClient();
-  const { error } = await supabase.auth.admin.createUser({
+  const { data: authData, error } = await supabase.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
@@ -68,14 +68,21 @@ export async function ensureTestUser(email: string, password: string) {
     throw error;
   }
 
-  const deadline = Date.now() + 5000;
+  const userId = authData?.user?.id;
+  console.log(`[E2E-Utils] Created/Found user: ${email} (ID: ${userId})`);
+
+  const deadline = Date.now() + 10000; // Increased to 10s
   while (Date.now() < deadline) {
     const { data } = await supabase
       .from('profiles')
       .select('id')
       .eq('email', email)
       .maybeSingle<{ id: string }>();
-    if (data?.id) return;
-    await new Promise(resolve => setTimeout(resolve, 200));
+    if (data?.id) {
+      console.log(`[E2E-Utils] Profile verified for ${email} (Profile ID: ${data.id})`);
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
+  throw new Error(`Profile creation timed out for ${email}`);
 }

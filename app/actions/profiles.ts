@@ -194,30 +194,6 @@ export async function createChildProfile(data: ChildProfilePayload) {
     // Handle avatar assignment
     let avatarPaths: string[] = [];
 
-    // 1. Prefer explicit avatar_paths from payload (e.g. from StoryMaker migration)
-    if (data.avatar_paths && data.avatar_paths.length > 0) {
-      for (const p of data.avatar_paths) {
-        let finalPath = p;
-        if (p.startsWith('guests/')) {
-          const claimed = await claimGuestAvatar(p, user.id);
-          if (claimed) finalPath = claimed;
-        }
-        const validated = await validateAvatarPath(finalPath, user.id);
-        if (validated) avatarPaths.push(validated);
-      }
-    }
-    // 2. Fallback to avatar_asset_path (legacy style or direct preview URL)
-    else if (data.avatar_asset_path) {
-      let finalPath = data.avatar_asset_path;
-      if (finalPath.startsWith('guests/')) {
-        const claimed = await claimGuestAvatar(finalPath, user.id);
-        if (claimed) finalPath = claimed;
-      }
-      const storagePath = await validateAvatarPath(finalPath, user.id);
-      if (storagePath) {
-        avatarPaths = [storagePath];
-      }
-    }
 
     const { data: newChild, error } = await supabase
       .from('children')

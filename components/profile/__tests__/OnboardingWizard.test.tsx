@@ -23,27 +23,38 @@ vi.mock('@/app/actions/profiles', () => ({
     createChildProfile: vi.fn(),
 }));
 
-const stripMotionProps = ({
-    whileHover,
-    whileTap,
-    layout,
-    layoutId,
-    transition,
-    initial,
-    animate,
-    exit,
-    variants,
-    ...rest
-}: any) => rest;
-
 // Mock framer-motion to avoid animation issues in tests
-vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...props }: any) => <div {...stripMotionProps(props)}>{children}</div>,
-        button: ({ children, ...props }: any) => <button {...stripMotionProps(props)}>{children}</button>,
-    },
-    AnimatePresence: ({ children }: any) => <>{children}</>,
-}));
+vi.mock('framer-motion', () => {
+    const React = require('react');
+    const mockComponent = (tag: string) => React.forwardRef(({ children, style, className, ...props }: any, ref: any) => {
+        const componentProps = { ...props, style, className, ref };
+        // Remove motion-specific props that might cause React warnings on native elements
+        const cleanProps = { ...componentProps };
+        delete cleanProps.initial;
+        delete cleanProps.animate;
+        delete cleanProps.exit;
+        delete cleanProps.transition;
+        delete cleanProps.variants;
+        delete cleanProps.whileHover;
+        delete cleanProps.whileTap;
+        delete cleanProps.layout;
+        delete cleanProps.layoutId;
+        
+        return React.createElement(tag, cleanProps, children);
+    });
+
+    return {
+        motion: {
+            div: mockComponent('div'),
+            button: mockComponent('button'),
+            img: mockComponent('img'),
+            h2: mockComponent('h2'),
+            p: mockComponent('p'),
+            span: mockComponent('span'),
+        },
+        AnimatePresence: ({ children }: any) => <>{children}</>,
+    };
+});
 
 // Mock CachedImage
 vi.mock('@/components/ui/cached-image', () => ({
@@ -116,7 +127,7 @@ describe('OnboardingWizard', () => {
         await waitFor(() => {
             expect(mockRefreshProfiles).toHaveBeenCalled();
             expect(mockPush).toHaveBeenCalledWith('/dashboard');
-        });
+        }, { timeout: 3000 });
     });
 
     it('shows error if no interests are selected', async () => {
