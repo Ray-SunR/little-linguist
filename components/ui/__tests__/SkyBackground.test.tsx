@@ -8,11 +8,15 @@ vi.mock('framer-motion', () => {
   const React = require('react');
   return {
     motion: {
-      div: React.forwardRef(({ children, style, className, ...props }: any, ref: any) => (
-        <div ref={ref} style={style} className={className} data-testid={props['data-testid']}>
-          {children}
-        </div>
-      )),
+      div: (() => {
+        const Component = React.forwardRef(({ children, style, className, ...props }: any, ref: any) => (
+          <div ref={ref} style={style} className={className} data-testid={props['data-testid']}>
+            {children}
+          </div>
+        ));
+        Component.displayName = 'MotionDiv';
+        return Component;
+      })(),
     },
     AnimatePresence: ({ children }: any) => <>{children}</>,
   };

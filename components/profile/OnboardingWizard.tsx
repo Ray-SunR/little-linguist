@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createChildProfile } from '@/app/actions/profiles';
 import { ChevronRight, ChevronLeft, Check, Star } from 'lucide-react';
@@ -351,7 +352,14 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                             className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/50 backdrop-blur-xl border-2 border-purple-100 overflow-hidden shadow-clay-sm relative z-10"
                                         >
                                             {avatarPreview ? (
-                                                <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                                                <Image 
+                                                    src={avatarPreview} 
+                                                    alt="Avatar" 
+                                                    className="w-full h-full object-cover" 
+                                                    width={64}
+                                                    height={64}
+                                                    unoptimized
+                                                />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
                                                     <Star className="w-8 h-8 text-purple-300" />

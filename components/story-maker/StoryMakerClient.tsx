@@ -191,17 +191,17 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             await raidenCache.put(CacheStore.BOOKS, initialSupabaseBook as any);
             if (user?.id) await raidenCache.delete(CacheStore.LIBRARY_METADATA, user.id);
             
-            setSuccess(initialStory.id);
-            router.push(`/reader/${content.book_id}`);
-        } catch (err: any) {
-            console.error("[StoryMakerClient] ERROR during generation:", err);
-            setMachineError(err.message || "Oops! Something went wrong.");
-        } finally {
-            setIsStoryGenerating(false);
-            state.isGenerating = false;
-            processingRef.current = false;
-        }
-    }, [user, selectedWords, profile, storyLengthMinutes, imageSceneCount, storyMachine.idempotencyKey, router, completeStep, service, setActiveChild, refreshProfiles, setSuccess, setMachineError, setIsStoryGenerating]);
+        setSuccess(initialStory.id);
+        router.push(`/reader/${content.book_id}`);
+    } catch (err: any) {
+        console.error("[StoryMakerClient] ERROR during generation:", err);
+        setMachineError(err.message || "Oops! Something went wrong.");
+    } finally {
+        setIsStoryGenerating(false);
+        state.isGenerating = false;
+        processingRef.current = false;
+    }
+}, [user, selectedWords, profile, storyLengthMinutes, imageSceneCount, storyMachine.idempotencyKey, router, completeStep, service, setActiveChild, refreshProfiles, setSuccess, setMachineError, setIsStoryGenerating, startGenerating]);
 
     useEffect(() => {
         const handleMigration = async () => {

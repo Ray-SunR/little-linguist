@@ -26,22 +26,26 @@ vi.mock('@/app/actions/profiles', () => ({
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => {
     const React = require('react');
-    const mockComponent = (tag: string) => React.forwardRef(({ children, style, className, ...props }: any, ref: any) => {
-        const componentProps = { ...props, style, className, ref };
-        // Remove motion-specific props that might cause React warnings on native elements
-        const cleanProps = { ...componentProps };
-        delete cleanProps.initial;
-        delete cleanProps.animate;
-        delete cleanProps.exit;
-        delete cleanProps.transition;
-        delete cleanProps.variants;
-        delete cleanProps.whileHover;
-        delete cleanProps.whileTap;
-        delete cleanProps.layout;
-        delete cleanProps.layoutId;
-        
-        return React.createElement(tag, cleanProps, children);
-    });
+    const mockComponent = (tag: string) => {
+        const Component = React.forwardRef(({ children, style, className, ...props }: any, ref: any) => {
+            const componentProps = { ...props, style, className, ref };
+            // Remove motion-specific props that might cause React warnings on native elements
+            const cleanProps = { ...componentProps };
+            delete cleanProps.initial;
+            delete cleanProps.animate;
+            delete cleanProps.exit;
+            delete cleanProps.transition;
+            delete cleanProps.variants;
+            delete cleanProps.whileHover;
+            delete cleanProps.whileTap;
+            delete cleanProps.layout;
+            delete cleanProps.layoutId;
+            
+            return React.createElement(tag, cleanProps, children);
+        });
+        Component.displayName = `Motion${tag.charAt(0).toUpperCase() + tag.slice(1)}`;
+        return Component;
+    };
 
     return {
         motion: {
