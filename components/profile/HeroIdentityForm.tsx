@@ -131,12 +131,12 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
 
     const renderAvatarField = () => (
         <div className="flex items-center justify-center relative">
-            {/* Celestial Glowing Star Effect */}
+            {/* Celestial Glowing Star Effect - Light Mode Indigo */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-visible">
                 <motion.div
                     animate={{
                         scale: [1, 1.2, 1],
-                        opacity: [0.15, 0.3, 0.15],
+                        opacity: [0.1, 0.2, 0.1],
                         rotate: [0, 90, 180, 270, 360]
                     }}
                     transition={{
@@ -144,13 +144,13 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                         repeat: Infinity,
                         ease: "linear"
                     }}
-                    className="w-72 h-72 bg-purple-400/20 blur-[64px] rounded-full"
+                    className="w-72 h-72 bg-[#8B4BFF]/20 blur-[64px] rounded-full"
                 />
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ 
                         scale: [1, 1.15, 1],
-                        opacity: [0.2, 0.4, 0.2],
+                        opacity: [0.3, 0.5, 0.3],
                     }}
                     transition={{
                         duration: 6,
@@ -159,7 +159,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                     }}
                     className="absolute"
                 >
-                    <svg viewBox="0 0 100 100" className="w-64 h-64 fill-white/20 blur-[1px]">
+                    <svg viewBox="0 0 100 100" className="w-64 h-64 fill-[#8B4BFF]/10 blur-[1px]">
                         <path d="M50 0L61 39L100 50L61 61L50 100L39 61L0 50L39 39Z" />
                     </svg>
                 </motion.div>
@@ -177,16 +177,16 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                     }}
                     className="absolute"
                 >
-                    <svg viewBox="0 0 100 100" className="w-80 h-80 fill-purple-300/10 blur-[2px]">
+                    <svg viewBox="0 0 100 100" className="w-80 h-80 fill-[#8B4BFF]/5 blur-[2px]">
                         <path d="M50 0L61 39L100 50L61 61L50 100L39 61L0 50L39 39Z" />
                     </svg>
                 </motion.div>
             </div>
 
             <label className={cn(
-                "rounded-[2.5rem] border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group shadow-2xl bg-white/10 backdrop-blur-xl",
+                "rounded-[2.5rem] border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group shadow-clay-lg bg-white/40 backdrop-blur-3xl",
                 isInline ? "w-48 h-48" : "w-36 h-36",
-                formData.avatarPreview ? "border-white/40" : "border-white/20 hover:bg-white/20 hover:border-white/40"
+                formData.avatarPreview ? "border-white" : "border-purple-100 hover:bg-white/60 hover:border-purple-200"
             )}>
                 {formData.avatarPreview ? (
                     <div className="relative w-full h-full p-3">
@@ -195,7 +195,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                             storagePath={formData.avatarStoragePath}
                             alt="Preview"
                             fill
-                            className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white/30"
+                            className="w-full h-full object-cover rounded-[2rem] shadow-clay ring-4 ring-white"
                             bucket="user-assets"
                         />
                         <motion.button
@@ -208,7 +208,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                                 objectUrlRef.current = null;
                                 handleFieldChange({ avatarPreview: undefined, avatarStoragePath: undefined });
                             }}
-                            className="absolute top-2 right-2 w-8 h-8 bg-rose-500/80 text-white rounded-full shadow-lg flex items-center justify-center font-black text-lg border-2 border-white/50 z-20 backdrop-blur-md"
+                            className="absolute top-2 right-2 w-8 h-8 bg-rose-500 text-white rounded-full shadow-lg flex items-center justify-center font-black text-lg border-2 border-white z-20"
                         >
                             <X className="w-5 h-5" />
                         </motion.button>
@@ -219,7 +219,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                             animate={{ y: [0, -5, 0] }}
                             transition={{ duration: 3, repeat: Infinity }}
                             className={cn(
-                                "bg-white/20 backdrop-blur-md shadow-xl flex items-center justify-center mx-auto mb-4 border-2 border-white/30",
+                                "bg-purple-50 flex items-center justify-center mx-auto mb-4 border-2 border-white shadow-clay-sm",
                                 isInline ? "w-20 h-20 rounded-[1.5rem]" : "w-16 h-16 rounded-[1.25rem]"
                             )}
                         >
@@ -231,10 +231,10 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                                 />
                             ) : (
-                                <Camera className={cn("text-white/80", isInline ? "h-10 w-10" : "h-8 w-8")} />
+                                <Camera className={cn("text-purple-400", isInline ? "h-10 w-10" : "h-8 w-8")} />
                             )}
                         </motion.div>
-                        <span className={cn("font-black text-white font-fredoka block drop-shadow-md", isInline ? "text-xl" : "text-lg")}>
+                        <span className={cn("font-black text-ink font-fredoka block", isInline ? "text-xl" : "text-lg")}>
                             {isUploading ? "Magic..." : "Pick Photo"}
                         </span>
                     </div>
@@ -248,24 +248,24 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
         <div className={cn("w-full space-y-6 text-center relative z-10", isInline ? "max-w-sm mx-auto" : "")}>
             {!isInline && (
                 <div className="space-y-2">
-                    <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-[1.25rem] flex items-center justify-center mx-auto shadow-xl border-2 border-white/30">
-                        <Sparkles className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-purple-50 rounded-[1.25rem] flex items-center justify-center mx-auto shadow-clay-purple border-2 border-white">
+                        <Sparkles className="w-8 h-8 text-purple-600" />
                     </div>
-                    <h2 className="text-xl md:text-2xl font-black text-white font-fredoka drop-shadow-lg">Who is our Hero?</h2>
-                    <p className="text-white/80 font-bold font-nunito text-[10px] max-w-xs mx-auto drop-shadow-md">
+                    <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka uppercase tracking-tight">Who is our Hero?</h2>
+                    <p className="text-ink-muted font-bold font-nunito text-xs max-w-xs mx-auto">
                         {mode === 'story' ? "Let's name your hero!" : "Let's start by naming your child's profile."}
                     </p>
                 </div>
             )}
             <div className="relative max-w-sm mx-auto">
-                {isInline && <label className="text-xs font-black text-white/70 uppercase tracking-widest font-fredoka block mb-2 text-left ml-2 drop-shadow-sm">Hero&apos;s Name</label>}
+                {isInline && <label className="text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka block mb-2 text-left ml-2">Hero&apos;s Name</label>}
                 <input
                     type="text"
                     autoFocus={!isInline}
                     value={formData.firstName}
                     onChange={(e) => handleFieldChange({ firstName: e.target.value })}
                     onKeyDown={(e) => !isInline && e.key === 'Enter' && formData.firstName && nextStep('age')}
-                    className="w-full h-12 px-8 rounded-xl border-2 border-white/20 bg-white/10 focus:bg-white/20 focus:border-white/40 outline-none transition-all font-fredoka text-xl font-black text-white placeholder:text-white/30 shadow-inner text-center backdrop-blur-md"
+                    className="w-full h-12 px-8 rounded-xl border-2 border-purple-100 bg-white/50 focus:bg-white focus:border-purple-400 outline-none transition-all font-fredoka text-xl font-black text-ink placeholder:text-slate-300 shadow-inner text-center"
                     placeholder="Leo, Mia, Sam..."
                 />
             </div>
@@ -277,7 +277,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                         onClick={() => nextStep('age')}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-12 text-lg font-black font-fredoka uppercase tracking-widest disabled:opacity-50 rounded-xl shadow-xl transition-all"
+                        className="primary-btn h-12 px-12 text-lg font-black font-fredoka uppercase tracking-widest disabled:opacity-50"
                     >
                         Continue
                     </motion.button>
@@ -290,30 +290,30 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
         <div className={cn("w-full space-y-6 text-center relative z-10", isInline ? "max-w-sm mx-auto" : "")}>
             {!isInline && (
                 <div className="space-y-2">
-                    <h2 className="text-xl md:text-2xl font-black text-white font-fredoka px-4 drop-shadow-lg">How old is <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span>?</h2>
-                    <p className="text-white/80 font-bold font-nunito text-[10px] drop-shadow-md">We&apos;ll tailor the stories to their age.</p>
+                    <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka px-4 uppercase tracking-tight">How old is <span className="text-purple-600 font-black">{formData.firstName}</span>?</h2>
+                    <p className="text-ink-muted font-bold font-nunito text-xs">We&apos;ll tailor the stories to their age.</p>
                 </div>
             )}
-            <div className="flex items-center justify-between p-3 rounded-[2.5rem] bg-white/10 backdrop-blur-md shadow-2xl border-2 border-white/20 mx-auto w-full max-w-[260px] md:max-w-xs">
+            <div className="flex items-center justify-between p-3 rounded-[2.5rem] bg-purple-50/50 shadow-clay-sm border-4 border-white mx-auto w-full max-w-[260px] md:max-w-xs">
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     type="button"
-                    className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md shadow-xl flex items-center justify-center text-2xl font-black text-white border-2 border-white/30 disabled:opacity-30"
+                    className="w-12 h-12 rounded-full bg-white shadow-clay-purple-sm flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-white disabled:opacity-30"
                     onClick={() => handleFieldChange({ birthYear: formData.birthYear + 1 })}
                     disabled={age <= 1}
                 >
                     <Minus className="w-6 h-6" strokeWidth={4} />
                 </motion.button>
                 <div className="flex flex-col items-center">
-                    <span className="text-3xl md:text-4xl font-black text-white font-fredoka drop-shadow-lg">{age}</span>
-                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none">Years Old</span>
+                    <span className="text-3xl md:text-4xl font-black text-ink font-fredoka">{age}</span>
+                    <span className="text-[10px] font-black text-ink-muted/60 uppercase tracking-widest leading-none">Years Old</span>
                 </div>
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     type="button"
-                    className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md shadow-xl flex items-center justify-center text-2xl font-black text-white border-2 border-white/30 disabled:opacity-30"
+                    className="w-12 h-12 rounded-full bg-white shadow-clay-purple-sm flex items-center justify-center text-2xl font-black text-purple-600 border-2 border-white disabled:opacity-30"
                     onClick={() => handleFieldChange({ birthYear: formData.birthYear - 1 })}
                     disabled={age >= 15}
                 >
@@ -322,7 +322,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
             </div>
             {!isInline && (
                 <div className="flex items-center justify-center gap-4">
-                    <button onClick={() => prevStep('name')} className="h-12 px-8 flex items-center gap-2 text-white/70 hover:text-white transition-colors font-fredoka font-black uppercase tracking-wider text-sm">
+                    <button onClick={() => prevStep('name')} className="ghost-btn h-12 px-8 flex items-center gap-2 text-ink/70">
                         <ChevronLeft /> Back
                     </button>
                     <motion.button
@@ -330,7 +330,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                         onClick={() => nextStep('gender')}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-12 text-lg font-black font-fredoka uppercase tracking-widest rounded-xl shadow-xl transition-all"
+                        className="primary-btn h-12 px-12 text-lg font-black font-fredoka uppercase tracking-widest"
                     >
                         Yep! <ChevronRight className="ml-2 inline" />
                     </motion.button>
@@ -343,8 +343,8 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
         <div className={cn("w-full space-y-6 text-center relative z-10", isInline ? "max-w-sm mx-auto" : "")}>
             {!isInline && (
                 <div className="space-y-2">
-                    <h2 className="text-xl md:text-2xl font-black text-white font-fredoka drop-shadow-lg">Which hero are they?</h2>
-                    <p className="text-white/80 font-bold font-nunito text-[10px] drop-shadow-md">Choose an identity for <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span>.</p>
+                    <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka uppercase tracking-tight">Which hero are they?</h2>
+                    <p className="text-ink-muted font-bold font-nunito text-xs">Choose an identity for <span className="text-purple-600 font-black">{formData.firstName}</span>.</p>
                 </div>
             )}
             <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
@@ -355,8 +355,8 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                     type="button"
                     aria-label="Boy"
                     className={cn(
-                        "flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border-2 transition-all font-fredoka font-black text-base shadow-xl backdrop-blur-md",
-                        formData.gender === "boy" ? "bg-blue-500/80 text-white border-blue-400/50" : "bg-white/10 text-white/70 border-white/20 hover:border-white/40"
+                        "flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border-2 transition-all font-fredoka font-black text-base shadow-clay-sm",
+                        formData.gender === "boy" ? "bg-blue-500 text-white border-blue-400 shadow-clay-purple-sm" : "bg-white text-ink-muted border-white hover:border-blue-100"
                     )}
                     onClick={() => handleFieldChange({ gender: "boy" })}
                 >
@@ -370,8 +370,8 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                     type="button"
                     aria-label="Girl"
                     className={cn(
-                        "flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border-2 transition-all font-fredoka font-black text-base shadow-xl backdrop-blur-md",
-                        formData.gender === "girl" ? "bg-pink-500/80 text-white border-pink-400/50" : "bg-white/10 text-white/70 border-white/20 hover:border-white/40"
+                        "flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border-2 transition-all font-fredoka font-black text-base shadow-clay-sm",
+                        formData.gender === "girl" ? "bg-pink-500 text-white border-pink-400 shadow-clay-pink-sm" : "bg-white text-ink-muted border-white hover:border-pink-100"
                     )}
                     onClick={() => handleFieldChange({ gender: "girl" })}
                 >
@@ -381,7 +381,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
             </div>
             {!isInline && (
                 <div className="flex items-center justify-center gap-4">
-                    <button onClick={() => prevStep('age')} className="h-12 px-8 flex items-center gap-2 text-white/70 hover:text-white transition-colors font-fredoka font-black uppercase tracking-wider text-sm">
+                    <button onClick={() => prevStep('age')} className="ghost-btn h-12 px-8 flex items-center gap-2 text-ink/70">
                         <ChevronLeft /> Back
                     </button>
                     <motion.button
@@ -390,7 +390,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                         onClick={() => nextStep('avatar')}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-12 text-lg font-black font-fredoka uppercase tracking-widest disabled:opacity-50 rounded-xl shadow-xl transition-all"
+                        className="primary-btn h-12 px-12 text-lg font-black font-fredoka uppercase tracking-widest disabled:opacity-50"
                     >
                         Next <ChevronRight className="ml-2 inline" />
                     </motion.button>
@@ -401,7 +401,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
 
     if (isInline) {
         return (
-            <div className="w-full space-y-8 flex flex-col items-center py-4 overflow-y-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 shadow-xl relative overflow-hidden" data-testid="hero-identity-form" data-step="inline">
+            <div className="w-full space-y-8 flex flex-col items-center py-4 overflow-y-auto clay-card p-6 shadow-clay-lg relative overflow-hidden" data-testid="hero-identity-form" data-step="inline">
                 {/* Background decorative elements */}
                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-purple-500/5 blur-[60px] rounded-full pointer-events-none" />
                 <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-blue-500/5 blur-[60px] rounded-full pointer-events-none" />
@@ -410,13 +410,13 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                 {renderNameField()}
                 {renderAgeField()}
                 {renderGenderField()}
-                {error && <div className="mt-4 text-rose-300 font-bold font-nunito text-center text-sm drop-shadow-md bg-rose-500/20 backdrop-blur-md p-2 rounded-lg border border-rose-500/30 relative z-20">{error}</div>}
+                {error && <div className="mt-4 text-rose-500 font-bold font-nunito text-center text-sm bg-rose-50 p-2 rounded-lg border border-rose-100 relative z-20">{error}</div>}
             </div>
         );
     }
 
     return (
-        <div className="w-full h-full flex flex-col bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-4 sm:p-8 shadow-2xl relative overflow-hidden" data-testid="hero-identity-form" data-step={step}>
+        <div className="w-full h-full flex flex-col clay-card p-4 sm:p-8 shadow-clay-lg relative overflow-hidden" data-testid="hero-identity-form" data-step={step}>
             {/* Background decorative elements for the glass effect */}
             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-purple-500/10 blur-[80px] rounded-full pointer-events-none" />
             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
@@ -436,12 +436,12 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                     {step === 'avatar' && (
                         <div className="w-full space-y-6 text-center relative z-10">
                             <div className="space-y-1">
-                                <h2 className="text-xl md:text-2xl font-black text-white font-fredoka drop-shadow-lg">Strike a pose!</h2>
-                                <p className="text-white/80 font-bold font-nunito text-[10px] drop-shadow-md">Add a photo of <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span>.</p>
+                                <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka uppercase tracking-tight">Strike a pose!</h2>
+                                <p className="text-ink-muted font-bold font-nunito text-xs">Add a photo of <span className="text-purple-600 font-black">{formData.firstName}</span>.</p>
                             </div>
                             {renderAvatarField()}
                             <div className="flex items-center justify-center gap-2 sm:gap-4">
-                                <button onClick={() => prevStep('gender')} className="h-12 px-4 sm:px-8 flex items-center gap-2 text-white/70 hover:text-white transition-colors font-fredoka font-black uppercase tracking-wider text-sm"><ChevronLeft /> Back</button>
+                                <button onClick={() => prevStep('gender')} className="ghost-btn h-12 px-4 sm:px-8 flex items-center gap-2 text-ink/70"><ChevronLeft /> Back</button>
                                 <motion.button
                                     data-testid="identity-complete"
                                     onClick={() => !isUploading && onComplete(formData)}
@@ -449,7 +449,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                                     whileHover={!isUploading ? { scale: 1.05 } : {}} 
                                     whileTap={!isUploading ? { scale: 0.95 } : {}}
                                     className={cn(
-                                        "bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-xl shadow-xl transition-all",
+                                        "primary-btn h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap",
                                         isUploading && "opacity-50 cursor-not-allowed"
                                     )}
                                 >
@@ -460,7 +460,7 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
                     )}
                 </motion.div>
             </AnimatePresence>
-            {error && <div className="mt-4 text-rose-300 font-bold font-nunito text-center text-sm drop-shadow-md bg-rose-500/20 backdrop-blur-md p-2 rounded-lg border border-rose-500/30 relative z-20">{error}</div>}
+            {error && <div className="mt-4 text-rose-500 font-bold font-nunito text-center text-sm bg-rose-50 p-2 rounded-lg border border-rose-100 relative z-20">{error}</div>}
         </div>
     );
 };

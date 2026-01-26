@@ -242,7 +242,7 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         data-testid="hyper-drive-overlay"
-                        className="fixed inset-0 z-[300] bg-[#030014] flex items-center justify-center overflow-hidden"
+                        className="fixed inset-0 z-[300] bg-[#8B4BFF] flex items-center justify-center overflow-hidden"
                     >
                         {/* Starfield */}
                         {Array.from({ length: 50 }).map((_, i) => (
@@ -266,10 +266,10 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                             transition={{ delay: 0.5 }}
                             className="relative z-[210] text-center"
                         >
-                            <h2 className="text-4xl md:text-6xl font-black text-white font-fredoka tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
+                            <h2 className="text-4xl md:text-6xl font-black text-white font-fredoka tracking-tighter drop-shadow-xl">
                                 INITIATING HYPER-DRIVE...
                             </h2>
-                            <p className="text-purple-300 font-bold font-nunito mt-4 text-xl">
+                            <p className="text-white font-black font-nunito mt-4 text-xl drop-shadow-md">
                                 Launching your adventure...
                             </p>
                         </motion.div>
@@ -277,12 +277,12 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                 )}
             </AnimatePresence>
 
-            <div className="bg-white/10 backdrop-blur-xl p-3 sm:p-4 rounded-[2.5rem] md:rounded-[3rem] border border-white/20 shadow-2xl relative overflow-hidden h-[540px] w-full flex flex-col">
+            <div className="clay-card p-3 sm:p-4 rounded-[2.5rem] md:rounded-[3rem] border-4 border-white shadow-clay-lg relative overflow-hidden h-[540px] w-full flex flex-col">
                 
                 {/* Progress Bar */}
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-white/10">
+                <div className="absolute top-0 left-0 w-full h-2 bg-purple-100/50">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-purple-400/60 to-pink-400/60 blur-[1px]"
+                        className="h-full bg-gradient-to-r from-purple-400 to-pink-400"
                         initial={{ width: '0%' }}
                         animate={{ width: progressPercentage() }}
                     />
@@ -339,8 +339,8 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
 
                                 <div className="flex items-center justify-between gap-4 px-2">
                                     <div className="space-y-1">
-                                        <h2 className="text-xl md:text-2xl font-black text-white font-fredoka drop-shadow-lg">Magic Interests!</h2>
-                                        <p className="text-white/80 font-bold font-nunito text-[10px] drop-shadow-md">What does <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span> love most?</p>
+                                        <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Magic Interests!</h2>
+                                        <p className="text-ink-muted font-bold font-nunito text-xs">What does <span className="text-purple-600 font-black">{formData.firstName}</span> love most?</p>
                                     </div>
                                     
                                     {/* Avatar Target */}
@@ -348,19 +348,19 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                         <motion.div 
                                             initial={{ scale: 0.8, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
-                                            className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 backdrop-blur-xl border-2 border-white/20 overflow-hidden shadow-2xl relative z-10"
+                                            className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/50 backdrop-blur-xl border-2 border-purple-100 overflow-hidden shadow-clay-sm relative z-10"
                                         >
                                             {avatarPreview ? (
                                                 <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-                                                    <Star className="w-8 h-8 text-white/40" />
+                                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
+                                                    <Star className="w-8 h-8 text-purple-300" />
                                                 </div>
                                             )}
                                         </motion.div>
                                         {/* Decorative rings */}
-                                        <div className="absolute -inset-2 border border-white/5 rounded-[1.5rem] animate-[spin_10s_linear_infinite] opacity-50" />
-                                        <div className="absolute -inset-4 border border-white/5 rounded-[2rem] animate-[spin_15s_linear_reverse_infinite] opacity-30" />
+                                        <div className="absolute -inset-2 border border-purple-200/20 rounded-[1.5rem] animate-[spin_10s_linear_infinite] opacity-50" />
+                                        <div className="absolute -inset-4 border border-purple-200/10 rounded-[2rem] animate-[spin_15s_linear_reverse_infinite] opacity-30" />
                                     </div>
                                 </div>
 
@@ -368,7 +368,7 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                     <input
                                         type="text"
                                         placeholder="Add something else they love..."
-                                        className="w-full h-10 px-4 pr-10 rounded-xl border-2 border-white/20 bg-white/10 focus:bg-white/20 focus:border-white/40 outline-none transition-all font-nunito font-bold text-white text-sm placeholder:text-white/30 shadow-inner backdrop-blur-md"
+                                        className="w-full h-10 px-4 pr-10 rounded-xl border-2 border-purple-100 bg-white/50 focus:bg-white focus:border-purple-400 outline-none transition-all font-nunito font-bold text-ink text-sm placeholder:text-slate-300 shadow-inner"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 const val = e.currentTarget.value.trim();
@@ -381,14 +381,14 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                             }
                                         }}
                                     />
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-white/40 transition-colors">
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-200 group-focus-within:text-purple-400 transition-colors">
                                         <kbd className="text-[8px] font-black border border-current px-1 rounded">ENTER</kbd>
                                     </div>
                                 </div>
 
                                 <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-6">
                                     {formData.interests.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 p-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 min-h-[52px] shadow-inner">
+                                        <div className="flex flex-wrap gap-2 p-3 bg-purple-50/50 rounded-2xl border-2 border-white min-h-[52px] shadow-inner">
                                             <AnimatePresence>
                                                 {formData.interests.map(interest => (
                                                     <motion.button
@@ -398,7 +398,7 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                                         exit={{ scale: 0, opacity: 0 }}
                                                         key={`selected-${interest}`}
                                                         onClick={() => toggleInterest(interest)}
-                                                        className="px-3 py-1 bg-gradient-to-r from-purple-500/60 to-pink-500/60 backdrop-blur-md text-white rounded-full text-[11px] font-black shadow-lg flex items-center gap-1.5 group border border-white/20 hover:scale-105 transition-transform"
+                                                        className="px-3 py-1 bg-purple-500 text-white rounded-full text-[11px] font-black shadow-clay-purple-sm flex items-center gap-1.5 group border-2 border-white/20 hover:scale-105 transition-transform"
                                                     >
                                                         {interest}
                                                         <span className="opacity-60 group-hover:opacity-100 transition-opacity text-sm">×</span>
@@ -421,7 +421,7 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                                 <motion.div 
                                                     key={category} 
                                                     className={cn(
-                                                        "bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-[2rem] space-y-3 shadow-xl relative overflow-hidden group/island",
+                                                        "clay-card bg-white/50 p-4 rounded-[2rem] space-y-3 shadow-clay-sm relative overflow-hidden group/island",
                                                         gridSpans
                                                     )}
                                                     animate={{ y: [0, -6, 0] }}
@@ -433,9 +433,9 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                                     }}
                                                 >
                                                     {/* Island Glow */}
-                                                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/5 blur-2xl rounded-full group-hover/island:bg-white/10 transition-colors" />
+                                                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-500/5 blur-2xl rounded-full group-hover/island:bg-purple-500/10 transition-colors" />
                                                     
-                                                    <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] px-1 drop-shadow-sm">
+                                                    <h3 className="text-[10px] font-black text-ink-muted/40 uppercase tracking-[0.2em] px-1">
                                                         {category}
                                                     </h3>
                                                     <div className="flex flex-wrap gap-2">
@@ -449,10 +449,10 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                                                     whileHover={{ scale: 1.05, y: -2 }}
                                                                     whileTap={{ scale: 0.95 }}
                                                                     className={cn(
-                                                                        "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2 backdrop-blur-md shadow-md",
+                                                                        "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2",
                                                                         isSelected
-                                                                            ? 'bg-white/30 text-white border-white/40 shadow-white/10'
-                                                                            : 'bg-white/5 text-white/60 border-white/5 hover:border-white/20 hover:bg-white/10'
+                                                                            ? 'bg-purple-500 text-white border-purple-400 shadow-clay-purple-sm'
+                                                                            : 'bg-white text-ink-muted border-white hover:border-purple-200 shadow-sm'
                                                                     )}
                                                                 >
                                                                     {interest}
@@ -466,8 +466,8 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-4 pt-2 border-t border-white/10 mt-auto">
-                                    <button onClick={() => prevStep('identity')} className="h-12 px-8 flex items-center gap-2 text-white/70 hover:text-white transition-colors font-fredoka font-black uppercase tracking-wider text-sm">
+                                <div className="flex items-center justify-center gap-4 pt-2 border-t border-purple-100 mt-auto">
+                                    <button onClick={() => prevStep('identity')} className="ghost-btn h-12 px-8 flex items-center gap-2 text-ink/70">
                                         <ChevronLeft className="w-5 h-5" /> Back
                                     </button>
                                     <motion.button
@@ -475,35 +475,35 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                         onClick={handleFinish}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-xl shadow-xl transition-all relative z-50"
+                                        className="primary-btn h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
                                     >
                                         Finish! ✨ <ChevronRight className="w-5 h-5" />
                                     </motion.button>
                                 </div>
-                                {error && <p className="text-rose-300 font-bold font-nunito text-center text-xs drop-shadow-md bg-rose-500/20 backdrop-blur-md p-2 rounded-lg border border-rose-500/30">{error}</p>}
+                                {error && <p className="text-rose-500 font-bold font-nunito text-center text-xs bg-rose-50 p-2 rounded-lg border border-rose-100">{error}</p>}
                             </div>
                         )}
 
                         {step === 'saving' && (
                             <div className="w-full space-y-8 text-center flex flex-col items-center justify-center min-h-[50dvh] relative z-10">
                                 <div className="relative">
-                                    <div className="absolute inset-0 bg-white/20 blur-3xl animate-pulse rounded-full" />
+                                    <div className="absolute inset-0 bg-purple-400/20 blur-3xl animate-pulse rounded-full" />
                                     <motion.div
                                         animate={{ rotate: [0, 5, -5, 0], y: [0, -10, 0] }}
                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                        className="w-32 h-32 flex items-center justify-center p-4 bg-white/10 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border-2 border-white/20"
+                                        className="w-32 h-32 flex items-center justify-center p-4 bg-white rounded-[2.5rem] shadow-clay-purple border-4 border-white"
                                     >
-                                        <CachedImage src="/logo.png" alt="Saving..." fill className="object-contain drop-shadow-lg" />
+                                        <CachedImage src="/logo.png" alt="Saving..." fill className="object-contain" />
                                     </motion.div>
                                     <motion.div
                                         animate={{ rotate: 360 }}
                                         transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                                        className="absolute -inset-8 border-2 border-dashed border-white/10 rounded-[4rem] pointer-events-none"
+                                        className="absolute -inset-8 border-2 border-dashed border-purple-200/30 rounded-[4rem] pointer-events-none"
                                     />
                                 </div>
                                 <div className="space-y-4">
-                                    <h2 className="text-3xl font-black text-white font-fredoka drop-shadow-lg">Creating Your World...</h2>
-                                    <p className="text-white/80 font-bold font-nunito drop-shadow-md">We&apos;re getting things ready for <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span>.</p>
+                                    <h2 className="text-3xl font-black text-ink font-fredoka">Creating Your World...</h2>
+                                    <p className="text-ink-muted font-bold font-nunito">We&apos;re getting things ready for <span className="text-purple-600">{formData.firstName}</span>.</p>
                                 </div>
                             </div>
                         )}
