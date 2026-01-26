@@ -59,7 +59,13 @@ export async function getQuotaForUser(
             .eq("id", userId)
             .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+            // Handle race condition where profile is not yet visible to query replicas
+            if (profileError.code === "PGRST116") {
+                return DEFAULT_FREE_LIMITS[featureName] ?? 0;
+            }
+            throw profileError;
+        }
 
         const status = profile?.subscription_status || "free";
 

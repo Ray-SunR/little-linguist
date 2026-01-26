@@ -37,6 +37,19 @@ describe('UsageService Integration', () => {
         expect(quota).toBe(10);
     });
 
+    it('should return default free limit when profile is missing (PGRST116)', async () => {
+        const nonExistentUserId = '00000000-0000-0000-0000-000000000000';
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        
+        const quota = await getQuotaForUser(nonExistentUserId, 'word_insight');
+        
+        // DEFAULT_FREE_LIMITS.word_insight is 100 in the code
+        expect(quota).toBe(100);
+        expect(consoleSpy).not.toHaveBeenCalled();
+        
+        consoleSpy.mockRestore();
+    });
+
     it('should reserve and consume credits', async () => {
         const identity = { owner_user_id: testUser.id, identity_key: testUser.id };
         
