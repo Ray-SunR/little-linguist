@@ -110,12 +110,12 @@ export default function OnboardingWizard() {
 
     return (
         <div className="w-full max-w-2xl mx-auto px-1 sm:px-0 flex items-center justify-center h-full">
-            <div className="clay-card bg-white/70 backdrop-blur-xl p-3 sm:p-4 rounded-[2.5rem] md:rounded-[3rem] border-4 border-white shadow-2xl relative overflow-hidden h-[540px] w-full flex flex-col">
+            <div className="bg-white/10 backdrop-blur-xl p-3 sm:p-4 rounded-[2.5rem] md:rounded-[3rem] border border-white/20 shadow-2xl relative overflow-hidden h-[540px] w-full flex flex-col">
                 
                 {/* Progress Bar */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-purple-100/50">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-white/10">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-purple-400 to-pink-400"
+                        className="h-full bg-gradient-to-r from-purple-400/60 to-pink-400/60 blur-[1px]"
                         initial={{ width: '0%' }}
                         animate={{ width: progressPercentage() }}
                     />
@@ -158,17 +158,17 @@ export default function OnboardingWizard() {
                         )}
 
                         {step === 'interests' && (
-                            <div className="w-full h-full flex flex-col space-y-4">
+                            <div className="w-full h-full flex flex-col space-y-4 relative z-10">
                                 <div className="text-center space-y-1">
-                                    <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Magic Interests!</h2>
-                                    <p className="text-ink-muted font-bold font-nunito text-[10px]">What does <span className="text-purple-600 font-black">{formData.firstName}</span> love most?</p>
+                                    <h2 className="text-xl md:text-2xl font-black text-white font-fredoka drop-shadow-lg">Magic Interests!</h2>
+                                    <p className="text-white/80 font-bold font-nunito text-[10px] drop-shadow-md">What does <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span> love most?</p>
                                 </div>
 
                                 <div className="relative group max-w-sm mx-auto w-full">
                                     <input
                                         type="text"
                                         placeholder="Add something else they love..."
-                                        className="w-full h-10 px-4 pr-10 rounded-xl border-2 border-purple-100 bg-white/50 focus:bg-white focus:border-purple-400 outline-none transition-all font-nunito font-bold text-ink text-sm placeholder:text-slate-300 shadow-inner"
+                                        className="w-full h-10 px-4 pr-10 rounded-xl border-2 border-white/20 bg-white/10 focus:bg-white/20 focus:border-white/40 outline-none transition-all font-nunito font-bold text-white text-sm placeholder:text-white/30 shadow-inner backdrop-blur-md"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 const val = e.currentTarget.value.trim();
@@ -181,14 +181,14 @@ export default function OnboardingWizard() {
                                             }
                                         }}
                                     />
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-200 group-focus-within:text-purple-400 transition-colors">
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-white/40 transition-colors">
                                         <kbd className="text-[8px] font-black border border-current px-1 rounded">ENTER</kbd>
                                     </div>
                                 </div>
 
                                 <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-4">
                                     {formData.interests.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 p-2 bg-purple-50/50 rounded-xl border-2 border-white min-h-[44px]">
+                                        <div className="flex flex-wrap gap-2 p-2 bg-white/5 backdrop-blur-md rounded-xl border-2 border-white/10 min-h-[44px]">
                                             {formData.interests.map(interest => (
                                                 <motion.button
                                                     layout
@@ -196,7 +196,7 @@ export default function OnboardingWizard() {
                                                     animate={{ scale: 1, opacity: 1 }}
                                                     key={`selected-${interest}`}
                                                     onClick={() => toggleInterest(interest)}
-                                                    className="px-2 py-0.5 bg-purple-500 text-white rounded-full text-[10px] font-black shadow-clay-purple-sm flex items-center gap-1 group"
+                                                    className="px-2 py-0.5 bg-purple-500/60 backdrop-blur-md text-white rounded-full text-[10px] font-black shadow-xl flex items-center gap-1 group border border-purple-400/30"
                                                 >
                                                     {interest}
                                                     <span className="opacity-50 group-hover:opacity-100 transition-opacity">×</span>
@@ -208,7 +208,7 @@ export default function OnboardingWizard() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                         {Object.entries(SUGGESTED_INTERESTS).map(([category, items]) => (
                                             <div key={category} className="space-y-3">
-                                                <h3 className="text-[10px] font-black text-ink-muted/40 uppercase tracking-[0.2em] px-1">{category}</h3>
+                                                <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-1 drop-shadow-sm">{category}</h3>
                                                 <div className="flex flex-wrap gap-2">
                                                     {items.map(interest => {
                                                         const isSelected = formData.interests.includes(interest);
@@ -220,10 +220,10 @@ export default function OnboardingWizard() {
                                                                 whileHover={{ scale: 1.05, y: -2 }}
                                                                 whileTap={{ scale: 0.95 }}
                                                                 className={cn(
-                                                                    "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2",
+                                                                    "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2 backdrop-blur-md shadow-lg",
                                                                     isSelected
-                                                                        ? 'bg-purple-500 text-white border-purple-400 shadow-clay-purple-sm'
-                                                                        : 'bg-white text-ink-muted border-white hover:border-purple-200 shadow-sm'
+                                                                        ? 'bg-purple-500/60 text-white border-purple-400/40'
+                                                                        : 'bg-white/10 text-white/70 border-white/10 hover:border-white/30 hover:bg-white/20'
                                                                 )}
                                                             >
                                                                 {interest}
@@ -236,8 +236,8 @@ export default function OnboardingWizard() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-4 pt-2 border-t border-purple-50 mt-auto">
-                                    <button onClick={() => prevStep('identity')} className="ghost-btn h-12 px-8 flex items-center gap-2 text-ink/70">
+                                <div className="flex items-center justify-center gap-4 pt-2 border-t border-white/10 mt-auto">
+                                    <button onClick={() => prevStep('identity')} className="h-12 px-8 flex items-center gap-2 text-white/70 hover:text-white transition-colors font-fredoka font-black uppercase tracking-wider text-sm">
                                         <ChevronLeft className="w-5 h-5" /> Back
                                     </button>
                                     <motion.button
@@ -245,35 +245,35 @@ export default function OnboardingWizard() {
                                         onClick={handleFinish}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="primary-btn h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
+                                        className="bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/30 text-white h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-xl shadow-xl transition-all"
                                     >
                                         Finish! ✨ <ChevronRight className="w-5 h-5" />
                                     </motion.button>
                                 </div>
-                                {error && <p className="text-rose-500 font-bold font-nunito text-center text-xs">{error}</p>}
+                                {error && <p className="text-rose-300 font-bold font-nunito text-center text-xs drop-shadow-md bg-rose-500/20 backdrop-blur-md p-2 rounded-lg border border-rose-500/30">{error}</p>}
                             </div>
                         )}
 
                         {step === 'saving' && (
-                            <div className="w-full space-y-8 text-center flex flex-col items-center justify-center min-h-[50dvh]">
+                            <div className="w-full space-y-8 text-center flex flex-col items-center justify-center min-h-[50dvh] relative z-10">
                                 <div className="relative">
-                                    <div className="absolute inset-0 bg-purple-400/20 blur-3xl animate-pulse rounded-full" />
+                                    <div className="absolute inset-0 bg-white/20 blur-3xl animate-pulse rounded-full" />
                                     <motion.div
                                         animate={{ rotate: [0, 5, -5, 0], y: [0, -10, 0] }}
                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                        className="w-32 h-32 flex items-center justify-center p-4 bg-white rounded-[2.5rem] shadow-clay-purple border-4 border-white"
+                                        className="w-32 h-32 flex items-center justify-center p-4 bg-white/10 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border-2 border-white/20"
                                     >
-                                        <CachedImage src="/logo.png" alt="Saving..." fill className="object-contain" />
+                                        <CachedImage src="/logo.png" alt="Saving..." fill className="object-contain drop-shadow-lg" />
                                     </motion.div>
                                     <motion.div
                                         animate={{ rotate: 360 }}
-                                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                                        className="absolute -inset-4 border-4 border-dashed border-purple-200 rounded-[3.5rem] pointer-events-none"
+                                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                                        className="absolute -inset-8 border-2 border-dashed border-white/10 rounded-[4rem] pointer-events-none"
                                     />
                                 </div>
                                 <div className="space-y-4">
-                                    <h2 className="text-3xl font-black text-ink font-fredoka">Creating Your World...</h2>
-                                    <p className="text-ink-muted font-bold font-nunito">We&apos;re getting things ready for <span className="text-purple-600">{formData.firstName}</span>.</p>
+                                    <h2 className="text-3xl font-black text-white font-fredoka drop-shadow-lg">Creating Your World...</h2>
+                                    <p className="text-white/80 font-bold font-nunito drop-shadow-md">We&apos;re getting things ready for <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span>.</p>
                                 </div>
                             </div>
                         )}
