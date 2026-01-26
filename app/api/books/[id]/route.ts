@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { BookRepository } from '@/lib/core/books/repository.server';
+import { isValidUuid } from '@/lib/core/books/library-types';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 
@@ -60,7 +61,7 @@ export async function DELETE(
     try {
         const { id } = params;
 
-        if (!BookRepository.isValidUuid(id)) {
+        if (!isValidUuid(id)) {
             return NextResponse.json({ error: 'Invalid book ID' }, { status: 400 });
         }
 

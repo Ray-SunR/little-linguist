@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { createClient } from '@/lib/supabase/server';
 import { BookRepository } from '@/lib/core/books/repository.server';
+import { isValidUuid } from '@/lib/core/books/library-types';
 
 export async function PATCH(
     request: NextRequest,
@@ -20,10 +21,10 @@ export async function PATCH(
         const { childId, isFavorite } = body;
 
         // Basic validation
-        if (!BookRepository.isValidUuid(bookId)) {
+        if (!isValidUuid(bookId)) {
             return NextResponse.json({ error: "Invalid Book ID" }, { status: 400 });
         }
-        if (!childId || !BookRepository.isValidUuid(childId)) {
+        if (!childId || !isValidUuid(childId)) {
             return NextResponse.json({ error: "Valid Child ID is required" }, { status: 400 });
         }
         if (typeof isFavorite !== 'boolean') {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { createClient } from '@/lib/supabase/server';
 import { BookRepository } from '@/lib/core/books/repository.server';
+import { isValidUuid } from '@/lib/core/books/library-types';
 
 export async function GET(request: NextRequest) {
     try {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { bookId, childId, ...progressData } = body;
 
-        if (!bookId || !BookRepository.isValidUuid(bookId)) {
+        if (!bookId || !isValidUuid(bookId)) {
             return NextResponse.json({ error: "Valid Book ID is required" }, { status: 400 });
         }
 
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
             }
             targetChildId = authChild?.id;
         } else {
-            if (!BookRepository.isValidUuid(targetChildId)) {
+            if (!isValidUuid(targetChildId)) {
                 return NextResponse.json({ error: "Invalid Child ID" }, { status: 400 });
             }
             // SECURITY: Verify child belongs to user

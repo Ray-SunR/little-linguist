@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { BookRepository } from '@/lib/core/books/repository.server';
+import { isValidUuid } from '@/lib/core/books/library-types';
 import { RewardService, RewardType } from '@/lib/features/activity/reward-service.server';
 
 export interface SaveProgressPayload {
@@ -26,7 +27,7 @@ export async function saveBookProgressAction(payload: SaveProgressPayload) {
   const { childId, bookId, isOpening, isMission, ...data } = payload;
 
   // Short-circuit on obviously invalid UUIDs
-  if (!BookRepository.isValidUuid(bookId)) {
+  if (!isValidUuid(bookId)) {
     return { error: 'Invalid book ID' };
   }
 

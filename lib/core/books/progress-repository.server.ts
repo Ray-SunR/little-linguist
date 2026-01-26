@@ -1,12 +1,13 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { AuditService, AuditAction, EntityType } from "../../features/audit/audit-service.server";
-import { BookRepository } from './repository.server';
+import { isValidUuid } from './library-types';
 
 export class ProgressRepository {
+
     constructor(private supabase: SupabaseClient) {}
 
     async getProgress(childId: string, bookId: string) {
-        if (!BookRepository.isValidUuid(bookId)) return null;
+        if (!isValidUuid(bookId)) return null;
 
         const { data, error } = await this.supabase
             .from('child_books')
@@ -25,7 +26,7 @@ export class ProgressRepository {
         total_read_seconds?: number;
         playback_speed?: number;
     }) {
-        if (!BookRepository.isValidUuid(bookId)) {
+        if (!isValidUuid(bookId)) {
             throw new Error(`Invalid book ID: ${bookId}`);
         }
 
@@ -57,7 +58,7 @@ export class ProgressRepository {
     }
 
     async toggleFavorite(childId: string, bookId: string, isFavorite: boolean) {
-        if (!BookRepository.isValidUuid(bookId)) {
+        if (!isValidUuid(bookId)) {
             throw new Error(`Invalid book ID: ${bookId}`);
         }
 
