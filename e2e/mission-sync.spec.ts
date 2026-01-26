@@ -17,9 +17,9 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
 
   page.on('console', msg => {
     if (msg.type() === 'error') {
-        console.log('BROWSER ERROR:', msg.text());
+      console.log('BROWSER ERROR:', msg.text());
     } else {
-        console.log('BROWSER LOG:', msg.text());
+      console.log('BROWSER LOG:', msg.text());
     }
   });
   page.on('pageerror', err => console.log('BROWSER UNHANDLED ERROR:', err.message));
@@ -44,14 +44,14 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   // Wait for login redirect to settle
   console.log('Waiting for login to complete...');
   await expect(page).not.toHaveURL(/\/login/, { timeout: 120000 });
-  
+
   // Wait a bit for the redirection to settle
   await page.waitForTimeout(3000);
 
   // 2. Handle Onboarding if it appears
   if (page.url().includes('/onboarding')) {
     console.log('Onboarding detected, completing wizard...');
-    
+
     // Step: Name
     const nameInput = page.getByPlaceholder('Leo, Mia, Sam...');
     await expect(nameInput).toBeVisible({ timeout: 15000 });
@@ -73,10 +73,13 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
 
     // Step: Interests
     await expect(page.getByText('Magic Interests!')).toBeVisible({ timeout: 15000 });
-    await page.getByText('Space').first().click();
-    await page.getByText('Dinosaurs').first().click();
+    // Use role=button to ensure we click the actual interest buttons, not other text
+    await page.getByRole('button', { name: 'Space' }).click();
+    await page.getByRole('button', { name: 'Dinosaurs' }).click();
+    // Wait a moment for the interests to register in state
+    await page.waitForTimeout(500);
     await page.getByTestId('onboarding-finish').click();
-    
+
     // Wait for navigation to dashboard
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 120000 });
   } else {
@@ -102,30 +105,30 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
 
   // 4. Identify a mission book
   const missionStartBtn = page.locator('a[href*="mission=true"]').first();
-  
+
   try {
     await expect(missionStartBtn).toBeVisible({ timeout: 20000 });
   } catch (e) {
     if (await page.getByText('All Missions Clear!').isVisible()) {
-        console.log('Missions are clear, creating a story...');
-        await page.goto('/story-maker');
-        await expect(page.locator('.page-story-maker')).toHaveAttribute('data-status', 'CONFIGURING', { timeout: 30000 });
-        
-        await page.getByPlaceholder('Leo, Mia, Sam...').fill('MissionHero');
-        await page.getByTestId('gender-button-boy').click();
-        await page.getByTestId('story-topic-input').fill('A Mission Adventure');
-        await page.getByTestId('story-setting-input').fill('Space');
-        await page.getByTestId('story-config-next').click();
-        await expect(page.getByTestId('words-tab-content')).toBeVisible();
-        await page.getByRole('button', { name: /Cast Spell|Skip/ }).first().click();
-        
-        // Wait for generation and reader
-        await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
-        console.log('Story created, returning to dashboard...');
-        await page.goto('/dashboard');
-        await expect(missionStartBtn).toBeVisible({ timeout: 20000 });
+      console.log('Missions are clear, creating a story...');
+      await page.goto('/story-maker');
+      await expect(page.locator('.page-story-maker')).toHaveAttribute('data-status', 'CONFIGURING', { timeout: 30000 });
+
+      await page.getByPlaceholder('Leo, Mia, Sam...').fill('MissionHero');
+      await page.getByTestId('gender-button-boy').click();
+      await page.getByTestId('story-topic-input').fill('A Mission Adventure');
+      await page.getByTestId('story-setting-input').fill('Space');
+      await page.getByTestId('story-config-next').click();
+      await expect(page.getByTestId('words-tab-content')).toBeVisible();
+      await page.getByRole('button', { name: /Cast Spell|Skip/ }).first().click();
+
+      // Wait for generation and reader
+      await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
+      console.log('Story created, returning to dashboard...');
+      await page.goto('/dashboard');
+      await expect(missionStartBtn).toBeVisible({ timeout: 20000 });
     } else {
-        throw e;
+      throw e;
     }
   }
 
@@ -148,17 +151,22 @@ test('Mission Sync and Completion Workflow', async ({ page, context }) => {
   // Wait for completion state to sync
   await page.waitForTimeout(10000);
 
-  // 8. Click the "Back" button
+  // 8. Click the "Back" button to return to dashboard
   const backBtn = page.locator('#reader-back-to-library');
-  await backBtn.click();
+  await expect(backBtn).toBeVisible({ timeout: 5000 });
 
-  // 9. Wait for navigation back to /dashboard
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
+  // Use Promise.all to wait for navigation + click simultaneously
+  await Promise.all([
+    page.waitForURL(/\/dashboard/, { timeout: 30000 }),
+    backBtn.click({ force: true })
+  ]);
+
+  // 9. Verify we are on dashboard
 
   // 10. Verify stamp
   const missionCardResult = page.locator('.clay-card').filter({ hasText: bookTitle });
   await expect(missionCardResult.getByText(/Mission.*Accomplished/s)).toBeVisible({ timeout: 20000 });
-  
+
   const coinsAfterFirstRead = await getCoins();
   expect(coinsAfterFirstRead).toBeGreaterThan(initialCoins);
 
