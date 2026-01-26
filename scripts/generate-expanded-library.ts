@@ -1,5 +1,5 @@
 
-import { StabilityStoryService } from "../lib/features/stability/stability-service.server";
+import { NovaStoryService } from "../lib/features/nova/nova-service.server";
 import { ClaudeStoryService } from "../lib/features/bedrock/claude-service.server";
 import { PollyNarrationService } from "../lib/features/narration/polly-service.server";
 import { NarrativeDirector } from "../lib/features/narration/narrative-director.server";
@@ -99,7 +99,7 @@ async function main() {
         fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
     };
 
-    const nova = new StabilityStoryService();
+    const nova = new NovaStoryService();
     const claude = new ClaudeStoryService();
     const polly = new PollyNarrationService();
     const director = new NarrativeDirector();
