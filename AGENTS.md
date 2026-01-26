@@ -37,3 +37,6 @@ Repository pattern, API structure, and dual-caching strategy (`raidenCache` for 
 9.  **Local Reliability**: Ensure all database operations are idempotent (using `ON CONFLICT`) to support stable local development.
 10. **Mobile Awareness**: After UI changes, remind the user to run `npm run mobile:sync`.
 11. **Substantive Testing**: Never write placeholder tests (e.g. tests that only check for status 200 without verifying business logic or data state). Every test must include meaningful assertions. **Mandatory: Verify DB state and side effects.**
+12. **Production Safety**: NEVER modify the production database (credentials in `.env.local`), run integration tests, or execute database setup/migration scripts against it without explicit approval.
+13. **Worktree Isolation**: If working in a git worktree, NEVER merge back to the main branch without explicit approval.
+14. **Full Verification**: Do not consider a task done until full tests have been run and passed. NEVER modify test cases to fake a pass. If in doubt about a failure or requirement, always ask for clarification and confirmation before proceeding.
