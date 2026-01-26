@@ -50,7 +50,11 @@ export async function ReaderContainer({ bookId, activeChildId, children }: Reade
 
         const fullBook: SupabaseBook = {
             ...bookData,
-            shards: Array.isArray(bookData.audios) ? bookData.audios : [],
+            // SupabaseBook expects `text` and `tokens` to be present; some code paths return them as optional.
+            text: bookData.text ?? "",
+            tokens: (bookData as any).tokens ?? [],
+            images: (bookData as any).images ?? undefined,
+            shards: Array.isArray((bookData as any).audios) ? (bookData as any).audios : [],
             initialProgress,
             cached_at: Date.now(),
         };

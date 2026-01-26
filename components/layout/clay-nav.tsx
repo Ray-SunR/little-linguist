@@ -55,8 +55,6 @@ export function ClayNav() {
         await logout();
     };
 
-    if (pathname === "/" || pathname === "/login") return null;
-
     const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "";
     const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
     const userInitial = fullName ? fullName[0].toUpperCase() : (user?.email?.[0]?.toUpperCase() ?? "?");
@@ -66,9 +64,12 @@ export function ClayNav() {
     const isMePending = !!pendingPath && ME_PATHS.includes(pendingPath);
     const isMeActive = pendingHref ? isMePending : ME_PATHS.some(path => isActive(path));
 
-    const navItemsWithLibrary = useMemo(() => (
-        navItems.map((item) => (item.id === "nav-item-library" ? { ...item, href: libraryHref } : item)) as NavItemConfig[]
-    ), [libraryHref]);
+    // Avoid calling hooks conditionally; this is cheap and keeps hook order stable.
+    const navItemsWithLibrary = navItems.map((item) =>
+        item.id === "nav-item-library" ? { ...item, href: libraryHref } : item
+    ) as NavItemConfig[];
+
+    if (pathname === "/" || pathname === "/login") return null;
 
     if (isOnboarding) {
         return (
