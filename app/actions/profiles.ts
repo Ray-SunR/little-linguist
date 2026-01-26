@@ -286,6 +286,8 @@ export async function updateChildProfile(id: string, data: Partial<ChildProfileP
       return { error: 'Not authenticated' };
     }
 
+    await ensureUserProfile(supabase, user.id, user.email);
+
     // Build update payload from defined fields only to avoid nulling out existing data
     const updatePayload: Record<string, any> = {
       updated_at: new Date().toISOString(), // explicitly update to trigger cache refresh
@@ -378,6 +380,8 @@ export async function deleteChildProfile(id: string) {
       console.warn(`[profiles:deleteChildProfile] Delete failed for ${id}: Not authenticated`);
       return { error: 'Not authenticated' };
     }
+
+    await ensureUserProfile(supabase, user.id, user.email);
 
     // --- STORAGE CLEANUP ---
     // We must collect and delete storage assets before deleting database records
@@ -518,134 +522,149 @@ export async function deleteChildProfile(id: string) {
 }
 
 export async function getChildren() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { error: 'Not authenticated', data: [] };
-  }
-
-  await ensureUserProfile(supabase, user.id, user.email);
-
-  const { data, error } = await supabase
-    .from('children')
-    .select('*')
-    .eq('owner_user_id', user.id)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching children:', error);
-    return { error: error.message, data: [] };
-  }
-
-  const rawChildren = data || [];
-  const bucket = AVATAR_BUCKET;
-  const pathSet = new Set<string>();
-
-  rawChildren.forEach(child => {
-    const paths = (child.avatar_paths as string[]) || [];
-    const primary = child.primary_avatar_index ?? 0;
-    const path = paths[primary] || paths[0];
-    if (path && !path.startsWith('http') && !path.startsWith('data:')) {
-      pathSet.add(path);
-    }
-  });
-
-  const allPaths = Array.from(pathSet);
-  let signedMap = new Map<string, string>();
-
-  if (allPaths.length > 0) {
-    const { data: signs, error: signError } = await supabase.storage
-      .from(bucket)
-      .createSignedUrls(allPaths, 86400);
-
-    if (!signError && signs) {
-      signs.forEach(s => {
-        if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
-      });
-    }
-  }
-
-  // Add backwards-compatible avatar_asset_path from avatar_paths
-  const enrichedData = rawChildren.map(child => {
-    const avatarPaths = (child.avatar_paths as string[]) || [];
-    const primaryIndex = child.primary_avatar_index ?? 0;
-    const rawPath = avatarPaths[primaryIndex] || avatarPaths[0] || null;
-
-    let avatar_asset_path = rawPath;
-    if (rawPath && signedMap.has(rawPath)) {
-      avatar_asset_path = signedMap.get(rawPath)!;
+    if (!user) {
+      return { error: 'Not authenticated', data: [] };
     }
 
-    return { ...child, avatar_asset_path };
-  });
+    await ensureUserProfile(supabase, user.id, user.email);
 
-  return { data: enrichedData as ChildProfile[] };
+    const { data, error } = await supabase
+      .from('children')
+      .select('*')
+      .eq('owner_user_id', user.id)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching children:', error);
+      return { error: error.message, data: [] };
+    }
+
+    const rawChildren = data || [];
+    const bucket = AVATAR_BUCKET;
+    const pathSet = new Set<string>();
+
+    rawChildren.forEach(child => {
+      const paths = (child.avatar_paths as string[]) || [];
+      const primary = child.primary_avatar_index ?? 0;
+      const path = paths[primary] || paths[0];
+      if (path && !path.startsWith('http') && !path.startsWith('data:')) {
+        pathSet.add(path);
+      }
+    });
+
+    const allPaths = Array.from(pathSet);
+    let signedMap = new Map<string, string>();
+
+    if (allPaths.length > 0) {
+      const { data: signs, error: signError } = await supabase.storage
+        .from(bucket)
+        .createSignedUrls(allPaths, 86400);
+
+      if (!signError && signs) {
+        signs.forEach(s => {
+          if (s.signedUrl) signedMap.set(s.path || "", s.signedUrl);
+        });
+      }
+    }
+
+    // Add backwards-compatible avatar_asset_path from avatar_paths
+    const enrichedData = rawChildren.map(child => {
+      const avatarPaths = (child.avatar_paths as string[]) || [];
+      const primaryIndex = child.primary_avatar_index ?? 0;
+      const rawPath = avatarPaths[primaryIndex] || avatarPaths[0] || null;
+
+      let avatar_asset_path = rawPath;
+      if (rawPath && signedMap.has(rawPath)) {
+        avatar_asset_path = signedMap.get(rawPath)!;
+      }
+
+      return { ...child, avatar_asset_path };
+    });
+
+    return { data: enrichedData as ChildProfile[] };
+  } catch (err: any) {
+    console.error('[profiles:getChildren] Unexpected error:', err);
+    return { error: err.message || 'Failed to fetch children', data: [] };
+  }
 }
 
 export async function switchActiveChild(childId: string) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    console.warn(`[profiles:switchActiveChild] Switch failed for ${childId}: Not authenticated`);
-    return { error: 'Not authenticated' };
-  }
+    if (!user) {
+      console.warn(`[profiles:switchActiveChild] Switch failed for ${childId}: Not authenticated`);
+      return { error: 'Not authenticated' };
+    }
 
-  // Verify ownership
-  const { data, error: fetchError } = await supabase.from('children').select('id, first_name').eq('id', childId).eq('owner_user_id', user.id).single();
+    // Verify ownership
+    const { data, error: fetchError } = await supabase.from('children').select('id, first_name').eq('id', childId).eq('owner_user_id', user.id).single();
 
-  if (fetchError || !data) {
-    console.error(`[profiles:switchActiveChild] verification error or unauthorized for child ${childId}:`, {
-      error: fetchError,
-      userId: user.id
+    if (fetchError || !data) {
+      console.error(`[profiles:switchActiveChild] verification error or unauthorized for child ${childId}:`, {
+        error: fetchError,
+        userId: user.id
+      });
+      return { error: 'Child not found or unauthorized' };
+    }
+
+    cookies().set('activeChildId', childId, { secure: true, httpOnly: false });
+
+    // Audit: Child Switched
+    await AuditService.log({
+      action: AuditAction.CHILD_SWITCHED,
+      entityType: EntityType.CHILD_PROFILE,
+      entityId: childId,
+      userId: user.id,
+      childId: childId,
+      details: { name: data?.first_name } // Include name for traceability
     });
-    return { error: 'Child not found or unauthorized' };
+
+    return { success: true };
+  } catch (err: any) {
+    console.error(`[profiles:switchActiveChild] Unexpected error for ${childId}:`, err);
+    return { error: err.message || 'An unexpected error occurred' };
   }
-
-  cookies().set('activeChildId', childId, { secure: true, httpOnly: false });
-
-  // Audit: Child Switched
-  await AuditService.log({
-    action: AuditAction.CHILD_SWITCHED,
-    entityType: EntityType.CHILD_PROFILE,
-    entityId: childId,
-    userId: user.id,
-    childId: childId,
-    details: { name: data?.first_name } // Include name for traceability
-  });
-
-  return { success: true };
 }
 
 export async function getUserProfile() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { error: 'Not authenticated' };
+    if (!user) {
+      return { error: 'Not authenticated' };
+    }
+
+    await ensureUserProfile(supabase, user.id, user.email);
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error) {
+      console.error('[profiles:getUserProfile] Error:', error);
+      return { error: error.message };
+    }
+
+    return { data };
+  } catch (err: any) {
+    console.error('[profiles:getUserProfile] Unexpected error:', err);
+    return { error: err.message || 'Failed to fetch user profile' };
   }
-
-  await ensureUserProfile(supabase, user.id, user.email);
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (error) {
-    console.error('[profiles:getUserProfile] Error:', error);
-    return { error: error.message };
-  }
-
-  return { data };
 }
 
 export async function updateLibrarySettings(childId: string, settings: any) {
@@ -658,6 +677,8 @@ export async function updateLibrarySettings(childId: string, settings: any) {
     if (!user) {
       return { error: 'Not authenticated' };
     }
+
+    await ensureUserProfile(supabase, user.id, user.email);
 
     // Use explicit childId if provided, otherwise fallback to cookie
     const targetChildId = childId || cookies().get('activeChildId')?.value;
