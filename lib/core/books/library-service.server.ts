@@ -391,4 +391,31 @@ export class LibraryService {
 
         return result;
     }
+
+    async getNarrationChunks(bookId: string, voiceId?: string) {
+        let query = this.supabase
+            .from('book_audios')
+            .select('*')
+            .eq('book_id', bookId);
+
+        if (voiceId) {
+            query = query.eq('voice_id', voiceId);
+        }
+
+        const { data, error } = await query.order('chunk_index');
+
+        if (error) throw error;
+        return data || [];
+    }
+
+    async saveNarrationChunk(payload: any) {
+        const { data, error } = await this.supabase
+            .from('book_audios')
+            .upsert(payload, { onConflict: 'book_id,chunk_index,voice_id' })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    }
 }
