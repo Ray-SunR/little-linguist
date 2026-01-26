@@ -6,17 +6,17 @@ const FULL_TRUNCATE_TABLES = [
     "child_books",
     "child_magic_sentences",
     "child_badges",
+    "audit_logs",
+    "point_transactions",
+    "feedbacks",
+    "children",
     "profiles",
     "book_contents",
     "book_audios",
     "book_media",
     "books",
     "stories",
-    "audit_logs",
     "feature_usage",
-    "point_transactions",
-    "feedbacks",
-    "children",
 ];
 
 
