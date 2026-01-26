@@ -17,6 +17,7 @@ const mockSupabase = {
   },
   from: vi.fn(() => ({
     insert: vi.fn().mockReturnThis(),
+    upsert: vi.fn().mockResolvedValue({ error: null }),
     select: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data: { id: 'child-id', first_name: 'Test Child', avatar_paths: ['test-user-id/avatars/image.png'] } }),
     update: vi.fn().mockReturnThis(),

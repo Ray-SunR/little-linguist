@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { ensureUserProfile } from "@/lib/core/profiles/repository.server";
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
@@ -188,13 +189,29 @@ export async function createChildProfile(data: ChildProfilePayload) {
       return { error: 'Not authenticated' };
     }
 
+    await ensureUserProfile(supabase, user.id, user.email);
+
     // Generate a temporary ID for the avatar path
     const tempChildId = generateUUID();
 
     // Handle avatar assignment
     let avatarPaths: string[] = [];
 
+    // Handle avatar assignment if provided
+    if (data.avatar_asset_path || (data.avatar_paths && data.avatar_paths.length > 0)) {
+      let finalPath = data.avatar_asset_path || data.avatar_paths![0];
 
+      // Claim guest avatar if needed
+      if (finalPath.startsWith('guests/')) {
+        const claimed = await claimGuestAvatar(finalPath, user.id);
+        if (claimed) finalPath = claimed;
+      }
+
+      const uploadedPath = await validateAvatarPath(finalPath, user.id);
+      if (uploadedPath) {
+        avatarPaths = [uploadedPath];
+      }
+    }
     const { data: newChild, error } = await supabase
       .from('children')
       .insert({
@@ -510,6 +527,8 @@ export async function getChildren() {
     return { error: 'Not authenticated', data: [] };
   }
 
+  await ensureUserProfile(supabase, user.id, user.email);
+
   const { data, error } = await supabase
     .from('children')
     .select('*')
@@ -612,6 +631,8 @@ export async function getUserProfile() {
   if (!user) {
     return { error: 'Not authenticated' };
   }
+
+  await ensureUserProfile(supabase, user.id, user.email);
 
   const { data, error } = await supabase
     .from('profiles')
