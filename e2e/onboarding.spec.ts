@@ -37,6 +37,10 @@ test('New user onboarding flow', async ({ page, context }) => {
   // Should redirect to onboarding since there are no profiles
   await page.waitForURL(/\/onboarding/);
 
+  // Verify direct dashboard access also redirects
+  await page.goto('/dashboard');
+  await page.waitForURL(/\/onboarding/);
+
   // Identity steps
   console.log('Entering name...');
   await page.getByPlaceholder('Leo, Mia, Sam...').fill('Skywalker');
@@ -65,8 +69,8 @@ test('New user onboarding flow', async ({ page, context }) => {
   await page.getByTestId('onboarding-finish').click({ force: true });
 
   // Should redirect to library or dashboard
-  console.log('Waiting for dashboard redirect...');
-  await page.waitForURL(/\/dashboard/, { timeout: 30000 });
-  await expect(page.getByText('Mission Control')).toBeVisible({ timeout: 15000 });
+  console.log('Waiting for dashboard redirect (including hyper-drive)...');
+  await page.waitForURL(/\/dashboard/, { timeout: 45000 });
+  await expect(page.getByText('Mission Control')).toBeVisible({ timeout: 20000 });
   await expect(page.getByText('Explorer Status')).toBeVisible({ timeout: 15000 });
 });

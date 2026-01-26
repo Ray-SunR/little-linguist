@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createChildProfile } from '@/app/actions/profiles';
-import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { useAuth } from '@/components/auth/auth-provider';
@@ -19,6 +19,84 @@ const SUGGESTED_INTERESTS = {
     "Activities 🚀": ["Sports", "Building", "Exploration"]
 };
 
+const ShootingStar = ({ 
+    startX, 
+    startY, 
+    endX, 
+    endY, 
+    onComplete 
+}: { 
+    startX: number; 
+    startY: number; 
+    endX: number; 
+    endY: number; 
+    onComplete: () => void 
+}) => {
+    // Calculate angle for the trail
+    const angle = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
+    
+    return (
+        <motion.div
+            initial={{ x: startX, y: startY, opacity: 1, scale: 1 }}
+            animate={{ 
+                x: endX, 
+                y: endY, 
+                opacity: 0, 
+                scale: 0.5,
+            }}
+            transition={{ 
+                duration: 0.6, 
+                ease: [0.23, 1, 0.32, 1] 
+            }}
+            onAnimationComplete={onComplete}
+            className="fixed top-0 left-0 pointer-events-none z-[100] -translate-x-1/2 -translate-y-1/2"
+        >
+            <div className="relative flex items-center">
+                {/* Glow */}
+                <div className="absolute inset-0 w-4 h-4 -translate-x-1/2 -translate-y-1/2 bg-purple-400 blur-md rounded-full" />
+                {/* Star Head */}
+                <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,1)] relative z-10" />
+                {/* Star Trail */}
+                <motion.div 
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: [0, 60, 0], opacity: [0, 1, 0] }}
+                    transition={{ duration: 0.6 }}
+                    className="absolute right-full h-[2px] bg-gradient-to-l from-white via-purple-300 to-transparent origin-right"
+                    style={{
+                        rotate: `${angle}deg`,
+                    }}
+                />
+            </div>
+        </motion.div>
+    );
+};
+
+const WarpStar = ({ id }: { id: number }) => {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 400 + Math.random() * 800;
+    const x = Math.cos(angle) * distance;
+    const y = Math.sin(angle) * distance;
+
+    return (
+        <motion.div
+            initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+            animate={{ 
+                x, 
+                y, 
+                scale: [0, 1, 4], 
+                opacity: [0, 1, 0] 
+            }}
+            transition={{ 
+                duration: 0.5 + Math.random() * 0.5, 
+                repeat: Infinity,
+                delay: Math.random() * 0.5,
+                ease: "easeIn"
+            }}
+            className="absolute top-1/2 left-1/2 w-1 h-1 bg-white rounded-full shadow-[0_0_12px_white] z-[200]"
+        />
+    );
+};
+
 export default function OnboardingWizard() {
     const router = useRouter();
     const { refreshProfiles } = useAuth();
@@ -32,6 +110,9 @@ export default function OnboardingWizard() {
     });
     const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
     const [error, setError] = useState<string | null>(null);
+    const [stars, setStars] = useState<{ id: number; startX: number; startY: number; endX: number; endY: number }[]>([]);
+    const [isFinishing, setIsFinishing] = useState(false);
+    const targetRef = useRef<HTMLDivElement>(null);
 
     const nextStep = (next: OnboardingStep) => {
         setError(null);
@@ -43,7 +124,24 @@ export default function OnboardingWizard() {
         setStep(prev);
     };
 
-    const toggleInterest = (interest: string) => {
+    const toggleInterest = (interest: string, e?: React.MouseEvent) => {
+        const isSelecting = !formData.interests.includes(interest);
+        
+        if (isSelecting && e && targetRef.current) {
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const targetRect = targetRef.current.getBoundingClientRect();
+            
+            const newStar = {
+                id: Date.now(),
+                startX: rect.left + rect.width / 2,
+                startY: rect.top + rect.height / 2,
+                endX: targetRect.left + targetRect.width / 2,
+                endY: targetRect.top + targetRect.height / 2,
+            };
+            
+            setStars(prev => [...prev, newStar]);
+        }
+
         setFormData(prev => ({
             ...prev,
             interests: prev.interests.includes(interest)
@@ -75,7 +173,12 @@ export default function OnboardingWizard() {
             }
 
             await refreshProfiles();
-            router.push('/dashboard');
+            setIsFinishing(true);
+            
+            // Wait for hyper-drive transition
+            setTimeout(() => {
+                router.push('/dashboard');
+            }, 1500);
         } catch (err: any) {
             setError(err.message || 'Something went wrong');
             setStep('interests');
@@ -159,9 +262,42 @@ export default function OnboardingWizard() {
 
                         {step === 'interests' && (
                             <div className="w-full h-full flex flex-col space-y-4 relative z-10">
-                                <div className="text-center space-y-1">
-                                    <h2 className="text-xl md:text-2xl font-black text-white font-fredoka drop-shadow-lg">Magic Interests!</h2>
-                                    <p className="text-white/80 font-bold font-nunito text-[10px] drop-shadow-md">What does <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span> love most?</p>
+                                {/* Shooting Stars Container */}
+                                <div className="fixed inset-0 pointer-events-none z-[100]">
+                                    {stars.map(star => (
+                                        <ShootingStar
+                                            key={star.id}
+                                            {...star}
+                                            onComplete={() => setStars(prev => prev.filter(s => s.id !== star.id))}
+                                        />
+                                    ))}
+                                </div>
+
+                                <div className="flex items-center justify-between gap-4 px-2">
+                                    <div className="space-y-1">
+                                        <h2 className="text-xl md:text-2xl font-black text-white font-fredoka drop-shadow-lg">Magic Interests!</h2>
+                                        <p className="text-white/80 font-bold font-nunito text-[10px] drop-shadow-md">What does <span className="text-purple-300 font-black drop-shadow-sm">{formData.firstName}</span> love most?</p>
+                                    </div>
+                                    
+                                    {/* Avatar Target */}
+                                    <div ref={targetRef} className="relative group">
+                                        <motion.div 
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 backdrop-blur-xl border-2 border-white/20 overflow-hidden shadow-2xl relative z-10"
+                                        >
+                                            {avatarPreview ? (
+                                                <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+                                                    <Star className="w-8 h-8 text-white/40" />
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                        {/* Decorative rings */}
+                                        <div className="absolute -inset-2 border border-white/5 rounded-[1.5rem] animate-[spin_10s_linear_infinite] opacity-50" />
+                                        <div className="absolute -inset-4 border border-white/5 rounded-[2rem] animate-[spin_15s_linear_reverse_infinite] opacity-30" />
+                                    </div>
                                 </div>
 
                                 <div className="relative group max-w-sm mx-auto w-full">
@@ -186,53 +322,83 @@ export default function OnboardingWizard() {
                                     </div>
                                 </div>
 
-                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-6">
                                     {formData.interests.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 p-2 bg-white/5 backdrop-blur-md rounded-xl border-2 border-white/10 min-h-[44px]">
-                                            {formData.interests.map(interest => (
-                                                <motion.button
-                                                    layout
-                                                    initial={{ scale: 0.8, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    key={`selected-${interest}`}
-                                                    onClick={() => toggleInterest(interest)}
-                                                    className="px-2 py-0.5 bg-purple-500/60 backdrop-blur-md text-white rounded-full text-[10px] font-black shadow-xl flex items-center gap-1 group border border-purple-400/30"
-                                                >
-                                                    {interest}
-                                                    <span className="opacity-50 group-hover:opacity-100 transition-opacity">×</span>
-                                                </motion.button>
-                                            ))}
+                                        <div className="flex flex-wrap gap-2 p-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 min-h-[52px] shadow-inner">
+                                            <AnimatePresence>
+                                                {formData.interests.map(interest => (
+                                                    <motion.button
+                                                        layout
+                                                        initial={{ scale: 0, opacity: 0 }}
+                                                        animate={{ scale: 1, opacity: 1 }}
+                                                        exit={{ scale: 0, opacity: 0 }}
+                                                        key={`selected-${interest}`}
+                                                        onClick={() => toggleInterest(interest)}
+                                                        className="px-3 py-1 bg-gradient-to-r from-purple-500/60 to-pink-500/60 backdrop-blur-md text-white rounded-full text-[11px] font-black shadow-lg flex items-center gap-1.5 group border border-white/20 hover:scale-105 transition-transform"
+                                                    >
+                                                        {interest}
+                                                        <span className="opacity-60 group-hover:opacity-100 transition-opacity text-sm">×</span>
+                                                    </motion.button>
+                                                ))}
+                                            </AnimatePresence>
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                        {Object.entries(SUGGESTED_INTERESTS).map(([category, items]) => (
-                                            <div key={category} className="space-y-3">
-                                                <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-1 drop-shadow-sm">{category}</h3>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {items.map(interest => {
-                                                        const isSelected = formData.interests.includes(interest);
-                                                        return (
-                                                            <motion.button
-                                                                key={`suggested-${interest}`}
-                                                                type="button"
-                                                                onClick={() => toggleInterest(interest)}
-                                                                whileHover={{ scale: 1.05, y: -2 }}
-                                                                whileTap={{ scale: 0.95 }}
-                                                                className={cn(
-                                                                    "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2 backdrop-blur-md shadow-lg",
-                                                                    isSelected
-                                                                        ? 'bg-purple-500/60 text-white border-purple-400/40'
-                                                                        : 'bg-white/10 text-white/70 border-white/10 hover:border-white/30 hover:bg-white/20'
-                                                                )}
-                                                            >
-                                                                {interest}
-                                                            </motion.button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <div className="grid grid-cols-6 gap-4 pb-4">
+                                        {Object.entries(SUGGESTED_INTERESTS).map(([category, items], idx) => {
+                                            const gridSpans = [
+                                                "col-span-6 md:col-span-3", // Themes
+                                                "col-span-6 md:col-span-3", // Topics
+                                                "col-span-6 md:col-span-2", // Characters
+                                                "col-span-6 md:col-span-4"  // Activities
+                                            ][idx];
+
+                                            return (
+                                                <motion.div 
+                                                    key={category} 
+                                                    className={cn(
+                                                        "bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-[2rem] space-y-3 shadow-xl relative overflow-hidden group/island",
+                                                        gridSpans
+                                                    )}
+                                                    animate={{ y: [0, -6, 0] }}
+                                                    transition={{
+                                                        duration: 4 + idx,
+                                                        repeat: Infinity,
+                                                        delay: idx * 0.7,
+                                                        ease: "easeInOut"
+                                                    }}
+                                                >
+                                                    {/* Island Glow */}
+                                                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/5 blur-2xl rounded-full group-hover/island:bg-white/10 transition-colors" />
+                                                    
+                                                    <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] px-1 drop-shadow-sm">
+                                                        {category}
+                                                    </h3>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {items.map(interest => {
+                                                            const isSelected = formData.interests.includes(interest);
+                                                            return (
+                                                                <motion.button
+                                                                    key={`suggested-${interest}`}
+                                                                    type="button"
+                                                                    onClick={(e) => toggleInterest(interest, e)}
+                                                                    whileHover={{ scale: 1.05, y: -2 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    className={cn(
+                                                                        "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2 backdrop-blur-md shadow-md",
+                                                                        isSelected
+                                                                            ? 'bg-white/30 text-white border-white/40 shadow-white/10'
+                                                                            : 'bg-white/5 text-white/60 border-white/5 hover:border-white/20 hover:bg-white/10'
+                                                                    )}
+                                                                >
+                                                                    {interest}
+                                                                </motion.button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
@@ -278,6 +444,48 @@ export default function OnboardingWizard() {
                             </div>
                         )}
                     </motion.div>
+                </AnimatePresence>
+
+                {/* Hyper-drive Overlay */}
+                <AnimatePresence>
+                    {isFinishing && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[150] bg-[#030014] flex items-center justify-center overflow-hidden"
+                        >
+                            {/* Starfield */}
+                            {Array.from({ length: 50 }).map((_, i) => (
+                                <WarpStar key={i} id={i} />
+                            ))}
+                            
+                            {/* Flash effect */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ 
+                                    opacity: [0, 1, 0], 
+                                    scale: [0.5, 2, 4] 
+                                }}
+                                transition={{ duration: 1, delay: 0.2 }}
+                                className="absolute inset-0 bg-white blur-3xl rounded-full"
+                            />
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 }}
+                                className="relative z-[210] text-center"
+                            >
+                                <h2 className="text-4xl md:text-6xl font-black text-white font-fredoka tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
+                                    HYPER-DRIVE!
+                                </h2>
+                                <p className="text-purple-300 font-bold font-nunito mt-4 text-xl">
+                                    Launching your adventure...
+                                </p>
+                            </motion.div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
             </div>
         </div>
