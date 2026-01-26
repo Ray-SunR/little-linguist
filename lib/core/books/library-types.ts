@@ -1,3 +1,5 @@
+import { Book, BookImage } from '../types';
+
 /**
  * Minimal book metadata for library view display.
  * This type contains only the data needed to render book cards,
@@ -77,4 +79,30 @@ export interface BookWithCover {
         last_read_at?: string;
     };
     createdAt?: string;
+}
+
+export interface NarrationChunk {
+    id: string;
+    chunk_index: number;
+    start_word_index: number;
+    end_word_index: number;
+    audio_path: string;
+    storagePath: string;
+    timings: any[];
+}
+
+export interface BookDetail extends Book {
+    images: BookImage[] | null;
+    tokens?: any;
+    text?: string;
+    coverImageUrl?: string;
+    coverPath?: string;
+    audios?: NarrationChunk[];
+    assetTimestamps: {
+        metadata: string | null;
+        text: string | null;
+        tokens: string | null;
+        images: string | null;
+        audios: string | null;
+    };
 }
