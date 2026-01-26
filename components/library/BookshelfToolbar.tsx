@@ -4,34 +4,20 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/core";
 import {
-    Search,
-    BookOpen,
     ArrowUpDown,
     Rocket,
     Wand2,
     Heart,
-    LayoutGrid,
     Clock,
-    Cloud,
-    Scroll,
-    Gamepad2,
-    Eye,
-    Crown,
-    Leaf,
-    FlaskConical,
-    Snowflake,
-    Trophy,
     Zap,
-    Car,
-    Sparkles,
     Filter,
+    Sparkles,
     Baby,
     Microscope,
     Play,
     Flame,
     Palette,
-    X,
-    LucideIcon
+    FlaskConical
 } from "lucide-react";
 import {
     Popover,
@@ -49,65 +35,10 @@ import {
 } from "@/components/ui/sheet";
 
 import { PageToolbar } from "@/components/layout/page-toolbar";
-
-// --- Shared Constants (Move to shared file in future cleanup) ---
-const CATEGORIES = [
-    { id: "all", label: "All Stories", icon: LayoutGrid, iconClass: "text-purple-600 fill-purple-100" },
-    { id: "animals", label: "Animals", icon: Cloud, iconClass: "text-orange-500 fill-orange-100" },
-    { id: "dinosaurs", label: "Dinosaurs", icon: Sparkles, iconClass: "text-emerald-600 fill-emerald-100" },
-    { id: "fantasy", label: "Fantasy", icon: Wand2, iconClass: "text-purple-500 fill-purple-100" },
-    { id: "friendship", label: "Friendship", icon: Heart, iconClass: "text-pink-500 fill-pink-100" },
-    { id: "history", label: "History", icon: Scroll, iconClass: "text-yellow-600 fill-yellow-100" },
-    { id: "minecraft", label: "Minecraft", icon: Gamepad2, iconClass: "text-green-600/90 fill-green-100" },
-    { id: "mystery", label: "Mystery", icon: Eye, iconClass: "text-indigo-600 fill-indigo-100" },
-    { id: "mythology", label: "Mythology", icon: Crown, iconClass: "text-amber-600 fill-amber-100" },
-    { id: "nature", label: "Nature", icon: Leaf, iconClass: "text-green-500 fill-green-100" },
-    { id: "science", label: "Science", icon: FlaskConical, iconClass: "text-blue-500 fill-blue-100" },
-    { id: "seasonal", label: "Seasonal", icon: Snowflake, iconClass: "text-sky-400 fill-sky-100" },
-    { id: "space", label: "Space", icon: Rocket, iconClass: "text-indigo-500 fill-indigo-100" },
-    { id: "sports", label: "Sports", icon: Trophy, iconClass: "text-orange-500 fill-orange-100" },
-    { id: "superheroes", label: "Superheroes", icon: Zap, iconClass: "text-yellow-500 fill-yellow-100" },
-    { id: "vehicles", label: "Vehicles", icon: Car, iconClass: "text-red-500 fill-red-100" },
-];
-
-const COLLECTIONS = [
-    {
-        id: "discovery",
-        label: "Discovery",
-        icon: Sparkles,
-        theme: "from-purple-500 to-blue-500",
-        bg: "bg-purple-50",
-        text: "text-purple-600",
-        border: "border-purple-100"
-    },
-    {
-        id: "browse",
-        label: "Browse All",
-        icon: BookOpen,
-        theme: "from-blue-500 to-indigo-500",
-        bg: "bg-blue-50",
-        text: "text-blue-600",
-        border: "border-blue-100"
-    },
-    {
-        id: "my-tales",
-        label: "My Tales",
-        icon: Wand2,
-        theme: "from-rose-400 to-purple-500",
-        bg: "bg-rose-50",
-        text: "text-rose-600",
-        border: "border-rose-100"
-    },
-    {
-        id: "favorites",
-        label: "Favorites",
-        icon: Heart,
-        theme: "from-amber-400 to-rose-500",
-        bg: "bg-amber-50",
-        text: "text-amber-600",
-        border: "border-amber-100"
-    },
-] as const;
+import { CATEGORIES } from "./toolbar-constants";
+import { CollectionTabs } from "./CollectionTabs";
+import { CategoryPicker } from "./CategoryPicker";
+import { ToolbarSearch, ToolbarSearchTrigger, ToolbarExpandedSearch } from "./ToolbarSearch";
 
 interface BookshelfToolbarProps {
     searchQuery: string;
@@ -144,30 +75,10 @@ export function BookshelfToolbar({
     activeChild,
     totalStories = 0
 }: BookshelfToolbarProps) {
-    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-
-    const visibleCollections = currentUserId
-        ? COLLECTIONS
-        : COLLECTIONS.filter(c => c.id === 'discovery');
 
     const activeCollection = filters.collection || 'discovery';
     const activeCategory = filters.category || 'all';
-
-    // Find active category object for label/icon
-    const selectedCategoryObj = CATEGORIES.find(c => c.id === activeCategory) || CATEGORIES[0];
-    const CategoryIcon = selectedCategoryObj.icon;
-
-    const onCollectionChange = (id: string) => onFilterChange("collection", id);
-
-    const COLLECTION_THEMES = {
-        discovery: "bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-indigo-200/50",
-        browse: "bg-gradient-to-r from-blue-500 to-indigo-500",
-        "my-tales": "bg-gradient-to-r from-rose-400 to-purple-500",
-        favorites: "bg-gradient-to-r from-amber-400 to-pink-500"
-    };
-
-
 
     return (
         <PageToolbar
@@ -196,115 +107,19 @@ export function BookshelfToolbar({
                             {/* Tabs & Category Dropdown Wrapper */}
                             <div className="flex items-center min-w-0 gap-1.5 md:gap-2 flex-1">
                                 {/* Compact tabs */}
-                                <div className="flex items-center gap-0.5 md:gap-1 pl-1 md:pl-0">
-                                    {visibleCollections.map((col) => {
-                                        const Icon = col.icon;
-                                        const isActive = activeCollection === col.id;
-                                        const activeTheme = COLLECTION_THEMES[col.id as keyof typeof COLLECTION_THEMES];
-                                        const isMultipleTabs = visibleCollections.length > 1;
-
-                                        return (
-                                            <button
-                                                key={col.id}
-                                                onClick={() => onCollectionChange(col.id)}
-                                                className={cn(
-                                                    "relative flex items-center justify-center font-fredoka font-bold text-sm transition-all duration-300 py-2 rounded-full",
-                                                    isActive
-                                                        ? `${activeTheme} text-white shadow-lg shadow-purple-200/50 scale-105 z-10 px-3 md:px-4`
-                                                        : "text-purple-400 bg-purple-50/30 hover:text-purple-600 hover:bg-purple-50/50 px-2 md:px-3",
-                                                    !isMultipleTabs && "px-4"
-                                                )}
-                                                title={col.label}
-                                            >
-                                                <Icon className={cn("w-4 h-4 flex-shrink-0 transition-transform", isActive && "scale-110")} />
-
-                                                <AnimatePresence initial={false}>
-                                                    {(isActive || !isMultipleTabs) && (
-                                                        <motion.span
-                                                            initial={{ width: 0, opacity: 0, marginLeft: 0 }}
-                                                            animate={{ width: "auto", opacity: 1, marginLeft: 8 }}
-                                                            exit={{ width: 0, opacity: 0, marginLeft: 0 }}
-                                                            transition={{ duration: 0.3, ease: "easeOut" }}
-                                                            className="hidden lg:inline overflow-hidden whitespace-nowrap text-xs md:text-sm"
-                                                        >
-                                                            {col.label}
-                                                        </motion.span>
-                                                    )}
-                                                </AnimatePresence>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                <CollectionTabs
+                                    activeCollection={activeCollection}
+                                    onCollectionChange={(id) => onFilterChange("collection", id)}
+                                    currentUserId={currentUserId}
+                                />
 
                                 {/* Desktop Filters Group (Now includes Category) */}
                                 <div className="hidden lg:flex items-center gap-2 ml-2 border-l border-purple-100 pl-3">
                                     {/* Category Dropdown (Filter) */}
-                                    <Popover open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                                        <PopoverTrigger asChild>
-                                            <button
-                                                className={cn(
-                                                    "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold font-fredoka transition-all outline-none border active:scale-95",
-                                                    activeCategory !== 'all'
-                                                        ? "bg-purple-50 border-purple-100 text-purple-600 shadow-purple-100/30 shadow-sm"
-                                                        : "bg-purple-50/30 border-purple-100/50 text-purple-600/70 hover:bg-purple-50 hover:text-purple-600 shadow-sm"
-                                                )}
-                                            >
-                                                <CategoryIcon className={cn("w-3.5 h-3.5", activeCategory !== 'all' ? "text-purple-600" : "text-purple-400")} />
-                                                <span>
-                                                    {activeCategory === 'all' ? 'Everywhere' : selectedCategoryObj.label}
-                                                </span>
-                                            </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent
-                                            className="w-[480px] p-4 rounded-3xl border-none shadow-2xl bg-white/95 backdrop-blur-xl z-[110]"
-                                            align="start"
-                                        >
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between px-1">
-                                                    <h3 className="font-fredoka font-black text-slate-400 text-[10px] uppercase tracking-widest flex items-center gap-2">
-                                                        <Wand2 className="w-3 h-3" />
-                                                        Choose a Theme
-                                                    </h3>
-                                                    <button
-                                                        onClick={() => onFilterChange("category", "all")}
-                                                        className="text-[10px] font-black text-purple-500 hover:text-purple-600 uppercase tracking-widest px-2 py-1 rounded-lg hover:bg-purple-50 transition-colors"
-                                                    >
-                                                        Reset
-                                                    </button>
-                                                </div>
-
-                                                <div className="grid grid-cols-3 gap-2">
-                                                    {CATEGORIES.map((cat) => {
-                                                        const Icon = cat.icon;
-                                                        const isActive = activeCategory === cat.id;
-
-                                                        return (
-                                                            <button
-                                                                key={cat.id}
-                                                                onClick={() => {
-                                                                    onFilterChange("category", cat.id);
-                                                                    setIsCategoryOpen(false);
-                                                                }}
-                                                                className={cn(
-                                                                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold font-fredoka transition-all text-left group",
-                                                                    isActive
-                                                                        ? "bg-purple-600 text-white shadow-lg shadow-purple-100 ring-2 ring-purple-100"
-                                                                        : "bg-slate-50 text-slate-600 hover:bg-white hover:shadow-md hover:scale-[1.02] border border-transparent hover:border-slate-100"
-                                                                )}
-                                                            >
-                                                                <div className={cn(
-                                                                    "p-1.5 rounded-lg transition-colors bg-white/20 group-hover:scale-110 duration-300",
-                                                                )}>
-                                                                    <Icon className={cn("w-3.5 h-3.5", isActive ? "text-white" : cat.iconClass)} />
-                                                                </div>
-                                                                <span className="flex-1 truncate">{cat.label}</span>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
+                                    <CategoryPicker
+                                        activeCategory={activeCategory}
+                                        onCategoryChange={(id) => onFilterChange("category", id)}
+                                    />
 
                                     <FilterSelect
                                         value={filters.level}
@@ -319,7 +134,6 @@ export function BookshelfToolbar({
                                                 icon: Baby,
                                                 theme: "bg-rose-500 text-white shadow-rose-200",
                                                 iconColor: "text-rose-500",
-                                                // Pre-calculate hover states
                                                 hoverRx: "hover:bg-rose-50 group-hover:text-rose-500",
                                                 activeIconColor: "text-white"
                                             },
@@ -422,16 +236,10 @@ export function BookshelfToolbar({
                         {/* RIGHT: Search & Actions */}
                         <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
                             {/* Desktop Search - Hidden on small mobile */}
-                            <div className="hidden lg:block relative w-40 md:w-52 max-w-md group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => onSearchChange(e.target.value)}
-                                    placeholder="Find a story..."
-                                    className="w-full bg-purple-50/30 hover:bg-purple-50 border-none rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-sm font-fredoka focus:ring-2 focus:ring-purple-200 transition-all outline-none"
-                                />
-                            </div>
+                            <ToolbarSearch
+                                searchQuery={searchQuery}
+                                onSearchChange={onSearchChange}
+                            />
 
 
                             {/* Mobile Filters Trigger */}
@@ -710,40 +518,15 @@ export function BookshelfToolbar({
                             </div>
 
                             {/* Reordered Mobile Search Trigger */}
-                            <button
-                                onClick={() => setIsSearchExpanded(true)}
-                                className="lg:hidden p-2 rounded-xl bg-purple-50/30 border border-purple-100/50 text-purple-600/70 hover:bg-purple-50 hover:text-purple-600 transition-all active:scale-95 cursor-pointer"
-                            >
-                                <Search className="w-5 h-5" />
-                            </button>
+                            <ToolbarSearchTrigger onClick={() => setIsSearchExpanded(true)} />
                         </div>
                     </motion.div>
                 ) : (
-                    <motion.div
-                        key="search"
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
-                        className="flex items-center gap-2 w-full"
-                    >
-                        <div className="relative flex-1 group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
-                            <input
-                                autoFocus
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => onSearchChange(e.target.value)}
-                                placeholder="Search stories..."
-                                className="w-full bg-slate-50 border-2 border-transparent focus:border-purple-200 rounded-xl py-2 pl-10 pr-4 text-base font-fredoka outline-none transition-all"
-                            />
-                        </div>
-                        <button
-                            onClick={() => setIsSearchExpanded(false)}
-                            className="font-fredoka font-black text-slate-400 hover:text-slate-600 px-2 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                    </motion.div>
+                    <ToolbarExpandedSearch
+                        searchQuery={searchQuery}
+                        onSearchChange={onSearchChange}
+                        onCancel={() => setIsSearchExpanded(false)}
+                    />
                 )}
             </AnimatePresence>
         </PageToolbar>
@@ -795,34 +578,21 @@ function FilterSelect({ value, onChange, options, placeholder, icon: BaseIcon, p
                                 key={opt.value}
                                 onClick={() => onChange(isActive ? undefined : opt.value)}
                                 className={`
-                                    w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 group
-                                    ${isActive
-                                        ? `${opt.theme} shadow-lg scale-[1.02] z-10`
-                                        : `${opt.hoverRx || 'hover:bg-slate-100'} text-slate-600 hover:text-slate-900 border border-transparent`}
+                                    flex items-center gap-3 w-full px-3 py-3 rounded-xl transition-all group
+                                    ${isActive ? opt.theme : 'hover:bg-slate-50'}
                                 `}
                             >
                                 <div className={`
-                                    w-10 h-10 flex items-center justify-center rounded-xl relative transition-all duration-300
-                                    ${isActive
-                                        ? 'bg-white/20'
-                                        : `bg-slate-50 ${opt.hoverRx?.split(' ')[0] || 'hover:bg-slate-100'}`}
+                                    p-2 rounded-lg transition-colors
+                                    ${isActive ? 'bg-white/20' : `bg-slate-50 ${opt.hoverRx}`}
                                 `}>
-                                    <OptIcon className={`
-                                        w-5 h-5 relative z-10 transition-colors duration-300
-                                        ${isActive
-                                            ? (opt.activeIconColor || 'text-white')
-                                            : `text-slate-400 ${opt.hoverRx?.split(' ')[1] || 'group-hover:text-slate-600'}`}
-                                    `} />
-                                    {isActive && (
-                                        <div className={`absolute inset-0 blur-md opacity-40 ${opt.iconColor} bg-current rounded-full`} />
-                                    )}
+                                    <OptIcon className={`w-4 h-4 ${isActive ? 'text-white' : opt.iconColor}`} />
                                 </div>
-                                <span className={`font-fredoka font-bold text-[15px] transition-colors ${isActive ? 'text-white' : 'group-hover:text-slate-900'}`}>{opt.label}</span>
-                                {isActive && (
-                                    <div className="ml-auto flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                <div className="text-left">
+                                    <div className={`text-sm font-fredoka font-bold ${isActive ? 'text-white' : 'text-slate-700'}`}>
+                                        {opt.label}
                                     </div>
-                                )}
+                                </div>
                             </button>
                         );
                     })}
@@ -831,104 +601,3 @@ function FilterSelect({ value, onChange, options, placeholder, icon: BaseIcon, p
         </Popover>
     );
 }
-
-const CategoryDropdown = React.memo(function CategoryDropdown({
-    isOpen,
-    onOpenChange,
-    activeCategory,
-    onFilterChange,
-    selectedCategoryObj,
-    CategoryIcon
-}: {
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
-    activeCategory: string;
-    onFilterChange: (key: string, val: any) => void;
-    selectedCategoryObj: { id: string; label: string; iconClass: string };
-    CategoryIcon: LucideIcon;
-}) {
-    // Helper to calculate common classes
-    const containerClasses = `
-        flex items-center rounded-full border border-slate-200 bg-white transition-all shadow-sm
-        ${activeCategory !== 'all' ? 'ring-2 ring-purple-100 border-purple-200 pl-1 pr-1 gap-1' : 'hover:bg-slate-50 px-0'}
-    `;
-
-    return (
-        <Popover open={isOpen} onOpenChange={onOpenChange}>
-            {activeCategory === 'all' ? (
-                // Default State: Single Trigger Button
-                <PopoverTrigger asChild>
-                    <button
-                        data-tour-target="library-category-btn"
-                        className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 lg:px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-all font-bold font-fredoka text-slate-700 shadow-sm"
-                        aria-label="Category Filter"
-                    >
-                        <div className="flex items-center justify-center w-5 h-5 rounded-full text-slate-400 bg-slate-100">
-                            <CategoryIcon className={`w-4 h-4 ${selectedCategoryObj.iconClass}`} />
-                        </div>
-                        <span className="hidden md:inline font-fredoka font-bold text-sm truncate max-w-[120px]">
-                            {selectedCategoryObj.label}
-                        </span>
-                        <ArrowUpDown className="w-3 h-3 text-slate-300 opacity-50 hidden md:block" />
-                    </button>
-                </PopoverTrigger>
-            ) : (
-                // Active State: Split Trigger + Clear Button
-                <div className={containerClasses}>
-                    <PopoverTrigger asChild>
-                        <button
-                            className="flex items-center gap-1.5 md:gap-2 px-2 md:px-2 py-1.5 rounded-full hover:bg-slate-50 transition-all font-bold font-fredoka text-slate-700"
-                            aria-label={`Category: ${selectedCategoryObj.label}`}
-                        >
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full text-purple-700">
-                                <CategoryIcon className={`w-4 h-4 ${selectedCategoryObj.iconClass}`} />
-                            </div>
-                            <span className="hidden md:inline font-fredoka font-bold text-sm truncate max-w-[120px]">
-                                {selectedCategoryObj.label}
-                            </span>
-                        </button>
-                    </PopoverTrigger>
-
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onFilterChange("category", undefined);
-                        }}
-                        className="p-1 hover:bg-purple-100 rounded-full transition-colors text-purple-500"
-                        aria-label="Clear Category Filter"
-                        title="Clear Category"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-            <PopoverContent className="w-[90vw] max-w-[340px] p-4 rounded-[24px] shadow-xl border-2 border-purple-100" align="start">
-                <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto scrollbar-hide">
-                    {CATEGORIES.map((cat) => {
-                        const isActive = activeCategory === cat.id;
-                        const Icon = cat.icon;
-                        return (
-                            <button
-                                key={cat.id}
-                                onClick={() => {
-                                    onFilterChange("category", cat.id === 'all' ? undefined : cat.id);
-                                    onOpenChange(false);
-                                }}
-                                className={`
-                                     flex items-center gap-2.5 p-2 rounded-xl text-left transition-colors
-                                     ${isActive ? 'bg-purple-50 text-purple-700 border border-purple-100' : 'hover:bg-slate-50 text-slate-600 border border-transparent'}
-                                 `}
-                            >
-                                <div className={`p-2 rounded-lg ${isActive ? 'bg-white shadow-sm' : 'bg-slate-100'}`}>
-                                    <Icon className={`w-4 h-4 ${cat.iconClass}`} />
-                                </div>
-                                <span className="text-sm font-bold font-fredoka">{cat.label}</span>
-                            </button>
-                        )
-                    })}
-                </div>
-            </PopoverContent>
-        </Popover>
-    );
-});
