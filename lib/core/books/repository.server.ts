@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Book } from '../types';
-import { BookFilters, BookWithCover, isValidUuid } from './library-types';
+import { BookFilters, BookWithCover, isValidUuid, BookDetail } from './library-types';
 import { LibraryService } from './library-service.server';
 import { SearchService } from './search-service.server';
 import { RecommendationService } from './recommendation-service.server';
@@ -18,10 +18,6 @@ export class BookRepository {
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
-    }
-
-    static isValidUuid(id: string): boolean {
-        return isValidUuid(id);
     }
 
     async getAvailableBooks(userId?: string): Promise<Partial<Book>[]> {
@@ -59,7 +55,7 @@ export class BookRepository {
         includeMedia?: boolean,
         includeAudio?: boolean,
         userId?: string
-    } = {}): Promise<any | null> {
+    } = {}): Promise<BookDetail | null> {
         const service = new LibraryService(this.supabase);
         return service.getBookById(idOrSlug, options);
     }
