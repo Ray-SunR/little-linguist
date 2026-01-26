@@ -56,9 +56,9 @@ describe('NovaStoryService Integration', () => {
         expect(pages[0].text).toBe('Page 1');
     });
 
-    it('should generate image via Nova', async () => {
+    it('should generate image via Nova with optional parameters', async () => {
         const service = new NovaStoryService();
-        const image = await service.generateImage('A happy cat');
+        const image = await service.generateImage('A happy cat', 123, 'Custom Style', 'No dogs');
         expect(image).toBe('base64image');
     });
 

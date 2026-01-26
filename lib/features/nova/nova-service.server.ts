@@ -62,7 +62,7 @@ export class NovaStoryService {
         return JSON.parse(jsonMatch[0]);
     }
 
-    async generateImage(prompt: string, seed?: number): Promise<string> {
+    async generateImage(prompt: string, seed?: number, styleOverride?: string, negativePrompt?: string): Promise<string> {
         // Nova Canvas is primarily available in us-east-1
         const imageClient = new BedrockRuntimeClient({
             region: "us-east-1",
@@ -72,10 +72,12 @@ export class NovaStoryService {
             },
         });
 
+        const effectiveStyle = styleOverride || NovaStoryService.ART_STYLE_SUFFIX;
+
         const body: any = {
             taskType: "TEXT_IMAGE",
             textToImageParams: {
-                text: `${prompt}. Style: ${NovaStoryService.ART_STYLE_SUFFIX}`.slice(0, 1000)
+                text: `${prompt}. Style: ${effectiveStyle}`.slice(0, 1000)
             },
             imageGenerationConfig: {
                 numberOfImages: 1,
@@ -85,6 +87,10 @@ export class NovaStoryService {
                 cfgScale: 8.0,
             }
         };
+
+        if (negativePrompt) {
+            body.textToImageParams.negativeText = negativePrompt.slice(0, 1000);
+        }
 
         if (seed !== undefined) {
             body.imageGenerationConfig.seed = seed;

@@ -16,12 +16,16 @@ vi.mock('@/lib/core/books/repository.server', () => {
   const MockBookRepository = vi.fn().mockImplementation(() => ({
     saveProgress: mockSaveProgress
   }));
-  (MockBookRepository as any).isValidUuid = vi.fn().mockReturnValue(true);
   
   return {
     BookRepository: MockBookRepository
   };
 });
+
+vi.mock('@/lib/core/books/library-types', () => ({
+  isValidUuid: vi.fn().mockReturnValue(true),
+  TOKENS_PER_MINUTE: 350
+}));
 
 vi.mock('@/lib/features/activity/reward-service.server', () => ({
   RewardService: vi.fn().mockImplementation(() => ({
@@ -64,8 +68,8 @@ describe('saveBookProgressAction', () => {
   });
 
   it('should return error for invalid book ID', async () => {
-    const { BookRepository } = await import('@/lib/core/books/repository.server');
-    (BookRepository.isValidUuid as any).mockReturnValue(false);
+    const { isValidUuid } = await import('@/lib/core/books/library-types');
+    (isValidUuid as any).mockReturnValue(false);
 
     const payload = {
       childId: 'child-123',
