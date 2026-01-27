@@ -1,4 +1,4 @@
-import { Sun, MousePointer2, BookOpen, ScrollText, Star, Wand2, Maximize2, Minimize2, Languages } from "lucide-react";
+import { Sun, MousePointer2, BookOpen, ScrollText, Star, Wand2, Maximize2, Minimize2, Languages, BookMarked, Heart } from "lucide-react";
 import Link from "next/link";
 import type { ViewMode } from "@/lib/core";
 import type { SpeedOption } from "@/lib/features/narration/internal/speed-options";
@@ -13,6 +13,9 @@ type ControlPanelProps = {
     isMaximized: boolean;
     onToggleMaximized: () => void;
     isDisabled?: boolean;
+    isFavorite?: boolean;
+    onToggleFavorite?: () => void;
+    onOpenSavedWords?: () => void;
 };
 
 export default function ControlPanel({
@@ -25,6 +28,9 @@ export default function ControlPanel({
     isMaximized,
     onToggleMaximized,
     isDisabled = false,
+    isFavorite = false,
+    onToggleFavorite,
+    onOpenSavedWords,
 }: ControlPanelProps) {
     const speedOptions: { speed: SpeedOption; label: string; emoji: string }[] = [
         { speed: 0.75, label: "HIKE", emoji: "🐢" },
@@ -135,6 +141,31 @@ export default function ControlPanel({
 
             {/* Mobile-only secondary actions */}
             <div className="mt-6 pt-6 border-t border-purple-100 dark:border-white/10 flex flex-col gap-3 sm:hidden">
+                <button
+                    onClick={onOpenSavedWords}
+                    disabled={isDisabled}
+                    className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-200 dark:border-amber-800/30 text-ink dark:text-white font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                        <BookMarked className="w-4 h-4 text-white" />
+                    </div>
+                    MY MAGIC WORDS
+                </button>
+
+                <button
+                    onClick={onToggleFavorite}
+                    disabled={isDisabled}
+                    className={`flex items-center gap-3 w-full p-4 rounded-2xl border-2 transition-all active:scale-[0.98] disabled:opacity-50 font-bold ${isFavorite
+                        ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white border-pink-400 shadow-md"
+                        : "bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/20 dark:to-slate-900/20 border-slate-200 dark:border-slate-800/30 text-ink dark:text-white"
+                        }`}
+                >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md ${isFavorite ? "bg-white/20" : "bg-gradient-to-br from-pink-400 to-rose-500"}`}>
+                        <Heart className={`w-4 h-4 ${isFavorite ? "fill-white text-white" : "text-white"}`} />
+                    </div>
+                    {isFavorite ? "SAVED TO FAVORITES" : "ADD TO FAVORITES"}
+                </button>
+
                 <Link
                     href="/my-words"
                     className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-2 border-indigo-200 dark:border-indigo-800/30 text-ink dark:text-white font-bold transition-all active:scale-[0.98]"

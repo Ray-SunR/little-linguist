@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useWordList } from "@/lib/features/word-insight";
 import { BookMarked, BookOpen, Trash2 } from "lucide-react";
@@ -15,14 +15,28 @@ interface SavedWordsPanelProps {
 
 export function SavedWordsPanel({ isOpen, onOpenChange, onWordClick }: SavedWordsPanelProps) {
   const { words, removeWord, isLoading } = useWordList();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent 
-        side="right" 
-        className="w-full sm:max-w-md p-0 border-l-4 border-purple-100 bg-white/95 backdrop-blur-xl z-[300] flex flex-col"
+        side={isMobile ? "bottom" : "right"} 
+        className={cn(
+          "p-0 border-purple-100 bg-white/95 backdrop-blur-xl z-[300] flex flex-col",
+          isMobile ? "h-[80dvh] rounded-t-[2.5rem] border-t-4" : "w-full sm:max-w-md border-l-4"
+        )}
       >
-        <SheetHeader className="p-6 bg-gradient-to-br from-purple-500 to-indigo-600 text-white shrink-0">
+        <SheetHeader className={cn(
+          "p-6 bg-gradient-to-br from-purple-500 to-indigo-600 text-white shrink-0",
+          isMobile && "rounded-t-[2.2rem]"
+        )}>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
               <BookMarked className="h-6 w-6 fill-white" />
@@ -57,7 +71,7 @@ export function SavedWordsPanel({ isOpen, onOpenChange, onWordClick }: SavedWord
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 pb-8">
               <AnimatePresence mode="popLayout">
                 {words.map((item: any) => (
                   <motion.div

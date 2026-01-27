@@ -1,8 +1,8 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { SavedWordsPanel } from "../saved-words-panel";
 import { useWordList } from "@/lib/features/word-insight";
-import { vi, describe, it, expect } from "vitest";
+import { vi, describe, it, expect, afterEach } from "vitest";
 
 vi.mock("@/lib/features/word-insight", () => ({
   useWordList: vi.fn(),
@@ -18,6 +18,10 @@ vi.mock("@/components/ui/sheet", () => ({
 }));
 
 describe("SavedWordsPanel", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("renders 'No words yet!' when list is empty", () => {
     (useWordList as any).mockReturnValue({
       words: [],
@@ -40,7 +44,7 @@ describe("SavedWordsPanel", () => {
     });
 
     render(<SavedWordsPanel isOpen={true} onOpenChange={() => {}} onWordClick={() => {}} />);
-    expect(screen.getByText("magic")).toBeDefined();
+    expect(screen.getAllByText("magic")[0]).toBeDefined();
     expect(screen.getByText("wonder")).toBeDefined();
   });
 
@@ -53,7 +57,7 @@ describe("SavedWordsPanel", () => {
     });
 
     render(<SavedWordsPanel isOpen={true} onOpenChange={() => {}} onWordClick={onWordClick} />);
-    fireEvent.click(screen.getByText("magic"));
+    fireEvent.click(screen.getAllByText("magic")[0]);
     expect(onWordClick).toHaveBeenCalledWith("magic");
   });
 });

@@ -450,7 +450,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                         type="button"
                         onClick={() => setIsSavedWordsOpen(true)}
                         disabled={isEmpty}
-                        className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-amber-500 shadow-md hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 flex-shrink-0 border border-amber-100 dark:border-transparent"
+                        className="hidden md:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-amber-500 shadow-md hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 flex-shrink-0 border border-amber-100 dark:border-transparent"
                         aria-label="View saved words"
                         title="My Saved Words"
                     >
@@ -462,7 +462,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                         onClick={toggleFavorite}
                         disabled={isEmpty || !childId || !selectedBookId}
                         className={cn(
-                            "inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border disabled:opacity-50",
+                            "hidden md:inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all flex-shrink-0 border disabled:opacity-50",
                             isFavorite
                                 ? "bg-pink-500 border-pink-400 text-white"
                                 : "bg-white/80 dark:bg-card text-slate-400 border-purple-100 dark:border-transparent"
@@ -561,6 +561,9 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                             isMaximized={isMaximized}
                             onToggleMaximized={toggleMaximized}
                             isDisabled={isEmpty || isPreparing}
+                            isFavorite={isFavorite}
+                            onToggleFavorite={toggleFavorite}
+                            onOpenSavedWords={() => setIsSavedWordsOpen(true)}
                         />
                     </div>
                 )}
