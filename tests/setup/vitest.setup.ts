@@ -7,12 +7,6 @@ import fs from 'fs';
 const envPath = path.resolve(process.cwd(), '.env.development.local');
 if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
-} else {
-  // Fallback to .env.local
-  const localEnvPath = path.resolve(process.cwd(), '.env.local');
-  if (fs.existsSync(localEnvPath)) {
-    dotenv.config({ path: localEnvPath });
-  }
 }
 
 // Suppress "Multiple GoTrueClient instances detected" warning
