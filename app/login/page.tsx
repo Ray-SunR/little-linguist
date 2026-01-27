@@ -18,17 +18,21 @@ import { AuthFormFields } from './components/AuthFormFields'
 const MagicBackground = memo(() => {
     return (
         <div className="absolute inset-0 pointer-events-none overflow-hidden bg-shell dark:bg-[#05060f]">
-            {/* Pro Max Aurora Effects */}
+            {/* Noise Texture Sync */}
+            <div className="absolute inset-0 opacity-20 bg-noise z-0 mix-blend-soft-light" />
+            
+            {/* Pro Max Aurora Effects - Synced with Landing Page */}
             <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[120vw] h-[120vw] bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent blur-[120px] animate-aurora rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[100vw] h-[100vw] bg-gradient-to-tl from-cta/15 via-purple-400/10 to-transparent blur-[100px] animate-aurora rounded-full" style={{ animationDirection: 'reverse', animationDuration: '45s' }} />
+                <div className="absolute -top-[20%] -left-[10%] w-[70vh] h-[70vh] bg-gradient-to-br from-purple-300/40 to-indigo-300/40 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: "8s" }} />
+                <div className="absolute top-[10%] right-[0%] w-[60vh] h-[60vh] bg-gradient-to-bl from-amber-200/40 to-orange-200/40 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "-3s", animationDuration: "10s" }} />
+                <div className="absolute -bottom-[20%] left-[20%] w-[50vh] h-[50vh] bg-gradient-to-t from-blue-300/30 to-cyan-200/30 rounded-full blur-[90px] animate-pulse" style={{ animationDelay: "-5s", animationDuration: "12s" }} />
             </div>
 
-            {/* Mesh Gradients / Blobs */}
+            {/* Mesh Gradients / Blobs with will-change-transform */}
             <div className="absolute inset-0 opacity-40 dark:opacity-20 pointer-events-none">
-                <div className="absolute top-[20%] left-[10%] w-96 h-96 bg-purple-400 blur-3xl animate-blob-slow rounded-full mix-blend-multiply dark:mix-blend-lighten" />
-                <div className="absolute top-[30%] right-[10%] w-80 h-80 bg-blue-300 blur-3xl animate-blob-reverse rounded-full mix-blend-multiply dark:mix-blend-lighten" />
-                <div className="absolute bottom-[20%] left-[20%] w-72 h-72 bg-pink-200 blur-3xl animate-blob-pulse rounded-full mix-blend-multiply dark:mix-blend-lighten" />
+                <div className="absolute top-[20%] left-[10%] w-96 h-96 bg-purple-400 blur-3xl animate-blob-slow rounded-full mix-blend-multiply dark:mix-blend-lighten will-change-transform" />
+                <div className="absolute top-[30%] right-[10%] w-80 h-80 bg-blue-300 blur-3xl animate-blob-reverse rounded-full mix-blend-multiply dark:mix-blend-lighten will-change-transform" />
+                <div className="absolute bottom-[20%] left-[20%] w-72 h-72 bg-pink-200 blur-3xl animate-blob-pulse rounded-full mix-blend-multiply dark:mix-blend-lighten will-change-transform" />
             </div>
 
             {/* Reactive Rim Light (Global) */}
@@ -227,9 +231,9 @@ function LoginForm() {
                 setSuccess(result.success)
                 setLoading(null)
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Next.js redirect() throws an error that should not be caught if we want it to work
-            if (err?.digest?.includes('NEXT_REDIRECT')) {
+            if (err instanceof Error && (err as any).digest?.includes('NEXT_REDIRECT')) {
                 throw err;
             }
             setError('The portal is unstable. Please try again.')
