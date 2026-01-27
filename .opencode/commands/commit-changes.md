@@ -6,7 +6,7 @@ Follow these steps to safely commit your progress:
 
 1. **Safety Check**: Run the automated full testing script.
    - Run: `npm run test:full`
-   - You can use `./scripts/full-test.sh --skip-build` or pass arguments via npm: `npm run test:full -- --skip-build` to skip the production build if it was recently run and you haven't touched server-side code.
+   - You can use `./scripts/full-test.sh --skip-build` or pass arguments via npm: `npm run test:full -- --skip-build` to skip the production build ONLY if you have successfully built the project in this session, the `.next` directory exists, and you haven't touched server-side code. If in doubt, DO NOT skip the build.
    - **Verification Required**: You MUST wait for the script to finish and then:
      - Check the last 50 lines of output for the final test summary (ensure "0 failed").
      - Search the FULL output (especially if truncated) for "FAIL" or "Error".
