@@ -134,6 +134,10 @@ function LoginForm() {
 
     useEffect(() => {
         setMounted(true)
+        
+        // Performance: Only track mouse on web
+        if (Capacitor.getPlatform() !== 'web') return
+
         const handleMouseMove = (e: MouseEvent) => {
             // Update CSS variables for rim light
             if (cardRef.current) {
