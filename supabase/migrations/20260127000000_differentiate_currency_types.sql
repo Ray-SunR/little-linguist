@@ -168,3 +168,125 @@ BEGIN
   RETURN v_result;
 END;
 $$;
+
+-- Update increment_batch_feature_usage to explicitly set transaction_type to 'credit'
+CREATE OR REPLACE FUNCTION public.increment_batch_feature_usage(
+    p_identity_key TEXT,
+    p_updates JSONB,
+    p_owner_user_id UUID DEFAULT NULL
+)
+RETURNS TABLE (
+    success BOOLEAN,
+    error_message TEXT
+) 
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_update JSONB;
+    v_feature_name TEXT;
+    v_increment INTEGER;
+    v_max_limit INTEGER;
+    v_current INTEGER;
+    v_limit INTEGER;
+    v_child_id UUID;
+    v_metadata JSONB;
+    v_entity_id TEXT;
+    v_entity_type TEXT;
+    v_idempotency_key TEXT;
+BEGIN
+    PERFORM 1 
+    FROM public.feature_usage 
+    WHERE identity_key = p_identity_key 
+      AND feature_name IN (
+          SELECT (value->>'feature_name') 
+          FROM jsonb_array_elements(p_updates)
+      )
+    FOR UPDATE;
+
+    FOR v_update IN SELECT * FROM jsonb_array_elements(p_updates)
+    LOOP
+        v_feature_name := v_update->>'feature_name';
+        v_increment := (v_update->>'increment')::INTEGER;
+        v_max_limit := (v_update->>'max_limit')::INTEGER;
+
+        SELECT current_usage, max_limit 
+        INTO v_current, v_limit
+        FROM public.feature_usage
+        WHERE identity_key = p_identity_key AND feature_name = v_feature_name;
+
+        IF NOT FOUND THEN
+            v_current := 0;
+            v_limit := v_max_limit;
+        ELSE
+            v_limit := v_max_limit; 
+        END IF;
+
+        IF v_increment > 0 AND (v_current + v_increment) > v_limit THEN
+            RETURN QUERY SELECT FALSE, 'LIMIT_REACHED: ' || v_feature_name;
+            RETURN;
+        END IF;
+    END LOOP;
+
+    FOR v_update IN SELECT * FROM jsonb_array_elements(p_updates)
+    LOOP
+        v_feature_name := v_update->>'feature_name';
+        v_increment := (v_update->>'increment')::INTEGER;
+        v_max_limit := (v_update->>'max_limit')::INTEGER;
+        v_child_id := (v_update->>'child_id')::UUID;
+        v_metadata := (v_update->>'metadata')::JSONB;
+        v_entity_id := v_update->>'entity_id';
+        v_entity_type := v_update->>'entity_type';
+        v_idempotency_key := v_update->>'idempotency_key';
+        
+        INSERT INTO public.feature_usage (
+            owner_user_id, 
+            identity_key, 
+            feature_name, 
+            current_usage, 
+            max_limit,
+            updated_at
+        ) VALUES (
+            p_owner_user_id,
+            p_identity_key,
+            v_feature_name,
+            GREATEST(0, v_increment),
+            v_max_limit,
+            now()
+        )
+        ON CONFLICT (identity_key, feature_name) 
+        DO UPDATE SET
+            current_usage = GREATEST(0, feature_usage.current_usage + v_increment),
+            max_limit = v_max_limit,
+            updated_at = now();
+            
+        IF v_increment != 0 AND p_owner_user_id IS NOT NULL THEN
+            INSERT INTO public.point_transactions (
+                owner_user_id,
+                child_id,
+                amount,
+                reason,
+                metadata,
+                entity_id,
+                entity_type,
+                idempotency_key,
+                transaction_type -- Explicitly set type
+            ) VALUES (
+                p_owner_user_id,
+                v_child_id,
+                -1 * v_increment,
+                v_feature_name,
+                COALESCE(v_metadata, '{}'::jsonb),
+                v_entity_id,
+                v_entity_type,
+                v_idempotency_key,
+                'credit' -- Usage/spending is always 'credit'
+            )
+            ON CONFLICT (child_id, idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING;
+        END IF;
+    END LOOP;
+
+    RETURN QUERY SELECT TRUE, NULL::TEXT;
+END;
+$$;
