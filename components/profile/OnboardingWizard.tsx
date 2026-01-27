@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createChildProfile } from '@/app/actions/profiles';
 import { ChevronRight, ChevronLeft, Check, Star, Search, Shield, Crown, Rocket, PawPrint, Microscope, Leaf, Sparkles } from 'lucide-react';
@@ -35,7 +36,6 @@ const ShootingStar = ({
     endY: number; 
     onComplete: () => void 
 }) => {
-    // Calculate angle for the trail
     const angle = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
     
     return (
@@ -55,11 +55,8 @@ const ShootingStar = ({
             className="fixed top-0 left-0 pointer-events-none z-[100] -translate-x-1/2 -translate-y-1/2"
         >
             <div className="relative flex items-center">
-                {/* Glow */}
                 <div className="absolute inset-0 w-4 h-4 -translate-x-1/2 -translate-y-1/2 bg-purple-400 blur-md rounded-full" />
-                {/* Star Head */}
                 <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,1)] relative z-10" />
-                {/* Star Trail */}
                 <motion.div 
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: [0, 60, 0], opacity: [0, 1, 0] }}
@@ -169,7 +166,6 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
             return;
         }
 
-        // Signal finishing state early to block parent redirects
         setIsFinishing(true);
         onFinishing?.(true);
 
@@ -189,10 +185,8 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                 throw new Error(result?.error || 'Failed to create profile');
             }
 
-            // Refresh profiles in the background
             await refreshProfiles();
             
-            // Wait for hyper-drive transition animation
             setTimeout(() => {
                 router.push('/dashboard');
             }, 1500);
@@ -237,7 +231,6 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
             className="w-full max-w-2xl mx-auto px-1 sm:px-0 flex items-center justify-center h-full"
             data-test-status="ready"
         >
-            {/* Hyper-drive Overlay (Moved outside for true full-screen) */}
             <AnimatePresence>
                 {isFinishing && (
                     <motion.div
@@ -247,12 +240,10 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                         data-testid="hyper-drive-overlay"
                         className="fixed inset-0 z-[300] bg-[#8B4BFF] flex items-center justify-center overflow-hidden"
                     >
-                        {/* Starfield */}
                         {Array.from({ length: 50 }).map((_, i) => (
                             <WarpStar key={i} id={i} />
                         ))}
                         
-                        {/* Flash effect */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.5 }}
                             animate={{ 
@@ -280,10 +271,12 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                 )}
             </AnimatePresence>
 
-            <div className="clay-card p-3 sm:p-4 rounded-[2.5rem] md:rounded-[3rem] border-4 border-white shadow-clay-lg relative overflow-hidden h-[540px] w-full flex flex-col">
+            <div className="bg-white p-4 sm:p-6 rounded-[3rem] border-4 border-purple-50 shadow-clay-lg relative overflow-hidden h-[540px] w-full flex flex-col transition-colors duration-500">
                 
-                {/* Progress Bar */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-purple-100/50">
+                <div className="absolute -top-24 -left-24 w-64 h-64 bg-purple-100/30 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-purple-50">
                     <motion.div
                         className="h-full bg-gradient-to-r from-purple-400 to-pink-400"
                         initial={{ width: '0%' }}
@@ -303,33 +296,31 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                         className="flex-grow flex flex-col items-center justify-center w-full overflow-hidden"
                     >
                         {step === 'identity' && (
-                                <HeroIdentityForm
-                                    initialData={{
-                                        firstName: formData.firstName,
-                                        birthYear: formData.birthYear,
-                                        gender: formData.gender,
-                                        avatarPreview: avatarPreview,
-                                        avatarStoragePath: formData.avatar_asset_path
-                                    }}
-                                    onComplete={(data: HeroIdentity) => {
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            firstName: data.firstName,
-                                            birthYear: data.birthYear,
-                                            gender: data.gender,
-                                            avatar_asset_path: data.avatarStoragePath || ''
-                                        }));
-                                        setAvatarPreview(data.avatarPreview);
-                                        nextStep('interests');
-                                    }}
-                                    mode="onboarding"
-                                />
-
+                            <HeroIdentityForm
+                                initialData={{
+                                    firstName: formData.firstName,
+                                    birthYear: formData.birthYear,
+                                    gender: formData.gender,
+                                    avatarPreview: avatarPreview,
+                                    avatarStoragePath: formData.avatar_asset_path
+                                }}
+                                onComplete={(data: HeroIdentity) => {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        firstName: data.firstName,
+                                        birthYear: data.birthYear,
+                                        gender: data.gender,
+                                        avatar_asset_path: data.avatarStoragePath || ''
+                                    }));
+                                    setAvatarPreview(data.avatarPreview);
+                                    nextStep('interests');
+                                }}
+                                mode="onboarding"
+                            />
                         )}
 
                         {step === 'interests' && (
                             <div className="w-full h-full flex flex-col items-center relative z-10">
-                                {/* Shooting Stars Container */}
                                 <div className="fixed inset-0 pointer-events-none z-[5]">
                                     {stars.map(star => (
                                         <ShootingStar
@@ -359,7 +350,7 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
 
                                 {/* Claymorphic Search Bar */}
                                 <div className="relative w-full max-w-lg group mb-8">
-                                    <div className="absolute inset-0 bg-purple-100 rounded-2xl translate-y-1.5 translate-x-1 group-focus-within:translate-y-1 transition-transform" />
+                                    <div className="absolute inset-0 bg-purple-100 rounded-2xl translate-y-1 translate-x-0.5 group-focus-within:translate-y-0.5 transition-transform" />
                                     <div className="relative flex items-center bg-white border-2 border-purple-200 rounded-2xl px-5 py-3 shadow-clay-sm group-focus-within:border-purple-400 transition-all">
                                         <Search className="w-5 h-5 text-purple-400 mr-3" />
                                         <input
@@ -381,8 +372,11 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                     </div>
                                 </div>
 
-                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar w-full">
-                                    <div className="flex flex-wrap justify-center gap-3 pb-8">
+                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar w-full text-center">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 block mb-4">
+                                        Popular Picks
+                                    </label>
+                                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 pb-8">
                                         {POPULAR_PICKS.map((pick) => {
                                             const isSelected = formData.interests.includes(pick.name);
                                             return (
@@ -393,19 +387,38 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                                     whileHover={{ scale: 1.05, y: -2 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     className={cn(
-                                                        "flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4",
+                                                        "flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4",
                                                         isSelected
                                                             ? "bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
                                                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-clay-sm"
                                                     )}
                                                 >
-                                                    <pick.icon className={cn("w-4 h-4", isSelected ? "text-white" : pick.color)} />
-                                                    {pick.name}
+                                                    <AnimatePresence mode="wait">
+                                                        {isSelected ? (
+                                                            <motion.div
+                                                                key="check"
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0, opacity: 0 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        ) : (
+                                                            <motion.div
+                                                                key="icon"
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0, opacity: 0 }}
+                                                            >
+                                                                <pick.icon className={cn("w-4 h-4", pick.color)} />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                    <span>{pick.name}</span>
                                                 </motion.button>
                                             );
                                         })}
 
-                                        {/* Custom Selections */}
                                         {formData.interests.filter(i => !POPULAR_PICKS.some(p => p.name === i)).map(interest => (
                                             <motion.button
                                                 key={interest}
@@ -413,9 +426,9 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                                 onClick={(e) => toggleInterest(interest, e)}
                                                 initial={{ scale: 0, opacity: 0 }}
                                                 animate={{ scale: 1, opacity: 1 }}
-                                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4 bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                                className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4 bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
                                             >
-                                                <Sparkles className="w-4 h-4 text-white" />
+                                                <Check className="w-4 h-4 text-white" />
                                                 {interest}
                                                 <span className="ml-1 opacity-50">×</span>
                                             </motion.button>
@@ -423,8 +436,8 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-4 pt-4 border-t border-purple-50 w-full mt-auto">
-                                    <button onClick={() => prevStep('identity')} className="h-12 px-8 flex items-center gap-2 text-ink/60 font-bold hover:text-ink transition-colors">
+                                <div className="flex items-center justify-center gap-4 pt-4 pb-6 sm:pb-0 border-t border-purple-50 w-full mt-auto">
+                                    <button onClick={() => prevStep('identity')} className="h-12 px-8 flex items-center gap-2 text-ink/60 font-bold hover:text-ink transition-colors text-sm sm:text-base">
                                         <ChevronLeft className="w-5 h-5" /> Back
                                     </button>
                                     <motion.button
@@ -432,7 +445,7 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                         onClick={handleFinish}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="h-12 px-10 rounded-full bg-blue-500 hover:bg-blue-400 text-white text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-2 shadow-clay-blue transition-all"
+                                        className="h-12 px-6 sm:px-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-2 shadow-clay-blue transition-all whitespace-nowrap"
                                     >
                                         Finish! ✨ <ChevronRight className="w-5 h-5" />
                                     </motion.button>

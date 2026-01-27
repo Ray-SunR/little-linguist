@@ -334,7 +334,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
                                 {/* Claymorphic Search Bar */}
                                 <div className="relative w-full max-w-lg group mb-8">
-                                    <div className="absolute inset-0 bg-purple-100 rounded-2xl translate-y-1.5 translate-x-1 group-focus-within:translate-y-1 transition-transform" />
+                                    <div className="absolute inset-0 bg-purple-100 rounded-2xl translate-y-1 translate-x-0.5 group-focus-within:translate-y-0.5 transition-transform" />
                                     <div className="relative flex items-center bg-white border-2 border-purple-200 rounded-2xl px-5 py-3 shadow-clay-sm group-focus-within:border-purple-400 transition-all">
                                         <Search className="w-5 h-5 text-purple-400 mr-3" />
                                         <input
@@ -357,7 +357,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                 </div>
 
                                 <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar w-full">
-                                    <div className="flex flex-wrap justify-center gap-3 pb-8">
+                                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 pb-8">
                                         {POPULAR_PICKS.map((pick) => {
                                             const isSelected = formData.interests.includes(pick.name);
                                             return (
@@ -368,14 +368,34 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                                     whileHover={{ scale: 1.05, y: -2 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     className={cn(
-                                                        "flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4",
+                                                        "flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4",
                                                         isSelected
                                                             ? "bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
                                                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-clay-sm"
                                                     )}
                                                 >
-                                                    <pick.icon className={cn("w-4 h-4", isSelected ? "text-white" : pick.color)} />
-                                                    {pick.name}
+                                                    <AnimatePresence mode="wait">
+                                                        {isSelected ? (
+                                                            <motion.div
+                                                                key="check"
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0, opacity: 0 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        ) : (
+                                                            <motion.div
+                                                                key="icon"
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0, opacity: 0 }}
+                                                            >
+                                                                <pick.icon className={cn("w-4 h-4", pick.color)} />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                    <span>{pick.name}</span>
                                                 </motion.button>
                                             );
                                         })}
@@ -388,9 +408,9 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                                 onClick={() => toggleInterest(interest)}
                                                 initial={{ scale: 0, opacity: 0 }}
                                                 animate={{ scale: 1, opacity: 1 }}
-                                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4 bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                                className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4 bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
                                             >
-                                                <Sparkles className="w-4 h-4 text-white" />
+                                                <Check className="w-4 h-4 text-white" />
                                                 {interest}
                                                 <span className="ml-1 opacity-50">×</span>
                                             </motion.button>
@@ -407,7 +427,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         data-testid="onboarding-finish"
-                                        className="h-12 px-10 rounded-full bg-blue-500 hover:bg-blue-400 text-white text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-2 shadow-clay-blue transition-all"
+                                        className="h-12 px-10 rounded-full bg-blue-500 hover:bg-blue-400 text-white text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-2 shadow-clay-blue transition-all whitespace-nowrap"
                                     >
                                         {mode === 'onboarding' ? "Finish! ✨" : "Continue"} <ChevronRight className="w-5 h-5" />
                                     </motion.button>

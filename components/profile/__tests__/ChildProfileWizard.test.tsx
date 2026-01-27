@@ -62,63 +62,26 @@ describe('ChildProfileWizard', () => {
     });
 
     it('maps payload fields correctly when finishing onboarding mode', async () => {
-        (createChildProfile as any).mockResolvedValue({ success: true, data: { id: 'profile-123' } });
-
         render(<ChildProfileWizard mode="onboarding" />);
 
-        // Fill out identity (we can skip steps by calling internal setters if we had access, 
-        // but we'll use fireEvent on the rendered components)
-        
-        // 1. Name
-        fireEvent.change(screen.getByPlaceholderText(/Leo, Mia, Sam/i), { target: { value: 'Skywalker' } });
-        fireEvent.click(screen.getByTestId('identity-continue-name'));
+        // Wait for interests step (HeroIdentityForm mock completes immediately)
+        expect(await screen.findByText(/Stories They'll/i)).toBeTruthy();
 
-        // 2. Age
-        fireEvent.click(screen.getByTestId('identity-continue-age'));
+        // Select an interest (e.g. Magic)
+        const interest = screen.getByText('Magic');
+        fireEvent.click(interest);
 
-        // 3. Gender
-        fireEvent.click(screen.getByTestId('gender-button-boy'));
-        fireEvent.click(screen.getByTestId('identity-continue-gender'));
-
-        // 4. Avatar (Skip)
-        fireEvent.click(screen.getByText(/Skip/i));
-
-        // 5. Interests
-        await waitFor(() => {
-            expect(screen.getByText(/Stories They'll/i)).toBeTruthy();
-        }, { timeout: 3000 });
-        
-        // Wait for buttons to be ready
-        const magicBtn = await screen.findByRole('button', { name: /Magic/i }, { timeout: 3000 });
-        fireEvent.click(magicBtn);
-        
-        // Click Finish
-        const finishButton = screen.getByTestId('onboarding-finish');
-        fireEvent.click(finishButton);
-
-        // Verify completion with correct field names
-        await waitFor(() => {
-            expect(createChildProfile).toHaveBeenCalledWith(expect.objectContaining({
-                first_name: 'Skywalker',
-                birth_year: expect.any(Number),
-                gender: 'boy',
-                interests: ['Magic']
-            }));
-        });
-
-        fireEvent.click(screen.getByText(/Magic/i));
-        
         // Click Finish
         const finishBtn = screen.getByTestId('onboarding-finish');
         fireEvent.click(finishBtn);
 
-        // Verify completion with correct field names
         await waitFor(() => {
             expect(createChildProfile).toHaveBeenCalledWith(expect.objectContaining({
                 first_name: 'Skywalker',
                 birth_year: expect.any(Number),
                 gender: 'boy',
-                interests: ['Magic']
+                interests: ['Magic'],
+                avatar_asset_path: ''
             }));
         });
     });
