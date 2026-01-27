@@ -70,7 +70,11 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
         setStep(prev);
     }
 
+    const [showPoof, setShowPoof] = useState(false);
+
     function toggleInterest(interest: string): void {
+        setShowPoof(true);
+        setTimeout(() => setShowPoof(false), 500);
         setFormData(prev => ({
             ...prev,
             interests: prev.interests.includes(interest)
@@ -243,6 +247,34 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                         animate={{ width: progressPercentage() }}
                     />
                 </div>
+
+                <AnimatePresence>
+                    {showPoof && (
+                        <motion.div
+                            data-testid="poof-animation"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1.5 }}
+                            exit={{ opacity: 0, scale: 2 }}
+                            className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center"
+                        >
+                            <div className="relative">
+                                {[...Array(8)].map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ x: 0, y: 0 }}
+                                        animate={{ 
+                                            x: Math.cos(i * 45 * Math.PI / 180) * 100,
+                                            y: Math.sin(i * 45 * Math.PI / 180) * 100,
+                                            opacity: 0
+                                        }}
+                                        transition={{ duration: 0.5 }}
+                                        className="absolute w-2 h-2 bg-indigo-400 rounded-full shadow-[0_0_10px_indigo]"
+                                    />
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <AnimatePresence mode="wait" custom={1}>
                     <motion.div
