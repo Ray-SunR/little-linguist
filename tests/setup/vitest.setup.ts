@@ -1,4 +1,19 @@
 import { vi } from 'vitest';
+import * as dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+
+// Load environment variables for tests
+const envPath = path.resolve(process.cwd(), '.env.development.local');
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else {
+  // Fallback to .env.local
+  const localEnvPath = path.resolve(process.cwd(), '.env.local');
+  if (fs.existsSync(localEnvPath)) {
+    dotenv.config({ path: localEnvPath });
+  }
+}
 
 // Suppress "Multiple GoTrueClient instances detected" warning
 // This warning occurs because we create multiple Supabase clients in tests (one per test or suite)
