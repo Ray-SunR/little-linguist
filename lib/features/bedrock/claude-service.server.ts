@@ -27,7 +27,7 @@ export class ClaudeStoryService {
                     content: [
                         {
                             type: "text",
-                            text: prompt
+                            text: prompt + "\n\nCRITICAL: YOUR ENTIRE RESPONSE MUST BE A VALID JSON ARRAY OF OBJECTS. NO MARKDOWN, NO INTRO, NO OUTRO, NO BACKTICKS. START WITH [ AND END WITH ]."
                         }
                     ]
                 }

@@ -46,6 +46,45 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 const embeddingService = new BedrockEmbeddingService();
 
+function validateBookIntegrity(bookDir: string, metadata: any): boolean {
+    const missing: string[] = [];
+
+    // 1. Critical Files
+    if (!fs.existsSync(path.join(bookDir, "content.txt"))) missing.push("content.txt");
+    if (!fs.existsSync(path.join(bookDir, "timing_tokens.json"))) missing.push("timing_tokens.json");
+    
+    let hasCover = fs.existsSync(path.join(bookDir, "cover.webp"));
+    if (!hasCover) hasCover = fs.existsSync(path.join(bookDir, "cover.png"));
+    if (!hasCover) missing.push("cover image");
+
+    // 2. Scene Images
+    if (Array.isArray(metadata.scenes)) {
+        for (const scene of metadata.scenes) {
+            const webp = path.join(bookDir, `scenes/scene_${scene.index}.webp`);
+            const png = path.join(bookDir, `scenes/scene_${scene.index}.png`);
+            if (!fs.existsSync(webp) && !fs.existsSync(png)) {
+                missing.push(`scene_${scene.index}`);
+            }
+        }
+    }
+
+    // 3. Audio Shards
+    if (metadata.audio && Array.isArray(metadata.audio.shards)) {
+        for (const shard of metadata.audio.shards) {
+            const audioPath = path.join(bookDir, shard.path);
+            if (!fs.existsSync(audioPath)) {
+                missing.push(`audio shard ${shard.index}`);
+            }
+        }
+    }
+
+    if (missing.length > 0) {
+        console.warn(`  ⚠️ Skipping incomplete book "${metadata.title}": Missing [${missing.join(', ')}]`);
+        return false;
+    }
+    return true;
+}
+
 async function seedInfrastructure() {
     console.log("\n🏗️ Seeding infrastructure data...");
     
@@ -122,6 +161,9 @@ async function seedBook(relPath: string) {
 
     const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
     const bookKey = metadata.id || relPath.split(path.sep).pop();
+
+    // Verify integrity before DB checks
+    if (!validateBookIntegrity(bookDir, metadata)) return;
 
     const { data: existingBook, error: fetchError } = await supabase
         .from("books")

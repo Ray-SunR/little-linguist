@@ -10,7 +10,9 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       "**/e2e/**",
-      "**/playwright-report/**"
+      "**/playwright-report/**",
+      "**/.worktrees/**",
+      "**/.worktree/**"
     ],
     coverage: {
       provider: 'v8',

@@ -78,34 +78,7 @@ export default function WordInspectorTooltip({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  // Handle Back Button (History API) to dismiss popover
-  // We use a ref for onClose to avoid re-triggering the effect if the handler changes
-  const onCloseRef = useRef(onClose);
-  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Push a new state so the back button will close the popover instead of navigating away
-    window.history.pushState({ wordInspectorOpen: true }, '', window.location.href);
-
-    const handlePopState = () => {
-      // User pressed Back, so we close the popover.
-      // The history state is already popped by the browser action.
-      onCloseRef.current();
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-      // If unmounting/closing but NOT via back button (e.g. standard close),
-      // we must manually revert the history state we pushed.
-      if (window.history.state?.wordInspectorOpen) {
-        window.history.back();
-      }
-    };
-  }, [isOpen]);
 
   useEffect(() => {
     if (position && anchorRef.current) {

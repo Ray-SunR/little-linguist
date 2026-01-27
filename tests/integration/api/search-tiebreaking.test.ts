@@ -5,6 +5,14 @@ import { BookRepository } from '@/lib/core/books/repository.server';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
 
+vi.mock('next/headers', () => ({
+    cookies: () => ({
+        getAll: () => [],
+        set: () => {},
+        get: () => null
+    })
+}));
+
 describe('Search Tie-breaking Integration', () => {
     let testUser: any;
     const supabase = createAdminClient();
@@ -15,12 +23,13 @@ describe('Search Tie-breaking Integration', () => {
     });
 
     it('should use similarity as tie-breaker when lexile_levels are equal', async () => {
+        const timestamp = Date.now();
         // 1. Seed two books with the same min_grade
         const { data: book1, error: error1 } = await supabase
             .from('books')
             .insert({
                 title: 'Book A',
-                book_key: 'book-a',
+                book_key: `book-a-${timestamp}`,
                 min_grade: 2,
                 owner_user_id: null // public
             })
@@ -31,7 +40,7 @@ describe('Search Tie-breaking Integration', () => {
             .from('books')
             .insert({
                 title: 'Book B',
-                book_key: 'book-b',
+                book_key: `book-b-${timestamp}`,
                 min_grade: 2,
                 owner_user_id: null // public
             })

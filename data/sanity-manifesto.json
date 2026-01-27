@@ -1,0 +1,82 @@
+[
+  {
+    "id": "chinese_history-g35-1769457176739-0",
+    "title": "The Great Wall's Hidden Messages",
+    "concept_prompt": "Discover how ancient Chinese builders encoded mathematical patterns and astronomical measurements into the Great Wall's construction, revealing secrets about how they communicated across vast distances. Young readers explore the engineering marvels and coded watchtower signals that protected an empire.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-1",
+    "title": "Zheng He's Treasure Fleet Adventure",
+    "concept_prompt": "Follow the real voyages of Admiral Zheng He and his massive treasure ships that sailed to Africa and beyond 87 years before Columbus, carrying diplomats, giraffes, and exotic goods. Learn how these expeditions proved China's advanced navigation technology and changed world history.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-2",
+    "title": "The Terracotta Army's Secret Workshop",
+    "concept_prompt": "Uncover the true story of the thousands of artisans who created Emperor Qin's life-sized terracotta warriors, including the mystery of why each soldier has a unique face. Explore ancient sculpting techniques and the archaeological detective work that revealed this underground wonder.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-3",
+    "title": "Silk Road Spies and Smugglers",
+    "concept_prompt": "Journey through the dangerous world of silk production secrets, where ancient China guarded the silkworm mystery so carefully that smuggling cocoons was punishable by death. Discover how silkworm eggs were finally smuggled out in hollow walking sticks and changed global trade forever.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-4",
+    "title": "The Forbidden City's Dragon Drainage",
+    "concept_prompt": "Investigate the ingenious 600-year-old drainage system beneath Beijing's Forbidden City that uses over 1,000 carved dragon heads to prevent flooding. Learn how ancient engineers designed a palace that has survived centuries of storms without modern technology.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-5",
+    "title": "Gunpowder's Accidental Invention",
+    "concept_prompt": "Meet the Taoist alchemists searching for immortality who accidentally created gunpowder instead, changing warfare and celebrations forever. Explore how this discovery led to fireworks, rockets, and eventually spread to the rest of the world.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-6",
+    "title": "The Grand Canal's Engineering Triumph",
+    "concept_prompt": "Discover how ancient Chinese engineers built the world's longest canal, connecting northern and southern China through mountains and rivers using pound locks invented 600 years before Europe. Learn about the millions of workers and ingenious solutions that made this 1,100-mile waterway possible.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-7",
+    "title": "Empress Wu's Rise to Power",
+    "concept_prompt": "Explore the remarkable true story of Wu Zetian, China's only female emperor, who rose from concubine to ruler during the Tang Dynasty. Examine the political strategies, reforms, and controversies surrounding her 50-year reign.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-8",
+    "title": "The Earthquake Detector Mystery",
+    "concept_prompt": "Learn about Zhang Heng's incredible bronze seismoscope from 132 CE that could detect earthquakes hundreds of miles away using dragon mouths and toad mechanisms. Investigate how this ancient scientist's invention worked and why it took modern technology centuries to catch up.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "chinese_history-g35-1769457176739-9",
+    "title": "Paper Money's Revolutionary Beginning",
+    "concept_prompt": "Follow the Song Dynasty merchants who invented the world's first paper money to solve the problem of carrying heavy copper coins across dangerous roads. Discover how this innovation transformed global economics and the challenges of preventing counterfeiters.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  }
+]

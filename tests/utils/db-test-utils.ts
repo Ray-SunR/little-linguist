@@ -11,7 +11,6 @@ const FULL_TRUNCATE_TABLES = [
     "feedbacks",
     "children",
     "profiles",
-    "book_contents",
     "book_audios",
     "book_media",
     "books",
@@ -43,10 +42,16 @@ export async function truncateAllTables() {
 
     // Truncate all tables in reverse dependency order
     for (const table of FULL_TRUNCATE_TABLES) {
-        const { error } = await supabase
-            .from(table)
-            .delete()
-            .neq('id', '00000000-0000-0000-0000-000000000000' as any);
+        let query = supabase.from(table).delete();
+
+        // Honor public data preservation: only delete user-owned records for books and assets
+        if (['books', 'book_audios', 'book_media'].includes(table)) {
+            query = query.not('owner_user_id', 'is', null);
+        } else {
+            query = query.neq('id', '00000000-0000-0000-0000-000000000000' as any);
+        }
+
+        const { error } = await query;
         if (error && error.code !== 'PGRST116' && error.code !== '42703') {
              // Handle case where 'id' column doesn't exist (e.g. child_books)
              if (error.message.includes('column "id" does not exist')) {

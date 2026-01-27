@@ -86,3 +86,53 @@ export async function ensureTestUser(email: string, password: string) {
   }
   throw new Error(`Profile creation timed out for ${email}`);
 }
+
+export async function ensureChildProfile(email: string, childName: string = 'MissionHero') {
+  const supabase = getAdminClient();
+  
+  // Get User ID
+  const { data: userData } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .single<any>();
+    
+  if (!userData?.id) throw new Error(`User not found for ${email}`);
+  const userId = userData.id;
+
+  // Check if child exists
+  const { data: existingChild } = await supabase
+    .from('children')
+    .select('id')
+    .eq('owner_user_id', userId)
+    .eq('first_name', childName)
+    .maybeSingle<any>();
+
+  if (existingChild) {
+    console.log(`[E2E-Utils] Child profile found for ${email} (ID: ${existingChild.id})`);
+    return existingChild.id;
+  }
+
+  // Create child
+  const { data: newChild, error } = await supabase
+    .from('children')
+    .insert({
+        owner_user_id: userId,
+        first_name: childName,
+        birth_year: 2020,
+        gender: 'boy',
+        interests: ['Space', 'Dinosaurs'],
+        avatar_paths: [],
+        primary_avatar_index: 0
+    } as any)
+    .select()
+    .single<any>();
+
+  if (error) {
+    console.error('[E2E-Utils] Failed to create child profile:', error);
+    throw error;
+  }
+
+  console.log(`[E2E-Utils] Created child profile for ${email} (ID: ${newChild.id})`);
+  return newChild.id;
+}

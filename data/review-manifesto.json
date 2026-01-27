@@ -1,0 +1,194 @@
+[
+  {
+    "id": "avengers-pk-01",
+    "title": "Super Friends Team Up",
+    "concept_prompt": "A team of young heroes in red, blue, and green suits learning to share their toys and help each other.",
+    "category": "avengers",
+    "level": "PreK",
+    "is_nonfiction": false
+  },
+  {
+    "id": "avengers-k-01",
+    "title": "The Missing Shield",
+    "concept_prompt": "A hero with a star-spangled shield searches the city for his lost equipment, meeting friends along the way.",
+    "category": "avengers",
+    "level": "K",
+    "is_nonfiction": false
+  },
+  {
+    "id": "avengers-g12-01",
+    "title": "Guardians of the Garden",
+    "concept_prompt": "A team of tiny high-tech heroes protects a beautiful garden from robotic pests.",
+    "category": "avengers",
+    "level": "G1-2",
+    "is_nonfiction": false
+  },
+  {
+    "id": "avengers-g35-01",
+    "title": "The Siege of Tomorrow City",
+    "concept_prompt": "A sophisticated team of high-tech heroes must stop an alien invasion using teamwork and advanced technology.",
+    "category": "avengers",
+    "level": "G3-5",
+    "is_nonfiction": false
+  },
+  {
+    "id": "princess-pk-01",
+    "title": "The Sparkly Tiara",
+    "concept_prompt": "A kind girl in a blue dress finds a sparkly tiara and shares it with her forest friends.",
+    "category": "disney_princess",
+    "level": "PreK",
+    "is_nonfiction": false
+  },
+  {
+    "id": "princess-k-01",
+    "title": "The Underwater Ball",
+    "concept_prompt": "A mermaid princess prepares a grand party for all the sea creatures in her coral castle.",
+    "category": "disney_princess",
+    "level": "K",
+    "is_nonfiction": false
+  },
+  {
+    "id": "princess-g12-01",
+    "title": "The Enchanted Library",
+    "concept_prompt": "A brave girl who loves books discovers a magical library where stories come to life.",
+    "category": "disney_princess",
+    "level": "G1-2",
+    "is_nonfiction": false
+  },
+  {
+    "id": "princess-g35-01",
+    "title": "The Quest for the Eternal Rose",
+    "concept_prompt": "A resourceful princess journeys across frozen mountains to find a magical flower that can save her kingdom.",
+    "category": "disney_princess",
+    "level": "G3-5",
+    "is_nonfiction": false
+  },
+  {
+    "id": "sunwukong-pk-01",
+    "title": "Monkey's Magic Cloud",
+    "concept_prompt": "A playful monkey jumps on a fluffy yellow cloud and flies over the mountains.",
+    "category": "sunwukong",
+    "level": "PreK",
+    "is_nonfiction": false
+  },
+  {
+    "id": "sunwukong-k-01",
+    "title": "The Peach Thief",
+    "concept_prompt": "A mischievous monkey finds a garden of giant peaches and uses his transformations to hide from the guards.",
+    "category": "sunwukong",
+    "level": "K",
+    "is_nonfiction": false
+  },
+  {
+    "id": "sunwukong-g12-01",
+    "title": "The Staff and the Dragon",
+    "concept_prompt": "Wukong travels to the bottom of the sea to claim a magical growing staff from the Dragon King.",
+    "category": "sunwukong",
+    "level": "G1-2",
+    "is_nonfiction": false
+  },
+  {
+    "id": "sunwukong-g35-01",
+    "title": "The Battle of the Fiery Mountains",
+    "concept_prompt": "Wukong and his companions face the challenges of the Flaming Mountains and the formidable Iron Fan Princess.",
+    "category": "sunwukong",
+    "level": "G3-5",
+    "is_nonfiction": false
+  },
+  {
+    "id": "hotwheels-pk-01",
+    "title": "Blue Car Goes Fast",
+    "concept_prompt": "A bright blue racing car zooms along an orange track, going up and down.",
+    "category": "hotwheels",
+    "level": "PreK",
+    "is_nonfiction": false
+  },
+  {
+    "id": "hotwheels-k-01",
+    "title": "The Giant Loop-de-Loop",
+    "concept_prompt": "Two racing cars compete to see who can make it through the biggest loop in the city.",
+    "category": "hotwheels",
+    "level": "K",
+    "is_nonfiction": false
+  },
+  {
+    "id": "hotwheels-g12-01",
+    "title": "Mega-Track Rescue",
+    "concept_prompt": "A team of special racing cars must navigate a dangerous obstacle course to deliver a secret package.",
+    "category": "hotwheels",
+    "level": "G1-2",
+    "is_nonfiction": false
+  },
+  {
+    "id": "hotwheels-g35-01",
+    "title": "The Gravity-Defying Grand Prix",
+    "concept_prompt": "Engineers and drivers compete in a high-stakes race where cars must use physics and speed to win.",
+    "category": "hotwheels",
+    "level": "G3-5",
+    "is_nonfiction": false
+  },
+  {
+    "id": "dinosaurs-pk-01",
+    "title": "The Friendly T-Rex",
+    "concept_prompt": "A big green dinosaur with a loud roar looks for his friends in the jungle.",
+    "category": "dinosaurs",
+    "level": "PreK",
+    "is_nonfiction": false
+  },
+  {
+    "id": "dinosaurs-k-01",
+    "title": "Dino Egg Hunt",
+    "concept_prompt": "A mother Triceratops searches for her missing egg among the giant ferns.",
+    "category": "dinosaurs",
+    "level": "K",
+    "is_nonfiction": true
+  },
+  {
+    "id": "dinosaurs-g12-01",
+    "title": "A Day in the Triassic",
+    "concept_prompt": "Explore the world when the first dinosaurs appeared and see how they lived.",
+    "category": "dinosaurs",
+    "level": "G1-2",
+    "is_nonfiction": true
+  },
+  {
+    "id": "dinosaurs-g35-01",
+    "title": "The Great Extinction Mystery",
+    "concept_prompt": "Scientists study the clues left behind to solve the mystery of why the dinosaurs disappeared.",
+    "category": "dinosaurs",
+    "level": "G3-5",
+    "is_nonfiction": true
+  },
+  {
+    "id": "history-pk-01",
+    "title": "The Great Wall",
+    "concept_prompt": "A very long wall made of big stones that winds like a dragon over the hills.",
+    "category": "chinese_history",
+    "level": "PreK",
+    "is_nonfiction": true
+  },
+  {
+    "id": "history-k-01",
+    "title": "The Emperor's New Clothes",
+    "concept_prompt": "The story of the beautiful silk robes worn by the ancient kings of China.",
+    "category": "chinese_history",
+    "level": "K",
+    "is_nonfiction": true
+  },
+  {
+    "id": "history-g12-01",
+    "title": "The Invention of Paper",
+    "concept_prompt": "Follow the story of Cai Lun and how he discovered a way to make paper for everyone to use.",
+    "category": "chinese_history",
+    "level": "G1-2",
+    "is_nonfiction": true
+  },
+  {
+    "id": "history-g35-01",
+    "title": "The Silk Road Adventure",
+    "concept_prompt": "A merchant's long journey across deserts and mountains to trade silk and spices with distant lands.",
+    "category": "chinese_history",
+    "level": "G3-5",
+    "is_nonfiction": true
+  }
+]

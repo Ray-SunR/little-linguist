@@ -1,92 +1,108 @@
-# Book Generation & Seeding Guide 📚
+# Library Generation & Seeding Guide 📚
 
-This guide explains the two primary ways to populate your local Raiden library: **AI Generation** (creating brand new content) and **Production Sync** (cloning public content from production).
+This guide explains how to populate the Raiden library using the new **Distributed Generation Pipeline**. This system allows for concurrent generation of hundreds of books (e.g., the 400-book G3-5 expansion) with robust error handling and alignment.
 
 ---
 
-## 1. AI Content Generation Pipeline
-Raiden includes a sophisticated pipeline that uses state-of-the-art AI to generate stories, illustrations, and narrations.
+## 🚀 The Unified CLI
 
-### 🚀 The Command
+All library operations are now managed through a single CLI tool: `scripts/library-cli.ts`.
+
 ```bash
-npm run library:generate -- [options]
+npx tsx scripts/library-cli.ts <command> [options]
 ```
 
-### ⚙️ Options
-| Flag | Description | Example |
+### Commands Overview
+
+| Command | Description | Key Options |
 | :--- | :--- | :--- |
-| `--category=[name]` | Filter generation to a specific category (from the manifesto). | `--category=sunwukong` |
-| `--id=[id]` | Generate a single specific book by its ID. | `--id=avengers-g35-102` |
-| `--limit=[num]` | Limit the number of new books to generate. | `--limit=5` |
-| `--align` | Force word-level alignment using a local Gentle server (Required for word highlighting). | `--align` |
-
-### 🛠 How it Works
-The pipeline executes the following stages in sequence:
-1.  **Story Writing**: Uses **Claude 3.5 Sonnet** (via Bedrock) to write a grade-appropriate story based on a concept prompt.
-2.  **Narration**: Uses **Amazon Polly** (Generative engine) to synthesize the audio.
-3.  **Illustration**: Uses **Stability AI** to generate a cover and unique scene images for every page.
-4.  **Word Alignment**: Uses a local **Gentle (Docker)** server to align the generated audio with the text tokens to create `timing_tokens.json`.
-5.  **Asset Optimization**: Uses **Sharp** to convert and optimize all images into lightweight **WebP** files.
-
-### 📝 The Manifesto
-The generation logic is driven by `data/expanded-manifesto.json`. This file acts as the "Matrix," defining the `id`, `title`, and `concept_prompt` for every potential book.
+| **`manifesto`** | Generates the 400-book concept JSON using AI. | N/A |
+| **`generate`** | Starts the distributed master-worker generation process. | `--concurrency=4`, `--align` |
+| **`audit`** | Scans the local output directory for missing assets. | N/A |
+| **`repair`** | Re-runs alignment for specific broken books. | `--ids=book1,book2`, `--align-only` |
+| **`cleanup`** | Scans/Deletes incomplete books from the production DB. | `--force` |
+| **`seed`** | Uploads completed books to Supabase. | `--source=...` |
 
 ---
 
-## 2. Seeding to Supabase
-Once books are generated (saved in `output/expanded-library/`), they must be "seeded" into the database and storage buckets.
+## 1. End-to-End Workflow (400 Books)
 
-### 🚀 The Command
+Follow these steps to generate and deploy the full library expansion.
+
+### Step 1: Generate the Manifesto
+Create the "Matrix" of 400 unique book concepts.
 ```bash
-# Seed everything in the output folder
-npx tsx scripts/seed-library.ts --local
+npx tsx scripts/library-cli.ts manifesto
+```
+*Output:* `data/full-library-manifesto.json`
 
-# Seed only a specific category
-npx tsx scripts/seed-library.ts [category] --local
+### Step 2: Distributed Generation
+Launch the master process. It will spawn 4 generation workers and 2 alignment workers.
+```bash
+# Recommended: Run in background and log to file
+nohup npx tsx scripts/library-cli.ts generate --concurrency=4 --align > generation.log 2>&1 &
+
+# Monitor progress
+tail -f generation.log
+```
+*Note:* The system supports **Intra-Book Resuming**. If you stop and restart, it continues from the last saved checkpoint for each book.
+
+### Step 3: Validation (Audit)
+Once generation finishes, verify integrity.
+```bash
+npx tsx scripts/library-cli.ts audit
+```
+*Output:* A list of any incomplete books (missing audio, images, or alignment).
+
+### Step 4: Repair (If needed)
+If the audit finds broken books (e.g., alignment failed), repair them specifically.
+```bash
+# Example repair command provided by the audit tool
+npx tsx scripts/library-cli.ts repair --ids=history-k-01,dinosaurs-g35-02
 ```
 
-### 🛠 What happens during Seeding?
-- **Database**: Metadata is upserted into `books`, `book_contents`, `book_audios`, and `book_media` tables.
-- **Storage**: Audio and optimized WebP images are uploaded to the `book-assets` bucket. 
-    - **Path Convention**: All assets are stored under a folder named after the book's UUID (e.g., `[book_id]/cover.webp`, `[book_id]/audio/Ruth/0.mp3`).
-- **Data Formats**:
-    - **Tokens**: `book_contents.tokens` uses the **Canonical Format**: `{ t: string, type: 'w'|'s'|'p', i: number }`.
-    - **Timings**: `book_audios.timings` uses **Relative Milliseconds** (e.g., `{ time: 500, value: "hello" }` means 0.5s into that specific audio shard).
-- **Embeddings**: Generates **1024-dimensional vector embeddings** (via Amazon Titan V2) for semantic search.
-- **Realtime**: Correctly registers tables for Supabase Realtime updates.
-
----
-
-## 3. Production Data Sync
-If you prefer to work with existing data from production, you can use the automated sync tool.
-
-### 🚀 The Command
+### Step 5: Seeding
+Push the valid books to the database. The script automatically skips incomplete books and existing entries (deduplication).
 ```bash
-npm run supabase:setup -- --sync-data --limit 15
+npx tsx scripts/library-cli.ts seed --source /Users/renchen/Work/github/raiden_books
 ```
 
-### 🛠 What it Syncs
-- **Public Books**: Only books where `owner_user_id` is `NULL` (system books) are pulled to keep your local environment clean.
-- **Full Assets**: Downloads all referenced images and audio files from the production S3 bucket and uploads them to your local instance.
-- **Schema**: Automatically ensures your local schema matches production before importing data.
+---
+
+## 2. Maintenance & Hygiene
+
+### Cleaning the Database
+If generation failures caused "ghost" books (entries with missing assets) in production, use the cleanup tool.
+
+```bash
+# Dry Run (Safe)
+npx tsx scripts/library-cli.ts cleanup
+
+# Execute Deletion
+npx tsx scripts/library-cli.ts cleanup --force
+```
+
+### Resetting Local State
+To force a book to regenerate from scratch locally:
+```bash
+# Resets the manager's state for these IDs so they are picked up again
+npx tsx scripts/library-cli.ts reset history-k-01
+```
 
 ---
 
-## 🛠 Prerequisites for Generation
+## 🛠 Architecture & Troubleshooting
 
-1.  **Environment Variables**: Ensure `.env.local` contains:
-    - `BEDROCK_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
-    - `STABILITY_API_KEY`
-    - `POLLY_ACCESS_KEY_ID`, `POLLY_SECRET_ACCESS_KEY`
-2.  **Docker**: Must be running for local Supabase.
-3.  **Alignment Server**: For word highlighting (`--align`), you must have the Gentle container running:
-    ```bash
-    docker run -d --name gentle -p 55002:8765 lowerquality/gentle
-    ```
+### Distributed Architecture
+*   **Master Process:** Manages the queue and displays the live dashboard.
+*   **Generation Workers (x4):** Create Story (Claude) -> Images (Stability/Nova) -> Audio (Polly).
+*   **Alignment Workers (x2):** Run the CPU-intensive Gentle alignment separately to avoid Docker timeouts.
 
----
+### Common Issues
+1.  **"No audio shards found":** The worker crashed during audio synthesis. **Fix:** Run `reset` on the ID and regenerate.
+2.  **Alignment Failures:** Usually due to Gentle server load. The system auto-retries 3 times. **Fix:** Run `repair` command.
+3.  **Image Blocks:** Stability AI safety filters. The script attempts to sanitize prompts automatically. **Fix:** Check logs for "Blocked", prompt might need manual tweak in `StabilityStoryService`.
 
-## 🧹 Troubleshooting
-
-- **Missing Highlighting**: Ensure you ran the generation with the `--align` flag. If a book is already generated, you can run `python3 scripts/narration/align.py path/to/book` manually and then re-seed.
-- **Image Errors**: Stability AI has strict prompt safety filters. The generation script automatically sanitizes character names (e.g., "Avengers" -> "a team of superheroes") to bypass false-positive blocks.
+### Prerequisites
+*   **Gentle Server:** `docker run -d --name gentle -p 55002:8765 lowerquality/gentle`
+*   **Environment:** `.env.local` must contain AWS and Stability keys.

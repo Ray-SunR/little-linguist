@@ -1,5 +1,6 @@
 
 import { NovaStoryService } from "../lib/features/nova/nova-service.server";
+import { StabilityStoryService } from "../lib/features/stability/stability-service.server";
 import { ClaudeStoryService } from "../lib/features/bedrock/claude-service.server";
 import { PollyNarrationService } from "../lib/features/narration/polly-service.server";
 import { NarrativeDirector } from "../lib/features/narration/narrative-director.server";
@@ -14,8 +15,59 @@ import { execSync } from "child_process";
 
 dotenv.config({ path: ".env.local" });
 
-const MANIFESTO_PATH = process.env.MANIFESTO_PATH || path.join(process.cwd(), 'data/expanded-manifesto.json');
-const OUTPUT_DIR = process.env.RAIDEN_BOOKS_PATH || path.join(process.cwd(), 'output/expanded-library');
+function log(message: string) {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${message}`);
+}
+
+class ProgressTracker {
+    constructor(private totalBooks: number, private currentBookIndex: number) {}
+
+    update(bookId: string, phase: number, task: string, subProgress?: { current: number, total: number }) {
+        const bookStatus = `[Book ${this.currentBookIndex}/${this.totalBooks}]`;
+        const phaseStatus = `[Phase ${phase}/5]`;
+        let subTask = task;
+        if (subProgress) {
+            const pct = Math.round((subProgress.current / subProgress.total) * 100);
+            const barSize = 10;
+            const filled = Math.round((subProgress.current / subProgress.total) * barSize);
+            const bar = '▓'.repeat(filled) + '░'.repeat(barSize - filled);
+            subTask = `${task} ${subProgress.current}/${subProgress.total} [${bar}] ${pct}%`;
+        }
+        log(`${bookStatus} ${phaseStatus} ${bookId.padEnd(20)} | ${subTask}`);
+    }
+}
+
+async function waitForFile(filePath: string, timeoutMs = 10000): Promise<boolean> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+        if (fs.existsSync(filePath)) return true;
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    return false;
+}
+
+async function runAlignmentWithRetry(bookDir: string, tracker: ProgressTracker, bookId: string, retries = 3): Promise<boolean> {
+    const metadataPath = path.join(bookDir, 'metadata.json');
+    if (!(await waitForFile(metadataPath))) {
+        log(`    ❌ Alignment aborted: metadata.json missing for ${bookId}`);
+        return false;
+    }
+    for (let i = 0; i < retries; i++) {
+        try {
+            tracker.update(bookId, 4, `Aligning (Attempt ${i + 1}/${retries})`);
+            execSync(`python3 scripts/narration/align.py "${bookDir}"`, { stdio: 'pipe' });
+            return true;
+        } catch (e) {
+            log(`    ⚠️ Alignment failed for ${bookId}. ${i < retries - 1 ? 'Retrying in 5s...' : 'Final failure.'}`);
+            if (i < retries - 1) await new Promise(r => setTimeout(r, 5000));
+        }
+    }
+    return false;
+}
+
+const MANIFESTO_PATH = process.env.MANIFESTO_PATH || path.join(process.cwd(), 'data/review-manifesto.json');
+const OUTPUT_DIR = process.env.RAIDEN_BOOKS_PATH || '/Users/renchen/Work/github/raiden_books';
 const STATE_FILE = path.join(OUTPUT_DIR, 'state.json');
 
 const SUN_WUKONG_ANCHOR = `Sun Wukong (Monkey King): Spunky anthropomorphic male golden macaque, confident mischievous boyish grin, masculine jawline, bright golden fur, fiery-gold eyes. Strong muscular build, broad shoulders. Wearing golden chainmail armor over red tunic, tiger-skin kilt, black trousers, black combat boots. Golden fillet headband with two extremely long red pheasant feathers curving back. Holding red-and-gold iron staff. Style: Premium 3D animation, Pixar-style character design, vibrant colors, expressive studio lighting, 8k resolution.`;
@@ -56,10 +108,10 @@ function sanitizeTheme(theme: string | null): string {
 }
 
 const LEVEL_SPECS: Record<string, { minWords: number, targetWords: number, sceneCount: number, sentencesPerScene: number, complexity: string }> = {
-    "PreK": { minWords: 25, targetWords: 50, sceneCount: 2, sentencesPerScene: 2, complexity: "very simple, rhythmic, toddler-friendly" },
-    "K": { minWords: 60, targetWords: 100, sceneCount: 3, sentencesPerScene: 4, complexity: "simple sentences, clear narrative" },
-    "G1-2": { minWords: 150, targetWords: 250, sceneCount: 5, sentencesPerScene: 6, complexity: "short paragraphs, descriptive" },
-    "G3-5": { minWords: 350, targetWords: 500, sceneCount: 8, sentencesPerScene: 10, complexity: "detailed narrative, advanced vocabulary, long paragraphs" }
+    "PreK": { minWords: 250, targetWords: 300, sceneCount: 5, sentencesPerScene: 4, complexity: "simple, repetitive, high rhythm" },
+    "K": { minWords: 500, targetWords: 600, sceneCount: 8, sentencesPerScene: 5, complexity: "basic narrative, sight words" },
+    "G1-2": { minWords: 800, targetWords: 900, sceneCount: 10, sentencesPerScene: 6, complexity: "developing plot, descriptive" },
+    "G3-5": { minWords: 1400, targetWords: 1500, sceneCount: 15, sentencesPerScene: 8, complexity: "complex narrative, advanced vocabulary, subplots" }
 };
 
 function getSeed(id: string): number {
@@ -100,35 +152,47 @@ async function main() {
     };
 
     const nova = new NovaStoryService();
+    const stability = new StabilityStoryService();
     const claude = new ClaudeStoryService();
     const polly = new PollyNarrationService();
     const director = new NarrativeDirector();
 
-    console.log(`\n🚀 Starting concurrent generation (Concurrency: 3) for remaining ${manifesto.length - state.completed.length} books...`);
+    const currentManifestoIds = manifesto.map((e: any) => e.id);
+    const relevantCompleted = state.completed.filter((id: string) => currentManifestoIds.includes(id));
 
-    const CONCURRENCY = 3;
     let queue = manifesto;
     if (idArg) {
         queue = manifesto.filter((entry: any) => entry.id === idArg);
     } else if (categoryArg) {
         queue = manifesto.filter((entry: any) => entry.category === categoryArg);
     } else {
-        queue = manifesto.filter((entry: any) => entry.category === 'sunwukong');
+        queue = manifesto;
     }
 
-    // Filter out completed books before applying the limit
-    queue = queue.filter((entry: any) => !state.completed.includes(entry.id));
+    // Filter out completed books unless explicitly requested by ID
+    if (!idArg) {
+        queue = queue.filter((entry: any) => !state.completed.includes(entry.id));
+    }
 
     if (limit) {
         queue = queue.slice(0, limit);
     }
 
-    async function processBook(entry: any) {
-        if (state.completed.includes(entry.id)) {
-            return;
+    log(`🚀 Starting generation for ${queue.length} books...`);
+
+    const totalBooks = queue.length + relevantCompleted.length;
+    let currentIndex = relevantCompleted.length + 1;
+
+    for (const entry of queue) {
+        const tracker = new ProgressTracker(totalBooks, currentIndex++);
+        log(`\n📚 [${entry.category}] ${entry.title} (${entry.level}) - ID: ${entry.id}`);
+        
+        // Skip if already in completed (unless it's a forced re-run by ID)
+        if (!idArg && state.completed.includes(entry.id)) {
+            log(`✅ Already completed.`);
+            continue;
         }
 
-        console.log(`\n📚 [${entry.category}] ${entry.title} (${entry.level})`);
         const bookSeed = getSeed(entry.id);
         const specs = LEVEL_SPECS[entry.level] || LEVEL_SPECS["G3-5"];
         const bookDir = path.join(OUTPUT_DIR, entry.category, entry.id);
@@ -141,7 +205,6 @@ async function main() {
         if (entry.category === 'sunwukong') {
             artStyle = SUN_WUKONG_STYLE;
         }
-
 
         let bState = state.inProgress[entry.id];
         if (!bState) {
@@ -159,7 +222,7 @@ async function main() {
         try {
             // --- Phase 1: Story & Metadata ---
             if (!bState.pages) {
-                console.log(`  📝 Generating story and character anchor...`);
+                tracker.update(entry.id, 1, 'Generating story and character anchor');
 
                 if (entry.category === 'sunwukong') {
                     bState.characterAnchor = SUN_WUKONG_ANCHOR;
@@ -174,79 +237,85 @@ async function main() {
                 const themeText = sanitizeTheme(entry.brand_theme || entry.category);
                 const conceptContext = entry.concept_prompt ? `Specific Story Concept: ${entry.concept_prompt}` : "";
 
-                const prompt = `Write a ${entry.is_nonfiction ? 'non-fiction' : 'fiction'} story for a child at ${entry.level} reading level about ${entry.category}.
-                Theme Focus: ${themeText}.
-                ${conceptContext}
-                ${journeyToWestInstruction}
-                Character Anchor (Visual Identity): ${bState.characterAnchor}.
-                Target total word count: ${specs.targetWords} words.
-                Complexity: ${specs.complexity}.
-                Structure: Split into EXACTLY ${specs.sceneCount} scenes.
-                Requirement: Each scene MUST contain at least ${specs.sentencesPerScene} descriptive sentences.
-                Format as JSON array: [{ "text": "...", "imagePrompt": "..." }]
-                IMPORTANT: Return ONLY the raw JSON array. No markdown backticks, no introduction, no conversational filler.
-                
-                IMAGE PROMPT INSTRUCTIONS:
-                Each "imagePrompt" MUST focus on the ACTION and SETTING first. 
-                Structure it as: "[Detailed action and background description], featuring [STRICT Character Anchor markers]".
-                IMPORTANT: Under "featuring", you MUST include the FULL Character Anchor description provided below without summarizing it. This ensures visual consistency.
-                Character Anchor to include in EVERY prompt: ${bState.characterAnchor}
-                
-                Example: "A brave hero jumping over a crumbling stone wall in a ruined city, featuring [Full Character Anchor Description]".
-                Do NOT just repeat the Character Anchor description alone. Ensure the background is vivid and changing in every scene.
-                IMPORTANT: For G3-5, each scene must be a substantial paragraph. Use engaging and age-appropriate storytelling.`;
+                if (["G3-5", "G1-2"].includes(entry.level)) {
+                    tracker.update(entry.id, 1, 'Two-pass story generation');
+                    const halfScenes = Math.floor(specs.sceneCount / 2);
+                    const prompt1 = `Write PART 1 of a ${entry.is_nonfiction ? 'non-fiction' : 'fiction'} story for a child at ${entry.level} reading level about ${entry.category}.
+                    Theme Focus: ${themeText}.
+                    ${conceptContext}
+                    ${journeyToWestInstruction}
+                    Character Anchor: ${bState.characterAnchor}.
+                    Target total word count for this part: ${Math.floor(specs.targetWords / 2)} words.
+                    Complexity: ${specs.complexity}.
+                    Structure: Provide EXACTLY ${halfScenes} scenes for the BEGINNING and MIDDLE of the story.
+                    Format as JSON array: [{ "text": "...", "imagePrompt": "..." }]
+                    IMPORTANT: Return ONLY raw JSON array.`;
 
-                bState.pages = await claude.generateStory(prompt);
+                    const part1 = await claude.generateStory(prompt1);
+                    
+                    const prompt2 = `Write PART 2 (The Conclusion) of the story started below.
+                    Story Part 1 Summary: ${part1.map(p => p.text.substring(0, 100)).join("... ")}
+                    Target total word count for this part: ${specs.targetWords - Math.floor(specs.targetWords / 2)} words.
+                    Structure: Provide EXACTLY ${specs.sceneCount - halfScenes} scenes.
+                    Format as JSON array: [{ "text": "...", "imagePrompt": "..." }]
+                    Character Anchor to maintain: ${bState.characterAnchor}
+                    IMPORTANT: Return ONLY raw JSON array.`;
+
+                    const part2 = await claude.generateStory(prompt2);
+                    bState.pages = [...part1, ...part2];
+                } else {
+                    const prompt = `Write a ${entry.is_nonfiction ? 'non-fiction' : 'fiction'} story for a child at ${entry.level} reading level about ${entry.category}.
+                    Theme Focus: ${themeText}.
+                    ${conceptContext}
+                    ${journeyToWestInstruction}
+                    Character Anchor (Visual Identity): ${bState.characterAnchor}.
+                    Target total word count: ${specs.targetWords} words.
+                    Complexity: ${specs.complexity}.
+                    Structure: Split into EXACTLY ${specs.sceneCount} scenes.
+                    Format as JSON array: [{ "text": "...", "imagePrompt": "..." }]
+                    IMPORTANT: Return ONLY raw JSON array.`;
+
+                    bState.pages = await claude.generateStory(prompt);
+                }
+
                 bState.fullText = bState.pages.map((p: any) => p.text).join('\n\n');
                 bState.wordCount = Tokenizer.getWords(Tokenizer.tokenize(bState.fullText)).length;
                 bState.tokens = Tokenizer.tokenize(bState.fullText);
 
                 if (bState.wordCount < specs.minWords) {
-                    console.warn(`  ⚠️ Generated story too short (${bState.wordCount} words). Re-attempting once...`);
-                    bState.pages = await claude.generateStory(prompt + "\n\nCRITICAL: YOU MUST PROVIDE AT LEAST " + specs.minWords + " WORDS.");
+                    const lengthPrompt = entry.level === "G3-5" ? "\n\nCRITICAL: EACH SCENE MUST BE AT LEAST 100 WORDS." : "\n\nCRITICAL: YOU MUST PROVIDE AT LEAST " + specs.minWords + " WORDS.";
+                    bState.pages = await claude.generateStory((entry.level === "G3-5" ? "REWRITE TO BE LONGER: " : "") + bState.fullText + lengthPrompt);
                     bState.fullText = bState.pages.map((p: any) => p.text).join('\n\n');
                     bState.wordCount = Tokenizer.getWords(Tokenizer.tokenize(bState.fullText)).length;
-                    bState.tokens = Tokenizer.tokenize(bState.fullText);
                 }
 
-                // If explicit title is simplistic "TBD" or just theme-based, let AI regenerate, otherwise use provided concept title if good?
-                // Actually, the manifesto has specific titles like "Baby Avengers". We should probably trust the manifesto title 
-                // BUT Claude might generate a better "Book Title". Let's stick to generating a title based on the *actual story content*
-                // to match the story, and maybe preserve the concept as subtitle if needed.
-                // Or just overwrite.
                 bState.aiTitle = await claude.generateBookTitle(bState.fullText);
-
-                // If the generated title is extremely different, maybe interesting, but let's stick to AI title as it reflects the text.
-
                 const metaData = await claude.generateKeywordsAndDescription(bState.fullText, entry.category, entry.brand_theme || entry.title);
                 bState.keywords = metaData.keywords;
                 bState.description = metaData.description;
                 bState.smartCoverPrompt = await claude.generateCoverPrompt(bState.fullText, bState.characterAnchor);
-
                 bState.status = 'story_done';
                 saveState();
             }
 
-            const negativePrompt = entry.category === 'sunwukong' ? SUN_WUKONG_NEGATIVE : undefined;
-
-            // --- Phase 2: Assets Creation ---
+            // --- Phase 2: Assets ---
             if (!fs.existsSync(bookDir)) fs.mkdirSync(bookDir, { recursive: true });
             if (!fs.existsSync(path.join(bookDir, 'scenes'))) fs.mkdirSync(path.join(bookDir, 'scenes'), { recursive: true });
             if (!fs.existsSync(path.join(bookDir, 'audio'))) fs.mkdirSync(path.join(bookDir, 'audio'), { recursive: true });
 
+            const negativePrompt = entry.category === 'sunwukong' ? SUN_WUKONG_NEGATIVE : undefined;
+
             if (!bState.hasCover) {
-                console.log(`  🖼️ Generating Smart Cover...`);
+                tracker.update(entry.id, 2, 'Generating Cover');
                 let base64Cover = "";
                 try {
-                    base64Cover = await nova.generateImage(bState.smartCoverPrompt, bookSeed, artStyle, negativePrompt);
-                } catch (coverErr: any) {
-                    console.warn(`  ⚠️ Cover image blocked/failed. Attempting fallbacks...`);
+                    base64Cover = await stability.generateImage(bState.smartCoverPrompt, bookSeed, artStyle, negativePrompt);
+                } catch (e) {
                     try {
-                        base64Cover = await nova.generateImage(`${bState.characterAnchor}. Children's book cover for a story about ${entry.category}`, bookSeed, artStyle, negativePrompt);
-                    } catch (fb1Err) {
-                        console.warn(`  ⚠️ Fallback 1 blocked. Attempting Safe Fallback...`);
-                        const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || `a story about ${entry.category}`;
-                        base64Cover = await nova.generateImage(`Children's book cover illustration of ${safeDesc}. Colorful, distinct style.`, bookSeed, artStyle, negativePrompt);
+                        base64Cover = await stability.generateImage(`${bState.characterAnchor}. Story about ${entry.category}`, bookSeed, artStyle, negativePrompt);
+                    } catch (novaErr) {
+                        log(`    ⚠️ Stability failed for cover. Falling back to Nova...`);
+                        base64Cover = await nova.generateImage(bState.smartCoverPrompt, bookSeed, artStyle, negativePrompt);
                     }
                 }
                 await saveOptimizedImage(base64Cover, path.join(bookDir, 'cover.webp'));
@@ -254,7 +323,6 @@ async function main() {
                 saveState();
             }
 
-            // --- Phase 3: Scenes ---
             const sceneData: any[] = bState.sceneData || [];
             let currentWordIndex = 0;
             for (let i = 0; i < bState.pages.length; i++) {
@@ -262,150 +330,87 @@ async function main() {
                 const afterIndex = currentWordIndex + sceneWordCount - 1;
 
                 if (!bState.completedScenes.includes(i)) {
-                    console.log(`  🎨 Scene ${i + 1}/${bState.pages.length}...`);
+                    tracker.update(entry.id, 2, 'Illustrating Scenes', { current: i + 1, total: bState.pages.length });
                     let base64Image = "";
                     try {
-                        base64Image = await nova.generateImage(bState.pages[i].imagePrompt, bookSeed, artStyle, negativePrompt);
-                    } catch (imgErr: any) {
-                        console.warn(`  ⚠️ Scene ${i} blocked/failed. Attempting fallbacks...`);
+                        base64Image = await stability.generateImage(bState.pages[i].imagePrompt, bookSeed, artStyle, negativePrompt);
+                    } catch (err: any) {
                         try {
-                            base64Image = await nova.generateImage(`${bState.characterAnchor}. Children's book illustration for: ${bState.pages[i].text}`, bookSeed, artStyle, negativePrompt);
-                        } catch (fb1Err) {
-                            console.warn(`  ⚠️ Scene ${i} Fallback 1 blocked. Attempting Safe Fallback...`);
-                            const safeDesc = sanitizeTheme(entry.brand_theme || entry.title) || entry.category;
-                            base64Image = await nova.generateImage(`Children's book illustration of ${safeDesc}. Action: ${bState.pages[i].text.substring(0, 50)}...`, bookSeed, artStyle, negativePrompt);
+                            log(`    ⚠️ Stability Scene ${i+1} failed. Retrying with safe prompt...`);
+                            const safePrompt = `${bState.characterAnchor}. Children's book illustration for: ${entry.category}. Action: ${bState.pages[i].text.substring(0, 50)}...`;
+                            base64Image = await stability.generateImage(safePrompt, bookSeed, artStyle, negativePrompt);
+                        } catch (novaErr) {
+                            log(`    ⚠️ Stability failed again. Falling back to Nova...`);
+                            base64Image = await nova.generateImage(bState.pages[i].imagePrompt, bookSeed, artStyle, negativePrompt);
                         }
                     }
                     const imageFilename = `scene_${i}.webp`;
                     await saveOptimizedImage(base64Image, path.join(bookDir, 'scenes', imageFilename));
 
-                    sceneData[i] = {
-                        index: i,
-                        text: bState.pages[i].text,
-                        imagePrompt: bState.pages[i].imagePrompt,
-                        image_path: `scenes/${imageFilename}`,
-                        after_word_index: afterIndex
-                    };
+                    sceneData[i] = { index: i, text: bState.pages[i].text, image_path: `scenes/${imageFilename}`, after_word_index: afterIndex };
                     bState.completedScenes.push(i);
                     bState.sceneData = sceneData;
                     saveState();
+                    // Small delay to avoid hammering API
+                    await new Promise(r => setTimeout(r, 1000));
                 }
                 currentWordIndex += sceneWordCount;
             }
 
-            // --- Phase 4: Narration ---
+            // --- Phase 3: Narration ---
             if (bState.completedAudio.length === 0) {
-                console.log(`  🎙️ Narration...`);
-                const voiceId = process.env.POLLY_VOICE_ID || 'Kevin';
+                tracker.update(entry.id, 3, 'Generating Narration');
                 const textChunks = TextChunker.chunk(bState.fullText);
                 const audioShards = bState.audioShards || [];
 
                 for (let i = 0; i < textChunks.length; i++) {
                     if (bState.completedAudio.includes(i)) continue;
-
-                    const chunk = textChunks[i];
-                    console.log(`    🎭 Annotating and synthesizing chunk ${i + 1}/${textChunks.length}...`);
-
-                    const annotation = await director.annotate(chunk.text, entry.level);
+                    tracker.update(entry.id, 3, 'Synthesizing Audio', { current: i + 1, total: textChunks.length });
+                    const annotation = await director.annotate(textChunks[i].text, entry.level);
                     const { audioBuffer, speechMarks } = await polly.synthesize(annotation.ssml, {
-                        textType: "ssml",
-                        voiceId: annotation.metadata.suggestedVoice || "Ruth",
-                        engine: "generative"
+                        textType: "ssml", voiceId: annotation.metadata.suggestedVoice || "Ruth", engine: "generative"
                     });
-
-                    const audioFilename = `${chunk.index}.mp3`;
+                    const audioFilename = `${textChunks[i].index}.mp3`;
                     fs.writeFileSync(path.join(bookDir, 'audio', audioFilename), audioBuffer);
+                    const alignedTimings = alignSpeechMarksToTokens(speechMarks, getWordTokensForChunk(bState.tokens, textChunks[i].startWordIndex, textChunks[i].endWordIndex));
 
-                    const wordTokensForChunk = getWordTokensForChunk(bState.tokens, chunk.startWordIndex, chunk.endWordIndex);
-                    const alignedTimings = alignSpeechMarksToTokens(speechMarks, wordTokensForChunk);
-
-                    audioShards[i] = {
-                        index: chunk.index,
-                        path: `audio/${audioFilename}`,
-                        start_word_index: chunk.startWordIndex,
-                        end_word_index: chunk.endWordIndex,
-                        timings: alignedTimings
-                    };
+                    audioShards[i] = { index: textChunks[i].index, path: `audio/${audioFilename}`, start_word_index: textChunks[i].startWordIndex, end_word_index: textChunks[i].endWordIndex, timings: alignedTimings };
                     bState.completedAudio.push(i);
                     bState.audioShards = audioShards;
                     saveState();
                 }
                 bState.voiceId = "Ruth";
                 bState.engine = "generative";
+                saveState();
             }
 
-            // --- Finalize ---
+            // Finalize metadata before alignment
             const finalMetadata = {
-                id: entry.id,
-                title: bState.aiTitle,
-                original_concept_title: entry.title, // Keep original concept title just in case
-                category: entry.category,
-                level: entry.level,
-                is_nonfiction: entry.is_nonfiction,
-                description: bState.description,
-                keywords: bState.keywords,
-                brand_theme: entry.brand_theme,
-                series_id: entry.series_id,
-                cover_image_path: 'cover.webp',
-                cover_prompt: bState.smartCoverPrompt,
-                stats: {
-                    word_count: bState.wordCount,
-                    char_count: bState.fullText.length,
-                    scene_count: bState.pages.length,
-                    reading_time_seconds: Math.ceil(bState.wordCount / 2.5),
-                    length_category: bState.wordCount < 100 ? "Short" : bState.wordCount < 300 ? "Medium" : "Long"
-                },
-                scenes: bState.sceneData,
-                audio: {
-                    voice_id: bState.voiceId,
-                    engine: bState.engine,
-                    shards: bState.audioShards
-                },
-                tokens: bState.tokens,
-                character_anchor: bState.characterAnchor
+                id: entry.id, title: bState.aiTitle, original_concept_title: entry.title, category: entry.category, level: entry.level, is_nonfiction: entry.is_nonfiction, description: bState.description, keywords: bState.keywords, brand_theme: entry.brand_theme, series_id: entry.series_id, cover_image_path: 'cover.webp', cover_prompt: bState.smartCoverPrompt,
+                stats: { word_count: bState.wordCount, char_count: bState.fullText.length, scene_count: bState.pages.length, reading_time_seconds: Math.ceil(bState.wordCount / 2.5), length_category: bState.wordCount < 300 ? "Medium" : "Long" },
+                scenes: bState.sceneData, audio: { voice_id: bState.voiceId, engine: bState.engine, shards: bState.audioShards },
+                tokens: bState.tokens, character_anchor: bState.characterAnchor
             };
-
             fs.writeFileSync(path.join(bookDir, 'metadata.json'), JSON.stringify(finalMetadata, null, 2));
             fs.writeFileSync(path.join(bookDir, 'content.txt'), bState.fullText);
+
+            // --- Phase 4: Alignment ---
+            if (process.argv.includes('--align')) {
+                await runAlignmentWithRetry(bookDir, tracker, entry.id);
+            }
 
             state.completed.push(entry.id);
             delete state.inProgress[entry.id];
             saveState();
-            console.log(`✅ Completed ${entry.id} (${bState.wordCount} words)`);
+            tracker.update(entry.id, 5, 'Done');
 
         } catch (err: any) {
-            console.error(`❌ Failed ${entry.id}:`, err);
-            state.failed.push({
-                id: entry.id,
-                error: err.message || JSON.stringify(err),
-                timestamp: new Date().toISOString()
-            });
-            delete state.inProgress[entry.id];
+            log(`❌ Failed: ${entry.id} - ${err.message}`);
+            state.failed.push({ id: entry.id, error: err.message, timestamp: new Date().toISOString() });
             saveState();
         }
     }
-
-    const workers = Array.from({ length: CONCURRENCY }, () => (async () => {
-        while (queue.length > 0) {
-            const entry = queue.shift();
-            if (entry) {
-                await processBook(entry);
-                
-                if (process.argv.includes('--align')) {
-                    const bookDir = path.join(OUTPUT_DIR, entry.category, entry.id);
-                    console.log(`  🔍 [Post-Process] Running Gentle Alignment for ${entry.id}...`);
-                    try {
-                        execSync(`python3 scripts/narration/align.py "${bookDir}"`, { stdio: 'inherit' });
-                    } catch (e) {
-                        console.warn(`  ⚠️ Forced alignment failed for ${entry.id}. Falling back to Polly timings.`);
-                    }
-                }
-            }
-        }
-    })());
-
-    await Promise.all(workers);
-    console.log(`\n🎉 All books in manifesto processed!`);
+    console.log(`\n🎉 All books processed!`);
 }
 
 main().catch(console.error);
