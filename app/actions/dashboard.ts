@@ -89,6 +89,7 @@ export async function getDashboardStats(childId?: string) {
       supabase.from('point_transactions')
         .select('*')
         .eq('child_id', targetChildId)
+        .eq('transaction_type', 'lumo_coin')
         .order('created_at', { ascending: false })
         .limit(10)
     ]);
