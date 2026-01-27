@@ -4,11 +4,13 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { LibraryBookCard } from '@/lib/core/books/library-types';
+import { GamificationRepository } from '@/lib/core/gamification/repository.server';
  
 export interface XpTransaction {
   id: string;
   amount: number;
   reason: string;
+  transaction_type: 'lumo_coin' | 'credit';
   entity_type: string | null;
   entity_id: string | null;
   metadata: any;
@@ -68,8 +70,8 @@ export async function getDashboardStats(childId?: string) {
     }
 
     // --- STEP 2: PARALLEL EVERYTHING ELSE ---
-    // Use Settled or individual catches to ensure one failure doesn't kill the whole dashboard
     const repo = new BookRepository();
+    const gamificationRepo = new GamificationRepository();
     const [
       booksCount,
       vocabCount,
@@ -86,23 +88,38 @@ export async function getDashboardStats(childId?: string) {
         console.error('[dashboard:getDashboardStats] Recommendations failed:', err);
         return [] as LibraryBookCard[];
       }),
-      supabase.from('point_transactions')
-        .select('*')
-        .eq('child_id', targetChildId)
-        .eq('transaction_type', 'lumo_coin')
-        .order('created_at', { ascending: false })
-        .limit(10)
+      gamificationRepo.getRecentAchievements(targetChildId, 10).catch(err => {
+        console.error('[dashboard:getDashboardStats] XP history failed:', err);
+        return [] as any[];
+      })
     ]);
 
     // Log warnings for partial failures
-    if (booksCount.error || vocabCount.error || storiesCount.error || sentencesCount.error || xpTransactions.error) {
+    if (booksCount.error || vocabCount.error || storiesCount.error || sentencesCount.error) {
         console.warn('[dashboard:getDashboardStats] One or more sub-queries failed:', {
             books: booksCount.error,
             vocab: vocabCount.error,
             stories: storiesCount.error,
-            sentences: sentencesCount.error,
-            xp: xpTransactions.error
+            sentences: sentencesCount.error
         });
+    }
+
+    // Enrich XP history with book titles
+    const xpHistoryRaw = Array.isArray(xpTransactions) ? xpTransactions : [];
+    const bookIds = xpHistoryRaw
+      .filter((t: any) => t.entity_type === 'book' && t.entity_id)
+      .map((t: any) => t.entity_id as string);
+    
+    let bookData: Record<string, { title: string; cover_image_path: string | null }> = {};
+    if (bookIds.length > 0) {
+      const { data: books } = await supabase
+        .from('books')
+        .select('id, title, cover_image_path')
+        .in('id', bookIds)
+        .or(`owner_user_id.eq.${user.id},owner_user_id.is.null`);
+      books?.forEach(b => {
+        bookData[b.id] = { title: b.title, cover_image_path: b.cover_image_path };
+      });
     }
 
     // Process badges
@@ -124,23 +141,6 @@ export async function getDashboardStats(childId?: string) {
         earned_at: earnedBadgesMap[b.id]
     }));
 
-    // Enrich XP history with book titles
-    const bookIds = (xpTransactions.data || [])
-      .filter((t: any) => t.entity_type === 'book' && t.entity_id)
-      .map((t: any) => t.entity_id as string);
-    
-    let bookData: Record<string, { title: string; cover_image_path: string | null }> = {};
-    if (bookIds.length > 0) {
-      const { data: books } = await supabase
-        .from('books')
-        .select('id, title, cover_image_path')
-        .in('id', bookIds)
-        .or(`owner_user_id.eq.${user.id},owner_user_id.is.null`);
-      books?.forEach(b => {
-        bookData[b.id] = { title: b.title, cover_image_path: b.cover_image_path };
-      });
-    }
-
     // Sign URLs for book covers
     const coversToSign = Object.values(bookData)
       .map(b => b.cover_image_path)
@@ -152,7 +152,7 @@ export async function getDashboardStats(childId?: string) {
       signedData?.forEach(item => { if (item.path && item.signedUrl) signedUrlMap.set(item.path, item.signedUrl); });
     }
 
-    const xpHistory: XpTransaction[] = (xpTransactions.data || []).map((t: any) => {
+    const xpHistory: XpTransaction[] = xpHistoryRaw.map((t: any) => {
       const isBook = t.entity_type === 'book' && t.entity_id;
       const bData = isBook ? bookData[t.entity_id] : null;
       let coverUrl = bData?.cover_image_path || undefined;
