@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ChildProfileWizard from '../ChildProfileWizard';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/auth/auth-provider';
@@ -61,10 +61,38 @@ describe('ChildProfileWizard', () => {
         (useAuth as any).mockReturnValue({ refreshProfiles: mockRefreshProfiles, user: { id: 'user-123' } });
     });
 
+    afterEach(() => {
+        cleanup();
+    });
+
     it('maps payload fields correctly when finishing onboarding mode', async () => {
         render(<ChildProfileWizard mode="onboarding" />);
 
-        // Wait for interests step (HeroIdentityForm mock completes immediately)
+        // Step 1: Name - fill in name and continue
+        const nameInput = screen.getByPlaceholderText(/Leo, Mia, Sam/i);
+        fireEvent.change(nameInput, { target: { value: 'Skywalker' } });
+        fireEvent.click(screen.getByTestId('identity-continue-name'));
+
+        // Step 2: Age - just continue
+        await waitFor(() => {
+            expect(screen.getByTestId('identity-continue-age')).toBeTruthy();
+        });
+        fireEvent.click(screen.getByTestId('identity-continue-age'));
+
+        // Step 3: Gender - select boy and continue
+        await waitFor(() => {
+            expect(screen.getByTestId('gender-button-boy')).toBeTruthy();
+        });
+        fireEvent.click(screen.getByTestId('gender-button-boy'));
+        fireEvent.click(screen.getByTestId('identity-continue-gender'));
+
+        // Step 4: Avatar - skip (click Skip/Complete button)
+        await waitFor(() => {
+            expect(screen.getByTestId('identity-complete')).toBeTruthy();
+        });
+        fireEvent.click(screen.getByTestId('identity-complete'));
+
+        // Now should be at interests step
         expect(await screen.findByText(/Stories They'll/i)).toBeTruthy();
 
         // Select an interest (e.g. Magic)
@@ -89,14 +117,30 @@ describe('ChildProfileWizard', () => {
     it('does not label interests as optional', async () => {
         render(<ChildProfileWizard mode="onboarding" />);
 
+        // Step 1: Name
         fireEvent.change(screen.getByPlaceholderText(/Leo, Mia, Sam/i), { target: { value: 'Skywalker' } });
         fireEvent.click(screen.getByTestId('identity-continue-name'));
 
+        // Step 2: Age - wait for step transition then continue
+        await waitFor(() => {
+            expect(screen.getByTestId('identity-continue-age')).toBeTruthy();
+        });
         fireEvent.click(screen.getByTestId('identity-continue-age'));
+
+        // Step 3: Gender - wait for step transition, select and continue
+        await waitFor(() => {
+            expect(screen.getByTestId('gender-button-boy')).toBeTruthy();
+        });
         fireEvent.click(screen.getByTestId('gender-button-boy'));
         fireEvent.click(screen.getByTestId('identity-continue-gender'));
-        fireEvent.click(screen.getByText(/Skip/i));
 
+        // Step 4: Avatar - wait for step transition then skip
+        await waitFor(() => {
+            expect(screen.getByTestId('identity-complete')).toBeTruthy();
+        });
+        fireEvent.click(screen.getByTestId('identity-complete'));
+
+        // Now should be at interests step
         await waitFor(() => {
             expect(screen.getByText(/Stories They'll/i)).toBeTruthy();
         });

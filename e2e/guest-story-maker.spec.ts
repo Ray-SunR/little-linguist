@@ -72,8 +72,8 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
   await page.getByTestId('identity-complete').click();
   
   // Step: Interests
-  await expect(page.getByText('Magic Interests!')).toBeVisible({ timeout: 15000 });
-  await page.getByText('Space').first().click();
+  await expect(page.getByText("Stories They'll")).toBeVisible({ timeout: 15000 });
+  await page.getByRole('button', { name: 'Space' }).click();
   await page.getByTestId('onboarding-finish').click();
 
   console.log('Filling topic...');

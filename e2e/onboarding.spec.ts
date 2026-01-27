@@ -67,10 +67,10 @@ test('New user onboarding flow', async ({ page, context }) => {
 
   // Interests step
   console.log('Selecting interests...');
-  await expect(page.getByText('Magic Interests!')).toBeVisible();
+  await expect(page.getByText("Stories They'll")).toBeVisible();
   
   await page.getByRole('button', { name: 'Space' }).click();
-  await page.getByRole('button', { name: 'Adventure' }).click();
+  await page.getByRole('button', { name: 'Nature' }).click(); // Adventure was removed
   
   console.log('Finishing onboarding...');
   await page.waitForTimeout(1000);

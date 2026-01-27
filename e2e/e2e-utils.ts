@@ -32,8 +32,8 @@ export async function completeOnboarding(page: Page, childName: string = 'LeoHer
 
     // Step: Interests
     console.log('Selecting interests...');
-    await expect(page.getByText('Magic Interests!')).toBeVisible({ timeout: 15000 });
-    await page.getByText('Space').first().click();
+    await expect(page.getByText("Stories They'll")).toBeVisible({ timeout: 15000 });
+    await page.getByRole('button', { name: 'Space' }).click();
     await page.getByTestId('onboarding-finish').click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 120000 });
   }

@@ -95,7 +95,7 @@ test.describe('Profile Persistence and Management', () => {
     await page.getByTestId('identity-complete').click();
     
     // Interests
-    await expect(page.getByText('Magic Interests!')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Stories They'll")).toBeVisible({ timeout: 15000 });
     await page.getByRole('button', { name: 'Space' }).click();
     await page.getByTestId('onboarding-finish').click({ force: true });
 

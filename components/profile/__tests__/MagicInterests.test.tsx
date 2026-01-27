@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import ChildProfileWizard from '../ChildProfileWizard';
 import React from 'react';
 
@@ -19,20 +19,27 @@ vi.mock('@/components/auth/auth-provider', () => ({
 }));
 
 // Mock HeroIdentityForm to skip identity steps
-vi.mock('../HeroIdentityForm', () => ({
-    default: ({ onComplete }: any) => {
-        React.useEffect(() => {
+// Note: vi.mock is hoisted, so we must define the component inside the factory
+vi.mock('../HeroIdentityForm', async () => {
+    const ReactModule = await import('react');
+    const MockHeroIdentityForm = ({ onComplete }: { onComplete: (data: { firstName: string; birthYear: number; gender: string }) => void }) => {
+        ReactModule.useEffect(() => {
             onComplete({
                 firstName: 'Raiden',
                 birthYear: 2018,
                 gender: 'boy'
             });
         }, [onComplete]);
-        return <div data-testid="hero-identity-form">Hero Identity Form</div>;
-    }
-}));
+        return ReactModule.createElement('div', { 'data-testid': 'hero-identity-form' }, 'Hero Identity Form');
+    };
+    return { default: MockHeroIdentityForm };
+});
 
 describe('MagicInterests', () => {
+    afterEach(() => {
+        cleanup();
+    });
+
     it('shows a poof animation when an interest is toggled', async () => {
         render(<ChildProfileWizard />);
         // Magic is one of the popular picks
