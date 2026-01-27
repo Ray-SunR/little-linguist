@@ -1,8 +1,7 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Plus, Sparkles, Save, Check } from 'lucide-react';
+import { X, Sparkles, Save, Check, Search, Shield, Crown, Rocket, PawPrint, Microscope, Leaf, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateChildProfile } from '@/app/actions/profiles';
 import { toast } from 'sonner';
@@ -15,12 +14,15 @@ interface InterestEditorModalProps {
     onUpdate?: (newInterests: string[]) => void;
 }
 
-const SUGGESTED_INTERESTS = {
-    "Themes 🎭": ["Adventure", "Friendship", "Magic", "Mystery", "Kindness", "Courage"],
-    "Topics 🦖": ["Nature", "Animals", "Science", "Pets", "Space", "Dinosaurs", "Transport"],
-    "Characters 🦸": ["Princesses", "Superheroes", "Fairies", "Knights"],
-    "Activities 🚀": ["Sports", "Building", "Exploration"]
-};
+const POPULAR_PICKS = [
+    { name: "Magic", icon: Sparkles, color: "text-amber-500" },
+    { name: "Superhero", icon: Shield, color: "text-rose-500" },
+    { name: "Princess", icon: Crown, color: "text-pink-500" },
+    { name: "Space", icon: Rocket, color: "text-purple-500" },
+    { name: "Animals", icon: PawPrint, color: "text-emerald-500" },
+    { name: "Science", icon: Microscope, color: "text-indigo-500" },
+    { name: "Nature", icon: Leaf, color: "text-green-500" },
+];
 
 export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: InterestEditorModalProps) {
     const [interests, setInterests] = useState<string[]>([]);
@@ -87,7 +89,7 @@ export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: Intere
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4"
                     >
                         <motion.div
                             initial={{ y: "100%", opacity: 0 }}
@@ -95,148 +97,159 @@ export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: Intere
                             exit={{ y: "100%", opacity: 0 }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-t-[2.5rem] sm:rounded-[2rem] shadow-clay-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90vh]"
+                            className="bg-white rounded-t-[2.5rem] sm:rounded-[2rem] shadow-clay-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90vh] mb-0 sm:mb-0 relative z-[110]"
                         >
                             {/* Header */}
-                            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-start sm:items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-purple-600">
-                                        <Sparkles className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-fredoka font-bold text-slate-800">
-                                            {child.name}&apos;s Interests
-                                        </h2>
-                                        <p className="text-sm text-slate-500 font-medium">
-                                            Select up to 10 topics to personalize specific stories
-                                        </p>
-                                    </div>
+                            <div className="p-5 sm:p-6 border-b border-purple-50 flex items-start sm:items-center justify-between bg-white relative overflow-hidden">
+                                {/* Decorative BG Elements */}
+                                <div className="absolute -top-12 -left-12 w-32 h-32 bg-purple-50/50 rounded-full blur-2xl pointer-events-none" />
+                                
+                                <div className="flex flex-col items-start gap-2 relative z-10">
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-600 font-fredoka font-bold text-[10px] border border-purple-100"
+                                    >
+                                        <Star className="w-3 h-3 fill-current" />
+                                        Personalized for {child.name}
+                                    </motion.div>
+                                    <h2 className="text-2xl font-black text-ink font-fredoka">
+                                        Stories They&apos;ll <span className="text-purple-500">Love</span>
+                                    </h2>
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="p-2 hover:bg-white/50 rounded-full transition-colors text-slate-400 hover:text-slate-600"
+                                    className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600 relative z-10"
                                 >
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
 
                             {/* Scrollable Content */}
-                            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 sm:space-y-8">
+                            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-8">
 
-                                {/* Current Selection */}
-                                <div className="space-y-3">
-                                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider flex justify-between">
-                                        Selected Topics
-                                        <span className={cn("text-xs font-normal normal-case px-2 py-0.5 rounded-full",
-                                            interests.length >= 10 ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-500"
-                                        )}>
-                                            {interests.length}/10
-                                        </span>
-                                    </label>
-                                    <div className="flex flex-wrap gap-2 min-h-[3rem] p-3 sm:p-4 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
-                                        {interests.length === 0 ? (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-medium italic">
-                                                Add topics below to explore new worlds...
-                                            </div>
-                                        ) : (
-                                            interests.map(interest => (
-                                                <motion.button
-                                                    layout
-                                                    key={interest}
-                                                    onClick={() => handleRemoveInterest(interest)}
-                                                    className="group flex items-center gap-1.5 pl-3 pr-2 py-1.5 bg-white border border-purple-100 rounded-full shadow-sm text-purple-700 font-bold text-sm hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer"
-                                                >
-                                                    {interest}
-                                                    <X className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100" />
-                                                </motion.button>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Custom Input */}
-                                <div className="space-y-3">
-                                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">
-                                        Add Custom Topic
-                                    </label>
-                                    <div className="flex gap-2">
+                                {/* Search Bar */}
+                                <div className="relative w-full max-w-xl mx-auto group">
+                                    <div className="absolute inset-0 bg-purple-100 rounded-2xl translate-y-1 translate-x-0.5 group-focus-within:translate-y-0.5 transition-transform" />
+                                    <div className="relative flex items-center bg-white border-2 border-purple-200 rounded-2xl px-5 py-3 shadow-clay-sm group-focus-within:border-purple-400 transition-all">
+                                        <Search className="w-5 h-5 text-purple-400 mr-3" />
                                         <input
                                             ref={inputRef}
                                             type="text"
                                             value={customInput}
                                             onChange={(e) => setCustomInput(e.target.value)}
                                             onKeyDown={handleKeyDown}
-                                            placeholder="e.g. Baking, Robots, Ninjas..."
-                                            className="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 outline-none font-bold text-slate-700 placeholder:text-slate-400 placeholder:font-medium transition-all"
+                                            placeholder="Add something else they love..."
+                                            className="flex-1 bg-transparent border-none outline-none font-fredoka text-base text-ink placeholder:text-slate-300"
                                         />
-                                        <button
-                                            onClick={() => handleAddInterest(customInput)}
-                                            disabled={!customInput.trim()}
-                                            className="px-4 sm:px-5 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center shrink-0"
-                                        >
-                                            <Plus className="w-6 h-6" />
-                                        </button>
                                     </div>
                                 </div>
 
-                                {/* Suggestions */}
-                                <div className="space-y-6">
-                                    {Object.entries(SUGGESTED_INTERESTS).map(([category, items]) => (
-                                        <div key={category} className="space-y-3">
-                                            <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">
-                                                {category}
-                                            </label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {items.map(item => {
-                                                    const isSelected = interests.includes(item);
-                                                    return (
-                                                        <button
-                                                            key={item}
-                                                            onClick={isSelected ? () => handleRemoveInterest(item) : () => handleAddInterest(item)}
-                                                            className={cn(
-                                                                "px-3 py-2 sm:py-1.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center gap-1.5",
-                                                                isSelected
-                                                                    ? "bg-purple-100 border-purple-200 text-purple-700 ring-2 ring-purple-50 ring-offset-1"
-                                                                    : "bg-white border-slate-200 text-slate-600 hover:border-purple-200 hover:text-purple-600 hover:bg-purple-50"
-                                                            )}
-                                                        >
-                                                            {item}
-                                                            {isSelected && <Check className="w-3.5 h-3.5" />}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    ))}
+                                {/* Popular Picks */}
+                                <div className="space-y-4 text-center">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">
+                                        Popular Picks
+                                    </label>
+                                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+                                        {POPULAR_PICKS.map((pick) => {
+                                            const isSelected = interests.includes(pick.name);
+                                            return (
+                                                <motion.button
+                                                    key={pick.name}
+                                                    type="button"
+                                                    onClick={isSelected ? () => handleRemoveInterest(pick.name) : () => handleAddInterest(pick.name)}
+                                                    whileHover={{ scale: 1.05, y: -2 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    className={cn(
+                                                        "flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4",
+                                                        isSelected
+                                                            ? "bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-clay-sm"
+                                                    )}
+                                                >
+                                                    <AnimatePresence mode="wait">
+                                                        {isSelected ? (
+                                                            <motion.div
+                                                                key="check"
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0, opacity: 0 }}
+                                                            >
+                                                                <Check className="w-4 h-4 text-white" />
+                                                            </motion.div>
+                                                        ) : (
+                                                            <motion.div
+                                                                key="icon"
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0, opacity: 0 }}
+                                                            >
+                                                                <pick.icon className={cn("w-4 h-4", pick.color)} />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                    {pick.name}
+                                                </motion.button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
+
+                                {/* Custom Selection Tags */}
+                                {interests.filter(i => !POPULAR_PICKS.some(p => p.name === i)).length > 0 && (
+                                    <div className="space-y-4 text-center pb-4">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">
+                                            My Magic Words
+                                        </label>
+                                        <div className="flex flex-wrap justify-center gap-3">
+                                            {interests.filter(i => !POPULAR_PICKS.some(p => p.name === i)).map(interest => (
+                                                <motion.button
+                                                    layout
+                                                    key={interest}
+                                                    onClick={() => handleRemoveInterest(interest)}
+                                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4 bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                                >
+                                                    <Check className="w-4 h-4 text-white" />
+                                                    {interest}
+                                                    <X className="w-4 h-4 ml-1 opacity-50" />
+                                                </motion.button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                             </div>
 
                             {/* Footer */}
-                            <div className="p-5 sm:p-6 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
-                                <button
-                                    onClick={onClose}
-                                    className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleSave}
-                                    disabled={isSaving}
-                                    className="px-8 py-3 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 text-white font-bold shadow-lg shadow-purple-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-wait flex items-center gap-2"
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Sparkles className="w-5 h-5 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-5 h-5" />
-                                            Save Interests
-                                        </>
-                                    )}
-                                </button>
+                            <div className="p-5 sm:p-6 pb-10 sm:pb-6 border-t border-purple-50 bg-slate-50/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                                <div className="text-xs font-bold text-slate-400 px-2 text-center sm:text-left">
+                                    {interests.length}/10 selected
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={onClose}
+                                        className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                        className="flex-1 sm:flex-none px-8 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-500 hover:from-indigo-500 hover:to-purple-400 text-white font-black font-fredoka uppercase tracking-widest shadow-clay-blue transition-all disabled:opacity-70 flex items-center justify-center gap-2 whitespace-nowrap"
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <Sparkles className="w-5 h-5 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-5 h-5" />
+                                                Save Interests
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>
@@ -245,5 +258,3 @@ export function InterestEditorModal({ isOpen, onClose, child, onUpdate }: Intere
         </AnimatePresence>
     );
 }
-
-// Ensure "use client" is at the top
