@@ -259,15 +259,22 @@ export default function SubscriptionUI() {
                                         >
                                             <td className="px-6 py-2.5">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm ${event.coverImageUrl ? "bg-slate-100" : (event.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400')}`}>
+                                                    <div className={cn(
+                                                        "w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm",
+                                                        event.coverImageUrl 
+                                                            ? "bg-slate-100" 
+                                                            : (event.currencyType === 'lumo_coin' 
+                                                                ? 'bg-amber-50 text-amber-600' 
+                                                                : 'bg-emerald-50 text-emerald-600')
+                                                    )}>
                                                         {event.coverImageUrl ? (
                                                             <CachedImage src={event.coverImageUrl} storagePath={event.storagePath} updatedAt={event.updatedAt} alt={event.description} width={40} height={40} className="w-full h-full object-cover" bucket={(event.bucket as any) || "book-assets"} />
                                                         ) : (
-                                                            event.type === 'credit' ? <ArrowUpRight className="w-4 h-4" /> :
-                                                                (event.action.toLowerCase().includes('insight') ? <Zap className="w-4 h-4 text-amber-500" /> :
-                                                                    event.action.toLowerCase().includes('magic') ? <Sparkles className="w-4 h-4 text-purple-500" /> :
-                                                                        event.action.toLowerCase().includes('story') ? <BookOpen className="w-4 h-4 text-pink-500" /> :
-                                                                            <Clock className="w-4 h-4" />)
+                                                            event.currencyType === 'lumo_coin' ? <Star className="w-4 h-4 fill-current" /> :
+                                                                (event.action.toLowerCase().includes('insight') ? <Zap className="w-4 h-4" /> :
+                                                                    event.action.toLowerCase().includes('magic') ? <Sparkles className="w-4 h-4" /> :
+                                                                        event.action.toLowerCase().includes('story') ? <BookOpen className="w-4 h-4" /> :
+                                                                            <ArrowUpRight className="w-4 h-4" />)
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
@@ -354,15 +361,22 @@ export default function SubscriptionUI() {
                                     onClick={() => isClickable && handleRowClick(event)}
                                 >
                                     <div className="flex items-start gap-3">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${event.coverImageUrl ? "bg-slate-100 shadow-sm" : (event.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400')}`}>
+                                        <div className={cn(
+                                            "w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm",
+                                            event.coverImageUrl 
+                                                ? "bg-slate-100" 
+                                                : (event.currencyType === 'lumo_coin' 
+                                                    ? 'bg-amber-50 text-amber-600' 
+                                                    : 'bg-emerald-50 text-emerald-600')
+                                        )}>
                                             {event.coverImageUrl ? (
                                                 <CachedImage src={event.coverImageUrl} storagePath={event.storagePath} updatedAt={event.updatedAt} alt={event.description} width={48} height={48} className="w-full h-full object-cover" bucket={(event.bucket as any) || "book-assets"} />
                                             ) : (
-                                                event.type === 'credit' ? <ArrowUpRight className="w-5 h-5" /> :
-                                                    (event.action.toLowerCase().includes('insight') ? <Zap className="w-5 h-5 text-amber-500" /> :
-                                                        event.action.toLowerCase().includes('magic') ? <Sparkles className="w-5 h-5 text-purple-500" /> :
-                                                            event.action.toLowerCase().includes('story') ? <BookOpen className="w-5 h-5 text-pink-500" /> :
-                                                                <Clock className="w-5 h-5" />)
+                                                event.currencyType === 'lumo_coin' ? <Star className="w-5 h-5 fill-current" /> :
+                                                    (event.action.toLowerCase().includes('insight') ? <Zap className="w-5 h-5" /> :
+                                                        event.action.toLowerCase().includes('magic') ? <Sparkles className="w-5 h-5" /> :
+                                                            event.action.toLowerCase().includes('story') ? <BookOpen className="w-5 h-5" /> :
+                                                                <ArrowUpRight className="w-5 h-5" />)
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -440,7 +454,8 @@ export default function SubscriptionUI() {
 
 function AmountDisplay({ event, mobile = false }: { event: UsageEvent, mobile?: boolean }) {
     // Determine individual label for non-grouped transactions
-    let individualLabel = null;
+    let individualLabel = event.currencyType === 'lumo_coin' ? "COINS" : "CREDITS";
+    
     if (!event.isGrouped) {
         const actionLower = event.action.toLowerCase();
         if (actionLower.includes("word insight")) {
@@ -451,10 +466,10 @@ function AmountDisplay({ event, mobile = false }: { event: UsageEvent, mobile?: 
             individualLabel = "IMAGE";
         } else if (actionLower.includes("magic sentence")) {
             individualLabel = "MAGIC";
-        } else if (event.type === 'credit') {
-            individualLabel = "COINS";
         }
     }
+
+    const isPositive = event.type === 'credit';
 
     return (
         <div className="flex flex-col items-end gap-1">
@@ -502,11 +517,11 @@ function AmountDisplay({ event, mobile = false }: { event: UsageEvent, mobile?: 
                     )}
                     <span className={cn(
                         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black font-fredoka border",
-                        event.type === 'credit'
-                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                            : 'bg-red-50 text-red-600 border-red-100'
+                        event.currencyType === 'lumo_coin'
+                            ? (isPositive ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-red-50 text-red-600 border-red-100')
+                            : (isPositive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100')
                     )}>
-                        {event.type === 'credit' ? '+' : '-'}{event.amount}
+                        {isPositive ? '+' : '-'}{event.amount}
                     </span>
                 </div>
             )}

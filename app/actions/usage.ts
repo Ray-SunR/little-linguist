@@ -8,6 +8,7 @@ export interface UsageEvent {
     description: string;
     timestamp: string;
     amount: number;
+    currencyType: 'lumo_coin' | 'credit';
     type: "credit" | "debit";
     // Enhanced metadata
     bookId?: string;
@@ -41,6 +42,7 @@ interface RawTransaction {
     id: string;
     amount: number;
     reason: string;
+    transaction_type: 'lumo_coin' | 'credit';
     created_at: string;
     metadata: TransactionMetadata | null;
     owner_user_id: string;
@@ -59,6 +61,7 @@ interface TransactionGroup {
     timestamp: string;
     metadata: TransactionMetadata | null;
     reason: string;
+    transaction_type: 'lumo_coin' | 'credit';
     type: "debit" | "credit";
     amount: number;
     bucket?: string;
@@ -78,7 +81,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
 
     const { data: transactions, error } = await supabase
         .from("point_transactions")
-        .select("id, amount, reason, created_at, metadata, owner_user_id, child_id, entity_id, entity_type")
+        .select("id, amount, reason, transaction_type, created_at, metadata, owner_user_id, child_id, entity_id, entity_type")
         .eq("owner_user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(internalLimit);
@@ -110,6 +113,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
                     timestamp: tx.created_at,
                     metadata: tx.metadata,
                     reason: 'generation_group',
+                    transaction_type: tx.transaction_type,
                     type: 'debit',
                     amount: 0,
                     childId: tx.child_id || undefined
@@ -277,6 +281,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
         const timestamp = isGroup ? (tx as TransactionGroup).timestamp : (tx as RawTransaction).created_at;
         const amount = Math.abs((tx as any).amount);
         const type = (isGroup ? (tx as TransactionGroup).type : (((tx as RawTransaction).amount || 0) > 0 ? "credit" : "debit")) as "credit" | "debit";
+        const currencyType = isGroup ? (tx as TransactionGroup).transaction_type : (tx as RawTransaction).transaction_type;
 
         return {
             id: (tx as any).id,
@@ -284,6 +289,7 @@ export async function getUsageHistory(limit: number = 10): Promise<UsageEvent[]>
             description: description,
             timestamp,
             amount,
+            currencyType,
             type,
             entityId: eId || undefined,
             entityType: eType || undefined,
