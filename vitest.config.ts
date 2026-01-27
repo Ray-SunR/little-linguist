@@ -28,6 +28,7 @@ export default defineConfig({
       ],
     },
     globalSetup: './tests/setup/global.ts',
+    setupFiles: ['./tests/setup/vitest.setup.ts'],
     poolOptions: {
       threads: {
         singleThread: true,
