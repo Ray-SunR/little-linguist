@@ -1,8 +1,9 @@
 "use client";
 
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FastForward, ArrowLeft, RotateCcw, Heart } from "lucide-react";
+import { FastForward, ArrowLeft, RotateCcw, Heart, BookMarked } from "lucide-react";
 import { LumoCharacter } from "@/components/ui/lumo-character";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from 'next/link';
@@ -22,6 +23,7 @@ import { useWakeLock } from "@/hooks/use-wake-lock";
 import BookLayout from "./book-layout";
 import ControlPanel from "./control-panel";
 import WordInspectorTooltip from "./word-inspector-tooltip";
+import { SavedWordsPanel } from "./saved-words-panel";
 
 export interface SupabaseBook {
     id: string;
@@ -68,6 +70,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
     const [theme, setTheme] = useState<"light" | "dark">("light");
     const [isMaximized, setIsMaximized] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
+    const [isSavedWordsOpen, setIsSavedWordsOpen] = useState(false);
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const controlsRef = useRef<HTMLDivElement>(null);
@@ -257,7 +260,31 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
         await play();
     }, [inspectorSelectedWordIndex, closeWordInspector, seekToWord, play, saveProgress]);
 
+    const handlePanelWordClick = useCallback(async (word: string) => {
+        setIsSavedWordsOpen(false);
+
+        // Find the word in wordTokens
+        const index = wordTokens.findIndex(t => t.text.toLowerCase().replace(/[^a-z0-9]/g, '') === word.toLowerCase().replace(/[^a-z0-9]/g, ''));
+
+        if (index !== -1) {
+            // Find element in DOM
+            const element = document.querySelector(`[data-word-index="${index}"]`) as HTMLElement;
+            if (element) {
+                await handleWordClick(word, element, index);
+                return;
+            }
+        }
+
+        // Fallback if not found in current book text
+        const dummyElement = document.createElement('div');
+        dummyElement.style.position = 'fixed';
+        dummyElement.style.left = '50%';
+        dummyElement.style.top = '50%';
+        await openWordInspector(word, dummyElement, -1);
+    }, [wordTokens, handleWordClick, openWordInspector]);
+
     const toggleTheme = useCallback(() => {
+
         const newTheme = theme === "light" ? "dark" : "light";
         setTheme(newTheme);
         if (newTheme === "dark") {
@@ -409,7 +436,7 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                     </button>
 
                     <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-                        <div className="relative">
+                        <div className="relative shrink-0">
                             <LumoCharacter size="sm" className="flex flex-shrink-0" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -418,6 +445,17 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                             </h1>
                         </div>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setIsSavedWordsOpen(true)}
+                        disabled={isEmpty}
+                        className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/80 dark:bg-card text-amber-500 shadow-md hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 flex-shrink-0 border border-amber-100 dark:border-transparent"
+                        aria-label="View saved words"
+                        title="My Saved Words"
+                    >
+                        <BookMarked className="h-5 w-5 fill-amber-400" />
+                    </button>
 
                     <button
                         type="button"
@@ -560,6 +598,12 @@ export default function SupabaseReaderShell({ books, initialBookId, childId, onB
                 onPlayFromWord={handlePlayFromWord}
                 provider={tooltipProvider}
                 bookId={selectedBookId}
+            />
+
+            <SavedWordsPanel
+                isOpen={isSavedWordsOpen}
+                onOpenChange={setIsSavedWordsOpen}
+                onWordClick={handlePanelWordClick}
             />
         </section>
     );
