@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createChildProfile, getAvatarUploadUrl } from '@/app/actions/profiles';
-import { Camera, Check, ChevronRight, ChevronLeft, Sparkles, Wand2, BookOpen } from 'lucide-react';
+import { Camera, Check, ChevronRight, ChevronLeft, Sparkles, Wand2, BookOpen, Search, Shield, Crown, Rocket, PawPrint, Microscope, Leaf, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { CachedImage } from '@/components/ui/cached-image';
@@ -17,12 +17,15 @@ interface ChildProfileWizardProps {
     mode?: 'onboarding' | 'story';
 }
 
-const SUGGESTED_INTERESTS = {
-    "Themes 🎭": ["Adventure", "Friendship", "Magic"],
-    "Topics 🦖": ["Nature", "Animals", "Science"],
-    "Characters 🦸": ["Princesses", "Superheroes", "Fairies"],
-    "Activities 🚀": ["Sports", "Building", "Exploration"]
-};
+const POPULAR_PICKS = [
+    { name: "Magic", icon: Sparkles, color: "text-amber-500" },
+    { name: "Superhero", icon: Shield, color: "text-rose-500" },
+    { name: "Princess", icon: Crown, color: "text-pink-500" },
+    { name: "Space", icon: Rocket, color: "text-purple-500" },
+    { name: "Animals", icon: PawPrint, color: "text-emerald-500" },
+    { name: "Science", icon: Microscope, color: "text-indigo-500" },
+    { name: "Nature", icon: Leaf, color: "text-green-500" },
+];
 
 const GUEST_MAGIC_WORDS = [
     'Magic', 'Adventure', 'Friendship', 'Dragon', 'Space',
@@ -228,21 +231,16 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
     return (
         <div className="w-full max-w-2xl mx-auto px-1 sm:px-0 flex items-center justify-center h-full">
-            <div data-testid="wizard-card" className="bg-[#0B0F1A] p-4 sm:p-6 rounded-[3rem] border-4 border-slate-800 shadow-[0_0_50px_rgba(79,70,229,0.1)] relative overflow-hidden h-[540px] w-full flex flex-col transition-colors duration-500">
+            <div data-testid="wizard-card" className="bg-white p-4 sm:p-6 rounded-[3rem] border-4 border-purple-50 shadow-clay-lg relative overflow-hidden h-[540px] w-full flex flex-col transition-colors duration-500">
 
-                {/* Starlit Particles Background */}
-                <div className="absolute inset-0 pointer-events-none opacity-20">
-                    <div className="absolute top-10 left-10 w-1 h-1 bg-white rounded-full animate-pulse" />
-                    <div className="absolute top-40 left-60 w-1 h-1 bg-white rounded-full animate-pulse delay-700" />
-                    <div className="absolute top-20 right-20 w-1 h-1 bg-white rounded-full animate-pulse delay-1000" />
-                    <div className="absolute bottom-40 left-20 w-1 h-1 bg-white rounded-full animate-pulse delay-300" />
-                    <div className="absolute bottom-20 right-40 w-1 h-1 bg-white rounded-full animate-pulse delay-500" />
-                </div>
+                {/* Decorative BG Elements */}
+                <div className="absolute -top-24 -left-24 w-64 h-64 bg-purple-100/30 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
 
                 {/* Progress Bar */}
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-800/50">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-purple-50">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-orange-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]"
+                        className="h-full bg-gradient-to-r from-purple-400 to-pink-400"
                         initial={{ width: '0%' }}
                         animate={{ width: progressPercentage() }}
                     />
@@ -268,7 +266,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                             opacity: 0
                                         }}
                                         transition={{ duration: 0.5 }}
-                                        className="absolute w-2 h-2 bg-indigo-400 rounded-full shadow-[0_0_10px_indigo]"
+                                        className="absolute w-2 h-2 bg-purple-400 rounded-full shadow-[0_0_10px_purple]"
                                     />
                                 ))}
                             </div>
@@ -316,71 +314,33 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
                         {/* --- STEP: INTERESTS --- */}
                         {step === 'interests' && (
-                            <div className="w-full h-full flex flex-col space-y-6">
-                                <div className="text-center space-y-2">
-                                    <h2 className="text-2xl md:text-3xl font-black text-white font-fredoka tracking-tight">Magic Interests!</h2>
-                                    <p className="text-slate-400 font-bold font-nunito text-xs">What does <span className="text-indigo-400 font-black">{formData.firstName}</span> love most?</p>
+                            <div className="w-full h-full flex flex-col items-center">
+                                <div className="text-center mb-8">
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-600 font-fredoka font-bold text-[10px] mb-3 border border-purple-100"
+                                    >
+                                        <Star className="w-3 h-3 fill-current" />
+                                        Personalized for {formData.firstName || 'You'}
+                                    </motion.div>
+                                    <h2 className="text-2xl md:text-3xl font-black text-ink font-fredoka mb-2">
+                                        Stories They&apos;ll <span className="text-purple-500">Love</span>
+                                    </h2>
+                                    <p className="text-xs text-ink-muted font-nunito max-w-md mx-auto">
+                                        What does <span className="text-purple-600 font-black">{formData.firstName}</span> enjoy most?
+                                    </p>
                                 </div>
 
-                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-6">
-                                    {formData.interests.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 p-3 bg-slate-900/50 rounded-2xl border border-slate-800 min-h-[52px] shadow-inner">
-                                            {formData.interests.map(interest => (
-                                                <motion.button
-                                                    layout
-                                                    initial={{ scale: 0.8, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    key={`selected-${interest}`}
-                                                    onClick={() => toggleInterest(interest)}
-                                                    className="px-3 py-1 bg-indigo-600 text-white rounded-full text-xs font-black shadow-[0_0_15px_rgba(79,70,229,0.3)] flex items-center gap-2 group border border-indigo-400/30"
-                                                >
-                                                    {interest}
-                                                    <span className="opacity-50 group-hover:opacity-100 transition-opacity">×</span>
-                                                </motion.button>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {Object.entries(SUGGESTED_INTERESTS).map(([category, items], idx) => (
-                                            <div key={category} className={cn(
-                                                "p-4 rounded-[2rem] bg-slate-900/30 border border-slate-800/50 hover:border-indigo-500/30 transition-all group/bento",
-                                                idx === 0 || idx === 3 ? "col-span-1" : "col-span-1"
-                                            )}>
-                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">{category}</h3>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {items.map(interest => {
-                                                        const isSelected = formData.interests.includes(interest);
-                                                        return (
-                                                            <motion.button
-                                                                key={`suggested-${interest}`}
-                                                                type="button"
-                                                                onClick={() => toggleInterest(interest)}
-                                                                whileHover={{ scale: 1.05, y: -2 }}
-                                                                whileTap={{ scale: 0.95 }}
-                                                                className={cn(
-                                                                    "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2",
-                                                                    isSelected
-                                                                        ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_15px_rgba(79,70,229,0.3)]'
-                                                                        : 'bg-slate-800/50 text-slate-300 border-slate-700 hover:border-indigo-500/50'
-                                                                )}
-                                                            >
-                                                                {interest}
-                                                            </motion.button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="mt-auto space-y-6 pt-4 border-t border-slate-800/50">
-                                    <div className="relative group max-w-sm mx-auto w-full">
+                                {/* Claymorphic Search Bar */}
+                                <div className="relative w-full max-w-lg group mb-8">
+                                    <div className="absolute inset-0 bg-purple-100 rounded-2xl translate-y-1.5 translate-x-1 group-focus-within:translate-y-1 transition-transform" />
+                                    <div className="relative flex items-center bg-white border-2 border-purple-200 rounded-2xl px-5 py-3 shadow-clay-sm group-focus-within:border-purple-400 transition-all">
+                                        <Search className="w-5 h-5 text-purple-400 mr-3" />
                                         <input
                                             type="text"
                                             placeholder="Add something else they love..."
-                                            className="w-full h-12 px-6 pr-12 rounded-full border-2 border-slate-800 bg-slate-900/50 focus:bg-slate-900 focus:border-indigo-500 outline-none transition-all font-nunito font-bold text-white text-sm placeholder:text-slate-600 shadow-inner"
+                                            className="flex-1 bg-transparent border-none outline-none font-fredoka text-base text-ink placeholder:text-slate-300"
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     const val = e.currentTarget.value.trim();
@@ -393,25 +353,64 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                                 }
                                             }}
                                         />
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-400 transition-colors">
-                                            <Sparkles className="w-5 h-5 animate-pulse" />
-                                        </div>
                                     </div>
+                                </div>
 
-                                    <div className="flex items-center justify-center gap-4">
-                                        <button onClick={() => prevStep('avatar')} className="h-12 px-8 flex items-center gap-2 text-slate-400 font-bold hover:text-white transition-colors">
-                                            <ChevronLeft className="w-5 h-5" /> Back
-                                        </button>
-                                        <motion.button
-                                            onClick={handleFinish}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            data-testid="onboarding-finish"
-                                            className="h-12 px-10 rounded-full bg-orange-500 hover:bg-orange-400 text-white text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all"
-                                        >
-                                            {mode === 'onboarding' ? "Finish! ✨" : "Continue"} <ChevronRight className="w-5 h-5" />
-                                        </motion.button>
+                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar w-full">
+                                    <div className="flex flex-wrap justify-center gap-3 pb-8">
+                                        {POPULAR_PICKS.map((pick) => {
+                                            const isSelected = formData.interests.includes(pick.name);
+                                            return (
+                                                <motion.button
+                                                    key={pick.name}
+                                                    type="button"
+                                                    onClick={() => toggleInterest(pick.name)}
+                                                    whileHover={{ scale: 1.05, y: -2 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    className={cn(
+                                                        "flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4",
+                                                        isSelected
+                                                            ? "bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-clay-sm"
+                                                    )}
+                                                >
+                                                    <pick.icon className={cn("w-4 h-4", isSelected ? "text-white" : pick.color)} />
+                                                    {pick.name}
+                                                </motion.button>
+                                            );
+                                        })}
+
+                                        {/* Custom Selections */}
+                                        {formData.interests.filter(i => !POPULAR_PICKS.some(p => p.name === i)).map(interest => (
+                                            <motion.button
+                                                key={interest}
+                                                type="button"
+                                                onClick={() => toggleInterest(interest)}
+                                                initial={{ scale: 0, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4 bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                            >
+                                                <Sparkles className="w-4 h-4 text-white" />
+                                                {interest}
+                                                <span className="ml-1 opacity-50">×</span>
+                                            </motion.button>
+                                        ))}
                                     </div>
+                                </div>
+
+                                <div className="flex items-center justify-center gap-4 pt-4 border-t border-purple-50 w-full mt-auto">
+                                    <button onClick={() => prevStep('avatar')} className="h-12 px-8 flex items-center gap-2 text-ink/60 font-bold hover:text-ink transition-colors">
+                                        <ChevronLeft className="w-5 h-5" /> Back
+                                    </button>
+                                    <motion.button
+                                        onClick={handleFinish}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        data-testid="onboarding-finish"
+                                        className="h-12 px-10 rounded-full bg-blue-500 hover:bg-blue-400 text-white text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-2 shadow-clay-blue transition-all"
+                                    >
+                                        {mode === 'onboarding' ? "Finish! ✨" : "Continue"} <ChevronRight className="w-5 h-5" />
+                                    </motion.button>
                                 </div>
                             </div>
                         )}

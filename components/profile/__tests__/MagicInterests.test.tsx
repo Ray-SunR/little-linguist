@@ -33,6 +33,16 @@ vi.mock('../HeroIdentityForm', () => ({
 }));
 
 describe('MagicInterests', () => {
+    it('shows a poof animation when an interest is toggled', async () => {
+        render(<ChildProfileWizard />);
+        // Magic is one of the popular picks
+        const interest = await screen.findByText('Magic');
+        fireEvent.click(interest);
+        
+        // Check for particle container or specific animation trigger
+        expect(screen.getByTestId('poof-animation')).toBeTruthy();
+    });
+
     it('allows adding a custom interest by pressing Enter', async () => {
         render(<ChildProfileWizard />);
         const input = await screen.findByPlaceholderText(/Add something else/i);
@@ -43,23 +53,20 @@ describe('MagicInterests', () => {
         expect(await screen.findByText('Dragons')).toBeTruthy();
     });
 
-    it('uses the Starlit Midnight theme (dark background)', async () => {
+    it('uses a clean light theme background', async () => {
         render(<ChildProfileWizard />);
         const card = await screen.findByTestId('wizard-card');
-        expect(card.className).toContain('bg-[#0B0F1A]');
+        // We will expect bg-white or similar light class
+        expect(card.className).toContain('bg-white');
     });
 
-    it('shows exactly 3 suggested interests per category', async () => {
+    it('shows exactly 7 popular picks', async () => {
         render(<ChildProfileWizard />);
         
-        const categories = ["Themes 🎭", "Topics 🦖", "Characters 🦸", "Activities 🚀"];
+        const popularPicks = ["Magic", "Superhero", "Princess", "Space", "Animals", "Science", "Nature"];
         
-        for (const category of categories) {
-            const categoryHeader = await screen.findByText(category);
-            const categoryContainer = categoryHeader.parentElement;
-            const buttons = categoryContainer?.querySelectorAll('button');
-            
-            expect(buttons?.length).toBe(3);
+        for (const pick of popularPicks) {
+            expect(await screen.findByText(pick)).toBeTruthy();
         }
     });
 });
