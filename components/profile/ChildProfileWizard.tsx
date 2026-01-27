@@ -18,9 +18,9 @@ interface ChildProfileWizardProps {
 }
 
 const SUGGESTED_INTERESTS = {
-    "Themes 🎭": ["Adventure", "Friendship", "Magic", "Mystery", "Kindness", "Courage"],
-    "Topics 🦖": ["Nature", "Animals", "Science", "Pets", "Space", "Dinosaurs", "Transport"],
-    "Characters 🦸": ["Princesses", "Superheroes", "Fairies", "Knights"],
+    "Themes 🎭": ["Adventure", "Friendship", "Magic"],
+    "Topics 🦖": ["Nature", "Animals", "Science"],
+    "Characters 🦸": ["Princesses", "Superheroes", "Fairies"],
     "Activities 🚀": ["Sports", "Building", "Exploration"]
 };
 
