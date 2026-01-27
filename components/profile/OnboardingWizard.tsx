@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createChildProfile } from '@/app/actions/profiles';
-import { ChevronRight, ChevronLeft, Check, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Star, Search, Shield, Crown, Rocket, PawPrint, Microscope, Leaf, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/core";
 import { useAuth } from '@/components/auth/auth-provider';
@@ -13,12 +13,15 @@ import { CachedImage } from '@/components/ui/cached-image';
 
 type OnboardingStep = 'identity' | 'interests' | 'saving';
 
-const SUGGESTED_INTERESTS = {
-    "Themes 🎭": ["Adventure", "Friendship", "Magic", "Mystery", "Kindness", "Courage"],
-    "Topics 🦖": ["Nature", "Animals", "Science", "Pets", "Space", "Dinosaurs", "Transport"],
-    "Characters 🦸": ["Princesses", "Superheroes", "Fairies", "Knights"],
-    "Activities 🚀": ["Sports", "Building", "Exploration"]
-};
+const POPULAR_PICKS = [
+    { name: "Magic", icon: Sparkles, color: "text-amber-500" },
+    { name: "Superhero", icon: Shield, color: "text-rose-500" },
+    { name: "Princess", icon: Crown, color: "text-pink-500" },
+    { name: "Space", icon: Rocket, color: "text-purple-500" },
+    { name: "Animals", icon: PawPrint, color: "text-emerald-500" },
+    { name: "Science", icon: Microscope, color: "text-indigo-500" },
+    { name: "Nature", icon: Leaf, color: "text-green-500" },
+];
 
 const ShootingStar = ({ 
     startX, 
@@ -326,7 +329,7 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                         )}
 
                         {step === 'interests' && (
-                            <div className="w-full h-full flex flex-col space-y-4 relative z-10">
+                            <div className="w-full h-full flex flex-col items-center relative z-10">
                                 {/* Shooting Stars Container */}
                                 <div className="fixed inset-0 pointer-events-none z-[5]">
                                     {stars.map(star => (
@@ -338,144 +341,91 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                     ))}
                                 </div>
 
-                                <div className="flex items-center justify-between gap-4 px-2">
-                                    <div className="space-y-1">
-                                        <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Magic Interests!</h2>
-                                        <p className="text-ink-muted font-bold font-nunito text-xs">What does <span className="text-purple-600 font-black">{formData.firstName}</span> love most?</p>
-                                    </div>
-                                    
-                                    {/* Avatar Target */}
-                                    <div ref={targetRef} className="relative group">
-                                        <motion.div 
-                                            initial={{ scale: 0.8, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/50 backdrop-blur-xl border-2 border-purple-100 overflow-hidden shadow-clay-sm relative z-10"
-                                        >
-                                            {avatarPreview ? (
-                                                <Image 
-                                                    src={avatarPreview} 
-                                                    alt="Avatar" 
-                                                    className="w-full h-full object-cover" 
-                                                    width={64}
-                                                    height={64}
-                                                    unoptimized
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
-                                                    <Star className="w-8 h-8 text-purple-300" />
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                        {/* Decorative rings */}
-                                        <div className="absolute -inset-2 border border-purple-200/20 rounded-[1.5rem] animate-[spin_10s_linear_infinite] opacity-50" />
-                                        <div className="absolute -inset-4 border border-purple-200/10 rounded-[2rem] animate-[spin_15s_linear_reverse_infinite] opacity-30" />
-                                    </div>
+                                <div className="text-center mb-8">
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-600 font-fredoka font-bold text-[10px] mb-3 border border-purple-100"
+                                    >
+                                        <Star className="w-3 h-3 fill-current" />
+                                        Personalized for {formData.firstName || 'You'}
+                                    </motion.div>
+                                    <h2 className="text-2xl md:text-3xl font-black text-ink font-fredoka mb-2">
+                                        Stories They&apos;ll <span className="text-purple-500">Love</span>
+                                    </h2>
+                                    <p className="text-xs text-ink-muted font-nunito max-w-md mx-auto">
+                                        What does <span className="text-purple-600 font-black">{formData.firstName}</span> enjoy most?
+                                    </p>
                                 </div>
 
-                                <div className="relative group max-w-sm mx-auto w-full">
-                                    <input
-                                        type="text"
-                                        placeholder="Add something else they love..."
-                                        className="w-full h-10 px-4 pr-10 rounded-xl border-2 border-purple-100 bg-white/50 focus:bg-white focus:border-purple-400 outline-none transition-all font-nunito font-bold text-ink text-sm placeholder:text-slate-300 shadow-inner"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                const val = e.currentTarget.value.trim();
-                                                if (val) {
-                                                    if (!formData.interests.includes(val)) {
-                                                        toggleInterest(val);
+                                {/* Claymorphic Search Bar */}
+                                <div className="relative w-full max-w-lg group mb-8">
+                                    <div className="absolute inset-0 bg-purple-100 rounded-2xl translate-y-1.5 translate-x-1 group-focus-within:translate-y-1 transition-transform" />
+                                    <div className="relative flex items-center bg-white border-2 border-purple-200 rounded-2xl px-5 py-3 shadow-clay-sm group-focus-within:border-purple-400 transition-all">
+                                        <Search className="w-5 h-5 text-purple-400 mr-3" />
+                                        <input
+                                            type="text"
+                                            placeholder="Add something else they love..."
+                                            className="flex-1 bg-transparent border-none outline-none font-fredoka text-base text-ink placeholder:text-slate-300"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    const val = e.currentTarget.value.trim();
+                                                    if (val) {
+                                                        if (!formData.interests.includes(val)) {
+                                                            toggleInterest(val);
+                                                        }
+                                                        e.currentTarget.value = '';
                                                     }
-                                                    e.currentTarget.value = '';
                                                 }
-                                            }
-                                        }}
-                                    />
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-200 group-focus-within:text-purple-400 transition-colors">
-                                        <kbd className="text-[8px] font-black border border-current px-1 rounded">ENTER</kbd>
+                                            }}
+                                        />
                                     </div>
                                 </div>
 
-                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-6">
-                                    {formData.interests.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 p-3 bg-purple-50/50 rounded-2xl border-2 border-white min-h-[52px] shadow-inner">
-                                            <AnimatePresence>
-                                                {formData.interests.map(interest => (
-                                                    <motion.button
-                                                        layout
-                                                        initial={{ scale: 0, opacity: 0 }}
-                                                        animate={{ scale: 1, opacity: 1 }}
-                                                        exit={{ scale: 0, opacity: 0 }}
-                                                        key={`selected-${interest}`}
-                                                        onClick={() => toggleInterest(interest)}
-                                                        className="px-3 py-1 bg-purple-500 text-white rounded-full text-[11px] font-black shadow-clay-purple-sm flex items-center gap-1.5 group border-2 border-white/20 hover:scale-105 transition-transform"
-                                                    >
-                                                        {interest}
-                                                        <span className="opacity-60 group-hover:opacity-100 transition-opacity text-sm">×</span>
-                                                    </motion.button>
-                                                ))}
-                                            </AnimatePresence>
-                                        </div>
-                                    )}
-
-                                    <div className="grid grid-cols-6 gap-4 pb-4">
-                                        {Object.entries(SUGGESTED_INTERESTS).map(([category, items], idx) => {
-                                            const gridSpans = [
-                                                "col-span-6 md:col-span-3", // Themes
-                                                "col-span-6 md:col-span-3", // Topics
-                                                "col-span-6 md:col-span-2", // Characters
-                                                "col-span-6 md:col-span-4"  // Activities
-                                            ][idx];
-
+                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar w-full">
+                                    <div className="flex flex-wrap justify-center gap-3 pb-8">
+                                        {POPULAR_PICKS.map((pick) => {
+                                            const isSelected = formData.interests.includes(pick.name);
                                             return (
-                                                <motion.div 
-                                                    key={category} 
+                                                <motion.button
+                                                    key={pick.name}
+                                                    type="button"
+                                                    onClick={(e) => toggleInterest(pick.name, e)}
+                                                    whileHover={{ scale: 1.05, y: -2 }}
+                                                    whileTap={{ scale: 0.95 }}
                                                     className={cn(
-                                                        "clay-card bg-white/50 p-4 rounded-[2rem] space-y-3 shadow-clay-sm relative overflow-hidden group/island",
-                                                        gridSpans
+                                                        "flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4",
+                                                        isSelected
+                                                            ? "bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-clay-sm"
                                                     )}
-                                                    animate={{ y: [0, -6, 0] }}
-                                                    transition={{
-                                                        duration: 4 + idx,
-                                                        repeat: Infinity,
-                                                        delay: idx * 0.7,
-                                                        ease: "easeInOut"
-                                                    }}
                                                 >
-                                                    {/* Island Glow */}
-                                                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-500/5 blur-2xl rounded-full group-hover/island:bg-purple-500/10 transition-colors" />
-                                                    
-                                                    <h3 className="text-[10px] font-black text-ink-muted/40 uppercase tracking-[0.2em] px-1">
-                                                        {category}
-                                                    </h3>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {items.map(interest => {
-                                                            const isSelected = formData.interests.includes(interest);
-                                                            return (
-                                                                <motion.button
-                                                                    key={`suggested-${interest}`}
-                                                                    type="button"
-                                                                    onClick={(e) => toggleInterest(interest, e)}
-                                                                    whileHover={{ scale: 1.05, y: -2 }}
-                                                                    whileTap={{ scale: 0.95 }}
-                                                                    className={cn(
-                                                                        "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2",
-                                                                        isSelected
-                                                                            ? 'bg-purple-500 text-white border-purple-400 shadow-clay-purple-sm'
-                                                                            : 'bg-white text-ink-muted border-white hover:border-purple-200 shadow-sm'
-                                                                    )}
-                                                                >
-                                                                    {interest}
-                                                                </motion.button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </motion.div>
+                                                    <pick.icon className={cn("w-4 h-4", isSelected ? "text-white" : pick.color)} />
+                                                    {pick.name}
+                                                </motion.button>
                                             );
                                         })}
+
+                                        {/* Custom Selections */}
+                                        {formData.interests.filter(i => !POPULAR_PICKS.some(p => p.name === i)).map(interest => (
+                                            <motion.button
+                                                key={interest}
+                                                type="button"
+                                                onClick={(e) => toggleInterest(interest, e)}
+                                                initial={{ scale: 0, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-fredoka font-bold transition-all border-b-4 bg-purple-600 text-white border-purple-800 translate-y-1 shadow-none"
+                                            >
+                                                <Sparkles className="w-4 h-4 text-white" />
+                                                {interest}
+                                                <span className="ml-1 opacity-50">×</span>
+                                            </motion.button>
+                                        ))}
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-4 pt-2 border-t border-purple-100 mt-auto">
-                                    <button onClick={() => prevStep('identity')} className="ghost-btn h-12 px-8 flex items-center gap-2 text-ink/70">
+                                <div className="flex items-center justify-center gap-4 pt-4 border-t border-purple-50 w-full mt-auto">
+                                    <button onClick={() => prevStep('identity')} className="h-12 px-8 flex items-center gap-2 text-ink/60 font-bold hover:text-ink transition-colors">
                                         <ChevronLeft className="w-5 h-5" /> Back
                                     </button>
                                     <motion.button
@@ -483,7 +433,7 @@ export default function OnboardingWizard({ onFinishing }: OnboardingWizardProps)
                                         onClick={handleFinish}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="primary-btn h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
+                                        className="h-12 px-10 rounded-full bg-blue-500 hover:bg-blue-400 text-white text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-2 shadow-clay-blue transition-all"
                                     >
                                         Finish! ✨ <ChevronRight className="w-5 h-5" />
                                     </motion.button>
