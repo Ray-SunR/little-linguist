@@ -224,12 +224,21 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
     return (
         <div className="w-full max-w-2xl mx-auto px-1 sm:px-0 flex items-center justify-center h-full">
-            <div className="clay-card bg-white/70 backdrop-blur-xl p-3 sm:p-4 rounded-[2.5rem] md:rounded-[3rem] border-4 border-white shadow-2xl relative overflow-hidden h-[540px] w-full flex flex-col">
+            <div data-testid="wizard-card" className="bg-[#0B0F1A] p-4 sm:p-6 rounded-[3rem] border-4 border-slate-800 shadow-[0_0_50px_rgba(79,70,229,0.1)] relative overflow-hidden h-[540px] w-full flex flex-col transition-colors duration-500">
+
+                {/* Starlit Particles Background */}
+                <div className="absolute inset-0 pointer-events-none opacity-20">
+                    <div className="absolute top-10 left-10 w-1 h-1 bg-white rounded-full animate-pulse" />
+                    <div className="absolute top-40 left-60 w-1 h-1 bg-white rounded-full animate-pulse delay-700" />
+                    <div className="absolute top-20 right-20 w-1 h-1 bg-white rounded-full animate-pulse delay-1000" />
+                    <div className="absolute bottom-40 left-20 w-1 h-1 bg-white rounded-full animate-pulse delay-300" />
+                    <div className="absolute bottom-20 right-40 w-1 h-1 bg-white rounded-full animate-pulse delay-500" />
+                </div>
 
                 {/* Progress Bar */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-purple-100/50">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-800/50">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-purple-400 to-pink-400"
+                        className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-orange-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]"
                         initial={{ width: '0%' }}
                         animate={{ width: progressPercentage() }}
                     />
@@ -275,37 +284,15 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
 
                         {/* --- STEP: INTERESTS --- */}
                         {step === 'interests' && (
-                            <div className="w-full h-full flex flex-col space-y-4">
-                                <div className="text-center space-y-1">
-                                    <h2 className="text-xl md:text-2xl font-black text-ink font-fredoka">Magic Interests!</h2>
-                                    <p className="text-ink-muted font-bold font-nunito text-[10px]">What does <span className="text-purple-600 font-black">{formData.firstName}</span> love most?</p>
+                            <div className="w-full h-full flex flex-col space-y-6">
+                                <div className="text-center space-y-2">
+                                    <h2 className="text-2xl md:text-3xl font-black text-white font-fredoka tracking-tight">Magic Interests!</h2>
+                                    <p className="text-slate-400 font-bold font-nunito text-xs">What does <span className="text-indigo-400 font-black">{formData.firstName}</span> love most?</p>
                                 </div>
 
-                                <div className="relative group max-w-sm mx-auto w-full">
-                                    <input
-                                        type="text"
-                                        placeholder="Add something else they love..."
-                                        className="w-full h-10 px-4 pr-10 rounded-xl border-2 border-purple-100 bg-white/50 focus:bg-white focus:border-purple-400 outline-none transition-all font-nunito font-bold text-ink text-sm placeholder:text-slate-300 shadow-inner"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                const val = e.currentTarget.value.trim();
-                                                if (val) {
-                                                    if (!formData.interests.includes(val)) {
-                                                        toggleInterest(val);
-                                                    }
-                                                    e.currentTarget.value = '';
-                                                }
-                                            }
-                                        }}
-                                    />
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-200 group-focus-within:text-purple-400 transition-colors">
-                                        <kbd className="text-[8px] font-black border border-current px-1 rounded">ENTER</kbd>
-                                    </div>
-                                </div>
-
-                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-6">
                                     {formData.interests.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 p-2 bg-purple-50/50 rounded-xl border-2 border-white min-h-[44px]">
+                                        <div className="flex flex-wrap gap-2 p-3 bg-slate-900/50 rounded-2xl border border-slate-800 min-h-[52px] shadow-inner">
                                             {formData.interests.map(interest => (
                                                 <motion.button
                                                     layout
@@ -313,7 +300,7 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                                     animate={{ scale: 1, opacity: 1 }}
                                                     key={`selected-${interest}`}
                                                     onClick={() => toggleInterest(interest)}
-                                                    className="px-2 py-0.5 bg-purple-500 text-white rounded-full text-[10px] font-black shadow-clay-purple-sm flex items-center gap-1 group"
+                                                    className="px-3 py-1 bg-indigo-600 text-white rounded-full text-xs font-black shadow-[0_0_15px_rgba(79,70,229,0.3)] flex items-center gap-2 group border border-indigo-400/30"
                                                 >
                                                     {interest}
                                                     <span className="opacity-50 group-hover:opacity-100 transition-opacity">×</span>
@@ -322,10 +309,13 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                        {Object.entries(SUGGESTED_INTERESTS).map(([category, items]) => (
-                                            <div key={category} className="space-y-3">
-                                                <h3 className="text-[10px] font-black text-ink-muted/40 uppercase tracking-[0.2em] px-1">{category}</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {Object.entries(SUGGESTED_INTERESTS).map(([category, items], idx) => (
+                                            <div key={category} className={cn(
+                                                "p-4 rounded-[2rem] bg-slate-900/30 border border-slate-800/50 hover:border-indigo-500/30 transition-all group/bento",
+                                                idx === 0 || idx === 3 ? "col-span-1" : "col-span-1"
+                                            )}>
+                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">{category}</h3>
                                                 <div className="flex flex-wrap gap-2">
                                                     {items.map(interest => {
                                                         const isSelected = formData.interests.includes(interest);
@@ -339,8 +329,8 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                                                 className={cn(
                                                                     "px-3 py-1.5 rounded-xl text-xs font-bold font-nunito transition-all border-2",
                                                                     isSelected
-                                                                        ? 'bg-purple-500 text-white border-purple-400 shadow-clay-purple-sm'
-                                                                        : 'bg-white text-ink-muted border-white hover:border-purple-200 shadow-sm'
+                                                                        ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_15px_rgba(79,70,229,0.3)]'
+                                                                        : 'bg-slate-800/50 text-slate-300 border-slate-700 hover:border-indigo-500/50'
                                                                 )}
                                                             >
                                                                 {interest}
@@ -353,19 +343,43 @@ export default function ChildProfileWizard({ mode = 'onboarding' }: ChildProfile
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-4 pt-2 border-t border-purple-50 mt-auto">
-                                    <button onClick={() => prevStep('avatar')} className="ghost-btn h-12 px-8 flex items-center gap-2 text-ink/70">
-                                        <ChevronLeft className="w-5 h-5" /> Back
-                                    </button>
-                                    <motion.button
-                                        onClick={handleFinish}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        data-testid="onboarding-finish"
-                                        className="primary-btn h-12 px-4 sm:px-10 text-base sm:text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
-                                    >
-                                        {mode === 'onboarding' ? "Finish! ✨" : "Continue"} <ChevronRight className="w-5 h-5" />
-                                    </motion.button>
+                                <div className="mt-auto space-y-6 pt-4 border-t border-slate-800/50">
+                                    <div className="relative group max-w-sm mx-auto w-full">
+                                        <input
+                                            type="text"
+                                            placeholder="Add something else they love..."
+                                            className="w-full h-12 px-6 pr-12 rounded-full border-2 border-slate-800 bg-slate-900/50 focus:bg-slate-900 focus:border-indigo-500 outline-none transition-all font-nunito font-bold text-white text-sm placeholder:text-slate-600 shadow-inner"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    const val = e.currentTarget.value.trim();
+                                                    if (val) {
+                                                        if (!formData.interests.includes(val)) {
+                                                            toggleInterest(val);
+                                                        }
+                                                        e.currentTarget.value = '';
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-400 transition-colors">
+                                            <Sparkles className="w-5 h-5 animate-pulse" />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-center gap-4">
+                                        <button onClick={() => prevStep('avatar')} className="h-12 px-8 flex items-center gap-2 text-slate-400 font-bold hover:text-white transition-colors">
+                                            <ChevronLeft className="w-5 h-5" /> Back
+                                        </button>
+                                        <motion.button
+                                            onClick={handleFinish}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            data-testid="onboarding-finish"
+                                            className="h-12 px-10 rounded-full bg-orange-500 hover:bg-orange-400 text-white text-lg font-black font-fredoka uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all"
+                                        >
+                                            {mode === 'onboarding' ? "Finish! ✨" : "Continue"} <ChevronRight className="w-5 h-5" />
+                                        </motion.button>
+                                    </div>
                                 </div>
                             </div>
                         )}
