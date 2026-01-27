@@ -48,6 +48,7 @@ describe('Book Detail API Integration', () => {
         const { data: ownBook } = await supabase.from('books').insert({
             title: 'Own Book',
             owner_user_id: testUser.id,
+            origin: 'test-fixture',
             book_key: 'own-book'
         }).select().single();
 
@@ -70,6 +71,7 @@ describe('Book Detail API Integration', () => {
         const { data: otherBook } = await supabase.from('books').insert({
             title: 'Other Book',
             owner_user_id: otherUser.id,
+            origin: 'test-fixture',
             book_key: 'other-book'
         }).select().single();
 

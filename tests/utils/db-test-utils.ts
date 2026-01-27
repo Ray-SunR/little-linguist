@@ -13,8 +13,8 @@ const FULL_TRUNCATE_TABLES = [
     "profiles",
     "book_audios",
     "book_media",
-    "books",
     "stories",
+    "books",
     "feature_usage",
 ];
 
@@ -40,18 +40,15 @@ export async function truncateAllTables() {
     await ensureBucketExists('user-assets');
     await ensureBucketExists('book-assets');
 
-    // Truncate all tables in reverse dependency order
-    for (const table of FULL_TRUNCATE_TABLES) {
-        let query = supabase.from(table).delete();
-
-        // Honor public data preservation: only delete user-owned records for books and assets
-        if (['books', 'book_audios', 'book_media'].includes(table)) {
-            query = query.not('owner_user_id', 'is', null);
-        } else {
+        // Truncate all tables in reverse dependency order
+        for (const table of FULL_TRUNCATE_TABLES) {
+            let query = supabase.from(table).delete();
+            
+            // In test environment, we want a clean slate.
+            // We only preserve the system user (if any)
             query = query.neq('id', '00000000-0000-0000-0000-000000000000' as any);
-        }
 
-        const { error } = await query;
+            const { error } = await query;
         if (error && error.code !== 'PGRST116' && error.code !== '42703') {
              // Handle case where 'id' column doesn't exist (e.g. child_books)
              if (error.message.includes('column "id" does not exist')) {

@@ -31,6 +31,7 @@ describe('Search Tie-breaking Integration', () => {
                 title: 'Book A',
                 book_key: `book-a-${timestamp}`,
                 min_grade: 2,
+                origin: 'test-fixture',
                 owner_user_id: null // public
             })
             .select()
@@ -42,6 +43,7 @@ describe('Search Tie-breaking Integration', () => {
                 title: 'Book B',
                 book_key: `book-b-${timestamp}`,
                 min_grade: 2,
+                origin: 'test-fixture',
                 owner_user_id: null // public
             })
             .select()

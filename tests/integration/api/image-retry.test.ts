@@ -35,6 +35,7 @@ describe('Image Retry API Integration', () => {
         const { data: book } = await supabase.from('books').insert({
             title: 'Retry Test Book',
             owner_user_id: testUser.id,
+            origin: 'test-fixture',
             book_key: 'retry-test',
             metadata: {
                 sections: [

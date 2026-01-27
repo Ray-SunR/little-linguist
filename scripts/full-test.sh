@@ -48,12 +48,12 @@ echo "🚀 Starting Full Testing on port $FREE_PORT..."
 
 # 1. Unit + Integration Tests
 echo "🧪 Running unit and integration tests..."
-npm run test
+npx dotenv-cli -e .env.development.local -- npm run test
 
 # 2. Build (Optional)
 if [ "$SKIP_BUILD" = false ]; then
     echo "🏗️ Building production bundle..."
-    npx dotenv-cli -e .env.development.local -- npm run build
+    npx dotenv-cli -e .env.development.local -v MOCK_AI_SERVICES=$MOCK_AI -- npm run build
 else
     echo "⏩ Skipping build step."
 fi
@@ -62,7 +62,7 @@ fi
 echo "🌐 Starting server in background..."
 echo "📝 Logs: $LOG_FILE"
 
-MOCK_AI_SERVICES=$MOCK_AI PORT=$FREE_PORT npx dotenv-cli -e .env.development.local -- npm run start > "$LOG_FILE" 2>&1 &
+npx dotenv-cli -e .env.development.local -v MOCK_AI_SERVICES=$MOCK_AI -v PORT=$FREE_PORT -- npm run start > "$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 
 # Wait for server to be ready
