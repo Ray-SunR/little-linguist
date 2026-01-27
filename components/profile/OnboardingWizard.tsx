@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createChildProfile } from '@/app/actions/profiles';
 import { ChevronRight, ChevronLeft, Check, Star, Search, Shield, Crown, Rocket, PawPrint, Microscope, Leaf, Sparkles } from 'lucide-react';

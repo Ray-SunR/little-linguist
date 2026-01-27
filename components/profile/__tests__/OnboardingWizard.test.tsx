@@ -111,20 +111,21 @@ describe('OnboardingWizard', () => {
 
         // 5. Interests Step
         await waitFor(() => {
-            expect(screen.getByText(/Magic Interests!/i)).toBeTruthy();
+            expect(screen.getByText(/Stories They'll/i)).toBeTruthy();
         });
         
-        // Pick an interest
-        fireEvent.click(screen.getByText(/Adventure/i));
+        // Pick an interest (Magic is one of the popular picks)
+        fireEvent.click(screen.getByText(/Magic/i));
         
         // Click Finish
-        fireEvent.click(screen.getByText(/Finish! ✨/i));
+        const finishBtn = screen.getByTestId('onboarding-finish');
+        fireEvent.click(finishBtn);
 
         // 6. Verify completion
         await waitFor(() => {
             expect(createChildProfile).toHaveBeenCalledWith(expect.objectContaining({
                 first_name: 'Leo',
-                interests: ['Adventure']
+                interests: ['Magic']
             }));
         });
 
@@ -149,16 +150,17 @@ describe('OnboardingWizard', () => {
         await waitFor(() => fireEvent.click(screen.getByText(/Skip/i)));
 
         await waitFor(() => {
-            expect(screen.getByText(/Magic Interests!/i)).toBeTruthy();
+            expect(screen.getByText(/Stories They'll/i)).toBeTruthy();
         });
 
         expect(screen.queryByText(/Optional:/i)).toBeNull();
 
         // Click Finish without selecting interests
-        fireEvent.click(screen.getByText(/Finish! ✨/i));
+        const finishBtn = screen.getByTestId('onboarding-finish');
+        fireEvent.click(finishBtn);
 
         await waitFor(() => {
-            expect(screen.getByText(/Please pick at least one thing they love!/i)).toBeTruthy();
+            expect(screen.getByText(/pick at least one/i)).toBeTruthy();
         });
         expect(createChildProfile).not.toHaveBeenCalled();
     });

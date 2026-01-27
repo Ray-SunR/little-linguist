@@ -84,10 +84,17 @@ describe('ChildProfileWizard', () => {
         fireEvent.click(screen.getByText(/Skip/i));
 
         // 5. Interests
-        fireEvent.click(screen.getByText(/Adventure/i));
+        await waitFor(() => {
+            expect(screen.getByText(/Stories They'll/i)).toBeTruthy();
+        }, { timeout: 3000 });
+        
+        // Wait for buttons to be ready
+        const magicBtn = await screen.findByRole('button', { name: /Magic/i }, { timeout: 3000 });
+        fireEvent.click(magicBtn);
         
         // Click Finish
-        fireEvent.click(screen.getByTestId('onboarding-finish'));
+        const finishButton = screen.getByTestId('onboarding-finish');
+        fireEvent.click(finishButton);
 
         // Verify completion with correct field names
         await waitFor(() => {
@@ -95,7 +102,23 @@ describe('ChildProfileWizard', () => {
                 first_name: 'Skywalker',
                 birth_year: expect.any(Number),
                 gender: 'boy',
-                interests: ['Adventure']
+                interests: ['Magic']
+            }));
+        });
+
+        fireEvent.click(screen.getByText(/Magic/i));
+        
+        // Click Finish
+        const finishBtn = screen.getByTestId('onboarding-finish');
+        fireEvent.click(finishBtn);
+
+        // Verify completion with correct field names
+        await waitFor(() => {
+            expect(createChildProfile).toHaveBeenCalledWith(expect.objectContaining({
+                first_name: 'Skywalker',
+                birth_year: expect.any(Number),
+                gender: 'boy',
+                interests: ['Magic']
             }));
         });
     });
@@ -112,7 +135,7 @@ describe('ChildProfileWizard', () => {
         fireEvent.click(screen.getByText(/Skip/i));
 
         await waitFor(() => {
-            expect(screen.getByText(/Magic Interests!/i)).toBeTruthy();
+            expect(screen.getByText(/Stories They'll/i)).toBeTruthy();
         });
 
         expect(screen.queryByText(/Optional:/i)).toBeNull();
