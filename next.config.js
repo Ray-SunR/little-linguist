@@ -1,6 +1,19 @@
+const webpack = require('webpack');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          'process.version': JSON.stringify(''),
+          'process.versions': JSON.stringify({}),
+        })
+      );
+    }
+    return config;
+  },
   images: {
     remotePatterns: [
       {

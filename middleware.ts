@@ -1,16 +1,16 @@
 import { type NextRequest } from 'next/server'
 
-// Shim process properties for Edge Runtime compatibility with Supabase
-// This satisfies both the static analyzer and the runtime requirements
+// Runtime shims for Edge compatibility with libraries that expect process.version
+// Note: Build-time compatibility is handled in next.config.js via DefinePlugin
 const globalAny = globalThis as any;
-if (typeof globalAny.process === 'undefined') {
+if (!globalAny.process) {
     globalAny.process = { env: {} };
 }
-if (!globalAny.process['version']) {
-    globalAny.process['version'] = '';
+if (!globalAny.process.version) {
+    globalAny.process.version = '';
 }
-if (!globalAny.process['versions']) {
-    globalAny.process['versions'] = {};
+if (!globalAny.process.versions) {
+    globalAny.process.versions = {};
 }
 
 import { updateSession } from '@/lib/supabase/middleware'
