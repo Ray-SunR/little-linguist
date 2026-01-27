@@ -3,7 +3,7 @@
 import React, { useState, useMemo, memo } from 'react'
 import { Mail, Lock, Loader2, MoveRight, ChevronLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { cn } from '@/lib/core'
+import { cn, safeHaptics, ImpactStyle } from '@/lib/core'
 
 interface AuthFormFieldsProps {
     authStep: 'email' | 'identity'
@@ -103,22 +103,30 @@ export const AuthFormFields = memo(({
                     </div>
 
                     {error && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-sm font-bold text-center">
+                        <motion.div 
+                            initial={{ opacity: 0, height: 0 }} 
+                            animate={{ opacity: 1, height: 'auto' }} 
+                            className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-sm font-bold text-center"
+                            role="alert"
+                            aria-live="polite"
+                        >
                             {error}
                         </motion.div>
                     )}
 
                     <button
                         type="submit"
+                        onClick={() => safeHaptics.impact({ style: ImpactStyle.Heavy })}
                         disabled={!!loading || !isValidEmail}
+                        aria-label={loading === 'checking' ? "Checking email..." : "Continue"}
                         className={cn(
                             "w-full group relative h-[56px] rounded-2xl overflow-hidden transition-all duration-300",
-                            (!!loading || !isValidEmail) ? "opacity-50 cursor-not-allowed" : "active:scale-[0.98] shadow-clay-lg hover:shadow-xl hover:shadow-purple-500/20"
+                            (!!loading || !isValidEmail) ? "opacity-50 cursor-not-allowed" : "active:scale-[0.98] shadow-clay-orange hover:shadow-xl hover:shadow-orange-500/20"
                         )}
                     >
                         <div className={cn(
-                            "absolute inset-0 bg-gradient-to-r from-accent to-indigo-600 transition-all duration-500",
-                            !(!!loading || !isValidEmail) && "group-hover:from-purple-600 group-hover:to-indigo-500"
+                            "absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 transition-all duration-500",
+                            !(!!loading || !isValidEmail) && "group-hover:from-orange-500 group-hover:to-amber-400"
                         )} />
                         <div className="relative flex items-center justify-center gap-3 h-full px-8">
                             {loading === 'checking' ? (
@@ -165,7 +173,13 @@ export const AuthFormFields = memo(({
             </div>
 
             {error && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-4 bg-rose-50 border border-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20 rounded-2xl text-rose-600 dark:text-rose-400 text-sm font-bold text-center">
+                <motion.div 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }} 
+                    className="p-4 bg-rose-50 border border-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20 rounded-2xl text-rose-600 dark:text-rose-400 text-sm font-bold text-center"
+                    role="alert"
+                    aria-live="polite"
+                >
                     {error}
                 </motion.div>
             )}
@@ -174,8 +188,10 @@ export const AuthFormFields = memo(({
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
+                onClick={() => safeHaptics.impact({ style: ImpactStyle.Heavy })}
                 disabled={!!loading || !isValidPassword}
-                className="h-14 w-full rounded-2xl bg-gradient-to-r from-accent to-indigo-600 text-white shadow-clay-lg transition-all disabled:opacity-50 border-2 border-white/30 text-lg font-black font-fredoka uppercase tracking-widest"
+                aria-label={loading === 'auth' ? "Entering realm..." : "Enter Realm"}
+                className="h-14 w-full rounded-2xl bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-clay-orange transition-all disabled:opacity-50 border-2 border-white/30 text-lg font-black font-fredoka uppercase tracking-widest"
             >
                 {loading === 'auth' ? (
                     <Loader2 className="mx-auto h-6 w-6 animate-spin" />

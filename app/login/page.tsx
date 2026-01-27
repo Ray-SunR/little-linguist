@@ -130,7 +130,7 @@ function LoginForm() {
     const [mounted, setMounted] = useState(false)
 
     // Mouse Parallax & Rim Light
-    const cardRef = useRef<HTMLDivElement>(null)
+    const mainRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         setMounted(true)
@@ -140,12 +140,12 @@ function LoginForm() {
 
         const handleMouseMove = (e: MouseEvent) => {
             // Update CSS variables for rim light
-            if (cardRef.current) {
-                const rect = cardRef.current.getBoundingClientRect();
+            if (mainRef.current) {
+                const rect = mainRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                cardRef.current.style.setProperty('--mouse-x', `${x}px`);
-                cardRef.current.style.setProperty('--mouse-y', `${y}px`);
+                mainRef.current.style.setProperty('--mouse-x', `${x}px`);
+                mainRef.current.style.setProperty('--mouse-y', `${y}px`);
             }
         }
         window.addEventListener('mousemove', handleMouseMove)
@@ -246,10 +246,13 @@ function LoginForm() {
     }
 
     return (
-        <div className={cn(
-            "min-h-screen w-full flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden bg-shell selection:bg-purple-200 dark:selection:bg-purple-900/40",
-            mounted ? "opacity-100" : "opacity-0 transition-opacity duration-1000"
-        )}>
+        <div 
+            ref={mainRef}
+            className={cn(
+                "min-h-screen w-full flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden bg-shell selection:bg-purple-200 dark:selection:bg-purple-900/40",
+                mounted ? "opacity-100" : "opacity-0 transition-opacity duration-1000"
+            )}
+        >
 
             <MagicBackground />
 
@@ -303,7 +306,7 @@ function LoginForm() {
                 </div>
 
                 {/* Liquid Glass Portal Card */}
-                <div ref={cardRef} className="w-full relative group px-2 sm:px-0">
+                <div className="w-full relative group px-2 sm:px-0">
                     {/* Reactive Rim Light */}
                     <motion.div
                         className="absolute -inset-[1px] rounded-[3rem] bg-gradient-to-br from-white/40 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
@@ -312,7 +315,7 @@ function LoginForm() {
                         }}
                     />
 
-                    <div className="relative glass-card border-white/20 dark:border-white/10 shadow-clay-lg p-8 sm:p-10 md:p-12 flex flex-col items-center backdrop-blur-3xl bg-white/60 dark:bg-[#1a1c2e]/70 border-[1.5px] rounded-[3rem] overflow-hidden">
+                    <div className="relative clay-card border-white/20 dark:border-white/10 shadow-clay-purple p-8 sm:p-10 md:p-12 flex flex-col items-center backdrop-blur-3xl bg-white/60 dark:bg-[#1a1c2e]/70 border-[1.5px] rounded-[3rem] overflow-hidden">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={authStep === 'email' ? 'email-step' : 'identity-step'}
