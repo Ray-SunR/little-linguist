@@ -257,25 +257,46 @@ function LoginForm() {
                 )}
             >
                 {/* Lumo Brand Mascot */}
-                <motion.div
-                    initial={{ scale: 0, rotate: -20 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.5 }}
-                    className="relative mb-8 group"
-                >
-                    <div className="absolute inset-0 bg-accent/20 blur-[40px] rounded-full animate-pulse-glow" />
+                <div className="flex flex-col items-center mb-8 relative">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={authStep + (emailExists ?? 'null')}
+                            initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -5, scale: 0.9 }}
+                            className="absolute -top-16 z-20"
+                        >
+                            <div className="bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl shadow-clay-sm border border-white/50 dark:border-slate-700 relative">
+                                <p className="text-xs font-black text-purple-600 dark:text-purple-400 whitespace-nowrap">
+                                    {authStep === 'email' ? "Ready for adventure?" : 
+                                     emailExists ? "Welcome back!" : "Join the quest!"}
+                                </p>
+                                {/* Speech bubble tail */}
+                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-slate-800 border-r border-b border-white/50 dark:border-slate-700 rotate-45" />
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
 
-                    {/* Portal Halo */}
-                    <div className="absolute inset-[-20%] rounded-full border-2 border-dashed border-white/40 animate-[spin_10s_linear_infinite] opacity-70" />
-                    <div className="absolute inset-[-10%] rounded-full border border-white/20 animate-[spin_15s_linear_infinite_reverse] opacity-70" />
+                    <motion.div
+                        initial={{ scale: 0, rotate: -20 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.5 }}
+                        className="relative group"
+                    >
+                        <div className="absolute inset-0 bg-accent/20 blur-[40px] rounded-full animate-pulse-glow" />
 
-                    {/* Floating Icons */}
-                    <FloatingElements />
+                        {/* Portal Halo */}
+                        <div className="absolute inset-[-20%] rounded-full border-2 border-dashed border-white/40 animate-[spin_10s_linear_infinite] opacity-70" />
+                        <div className="absolute inset-[-10%] rounded-full border border-white/20 animate-[spin_15s_linear_infinite_reverse] opacity-70" />
 
-                    <div className="relative p-7 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-[3rem] border-2 border-white/50 dark:border-white/10 shadow-clay-lg group-hover:scale-110 transition-all duration-500 group-hover:rotate-6 z-10">
-                        <LumoCharacter size="lg" />
-                    </div>
-                </motion.div>
+                        {/* Floating Icons */}
+                        <FloatingElements />
+
+                        <div className="relative p-7 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-[3rem] border-2 border-white/50 dark:border-white/10 shadow-clay-lg group-hover:scale-110 transition-all duration-500 group-hover:rotate-6 z-10">
+                            <LumoCharacter size="lg" />
+                        </div>
+                    </motion.div>
+                </div>
 
                 {/* Liquid Glass Portal Card */}
                 <div ref={cardRef} className="w-full relative group px-2 sm:px-0">
