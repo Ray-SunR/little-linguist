@@ -10,3 +10,7 @@ ADD COLUMN IF NOT EXISTS transaction_type public.currency_type DEFAULT 'credit';
 UPDATE public.point_transactions
 SET transaction_type = 'lumo_coin'
 WHERE reason IN ('book_opened', 'book_completed', 'mission_completed', 'word_insight_viewed', 'word_added', 'magic_sentence_generated', 'story_generated');
+
+-- Add index for efficient filtering of achievements
+CREATE INDEX IF NOT EXISTS point_transactions_child_type_created_idx 
+ON public.point_transactions (child_id, transaction_type, created_at DESC);
