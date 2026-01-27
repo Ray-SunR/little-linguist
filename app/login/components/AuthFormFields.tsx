@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, memo } from 'react'
-import { Mail, Lock, Loader2, MoveRight, RefreshCw, ChevronLeft } from 'lucide-react'
+import { Mail, Lock, Loader2, MoveRight, ChevronLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/core'
 
@@ -178,7 +178,7 @@ export const AuthFormFields = memo(({
                 className="h-14 w-full rounded-2xl bg-gradient-to-r from-accent to-indigo-600 text-white shadow-clay-lg transition-all disabled:opacity-50 border-2 border-white/30 text-lg font-black font-fredoka uppercase tracking-widest"
             >
                 {loading === 'auth' ? (
-                    <RefreshCw className="mx-auto h-6 w-6 animate-spin" />
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin" />
                 ) : (
                     "Enter Realm"
                 )}
