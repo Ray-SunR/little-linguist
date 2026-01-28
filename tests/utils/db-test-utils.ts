@@ -18,8 +18,25 @@ const FULL_TRUNCATE_TABLES = [
     "feature_usage",
 ];
 
+/**
+ * Ensures that the current Supabase URL is pointing to a local instance.
+ * Throws an error if it detects a production or remote URL.
+ */
+export function assertLocalDatabase() {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const isLocal = url.includes('localhost') || url.includes('127.0.0.1') || url.includes('0.0.0.0');
+    
+    if (!isLocal) {
+        throw new Error(
+            `❌ PRODUCTION GUARD TRIGGERED: Attempted destructive operation on non-local database: ${url}. ` +
+            `Destructive operations (truncation, user deletion) are ONLY allowed on local Docker instances.`
+        );
+    }
+}
+
 
 export async function ensureBucketExists(bucketName: string) {
+    assertLocalDatabase();
     const supabase = createAdminClient();
     const { data: buckets } = await supabase.storage.listBuckets();
     const exists = buckets?.some(b => b.name === bucketName);
@@ -34,6 +51,7 @@ export async function ensureBucketExists(bucketName: string) {
 }
 
 export async function truncateAllTables() {
+    assertLocalDatabase();
     const supabase = createAdminClient();
 
     // Ensure assets bucket exists
@@ -59,6 +77,7 @@ export async function truncateAllTables() {
 }
 
 export async function createTestUser(email: string = 'test@example.com') {
+    assertLocalDatabase();
     const supabase = createAdminClient();
 
     // List users specifically searching for this email if possible, or list enough to find it.

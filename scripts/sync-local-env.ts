@@ -28,7 +28,13 @@ async function sync() {
   let supabaseKeys: Record<string, string> = {};
   try {
     const statusOutput = execSync('npx supabase status -o json', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
-    const status = JSON.parse(statusOutput);
+    
+    // Strip non-JSON lines (like "Stopped services: ...")
+    const jsonStart = statusOutput.indexOf('{');
+    if (jsonStart === -1) throw new Error('No JSON object found in supabase status output');
+    const jsonString = statusOutput.substring(jsonStart);
+    
+    const status = JSON.parse(jsonString);
     
     supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = status.API_URL || 'http://127.0.0.1:54321';
     supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = status.ANON_KEY || status.anon_key;
@@ -36,7 +42,10 @@ async function sync() {
     
     console.log('✅ Extracted local Supabase keys.');
   } catch (error) {
-    console.warn('⚠️  Could not get Supabase status. Local Supabase keys will be skipped.');
+    console.warn('⚠️  Could not get Supabase status. Using default local values.');
+    supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = 'http://127.0.0.1:54321';
+    supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = 'local-anon-key-placeholder';
+    supabaseKeys['SUPABASE_SERVICE_ROLE_KEY'] = 'local-service-role-key-placeholder';
   }
 
   const merged = {

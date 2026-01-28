@@ -6,7 +6,23 @@ import fs from 'fs';
 // Load environment variables for tests
 const envPath = path.resolve(process.cwd(), '.env.development.local');
 if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath });
+  dotenv.config({ path: envPath, override: true });
+} else {
+  // If we are in a test environment and .env.development.local is missing, 
+  // we must NOT fallback to .env.local.
+  console.error('❌ ERROR: .env.development.local not found.');
+  console.error('Integration tests must run against a local Supabase instance.');
+  console.error('Run "npm run supabase:setup" to initialize your local environment.');
+  process.exit(1);
+}
+
+// Final safety check: Ensure we aren't pointing to production
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const isLocal = supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1') || supabaseUrl.includes('0.0.0.0');
+if (!isLocal) {
+    console.error(`❌ FATAL: Integration tests attempted to run against a non-local database: ${supabaseUrl}`);
+    console.error('To protect production data, tests are only allowed to run against local Docker instances.');
+    process.exit(1);
 }
 
 // Suppress "Multiple GoTrueClient instances detected" warning
