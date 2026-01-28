@@ -94,39 +94,6 @@ function validateBookIntegrity(bookDir: string, metadata: any): boolean {
     return true;
 }
 
-async function seedInfrastructure() {
-    console.log("\n🏗️ Seeding infrastructure data...");
-    
-    const plans = [
-        {
-            code: 'free',
-            name: 'Free Plan',
-            quotas: {
-                story_generation: 5,
-                image_generation: 10,
-                word_insight: 50,
-                magic_sentence: 20
-            }
-        },
-        {
-            code: 'pro',
-            name: 'Pro Plan',
-            quotas: {
-                story_generation: 100,
-                image_generation: 200,
-                word_insight: 1000,
-                magic_sentence: 500
-            }
-        }
-    ];
-
-    for (const plan of plans) {
-        const { error } = await supabase.from('subscription_plans').upsert(plan);
-        if (error) console.error(`  ❌ Failed to seed plan ${plan.code}:`, error.message);
-        else console.log(`  ✓ Seeded plan: ${plan.code}`);
-    }
-}
-
 function getMimeType(filePath: string): string {
     const ext = path.extname(filePath).toLowerCase();
     if (ext === ".png") return "image/png";
@@ -351,9 +318,6 @@ async function run() {
     
     console.log(`🚀 Seeding Raiden Library... ${skipBooks ? '(Infrastructure Only)' : (targetCategory ? `(Category: ${targetCategory})` : '(Full Library)')}`);
     
-    // 0. Seed essential infrastructure first
-    await seedInfrastructure();
-
     if (skipBooks) {
         console.log("✨ Infrastructure seeding finished.");
         return;

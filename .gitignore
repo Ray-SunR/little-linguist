@@ -20,7 +20,7 @@ output
 .opencode
 coverage
 docs
-.sisyphus.worktrees/
+.sisyphus
 .worktrees/
 test-results
 playwright-report

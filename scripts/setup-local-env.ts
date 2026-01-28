@@ -80,10 +80,8 @@ async function main() {
 
   runCommand('npx tsx scripts/sync-local-env.ts', 'Syncing local environment (Final)');
 
-  runCommand('npx tsx scripts/setup-storage.ts', 'Setting up storage');
-
   if (syncData) {
-    runCommand('npx tsx scripts/seed-library.ts --local --skip-books', 'Seeding infrastructure only');
+    runCommand('npx tsx scripts/seed-library.ts --local --skip-books', 'Seeding infrastructure (if needed)');
     
     const dumpCmd = limit ? `npx tsx scripts/dump-prod-data.ts --limit ${limit}` : 'npx tsx scripts/dump-prod-data.ts';
     runCommand(dumpCmd, 'Dumping production data');
@@ -98,10 +96,6 @@ async function main() {
   } else {
     runCommand('npx tsx scripts/seed-library.ts --local', 'Seeding library (local seeds)');
   }
-
-  const sql = 'ALTER PUBLICATION supabase_realtime ADD TABLE public.stories, public.book_media;';
-  const containerName = 'supabase_db_raiden';
-  runCommand(`docker exec -i ${containerName} psql -U postgres -d postgres -c "${sql}" || true`, 'Enabling realtime for stories and book_media tables');
 
   console.log('\n🎉 Local environment setup complete! "Zero-to-Hero" achieved.');
   console.log('💡 IMPORTANT: If you are running the Next.js dev server, please RESTART it to apply next.config.js changes.');
