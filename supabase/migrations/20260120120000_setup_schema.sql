@@ -674,12 +674,14 @@ BEGIN;
   ALTER PUBLICATION supabase_realtime ADD TABLE public.stories;
   ALTER PUBLICATION supabase_realtime ADD TABLE public.book_media;
   ALTER PUBLICATION supabase_realtime ADD TABLE public.books;
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.feature_usage;
 COMMIT;
 
 -- Enable Replica Identity Full for detailed payloads
 ALTER TABLE public.stories REPLICA IDENTITY FULL;
 ALTER TABLE public.book_media REPLICA IDENTITY FULL;
 ALTER TABLE public.books REPLICA IDENTITY FULL;
+ALTER TABLE public.feature_usage REPLICA IDENTITY FULL;
 
 -- 10. Final Permissions Refresh
 GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
