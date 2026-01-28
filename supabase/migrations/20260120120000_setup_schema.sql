@@ -8,8 +8,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "supabase_vault";
 CREATE EXTENSION IF NOT EXISTS "pg_graphql";
-CREATE EXTENSION IF NOT EXISTS "hypopg";
-CREATE EXTENSION IF NOT EXISTS "index_advisor";
+-- CREATE EXTENSION IF NOT EXISTS "hypopg";
+-- CREATE EXTENSION IF NOT EXISTS "index_advisor";
 CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- 2. Enums
@@ -1005,8 +1005,8 @@ END;
 $function$;
 
 -- get_audit_logs
-CREATE OR REPLACE FUNCTION public.get_audit_logs(p_identity_key text DEFAULT NULL::text, p_action_type audit_action_type DEFAULT NULL::audit_action_type, p_limit integer DEFAULT 50, p_offset integer DEFAULT 0)
- RETURNS TABLE(id uuid, created_at timestamp with time zone, action_type audit_action_type, entity_type audit_entity_type, entity_id text, details jsonb, status text, ip_address text)
+CREATE OR REPLACE FUNCTION public.get_audit_logs(p_identity_key text DEFAULT NULL::text, p_action_type public.audit_action_type DEFAULT NULL::public.audit_action_type, p_limit integer DEFAULT 50, p_offset integer DEFAULT 0)
+ RETURNS TABLE(id uuid, created_at timestamp with time zone, action_type public.audit_action_type, entity_type public.audit_entity_type, entity_id text, details jsonb, status text, ip_address text)
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public'
@@ -1083,9 +1083,9 @@ CREATE POLICY "Owner update profiles" ON public.profiles FOR UPDATE USING (auth.
 
 CREATE POLICY "Owner crud children" ON public.children FOR ALL USING (auth.uid() = owner_user_id);
 
-CREATE POLICY "Owner crud child_books" ON public.child_books FOR ALL USING (EXISTS (SELECT 1 FROM children WHERE id = child_id AND owner_user_id = auth.uid()));
+CREATE POLICY "Owner crud child_books" ON public.child_books FOR ALL USING (EXISTS (SELECT 1 FROM public.children WHERE id = child_id AND owner_user_id = auth.uid()));
 
-CREATE POLICY "Owner crud child_vocab" ON public.child_vocab FOR ALL USING (EXISTS (SELECT 1 FROM children WHERE id = child_id AND owner_user_id = auth.uid()));
+CREATE POLICY "Owner crud child_vocab" ON public.child_vocab FOR ALL USING (EXISTS (SELECT 1 FROM public.children WHERE id = child_id AND owner_user_id = auth.uid()));
 
 CREATE POLICY "Owner view transactions" ON public.point_transactions FOR SELECT USING (auth.uid() = owner_user_id);
 
@@ -1093,11 +1093,11 @@ CREATE POLICY "Public read plans" ON public.subscription_plans FOR SELECT USING 
 
 CREATE POLICY "Owner view usage" ON public.feature_usage FOR SELECT USING (auth.uid() = owner_user_id OR identity_key = auth.uid()::text);
 
-CREATE POLICY "Owner view magic_sentences" ON public.child_magic_sentences FOR SELECT USING (EXISTS (SELECT 1 FROM children WHERE id = child_id AND owner_user_id = auth.uid()));
+CREATE POLICY "Owner view magic_sentences" ON public.child_magic_sentences FOR SELECT USING (EXISTS (SELECT 1 FROM public.children WHERE id = child_id AND owner_user_id = auth.uid()));
 
 CREATE POLICY "Public read badges" ON public.badges FOR SELECT USING (true);
 
-CREATE POLICY "Owner view child_badges" ON public.child_badges FOR SELECT USING (EXISTS (SELECT 1 FROM children WHERE id = child_id AND owner_user_id = auth.uid()));
+CREATE POLICY "Owner view child_badges" ON public.child_badges FOR SELECT USING (EXISTS (SELECT 1 FROM public.children WHERE id = child_id AND owner_user_id = auth.uid()));
 
 CREATE POLICY "Allow public feedback insertion" ON public.feedbacks FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow users to view own feedback" ON public.feedbacks FOR SELECT USING (auth.uid() = user_id);
