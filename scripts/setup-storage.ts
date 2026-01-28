@@ -2,9 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import fs from "fs";
 
-// Detect if --local flag is present
-const isLocal = process.argv.includes("--local") || fs.existsSync(".env.development.local");
-const envFile = isLocal ? ".env.development.local" : ".env.local";
+// Detect environment flags
+const isBeta = process.argv.includes("--beta");
+const isLocal = process.argv.includes("--local") || process.env.NODE_ENV === 'test';
+let envFile = ".env.local";
+
+if (isBeta) envFile = ".env.beta.local";
+else if (isLocal) envFile = ".env.development.local";
 
 console.log(`📡 Using environment: ${envFile}`);
 dotenv.config({ path: envFile });

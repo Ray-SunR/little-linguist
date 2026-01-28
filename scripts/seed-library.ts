@@ -19,9 +19,13 @@ import dotenv from "dotenv";
 import crypto from "crypto";
 import { BedrockEmbeddingService } from "../lib/features/bedrock/bedrock-embedding.server";
 
-// Detect if --local flag is present or if we are in a test environment
+// Detect environment flags
+const isBeta = process.argv.includes("--beta");
 const isLocal = process.argv.includes("--local") || process.env.NODE_ENV === 'test';
-const envFile = isLocal ? ".env.development.local" : ".env.local";
+let envFile = ".env.local";
+
+if (isBeta) envFile = ".env.beta.local";
+else if (isLocal) envFile = ".env.development.local";
 
 if (isLocal && !fs.existsSync(envFile)) {
     console.error(`❌ ERROR: ${envFile} is required for local/test seeding but was not found.`);
