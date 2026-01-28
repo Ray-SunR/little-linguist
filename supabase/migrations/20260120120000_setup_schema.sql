@@ -662,8 +662,10 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES 
   ('book-assets', 'book-assets', true),
   ('word-insights-audio', 'word-insights-audio', true),
-  ('user-assets', 'user-assets', false)
+  ('user-assets', 'user-assets', false),
+  ('guardian-photos', 'guardian-photos', false)
 ON CONFLICT (id) DO NOTHING;
+
 
 -- Enable Realtime
 BEGIN;
