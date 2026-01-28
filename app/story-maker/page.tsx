@@ -48,7 +48,6 @@ function StoryMakerPageContent() {
 
     return (
         <StoryMakerClient
-            key={`${user.id}:${activeChild?.id || 'none'}`}
             initialProfile={initialProfile}
         />
     );
