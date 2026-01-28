@@ -2,6 +2,28 @@
 
 Raiden leverages Supabase as its primary backend, utilizing PostgreSQL, Auth, and Storage.
 
+## 🚀 Migration & Setup Strategy
+
+The repository follows a **"One-Shot" setup philosophy**. Instead of a long chain of incremental migrations, the core infrastructure is consolidated into a single base schema.
+
+### Unified Base Schema
+The file `supabase/migrations/20260120120000_setup_schema.sql` serves as the source of truth for the entire environment. It handles:
+- **Extensions**: `vector`, `uuid-ossp`, `pg_stat_statements`, etc.
+- **Core Schema**: All tables, enums, and utility functions.
+- **Infrastructure**: Storage bucket creation (`book-assets`, `user-assets`, etc.) and Realtime publications.
+- **Security**: Strict RLS policies and permission grants.
+
+### Technical Implementation Details
+- **Explicit Schema Qualification**: All objects are explicitly prefixed with `public.` (e.g., `CREATE TABLE public.profiles`). This ensures compatibility with remote environments where the `search_path` might vary.
+- **Security Definer Functions**: Functions that require elevated privileges or cross-schema access (like those interacting with `auth.`) use `SECURITY DEFINER` and explicitly `SET search_path = public` to prevent search path injection attacks and ensure reliable table resolution.
+
+## 🌱 System Data & Seeding
+
+Static data and system constants are managed via `supabase/seed.sql`. This file is automatically executed during `supabase db reset` and ensures environment consistency.
+
+- **Subscription Plans**: Defines `free` and `pro` tiers with their respective quotas.
+- **Idempotency**: Seeding uses `ON CONFLICT` clauses to allow safe re-runs without duplicating data.
+
 ## 📊 Database Schema
 
 The schema is designed to be child-centric, focusing on reading progress and gamification.

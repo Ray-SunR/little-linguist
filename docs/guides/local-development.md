@@ -60,6 +60,43 @@ This will check table existence, storage bucket availability, and Realtime publi
 
 ---
 
+## 🧪 Beta Environment Setup
+
+The Beta environment is a remote Supabase instance used for staging and final verification before production. It uses the same "One-Shot" hydration philosophy as local development but targets a remote project.
+
+### 1. One-Shot Hydration
+
+To set up or refresh the Beta environment from scratch:
+
+```bash
+# 1. Link to the Beta project (required once)
+npx supabase link --project-ref <your-beta-project-ref>
+
+# 2. Run the automated Beta setup
+npm run supabase:setup:beta
+```
+
+This command performs a "One-Shot" hydration:
+1.  **Migration Push**: Pushes all local migrations to the Beta database using `supabase db push`.
+2.  **Fixture Seeding**: Runs `npm run seed:fixtures -- --beta` to populate the remote database with mandatory infrastructure and test content.
+3.  **Storage Setup**: Ensures all required buckets are created and configured on the remote instance.
+
+> [!WARNING]
+> **Never run destructive commands against the Beta environment.** While `supabase:setup:beta` is designed for safe hydration, commands like `supabase db reset` will wipe all remote data. Always prefer `supabase db push` or the provided setup scripts.
+
+---
+
+## 🔑 Unified Source of Truth
+
+Raiden follows a "Unified Source of Truth" pattern for managing credentials, particularly for AI services (Polly, Bedrock, Gemini).
+
+-   **Primary Source**: `.env.local` is the single source of truth for all shared credentials. It should contain your valid API keys and secrets.
+-   **Automated Propagation**: The setup scripts (`npm run supabase:setup` and `npm run supabase:setup:beta`) automatically read from `.env.local` and propagate these keys to the environment-specific files:
+    -   `.env.development.local` (Local Docker)
+    -   `.env.beta.local` (Remote Beta)
+
+This ensures you only have to manage your AI credentials in one place, while keeping environment-specific Supabase keys separate.
+
 ## 🏁 Environment Variables
 
 The setup script automatically generates `.env.development.local`. It pulls keys starting with `POLLY_`, `GOOGLE_`, `BEDROCK_`, etc., from your `.env.local` file (which should contain your production/valid credentials) and combines them with local Supabase details.

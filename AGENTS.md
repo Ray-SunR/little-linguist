@@ -27,7 +27,7 @@ Repository pattern, API structure, and dual-caching strategy (`raidenCache` for 
 ## 🎨 Core Principles
 
 1.  **Verify First**: Always explore the relevant documentation in `docs/` and the codebase before implementing changes.
-2.  **Local Sync with Prod**: The local Supabase database MUST be kept in sync with production. Treat the local database as a **staging environment** where all integration tests must run before deployment. Refer to the [Local Development Guide](./docs/guides/local-development.md) for automated sync commands.
+2.  **Environment Sync**: The local Supabase database MUST be kept in sync with **Beta** or **Production**. Treat the local database as a **staging environment** where all integration tests must run before deployment. Refer to the [Local Development Guide](./docs/guides/local-development.md) for automated sync commands.
 3.  **Schema Enforcement**: Any changes to the database schema must be applied to the local Supabase instance via migrations first. Never modify production schema directly without local verification.
 4.  **Documentation Integrity**: Always update guide documentation in `docs/` if parameters, usage, test setup or interfaces change.
 5.  **Clean Workspace**: Do not leave any files in the repository that are not meant to be committed.
@@ -37,6 +37,11 @@ Repository pattern, API structure, and dual-caching strategy (`raidenCache` for 
 9.  **Local Reliability**: Ensure all database operations are idempotent (using `ON CONFLICT`) to support stable local development.
 10. **Mobile Awareness**: After UI changes, remind the user to run `npm run mobile:sync`.
 11. **Substantive Testing**: Never write placeholder tests (e.g. tests that only check for status 200 without verifying business logic or data state). Every test must include meaningful assertions. **Mandatory: Verify DB state and side effects.**
-12. **Production Safety**: NEVER modify the production database (credentials in `.env.local`), run integration tests, or execute database setup/migration scripts against it without explicit approval.
+12. **Production Safety**: NEVER modify, reset, or erase the production database (credentials in `.env.local`). Do not run integration tests or execute database setup/migration scripts against it without explicit approval. Any operation that could result in data loss or service disruption on Production is strictly forbidden.
 13. **Worktree Isolation**: If working in a git worktree, NEVER merge back to the main branch without explicit approval.
 14. **Full Verification**: Do not consider a task done until full tests have been run and passed. NEVER modify test cases to fake a pass. If in doubt about a failure or requirement, always ask for clarification and confirmation before proceeding.
+15. **Environment Awareness**: Always be conscious of the active environment:
+    - **Local**: Primary development workspace.
+    - **Beta**: Staging environment for verification.
+    - **Prod**: Live production system (High Risk).
+16. **Unified Source of Truth**: Use `.env.local` as the single source of truth for all environment variables, including AI service keys (Claude, Gemini, Polly).

@@ -16,11 +16,22 @@ function runCommand(command: string, description: string) {
 }
 
 async function main() {
+  const isBeta = process.argv.includes('--beta');
   const syncData = process.argv.includes('--sync-data');
   const testData = process.argv.includes('--test-data');
   const noReset = process.argv.includes('--no-reset');
   const limitIndex = process.argv.indexOf('--limit');
   const limit = limitIndex !== -1 ? process.argv[limitIndex + 1] : null;
+
+  if (isBeta) {
+    console.log('🌍 Starting One-Shot Beta Environment Setup...');
+    runCommand('npx tsx scripts/sync-local-env.ts --beta', 'Syncing Beta environment credentials');
+    runCommand('npx supabase db push', 'Pushing migrations to Beta');
+    runCommand('npx supabase db execute --file supabase/seed.sql', 'Seeding static infrastructure data to Beta');
+    runCommand('npx tsx scripts/seed-library.ts --beta', 'Hydrating Beta library with seed books');
+    console.log('\n🎉 Beta environment hydration complete!');
+    return;
+  }
 
   console.log('🌟 Starting Zero-to-Hero Local Environment Setup...');
 

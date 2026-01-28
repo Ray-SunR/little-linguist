@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "supabase:setup": "npx tsx scripts/setup-local-env.ts",
+    "supabase:setup:beta": "npm run supabase:setup -- --beta",
+    "seed:fixtures": "npx tsx scripts/seed-library.ts --source tests/fixtures/library",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:local-setup": "npx tsx scripts/verify-local-setup.ts",

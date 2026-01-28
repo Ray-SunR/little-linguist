@@ -11,6 +11,23 @@ Integration tests in Raiden must verify the **interaction between multiple layer
 
 ---
 
+## ⚠️ Environment Safety & Risk Levels
+
+Testing in Raiden is categorized by its dependency on external resources and its impact on environments.
+
+| Environment | Risk Level | Description |
+| :--- | :--- | :--- |
+| **Local** | ✅ **Safe** | Primary development workspace. Local Docker-based Supabase. Destructive operations (reset/truncate) are encouraged here. |
+| **Beta** | ⚠️ **Moderate** | Staging environment. Shared among team members. Running integration tests here can cause data drift or service disruption. |
+| **Production** | 🚨 **High Risk** | Live system. **NEVER** run integration tests or destructive scripts against this environment. |
+
+### 🧪 Unit vs. Integration Tests
+
+-   **Unit Tests**: Test pure logic, utility functions, or isolated components. They **do not** interact with the database or external APIs. They are safe to run in any environment.
+-   **Integration Tests**: Test the full stack including the database. They are **DB dependent** and MUST only target the Local environment.
+
+---
+
 ## 🛠️ Environment Requirements
 
 ### 1. Local Supabase (Mandatory)
@@ -23,7 +40,13 @@ The `tests/setup/global.ts` script ensures that:
 - `supabase start` is executed before any test runs.
 - `.env.development.local` is loaded into the test process.
 
-### 3. E2E Test Setup
+### 3. Environment Verification
+Always verify that your tests are targeting the Local environment:
+- **SUPABASE_URL**: Should be `http://127.0.0.1:54321` (Local Docker).
+- **Target File**: Integration tests MUST use `.env.development.local`.
+- **Warning**: If you see a URL pointing to `*.supabase.co`, **ABORT** the test immediately. This means you are targeting a remote (Beta or Production) instance.
+
+### 4. E2E Test Setup
 E2E tests require a running app server and an explicit `BASE_URL`. For local development, always use `MOCK_AI_SERVICES=true` to ensure stability and reduce costs.
 
 ```bash
@@ -111,7 +134,15 @@ it('should generate a story', async () => {
 
 ## 🚫 Guardrails & Constraints
 
-### 1. Substantive Assertions (Rule 11)
+### 1. Production Safety (Zero Tolerance)
+**NEVER** modify, reset, or erase the Production or Beta databases.
+- **Strictly Forbidden on Remote DBs**:
+    - `supabase db reset`: Wipes the database.
+    - `truncateAllTables()`: Clears user data.
+    - Integration tests that perform mutations (Insert/Update/Delete).
+- **Environment Awareness**: Always check your active `.env` file. If `.env.local` contains production credentials, do not run integration tests while it is active unless you are certain the test runner is overriding it with `.env.development.local`.
+
+### 2. Substantive Assertions (Rule 11)
 **NEVER write placeholder tests.** A test that only checks `expect(res.status).toBe(200)` is insufficient if the database state isn't verified. 
 
 **Requirements for substantive tests:**

@@ -3,11 +3,12 @@ import path from 'path';
 import { execSync } from 'child_process';
 import dotenv from 'dotenv';
 
+const isBeta = process.argv.includes('--beta');
 const ENV_LOCAL_PATH = path.resolve(process.cwd(), '.env.local');
-const ENV_DEV_LOCAL_PATH = path.resolve(process.cwd(), '.env.development.local');
+const ENV_TARGET_PATH = path.resolve(process.cwd(), isBeta ? '.env.beta.local' : '.env.development.local');
 
 async function sync() {
-  console.log('🔄 Syncing local environment...');
+  console.log(`🔄 Syncing ${isBeta ? 'Beta' : 'local'} environment...`);
 
   let externalKeys: Record<string, string> = {};
   if (fs.existsSync(ENV_LOCAL_PATH)) {
@@ -26,26 +27,41 @@ async function sync() {
   }
 
   let supabaseKeys: Record<string, string> = {};
-  try {
-    const statusOutput = execSync('npx supabase status -o json', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
-    
-    // Strip non-JSON lines (like "Stopped services: ...")
-    const jsonStart = statusOutput.indexOf('{');
-    if (jsonStart === -1) throw new Error('No JSON object found in supabase status output');
-    const jsonString = statusOutput.substring(jsonStart);
-    
-    const status = JSON.parse(jsonString);
-    
-    supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = status.API_URL || 'http://127.0.0.1:54321';
-    supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = status.ANON_KEY || status.anon_key;
-    supabaseKeys['SUPABASE_SERVICE_ROLE_KEY'] = status.SERVICE_ROLE_KEY || status.service_role_key;
-    
-    console.log('✅ Extracted local Supabase keys.');
-  } catch (error) {
-    console.warn('⚠️  Could not get Supabase status. Using default local values.');
-    supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = 'http://127.0.0.1:54321';
-    supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = 'local-anon-key-placeholder';
-    supabaseKeys['SUPABASE_SERVICE_ROLE_KEY'] = 'local-service-role-key-placeholder';
+
+  if (isBeta) {
+    // For Beta, try to preserve existing Supabase keys from the target file
+    if (fs.existsSync(ENV_TARGET_PATH)) {
+      const existingContent = fs.readFileSync(ENV_TARGET_PATH, 'utf-8');
+      const parsed = dotenv.parse(existingContent);
+      for (const [key, value] of Object.entries(parsed)) {
+        if (key.includes('SUPABASE')) {
+          supabaseKeys[key] = value;
+        }
+      }
+      console.log(`✅ Preserving ${Object.keys(supabaseKeys).length} Supabase keys from ${ENV_TARGET_PATH}`);
+    }
+  } else {
+    try {
+      const statusOutput = execSync('npx supabase status -o json', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
+      
+      // Strip non-JSON lines (like "Stopped services: ...")
+      const jsonStart = statusOutput.indexOf('{');
+      if (jsonStart === -1) throw new Error('No JSON object found in supabase status output');
+      const jsonString = statusOutput.substring(jsonStart);
+      
+      const status = JSON.parse(jsonString);
+      
+      supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = status.API_URL || 'http://127.0.0.1:54321';
+      supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = status.ANON_KEY || status.anon_key;
+      supabaseKeys['SUPABASE_SERVICE_ROLE_KEY'] = status.SERVICE_ROLE_KEY || status.service_role_key;
+      
+      console.log('✅ Extracted local Supabase keys.');
+    } catch (error) {
+      console.warn('⚠️  Could not get Supabase status. Using default local values.');
+      supabaseKeys['NEXT_PUBLIC_SUPABASE_URL'] = 'http://127.0.0.1:54321';
+      supabaseKeys['NEXT_PUBLIC_SUPABASE_ANON_KEY'] = 'local-anon-key-placeholder';
+      supabaseKeys['SUPABASE_SERVICE_ROLE_KEY'] = 'local-service-role-key-placeholder';
+    }
   }
 
   const merged = {
@@ -69,8 +85,8 @@ async function sync() {
     })
   ].join('\n');
 
-  fs.writeFileSync(ENV_DEV_LOCAL_PATH, content + '\n');
-  console.log(`✨ Successfully generated ${ENV_DEV_LOCAL_PATH}`);
+  fs.writeFileSync(ENV_TARGET_PATH, content + '\n');
+  console.log(`✨ Successfully generated ${ENV_TARGET_PATH}`);
 }
 
 sync().catch((err) => {

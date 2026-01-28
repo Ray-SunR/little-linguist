@@ -9,17 +9,33 @@ AI-powered reading companion for kids.
     npm install
     ```
 
-2.  **Setup Local Environment** (Zero-to-Hero)
-    ```bash
-    npm run supabase:setup
-    ```
-    *   This spins up local Supabase, syncs env vars, applies migrations, and seeds test data.
-    *   **Optional**: Run `npm run supabase:setup -- --sync-data` to pull production data (requires `.env.local`).
+2.  **Hydrate Environment (One-Shot Setup)**
+    *   **Local**: `npm run supabase:setup` (Spins up Docker, applies migrations, seeds test data).
+    *   **Beta**: `npm run supabase:setup:beta` (Hydrates the remote staging environment).
+    
+    *Both commands automatically sync AI keys from your `.env.local` — the **Unified Source of Truth**.*
 
 3.  **Start Development Server**
     ```bash
     npm run dev
     ```
+
+## 🌍 Environment Tiers
+
+| Tier | Purpose | Database | AI Services |
+| :--- | :--- | :--- | :--- |
+| **Local** | Day-to-day development | Docker (Supabase CLI) | Real (via `.env.local`) |
+| **Beta** | Integration testing & Staging | Remote Supabase (Beta) | Real (via `.env.local`) |
+| **Prod** | Live application | Remote Supabase (Prod) | Real |
+
+> [!TIP]
+> Use `.env.local` to store all AI service keys (Claude, Gemini, Polly). Our setup scripts ensure these are propagated across environments safely.
+
+## ⚠️ Production Safety
+
+**CRITICAL**: The Production environment is strictly protected.
+- **NEVER** run `db reset`, `db push`, or any destructive migration against the Production database.
+- Database changes must be verified in **Local** and **Beta** before being promoted to Production.
 
 ## 📚 Documentation
 
