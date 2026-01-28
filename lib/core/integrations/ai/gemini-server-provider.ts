@@ -27,7 +27,7 @@ Keep everything simple, fun, and age-appropriate.`;
 
         try {
             const result = await this.genAI.models.generateContent({
-                model: "gemini-2.0-flash-exp",
+                model: "gemini-2.5-flash",
                 contents: prompt,
                 config: {
                     responseMimeType: "application/json",
@@ -107,7 +107,7 @@ Also, provide a "mainCharacterDescription" which is a consistent physical descri
 
         try {
             const response = await this.genAI.models.generateContent({
-                model: "gemini-2.0-flash-exp",
+                model: "gemini-2.5-flash",
                 contents: userPrompt,
                 config: {
                     responseMimeType: "application/json",

@@ -105,7 +105,7 @@ describe('GeminiServerProvider', () => {
 
     expect(result).toEqual(mockResult);
     expect(mockGenerateContent).toHaveBeenCalledWith(expect.objectContaining({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-flash",
     }));
   });
 
