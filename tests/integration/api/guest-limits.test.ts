@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GET as getUsage } from '@/app/api/usage/route';
 import { GET as getBooks } from '@/app/api/books/route';
 import { POST as generateStory } from '@/app/api/story/route';
-import { truncateAllTables } from '../../utils/db-test-utils';
+import { cleanupTestData } from '../../utils/db-test-utils';
 import { seedBooksFromFixtures } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 vi.mock('next/headers', () => ({
     cookies: () => ({
@@ -25,20 +26,26 @@ vi.mock('next/headers', () => ({
 
 describe('Guest Limit Use Cases', () => {
     const supabase = createAdminClient();
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
-        await truncateAllTables();
-        await seedBooksFromFixtures({ limit: 10, skipAssets: true });
+        await seedBooksFromFixtures({ limit: 10, skipAssets: true, keyPrefix: testPrefix });
 
         // Verify seeding
-        const { data: books, error } = await supabase.from('books').select('id');
+        const { data: books, error } = await supabase.from('books').select('id').like('book_key', `${testPrefix}-%`);
         if (error) throw error;
         expect(books).toBeTruthy();
         expect(books!.length).toBeGreaterThanOrEqual(10);
     });
 
+    afterAll(async () => {
+        if (testPrefix) {
+            await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
+        }
+    });
+
     it('should limit library books to exactly 6 for guests', async () => {
-        const req = new Request('http://localhost/api/books?mode=library');
+        const req = new Request(`http://localhost/api/books?mode=library&testPrefix=${testPrefix}`);
         const res = await getBooks(req as any);
         const body = await res.json();
 
