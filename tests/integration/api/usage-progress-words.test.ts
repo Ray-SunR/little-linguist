@@ -67,25 +67,31 @@ describe('Remaining API Routes Integration', () => {
 
     beforeAll(async () => {
         await truncateAllTables();
-        await seedBooksFromOutput(1);
+        await seedBooksFromOutput({ limit: 1, skipAssets: true });
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
         
-        const { data: book } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
+        if (bookError) throw bookError;
         testBook = book;
+        expect(testBook).toBeTruthy();
 
-        const { data: child } = await supabase.from('children').insert({
+        const { data: child, error: childError } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'TestKid',
             birth_year: 2018
         }).select().single();
+        if (childError) throw childError;
         testChild = child;
+        expect(testChild).toBeTruthy();
         state.activeChildId = testChild.id;
 
-        await supabase.from('subscription_plans').upsert({
+        const { error: subError } = await supabase.from('subscription_plans').upsert({
             code: 'free',
             name: 'Free Plan',
             quotas: { word_insight: 10, story_generation: 1, magic_sentence: 10, image_generation: 10 }
         });
+        if (subError) throw subError;
     });
 
     it('should fetch usage for a user', async () => {
