@@ -1,7 +1,7 @@
 import { reserveCredits } from '@/lib/features/usage/usage-service.server';
 import { createAdminClient } from '@/lib/supabase/server';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTestUser, truncateAllTables } from '../../utils/db-test-utils';
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
+import { createTestUser, cleanupTestData } from '../../utils/db-test-utils';
 
 // Mock next/headers
 vi.mock('next/headers', () => ({
@@ -18,9 +18,12 @@ describe('Credit Usage', () => {
     let testChildId: string;
     let supabase: any;
 
+    afterAll(async () => {
+        if (testUser) await cleanupTestData(testUser.id);
+    });
+
     beforeEach(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         
