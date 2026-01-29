@@ -77,8 +77,15 @@ export async function truncateAllTables() {
         if (error) {
             // Handle case where 'id' column doesn't exist (e.g. child_books)
             if (error.message.includes('column "id" does not exist') || error.code === '42703') {
-                const { error: retryError } = await supabase.from(table).delete().not('created_at', 'is', null);
-                if (retryError) throw retryError;
+                // Try deleting with alternative filters
+                const { error: retryError } = await supabase.from(table).delete().neq('child_id', '00000000-0000-0000-0000-000000000000' as any);
+                
+                if (retryError && (retryError.message.includes('column "child_id" does not exist') || retryError.code === '42703')) {
+                    const { error: finalRetryError } = await supabase.from(table).delete().not('created_at', 'is', null);
+                    if (finalRetryError) throw finalRetryError;
+                } else if (retryError) {
+                    throw retryError;
+                }
             } else {
                 throw error;
             }
