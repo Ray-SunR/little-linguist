@@ -6,11 +6,13 @@ import { createAdminClient } from '@/lib/supabase/server';
 describe('StoryRepository Integration', () => {
     let storyRepo: StoryRepository;
     let testUser: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
         storyRepo = new StoryRepository(supabase);
     });
 
