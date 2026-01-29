@@ -35,8 +35,9 @@ export function createAdminClient() {
 
     if (isTest) {
         const isLocal = url.includes('localhost') || url.includes('127.0.0.1') || url.includes('0.0.0.0');
-        if (!isLocal) {
-            throw new Error(`Forbidden: Cannot create Admin Client for non-local URL (${url}) in test mode.`);
+        const isBeta = url.includes('xrertidmfkamnksotadp.supabase.co');
+        if (!isLocal && !isBeta) {
+            throw new Error(`Forbidden: Cannot create Admin Client for non-local/non-beta URL (${url}) in test mode.`);
         }
     }
 
