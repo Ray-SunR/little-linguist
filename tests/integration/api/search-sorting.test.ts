@@ -1,22 +1,32 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GET as searchBooks } from '@/app/api/books/search/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
 import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
+import crypto from 'node:crypto';
 
 describe('Search Custom Sorting Integration', () => {
     let testUser: any;
     let supabase: any;
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         // Seed some specific books to test sorting
-        await seedBooksFromOutput({ limit: 10, skipAssets: true });
+        await seedBooksFromOutput({ limit: 10, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
+        if (testPrefix) {
+            await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
+        }
     });
 
     it('should sort search results by title asc', async () => {
@@ -24,6 +34,7 @@ describe('Search Custom Sorting Integration', () => {
         const { data: dbBooks, error: dbError } = await supabase
             .from('books')
             .select('id, title, embedding')
+            .like('book_key', `${testPrefix}-%`)
             .not('embedding', 'is', null)
             .order('title', { ascending: true });
         
@@ -64,6 +75,7 @@ describe('Search Custom Sorting Integration', () => {
         const { data: dbBooks, error: dbError } = await supabase
             .from('books')
             .select('id, title, embedding')
+            .like('book_key', `${testPrefix}-%`)
             .not('embedding', 'is', null)
             .order('title', { ascending: true });
         
@@ -94,6 +106,7 @@ describe('Search Custom Sorting Integration', () => {
         const { data: dbBooks, error: dbError } = await supabase
             .from('books')
             .select('id, title, embedding, min_grade')
+            .like('book_key', `${testPrefix}-%`)
             .not('embedding', 'is', null)
             .order('min_grade', { ascending: true, nullsFirst: false });
         
@@ -128,6 +141,7 @@ describe('Search Custom Sorting Integration', () => {
         const { data: dbBooks, error: dbError } = await supabase
             .from('books')
             .select('id, title, embedding, min_grade')
+            .like('book_key', `${testPrefix}-%`)
             .not('embedding', 'is', null)
             .order('min_grade', { ascending: true });
         
