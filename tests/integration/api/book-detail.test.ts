@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GET, DELETE } from '@/app/api/books/[id]/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 vi.mock('next/headers', () => ({
     cookies: () => ({
@@ -17,18 +18,27 @@ describe('Book Detail API Integration', () => {
     let testUser: any;
     let testBook: any;
     let supabase: any;
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
-        await seedBooksFromOutput(1);
+        await seedBooksFromOutput({ limit: 1, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         if (!testUser) throw new Error("Failed to create test user");
         
-        const { data: book, error } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error } = await supabase.from('books').select('*').like('book_key', `${testPrefix}-%`).limit(1).single();
         if (error) throw error;
         if (!book) throw new Error("Failed to seed and retrieve test book");
         testBook = book;
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
+        if (testPrefix) {
+            await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
+        }
     });
 
     it('should fetch book by id', async () => {
@@ -53,7 +63,7 @@ describe('Book Detail API Integration', () => {
             title: 'Own Book',
             owner_user_id: testUser.id,
             origin: 'test-fixture',
-            book_key: 'own-book'
+            book_key: `${testPrefix}-own-book`
         }).select().single();
 
         if (insertError) throw insertError;
@@ -82,7 +92,7 @@ describe('Book Detail API Integration', () => {
             title: 'Other Book',
             owner_user_id: otherUser.id,
             origin: 'test-fixture',
-            book_key: 'other-book'
+            book_key: `${testPrefix}-other-book`
         }).select().single();
 
         if (insertError) throw insertError;
