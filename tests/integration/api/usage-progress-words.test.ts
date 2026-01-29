@@ -63,9 +63,10 @@ describe('Remaining API Routes Integration', () => {
     let testUser: any;
     let testChild: any;
     let testBook: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         await seedBooksFromOutput({ limit: 1, skipAssets: true });
         testUser = await createTestUser();
