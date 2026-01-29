@@ -1,7 +1,7 @@
 import { RewardService, RewardType } from '@/lib/features/activity/reward-service.server';
 import { createAdminClient } from '@/lib/supabase/server';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTestUser, truncateAllTables } from '../../utils/db-test-utils';
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
+import { createTestUser, cleanupTestData } from '../../utils/db-test-utils';
 
 // Mock next/headers
 vi.mock('next/headers', () => ({
@@ -14,17 +14,21 @@ vi.mock('next/headers', () => ({
 }));
 
 describe('Reward Currency', () => {
+    let testUser: any;
     let testChildId: string;
     let supabase: any;
 
+    afterAll(async () => {
+        if (testUser) await cleanupTestData(testUser.id);
+    });
+
     beforeEach(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
-        const user = await createTestUser();
-        expect(user).toBeTruthy();
+        testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
         
         const { data: child, error } = await supabase.from('children').insert({
-            owner_user_id: user.id,
+            owner_user_id: testUser.id,
             first_name: 'Test',
             last_name: 'Child',
             birth_year: 2018,
