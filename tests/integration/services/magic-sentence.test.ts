@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, vi, afterAll } from 'vitest';
 import { MagicSentenceService } from '@/lib/features/word-insight/magic-sentence-service.server';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { createAdminClient } from '@/lib/supabase/server';
 
 vi.mock('next/headers', () => ({
@@ -46,7 +46,6 @@ describe('MagicSentenceService Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         
@@ -68,6 +67,10 @@ describe('MagicSentenceService Integration', () => {
             quotas: { magic_sentence: 10, image_generation: 10 }
         });
         if (subError) throw subError;
+    });
+
+    afterAll(async () => {
+        if (testUser) await cleanupTestData(testUser.id);
     });
 
     it('should generate and store a magic sentence', async () => {
