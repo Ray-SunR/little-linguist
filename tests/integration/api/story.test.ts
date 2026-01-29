@@ -41,8 +41,9 @@ describe('Story API Integration', () => {
     beforeAll(async () => {
         await truncateAllTables();
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
 
-        const { data: child, error } = await supabase.from('children').insert({
+        const { data: child, error: childError } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'TestKid',
             birth_year: new Date().getFullYear() - 5,
@@ -50,10 +51,11 @@ describe('Story API Integration', () => {
             avatar_paths: ['avatar1.png']
         }).select().single();
 
-        if (error) throw error;
+        if (childError) throw childError;
         testChild = child;
+        expect(testChild).toBeTruthy();
 
-        await supabase.from('subscription_plans').upsert({
+        const { error: subError } = await supabase.from('subscription_plans').upsert({
             code: 'free',
             name: 'Free Plan',
             quotas: {
@@ -62,6 +64,7 @@ describe('Story API Integration', () => {
                 image_generation: 10
             }
         });
+        if (subError) throw subError;
 
         process.env.GEMINI_API_KEY = 'test-key';
         process.env.TEST_MODE = 'false';
