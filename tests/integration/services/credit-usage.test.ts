@@ -16,11 +16,13 @@ vi.mock('next/headers', () => ({
 describe('Credit Usage', () => {
     let testUser: any;
     let testChildId: string;
+    let supabase: any;
 
     beforeEach(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
-        const supabase = createAdminClient();
+        expect(testUser).toBeTruthy();
         
         const { data: child, error } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
@@ -31,12 +33,11 @@ describe('Credit Usage', () => {
         }).select().single();
         
         if (error) throw error;
+        expect(child).toBeTruthy();
         testChildId = child.id;
     });
 
     it('should set transaction_type to credit for usage/spending', async () => {
-        const supabase = createAdminClient();
-        
         // Use reserveCredits which calls the RPC
         const result = await reserveCredits(
             { owner_user_id: testUser.id, identity_key: testUser.id },
