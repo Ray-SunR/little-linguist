@@ -1,24 +1,25 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { POST as postProgress } from '@/app/api/books/[id]/progress/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 describe('Rewards System Integration', () => {
     let testUser: any;
     let testChild: any;
     let testBook: any;
     let supabase: any;
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
-        await seedBooksFromOutput(1);
+        await seedBooksFromOutput({ limit: 1, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser, 'testUser should be created').toBeTruthy();
         
-        const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error: bookError } = await supabase.from('books').select('*').like('book_key', `${testPrefix}-%`).limit(1).single();
         if (bookError) throw bookError;
         testBook = book;
         expect(testBook, 'testBook should be seeded and found').toBeTruthy();
@@ -34,6 +35,15 @@ describe('Rewards System Integration', () => {
         if (childError) throw childError;
         testChild = child;
         expect(testChild, 'testChild should be created').toBeTruthy();
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
+        if (testPrefix) {
+            await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
+        }
     });
 
     it('should grant XP when a book is opened for the first time today', async () => {
