@@ -4,7 +4,7 @@ import { POST as postProgress, GET as getProgress } from '@/app/api/books/[id]/p
 import { GET as getWords, POST as postWords, DELETE as deleteWords } from '@/app/api/words/route';
 import { POST as postWordInsight } from '@/app/api/word-insight/route';
 import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
-import { seedBooksFromOutput } from '../../utils/test-seeder';
+import { seedBooksFromFixtures } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
 import crypto from 'node:crypto';
@@ -69,7 +69,7 @@ describe('Remaining API Routes Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await seedBooksFromOutput({ limit: 1, skipAssets: true, keyPrefix: testPrefix });
+        await seedBooksFromFixtures({ limit: 1, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         
