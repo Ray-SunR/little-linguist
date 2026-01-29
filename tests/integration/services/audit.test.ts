@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, vi, afterAll } from 'vitest';
 import { AuditService, AuditAction, EntityType } from '@/lib/features/audit/audit-service.server';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { createAdminClient } from '@/lib/supabase/server';
 
 vi.mock('next/headers', () => ({
@@ -19,9 +19,12 @@ describe('AuditService Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
+    });
+
+    afterAll(async () => {
+        if (testUser) await cleanupTestData(testUser.id);
     });
 
     it('should log an action successfully', async () => {
