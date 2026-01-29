@@ -35,27 +35,33 @@ describe('Search and Recommendations API Integration', () => {
 
     beforeAll(async () => {
         await truncateAllTables();
-        await seedBooksFromOutput(5);
+        await seedBooksFromOutput({ limit: 5, skipAssets: true });
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
 
         // Fetch a book from the seeded data
-        const { data: books } = await supabase.from('books').select('*').limit(1);
+        const { data: books, error: fetchError } = await supabase.from('books').select('*').limit(1);
+        if (fetchError) throw fetchError;
         testBook = books[0];
+        expect(testBook).toBeTruthy();
 
-        const { data: child } = await supabase.from('children').insert({
+        const { data: child, error: childError } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'SearchKid',
             birth_year: 2018,
             interests: ['magic']
         }).select().single();
+        if (childError) throw childError;
         testChild = child;
+        expect(testChild).toBeTruthy();
         state.activeChildId = testChild.id;
 
-        await supabase.from('subscription_plans').upsert({
+        const { error: subError } = await supabase.from('subscription_plans').upsert({
             code: 'free',
             name: 'Free Plan',
             quotas: { word_insight: 10 }
         });
+        if (subError) throw subError;
     });
 
     it('should search books', async () => {
