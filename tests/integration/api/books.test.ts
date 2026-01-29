@@ -19,8 +19,9 @@ describe('Books API Integration', () => {
 
     beforeAll(async () => {
         await truncateAllTables();
-        await seedBooksFromOutput(10);
+        await seedBooksFromOutput({ limit: 10, skipAssets: true });
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
     });
 
     it('should return exactly 6 books for unauthenticated user (guest limit)', async () => {
