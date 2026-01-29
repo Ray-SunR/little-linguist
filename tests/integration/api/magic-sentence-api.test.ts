@@ -73,25 +73,30 @@ vi.mock('@/lib/features/activity/reward-service.server', () => ({
 describe('Magic Sentence API Integration', () => {
     let testUser: any;
     let testChild: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
 
-        const { data: child } = await supabase.from('children').insert({
+        const { data: child, error: childError } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'MagicKid',
             birth_year: 2018
         }).select().single();
+        if (childError) throw childError;
         testChild = child;
+        expect(testChild).toBeTruthy();
         state.activeChildId = testChild.id;
 
-        await supabase.from('subscription_plans').upsert({
+        const { error: subError } = await supabase.from('subscription_plans').upsert({
             code: 'free',
             name: 'Free Plan',
             quotas: { magic_sentence: 10, image_generation: 10 }
         });
+        if (subError) throw subError;
     });
 
     it('should generate magic sentence via API', async () => {
