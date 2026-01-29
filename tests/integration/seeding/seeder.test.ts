@@ -4,18 +4,21 @@ import { seedBooksFromFixtures } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 
 describe('Library Seeder Integration', () => {
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
     });
 
     it('should seed books with correct token format and prefixed paths', async () => {
         // Seed only 1 book for speed
-        await seedBooksFromFixtures(1);
+        const count = await seedBooksFromFixtures(1);
+        expect(count).toBeGreaterThan(0);
 
         // 1. Verify book metadata (cover path prefix)
-        const { data: book } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
+        if (bookError) throw bookError;
         expect(book).toBeDefined();
         // Expect format: [uuid]/cover.webp
         expect(book.cover_image_path).toMatch(/^[0-9a-f-]+\/cover\.webp$/);
