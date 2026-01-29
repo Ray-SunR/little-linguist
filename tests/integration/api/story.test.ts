@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { POST } from '@/app/api/story/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { createTestUser, cleanupTestData } from '../../utils/db-test-utils';
 import { createAdminClient } from '@/lib/supabase/server';
 
 vi.mock('@/lib/core/integrations/ai/factory.server', () => ({
@@ -40,7 +40,6 @@ describe('Story API Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
 
@@ -69,6 +68,12 @@ describe('Story API Integration', () => {
 
         process.env.GEMINI_API_KEY = 'test-key';
         process.env.TEST_MODE = 'false';
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
     });
 
     it('should generate a story for an authenticated user', async () => {
