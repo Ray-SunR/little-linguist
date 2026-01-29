@@ -3,7 +3,7 @@ import { GET as searchBooks } from '@/app/api/books/search/route';
 import { GET as getRecommendations } from '@/app/api/books/recommendations/route';
 import { PATCH as toggleFavorite } from '@/app/api/books/[id]/favorite/route';
 import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
-import { seedBooksFromOutput } from '../../utils/test-seeder';
+import { seedBooksFromFixtures } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
 import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
@@ -37,7 +37,7 @@ describe('Search and Recommendations API Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await seedBooksFromOutput({ limit: 5, skipAssets: true, keyPrefix: testPrefix });
+        await seedBooksFromFixtures({ limit: 5, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
 
