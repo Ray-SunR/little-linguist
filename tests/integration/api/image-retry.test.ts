@@ -26,13 +26,15 @@ vi.mock('@/lib/features/image-generation/factory', () => ({
 describe('Image Retry API Integration', () => {
     let testUser: any;
     let testBook: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
         
-        const { data: book } = await supabase.from('books').insert({
+        const { data: book, error: bookError } = await supabase.from('books').insert({
             title: 'Retry Test Book',
             owner_user_id: testUser.id,
             origin: 'test-fixture',
@@ -48,21 +50,25 @@ describe('Image Retry API Integration', () => {
                 ]
             }
         }).select().single();
+        if (bookError) throw bookError;
         testBook = book;
+        expect(testBook).toBeTruthy();
 
-        await supabase.from('stories').insert({
+        const { error: storyError } = await supabase.from('stories').insert({
             id: testBook.id,
             owner_user_id: testUser.id,
             main_character_description: 'Test character',
             sections: testBook.metadata.sections,
             status: 'completed'
         });
+        if (storyError) throw storyError;
 
-        await supabase.from('subscription_plans').upsert({
+        const { error: subError } = await supabase.from('subscription_plans').upsert({
             code: 'free',
             name: 'Free Plan',
             quotas: { image_generation: 10 }
         });
+        if (subError) throw subError;
     });
 
     it('should trigger image retry', async () => {
