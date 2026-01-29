@@ -1,7 +1,8 @@
 import { expect, type Page } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
 /**
  * Completes the onboarding wizard if the page is currently on the onboarding route.
@@ -39,7 +40,23 @@ export async function completeOnboarding(page: Page, childName: string = 'LeoHer
   }
 }
 
-dotenv.config({ path: path.resolve(__dirname, '..', '.env.development.local') });
+const TEST_TARGET = process.env.TEST_TARGET || 'beta';
+const envFile = TEST_TARGET === 'local' ? '.env.development.local' : '.env.beta.local';
+const envPath = path.resolve(process.cwd(), envFile);
+
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath, override: true });
+} else {
+  console.error(`❌ ERROR: ${envFile} not found.`);
+  if (TEST_TARGET === 'local') {
+    console.error('E2E tests must run against a local Supabase instance.');
+    console.error('Run "npm run supabase:setup" to initialize your local environment.');
+  } else {
+    console.error('E2E tests are defaulting to the Beta environment.');
+    console.error('Ensure you have downloaded the Beta credentials into .env.beta.local.');
+  }
+  process.exit(1);
+}
 
 let adminClient: ReturnType<typeof createClient> | null = null;
 
