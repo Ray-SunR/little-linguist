@@ -19,13 +19,14 @@ describe('Library Seeder Integration', () => {
         // 1. Verify book metadata (cover path prefix)
         const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
         if (bookError) throw bookError;
-        expect(book).toBeDefined();
+        expect(book).toBeTruthy();
         // Expect format: [uuid]/cover.webp
         expect(book.cover_image_path).toMatch(/^[0-9a-f-]+\/cover\.webp$/);
 
         // 2. Verify tokens format (canonical)
-        const { data: content } = await supabase.from('book_contents').select('*').eq('book_id', book.id).single();
-        expect(content).toBeDefined();
+        const { data: content, error: contentError } = await supabase.from('book_contents').select('*').eq('book_id', book.id).single();
+        if (contentError) throw contentError;
+        expect(content).toBeTruthy();
         expect(Array.isArray(content.tokens)).toBe(true);
         // Canonical token check
         expect(content.tokens[0]).toHaveProperty('type');
@@ -33,12 +34,13 @@ describe('Library Seeder Integration', () => {
         expect(['w', 's', 'p']).toContain(content.tokens[0].type);
 
         // 3. Verify audio timings (not empty)
-        const { data: audio } = await supabase.from('book_audios').select('*').eq('book_id', book.id).limit(1).single();
-        expect(audio).toBeDefined();
+        const { data: audio, error: audioError } = await supabase.from('book_audios').select('*').eq('book_id', book.id).limit(1).single();
+        if (audioError) throw audioError;
+        expect(audio).toBeTruthy();
         expect(Array.isArray(audio.timings)).toBe(true);
         expect(audio.timings.length).toBeGreaterThan(0);
         // Timing format check (relative MS)
         expect(audio.timings[0]).toHaveProperty('time');
         expect(typeof audio.timings[0].time).toBe('number');
-    });
+    }, 60000);
 });
