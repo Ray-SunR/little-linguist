@@ -31,7 +31,8 @@ async function uploadAsset(bucket: string, localPath: string, destPath: string) 
     return destPath;
 }
 
-export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: string) {
+export async function seedBooksFromFixtures(options: { limit?: number, sourcePath?: string, skipAssets?: boolean } = {}) {
+    const { limit = 10, sourcePath, skipAssets = false } = options;
     const supabase = createAdminClient();
     const fixturePath = sourcePath || path.resolve(process.cwd(), 'tests/fixtures/library');
 
@@ -113,14 +114,16 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
                 const bookId = book.id;
 
                 // 2. Upload Cover and update path
-                let localCover = path.join(bookPath, "cover.webp");
-                if (!fs.existsSync(localCover)) localCover = path.join(bookPath, "cover.png");
-                
-                if (fs.existsSync(localCover)) {
-                    const destCover = `${bookId}/cover.webp`;
-                    const coverPath = await uploadAsset("book-assets", localCover, destCover);
-                    if (coverPath) {
-                        await supabase.from('books').update({ cover_image_path: coverPath }).eq('id', bookId);
+                if (!skipAssets) {
+                    let localCover = path.join(bookPath, "cover.webp");
+                    if (!fs.existsSync(localCover)) localCover = path.join(bookPath, "cover.png");
+                    
+                    if (fs.existsSync(localCover)) {
+                        const destCover = `${bookId}/cover.webp`;
+                        const coverPath = await uploadAsset("book-assets", localCover, destCover);
+                        if (coverPath) {
+                            await supabase.from('books').update({ cover_image_path: coverPath }).eq('id', bookId);
+                        }
                     }
                 }
 
@@ -137,7 +140,7 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
                 }
 
                 // 4. Audio and Timings (CRITICAL: Use timing_tokens.json for book_audios.timings)
-                if (metadata.audio?.shards) {
+                if (metadata.audio?.shards && !skipAssets) {
                     const externalTimings = fs.existsSync(timingFile) ? JSON.parse(fs.readFileSync(timingFile, 'utf8')) : [];
                     const voiceId = metadata.audio.voice_id || 'Ruth';
 
@@ -171,7 +174,7 @@ export async function seedBooksFromFixtures(limit: number = 10, sourcePath?: str
                 }
 
                 // 5. Media/Scenes
-                if (metadata.scenes) {
+                if (metadata.scenes && !skipAssets) {
                     for (const scene of metadata.scenes) {
                         let localScene = path.join(bookPath, `scenes/scene_${scene.index}.webp`);
                         if (!fs.existsSync(localScene)) localScene = path.join(bookPath, `scenes/scene_${scene.index}.png`);
