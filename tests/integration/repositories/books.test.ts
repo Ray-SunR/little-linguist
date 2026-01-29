@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
 import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
-import { seedBooksFromOutput } from '../../utils/test-seeder';
+import { seedBooksFromFixtures } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import crypto from 'node:crypto';
 
@@ -16,7 +16,7 @@ describe('BookRepository Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await seedBooksFromOutput({ limit: 10, skipAssets: true, keyPrefix: testPrefix });
+        await seedBooksFromFixtures({ limit: 10, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
 
