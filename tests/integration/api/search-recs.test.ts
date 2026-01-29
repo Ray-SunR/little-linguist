@@ -76,11 +76,13 @@ describe('Search and Recommendations API Integration', () => {
     });
 
     it('should search books', async () => {
-        // Fetch a book with an embedding from the DB (seeded from fixtures)
+        // Fetch a book with an embedding from the DB (seeded from fixtures in beforeAll)
         const { data: targetBook } = await supabase
             .from('books')
             .select('id, embedding')
             .not('embedding', 'is', null)
+            .is('owner_user_id', null) // Ensure we pick a public book for match_books
+            .like('book_key', `${testPrefix}-%`) // Pick from our own seeded books
             .limit(1)
             .single();
 
@@ -110,11 +112,13 @@ describe('Search and Recommendations API Integration', () => {
     });
 
     it('should get recommendations for child', async () => {
-        // Fetch a book with an embedding from the DB (seeded from fixtures)
+        // Fetch a book with an embedding from the DB (seeded from fixtures in beforeAll)
         const { data: targetBook } = await supabase
             .from('books')
             .select('id, embedding')
             .not('embedding', 'is', null)
+            .is('owner_user_id', null) // match_books only searches public books
+            .like('book_key', `${testPrefix}-%`) // Pick from our own seeded books
             .limit(1)
             .single();
 

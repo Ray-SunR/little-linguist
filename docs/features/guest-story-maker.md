@@ -43,8 +43,12 @@ Instead of hitting a "Login Wall" immediately, guests can design their child's p
     *   Handles the multi-step form for guests.
     *   **Output:** Does *not* call API. Saves JSON object to `raidenCache`.
 *   **`StoryMakerClient`**:
-    *   Handles the `resume_story_maker` logic.
-    *   **Migration Logic:** Reads `draft:guest`, validates user session, creates DB profile, triggers generation service.
+    *   The primary UI container for story creation.
+    *   Uses the **`useStoryOrchestrator`** hook to manage the lifecycle of conversion and generation.
+*   **`useStoryOrchestrator` Hook**:
+    *   Centralizes the logic for detection of resume intent, draft migration, profile fulfillment, and AI generation trigger.
+    *   Implements a **120s safety timeout** to prevent UI hangs during generation.
+    *   Ensures atomic "safe purging" of guest data only after server success.
 
 ### Data Persistence (`raidenCache`)
 *   **Storage Mechanism:** IndexedDB (via `idb-keyval` wrapper) persists the draft across browser redirect/refresh.
