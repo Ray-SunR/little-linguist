@@ -87,14 +87,16 @@ describe('Image Retry API Integration', () => {
         expect(res.status).toBe(200);
         expect(body.status).toBe('generating');
 
-        const { data: updatedBook } = await supabase.from('books').select('metadata').eq('id', testBook.id).single();
-        expect(updatedBook?.metadata.sections[0].image_status).toBe('generating');
+        const { data: updatedBook, error: updateCheckError } = await supabase.from('books').select('metadata').eq('id', testBook.id).single();
+        if (updateCheckError) throw updateCheckError;
+        expect(updatedBook).toBeTruthy();
+        expect(updatedBook.metadata.sections[0].image_status).toBe('generating');
 
         vi.restoreAllMocks();
     });
 
     it('should fail if max retries reached', async () => {
-        await supabase.from('books').update({
+        const { error: updateError } = await supabase.from('books').update({
             metadata: {
                 sections: [
                     { 
@@ -106,6 +108,7 @@ describe('Image Retry API Integration', () => {
                 ]
             }
         }).eq('id', testBook.id);
+        if (updateError) throw updateError;
 
         const mockClient = createAdminClient();
         vi.spyOn(mockClient.auth, 'getUser').mockResolvedValue({ data: { user: testUser }, error: null });
