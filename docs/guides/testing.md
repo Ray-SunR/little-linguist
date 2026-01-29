@@ -18,33 +18,38 @@ Testing in Raiden is categorized by its dependency on external resources and its
 | Environment | Risk Level | Description |
 | :--- | :--- | :--- |
 | **Local** | ✅ **Safe** | Primary development workspace. Local Docker-based Supabase. Destructive operations (reset/truncate) are encouraged here. |
-| **Beta** | ⚠️ **Moderate** | Staging environment. Shared among team members. Running integration tests here can cause data drift or service disruption. |
+| **Beta** | ✅ **Default** | Staging environment. **Default target for all tests.** User tables will be truncated during test runs. |
 | **Production** | 🚨 **High Risk** | Live system. **NEVER** run integration tests or destructive scripts against this environment. |
 
 ### 🧪 Unit vs. Integration Tests
 
 -   **Unit Tests**: Test pure logic, utility functions, or isolated components. They **do not** interact with the database or external APIs. They are safe to run in any environment.
--   **Integration Tests**: Test the full stack including the database. They are **DB dependent** and MUST only target the Local environment.
+-   **Integration Tests**: Test the full stack including the database. They are **DB dependent** and target the Beta environment by default.
 
 ---
 
 ## 🛠️ Environment Requirements
 
-### 1. Local Supabase (Mandatory)
-All integration tests **MUST** run against the local Docker-based Supabase instance.
+### 1. Beta Environment (Default)
+All integration tests target the Beta environment by default to ensure parity with staging.
+- **Warning**: Tables will be truncated. Ensure you are not running tests if you have unsaved manual data in Beta.
+- To override and target Local Docker, set `TEST_TARGET=local`.
+
+### 2. Local Supabase (Optional Override)
+You can still run tests against the local Docker-based Supabase instance.
+- Set `TEST_TARGET=local` in your environment or use the `--local` flag with `full-test.sh`.
 - **Never mock Repositories** in integration tests.
 - **Never mock the Supabase Client** for database operations (use the Service Role key for setup, and Anon key for RLS verification).
 
-### 2. Global Setup
+### 3. Global Setup
 The `tests/setup/global.ts` script ensures that:
-- `supabase start` is executed before any test runs.
-- `.env.development.local` is loaded into the test process.
+- `.env.beta.local` (default) or `.env.development.local` (if `TEST_TARGET=local`) is loaded into the test process.
 
-### 3. Environment Verification
-Always verify that your tests are targeting the Local environment:
-- **SUPABASE_URL**: Should be `http://127.0.0.1:54321` (Local Docker).
-- **Target File**: Integration tests MUST use `.env.development.local`.
-- **Warning**: If you see a URL pointing to `*.supabase.co`, **ABORT** the test immediately. This means you are targeting a remote (Beta or Production) instance.
+### 4. Environment Verification
+Always verify that your tests are targeting the intended environment:
+- **SUPABASE_URL**: Should point to Beta (*.supabase.co) or Local (127.0.0.1).
+- **Target File**: Default is `.env.beta.local`. Use `.env.development.local` for local tests.
+- **Warning**: If you see a URL pointing to the Production instance, **ABORT** the test immediately.
 
 ### 4. E2E Test Setup
 E2E tests require a running app server and an explicit `BASE_URL`. For local development, always use `MOCK_AI_SERVICES=true` to ensure stability and reduce costs.
@@ -80,9 +85,14 @@ BASE_URL=http://localhost:3001 npm run test:e2e
 ### 6. Automated Full Testing
 The most reliable way to verify the entire system (Unit + Integration + Prod Build + E2E) is the `full-test.sh` script or its npm alias. This script dynamically allocates a port, starts a background production server, and cleans up after itself.
 
+**Default environment: Beta** (`.env.beta.local`).
+
 ```bash
 # Full check (recommended before major commits)
 npm run test:full
+
+# Run against Local environment instead of Beta
+npm run test:full -- --local
 
 # Skip build if you only changed client-side styles or tests
 npm run test:full -- --skip-build
@@ -91,6 +101,9 @@ npm run test:full -- --skip-build
 npm run test:full -- --no-mock
 ```
 Logs for the background server are captured in `/tmp/raiden-server-*.log`.
+
+> [!CAUTION]
+> **Beta Truncation Warning**: Running `full-test.sh` without the `--local` flag will target the Beta environment and truncate user-owned tables. Ensure you have backed up any critical staging data before running.
 
 ---
 

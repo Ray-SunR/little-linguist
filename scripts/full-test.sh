@@ -8,17 +8,22 @@ set -e
 # Defaults
 SKIP_BUILD=false
 MOCK_AI=true
+ENV_FILE=".env.beta.local"
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --skip-build) SKIP_BUILD=true ;;
         --no-mock) MOCK_AI=false ;;
+        --local) 
+            export TEST_TARGET=local
+            ;;
         --help) 
             echo "Usage: ./scripts/full-test.sh [options]"
             echo "Options:"
             echo "  --skip-build    Skip the production build step"
             echo "  --no-mock       Run without MOCK_AI_SERVICES=true"
+            echo "  --local         Run against local development environment (.env.development.local)"
             echo "  --help          Show this help message"
             exit 0
             ;;
@@ -26,6 +31,11 @@ while [[ "$#" -gt 0 ]]; do
     esac
     shift
 done
+
+# If TEST_TARGET is local, use development env
+if [ "$TEST_TARGET" = "local" ]; then
+    ENV_FILE=".env.development.local"
+fi
 
 # Find a free port dynamically
 FREE_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
@@ -48,12 +58,12 @@ echo "🚀 Starting Full Testing on port $FREE_PORT..."
 
 # 1. Unit + Integration Tests
 echo "🧪 Running unit and integration tests..."
-npx dotenv-cli -e .env.development.local -- npm run test
+npx dotenv-cli -e $ENV_FILE -- npm run test
 
 # 2. Build (Optional)
 if [ "$SKIP_BUILD" = false ]; then
     echo "🏗️ Building production bundle..."
-    npx dotenv-cli -e .env.development.local -v MOCK_AI_SERVICES=$MOCK_AI -- npm run build
+    npx dotenv-cli -e $ENV_FILE -v MOCK_AI_SERVICES=$MOCK_AI -- npm run build
 else
     echo "⏩ Skipping build step."
 fi
@@ -62,7 +72,7 @@ fi
 echo "🌐 Starting server in background..."
 echo "📝 Logs: $LOG_FILE"
 
-npx dotenv-cli -e .env.development.local -v MOCK_AI_SERVICES=$MOCK_AI -v PORT=$FREE_PORT -- npm run start > "$LOG_FILE" 2>&1 &
+npx dotenv-cli -e $ENV_FILE -v MOCK_AI_SERVICES=$MOCK_AI -v PORT=$FREE_PORT -- npm run start > "$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 
 # Wait for server to be ready

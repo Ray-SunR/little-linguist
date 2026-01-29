@@ -19,24 +19,30 @@ const FULL_TRUNCATE_TABLES = [
 ];
 
 /**
- * Ensures that the current Supabase URL is pointing to a local instance.
- * Throws an error if it detects a production or remote URL.
+ * Ensures that the current Supabase URL is pointing to a safe instance (Local or Beta).
+ * Throws an error if it detects a production or unauthorized remote URL.
  */
-export function assertLocalDatabase() {
+export function assertSafeForTests() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const isLocal = url.includes('localhost') || url.includes('127.0.0.1') || url.includes('0.0.0.0');
+    const isWhitelisted = 
+        url.includes('localhost') || 
+        url.includes('127.0.0.1') || 
+        url.includes('0.0.0.0') || 
+        url.includes('xrertidmfkamnksotadp.supabase.co');
     
-    if (!isLocal) {
+    const isProd = url.includes('tawhvgzctlfavucdxwbt.supabase.co');
+    
+    if (!isWhitelisted || isProd) {
         throw new Error(
-            `❌ PRODUCTION GUARD TRIGGERED: Attempted destructive operation on non-local database: ${url}. ` +
-            `Destructive operations (truncation, user deletion) are ONLY allowed on local Docker instances.`
+            `❌ PRODUCTION GUARD TRIGGERED: Attempted destructive operation on unsafe database: ${url}. ` +
+            `Destructive operations (truncation, user deletion) are ONLY allowed on Local or Beta instances.`
         );
     }
 }
 
 
 export async function ensureBucketExists(bucketName: string) {
-    assertLocalDatabase();
+    assertSafeForTests();
     const supabase = createAdminClient();
     const { data: buckets } = await supabase.storage.listBuckets();
     const exists = buckets?.some(b => b.name === bucketName);
@@ -51,7 +57,7 @@ export async function ensureBucketExists(bucketName: string) {
 }
 
 export async function truncateAllTables() {
-    assertLocalDatabase();
+    assertSafeForTests();
     const supabase = createAdminClient();
 
     // Ensure assets bucket exists
@@ -77,7 +83,7 @@ export async function truncateAllTables() {
 }
 
 export async function createTestUser(email: string = 'test@example.com') {
-    assertLocalDatabase();
+    assertSafeForTests();
     const supabase = createAdminClient();
 
     // List users specifically searching for this email if possible, or list enough to find it.
