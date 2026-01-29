@@ -1,21 +1,22 @@
-import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 describe('BookRepository Integration', () => {
     let bookRepo: BookRepository;
     let testUser: any;
     let testChild: any;
     let supabase: any;
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
-        await seedBooksFromOutput({ limit: 10, skipAssets: true });
+        await seedBooksFromOutput({ limit: 10, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
 
@@ -29,6 +30,15 @@ describe('BookRepository Integration', () => {
         expect(testChild).toBeTruthy();
 
         bookRepo = new BookRepository(supabase);
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
+        if (testPrefix) {
+            await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
+        }
     });
 
     afterEach(() => {

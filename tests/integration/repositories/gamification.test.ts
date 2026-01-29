@@ -1,7 +1,7 @@
 import { GamificationRepository } from '@/lib/core/gamification/repository.server';
 import { createAdminClient } from '@/lib/supabase/server';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { createTestUser, truncateAllTables } from '../../utils/db-test-utils';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { createTestUser, cleanupTestData } from '../../utils/db-test-utils';
 
 describe('GamificationRepository', () => {
     let testUser: any;
@@ -9,9 +9,8 @@ describe('GamificationRepository', () => {
     let repo: GamificationRepository;
     let supabase: any;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         repo = new GamificationRepository(supabase);
@@ -45,6 +44,12 @@ describe('GamificationRepository', () => {
                 transaction_type: 'credit'
             }
         ]);
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
     });
 
     it('getRecentAchievements should only return lumo_coin', async () => {

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { StoryRepository } from '@/lib/core/stories/repository.server';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { createTestUser, cleanupTestData } from '../../utils/db-test-utils';
 import { createAdminClient } from '@/lib/supabase/server';
 
 describe('StoryRepository Integration', () => {
@@ -10,10 +10,15 @@ describe('StoryRepository Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         storyRepo = new StoryRepository(supabase);
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
     });
 
     it('should create and fetch a story', async () => {
