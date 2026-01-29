@@ -15,11 +15,13 @@ vi.mock('next/headers', () => ({
 
 describe('Reward Currency', () => {
     let testChildId: string;
+    let supabase: any;
 
     beforeEach(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         const user = await createTestUser();
-        const supabase = createAdminClient();
+        expect(user).toBeTruthy();
         
         const { data: child, error } = await supabase.from('children').insert({
             owner_user_id: user.id,
@@ -30,11 +32,11 @@ describe('Reward Currency', () => {
         }).select().single();
         
         if (error) throw error;
+        expect(child).toBeTruthy();
         testChildId = child.id;
     });
 
     it('should set transaction_type to lumo_coin for rewards', async () => {
-        const supabase = createAdminClient();
         const service = new RewardService(supabase);
         
         const testEntityId = 'test-book-' + Date.now();
