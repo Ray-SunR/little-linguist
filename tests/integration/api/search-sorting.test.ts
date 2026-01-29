@@ -13,17 +13,20 @@ describe('Search Custom Sorting Integration', () => {
     beforeAll(async () => {
         await truncateAllTables();
         // Seed some specific books to test sorting
-        await seedBooksFromOutput(10);
+        await seedBooksFromOutput({ limit: 10, skipAssets: true });
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
     });
 
     it('should sort search results by title asc', async () => {
         // Fetch books from DB to know what to expect
-        const { data: dbBooks } = await supabase
+        const { data: dbBooks, error: dbError } = await supabase
             .from('books')
             .select('id, title, embedding')
             .not('embedding', 'is', null)
             .order('title', { ascending: true });
+        
+        if (dbError) throw dbError;
 
         if (!dbBooks || dbBooks.length < 2) {
             throw new Error('Not enough books with embeddings found in DB');
@@ -57,11 +60,13 @@ describe('Search Custom Sorting Integration', () => {
     });
 
     it('should sort search results by title desc', async () => {
-        const { data: dbBooks } = await supabase
+        const { data: dbBooks, error: dbError } = await supabase
             .from('books')
             .select('id, title, embedding')
             .not('embedding', 'is', null)
             .order('title', { ascending: true });
+        
+        if (dbError) throw dbError;
 
         const mockProvider = {
             generateEmbedding: vi.fn().mockResolvedValue(dbBooks![0].embedding)
@@ -85,11 +90,13 @@ describe('Search Custom Sorting Integration', () => {
     });
 
     it('should sort search results by reading level asc', async () => {
-        const { data: dbBooks } = await supabase
+        const { data: dbBooks, error: dbError } = await supabase
             .from('books')
             .select('id, title, embedding, min_grade')
             .not('embedding', 'is', null)
             .order('min_grade', { ascending: true, nullsFirst: false });
+        
+        if (dbError) throw dbError;
 
         if (!dbBooks || dbBooks.length < 2) {
             throw new Error('Not enough books with embeddings found in DB');
@@ -117,11 +124,13 @@ describe('Search Custom Sorting Integration', () => {
     });
 
     it('should sort search results by reading level desc', async () => {
-        const { data: dbBooks } = await supabase
+        const { data: dbBooks, error: dbError } = await supabase
             .from('books')
             .select('id, title, embedding, min_grade')
             .not('embedding', 'is', null)
             .order('min_grade', { ascending: true });
+        
+        if (dbError) throw dbError;
 
         const mockProvider = {
             generateEmbedding: vi.fn().mockResolvedValue(dbBooks![0].embedding)
