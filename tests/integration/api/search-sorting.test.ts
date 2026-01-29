@@ -132,9 +132,12 @@ describe('Search Custom Sorting Integration', () => {
             .order('min_grade', { ascending: true });
         
         if (dbError) throw dbError;
+        if (!dbBooks || dbBooks.length < 2) {
+            throw new Error('Not enough books with embeddings found in DB');
+        }
 
         const mockProvider = {
-            generateEmbedding: vi.fn().mockResolvedValue(dbBooks![0].embedding)
+            generateEmbedding: vi.fn().mockResolvedValue(dbBooks[0].embedding)
         };
         vi.spyOn(AIFactory, 'getProvider').mockReturnValue(mockProvider as any);
 

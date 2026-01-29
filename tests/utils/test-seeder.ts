@@ -31,8 +31,21 @@ async function uploadAsset(bucket: string, localPath: string, destPath: string) 
     return destPath;
 }
 
-export async function seedBooksFromFixtures(options: { limit?: number, sourcePath?: string, skipAssets?: boolean } = {}) {
-    const { limit = 10, sourcePath, skipAssets = false } = options;
+export async function seedBooksFromFixtures(
+    limitOrOptions: number | { limit?: number, sourcePath?: string, skipAssets?: boolean } = 10,
+    maybeSourcePath?: string
+) {
+    let limit = 10;
+    let sourcePath: string | undefined = maybeSourcePath;
+    let skipAssets = false;
+
+    if (typeof limitOrOptions === 'number') {
+        limit = limitOrOptions;
+    } else if (typeof limitOrOptions === 'object') {
+        limit = limitOrOptions.limit ?? 10;
+        sourcePath = limitOrOptions.sourcePath ?? sourcePath;
+        skipAssets = limitOrOptions.skipAssets ?? false;
+    }
     const supabase = createAdminClient();
     const fixturePath = sourcePath || path.resolve(process.cwd(), 'tests/fixtures/library');
 
