@@ -32,12 +32,13 @@ async function uploadAsset(bucket: string, localPath: string, destPath: string) 
 }
 
 export async function seedBooksFromFixtures(
-    limitOrOptions: number | { limit?: number, sourcePath?: string, skipAssets?: boolean } = 10,
+    limitOrOptions: number | { limit?: number, sourcePath?: string, skipAssets?: boolean, keyPrefix?: string } = 10,
     maybeSourcePath?: string
 ) {
     let limit = 10;
     let sourcePath: string | undefined = maybeSourcePath;
     let skipAssets = false;
+    let keyPrefix = '';
 
     if (typeof limitOrOptions === 'number') {
         limit = limitOrOptions;
@@ -45,6 +46,7 @@ export async function seedBooksFromFixtures(
         limit = limitOrOptions.limit ?? 10;
         sourcePath = limitOrOptions.sourcePath ?? sourcePath;
         skipAssets = limitOrOptions.skipAssets ?? false;
+        keyPrefix = limitOrOptions.keyPrefix ?? '';
     }
     const supabase = createAdminClient();
     const fixturePath = sourcePath || path.resolve(process.cwd(), 'tests/fixtures/library');
@@ -93,11 +95,13 @@ export async function seedBooksFromFixtures(
                 else if (level === "G1-2") minGrade = 1;
                 else if (level === "G3-5") minGrade = 3;
 
+                const bookKey = keyPrefix ? `${keyPrefix}-${metadata.id}` : metadata.id;
+
                 // 1. Initial Upsert to get ID (or use provided key)
                 const { data: book, error: bookError } = await supabase
                     .from('books')
                     .upsert({
-                        book_key: metadata.id,
+                        book_key: bookKey,
                         title: metadata.title,
                         description: metadata.description,
                         keywords: metadata.keywords,

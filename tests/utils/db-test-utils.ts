@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 const FULL_TRUNCATE_TABLES = [
     "audit_logs",
@@ -57,6 +58,10 @@ export async function ensureBucketExists(bucketName: string) {
     }
 }
 
+/**
+ * @deprecated Avoid using this in tests as it causes cross-test interference on shared DBs (Beta).
+ * Use createTestUser() and cleanupTestData(userId) instead for better isolation.
+ */
 export async function truncateAllTables() {
     assertSafeForTests();
     const supabase = createAdminClient();
@@ -93,13 +98,13 @@ export async function truncateAllTables() {
     }
 }
 
-export async function createTestUser(email: string = 'test@example.com') {
+export async function createTestUser(email?: string) {
     assertSafeForTests();
     const supabase = createAdminClient();
 
+    const finalEmail = email || `test-${crypto.randomUUID()}@example.com`;
+
     // List users specifically searching for this email if possible, or list enough to find it.
-    // listUsers doesn't support email filtering directly in most versions of supabase-js, 
-    // so we list and find. We'll use a loop to ensure we find it if there are many.
     try {
         let page = 1;
         let found = false;
@@ -110,7 +115,7 @@ export async function createTestUser(email: string = 'test@example.com') {
             });
             if (listError || !users || users.length === 0) break;
 
-            const existing = users.find(u => u.email === email);
+            const existing = users.find(u => u.email === finalEmail);
             if (existing) {
                 await supabase.auth.admin.deleteUser(existing.id);
                 found = true;
@@ -124,7 +129,7 @@ export async function createTestUser(email: string = 'test@example.com') {
     }
 
     const { data: { user }, error: createError } = await supabase.auth.admin.createUser({
-        email,
+        email: finalEmail,
         password: 'password123',
         email_confirm: true
     });
@@ -133,13 +138,13 @@ export async function createTestUser(email: string = 'test@example.com') {
         // If it still says email exists, it means we missed it in the list or a race condition occurred.
         if ((createError as any).code === 'email_exists' || (createError as any).status === 422) {
             const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-            const fallbackUser = users.find(u => u.email === email);
+            const fallbackUser = users.find(u => u.email === finalEmail);
             if (fallbackUser) return fallbackUser;
         }
         throw createError;
     }
 
-    if (!user) throw new Error(`Could not create test user: ${email}`);
+    if (!user) throw new Error(`Could not create test user: ${finalEmail}`);
 
     const { error: upsertError } = await supabase.from('profiles').upsert({
         id: user.id,
@@ -152,4 +157,31 @@ export async function createTestUser(email: string = 'test@example.com') {
     }
 
     return user;
+}
+
+export async function cleanupTestData(userId: string) {
+    assertSafeForTests();
+    const supabase = createAdminClient();
+
+    const { data: children } = await supabase.from('children').select('id').eq('owner_user_id', userId);
+    if (children && children.length > 0) {
+        const childIds = children.map(c => c.id);
+        await supabase.from('child_vocab').delete().in('child_id', childIds);
+        await supabase.from('child_books').delete().in('child_id', childIds);
+        await supabase.from('child_magic_sentences').delete().in('child_id', childIds);
+        await supabase.from('child_badges').delete().in('child_id', childIds);
+        await supabase.from('learning_sessions').delete().in('child_id', childIds);
+    }
+
+    await supabase.from('stories').delete().eq('owner_user_id', userId);
+    await supabase.from('audit_logs').delete().eq('owner_user_id', userId);
+    await supabase.from('point_transactions').delete().eq('owner_user_id', userId);
+    await supabase.from('feature_usage').delete().eq('owner_user_id', userId);
+    await supabase.from('feedbacks').delete().eq('user_id', userId);
+
+    await supabase.from('books').delete().eq('owner_user_id', userId);
+    await supabase.from('children').delete().eq('owner_user_id', userId);
+    await supabase.from('profiles').delete().eq('id', userId);
+
+    await supabase.auth.admin.deleteUser(userId);
 }

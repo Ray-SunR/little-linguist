@@ -1,27 +1,36 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { truncateAllTables } from '../../utils/db-test-utils';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { seedBooksFromFixtures } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 describe('Library Seeder Integration', () => {
     let supabase: any;
+    const testPrefix = `test-${crypto.randomUUID()}`;
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
+    });
+
+    afterAll(async () => {
+        await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
     });
 
     it('should seed books with correct token format and prefixed paths', async () => {
-        // Seed only 1 book for speed
-        const count = await seedBooksFromFixtures(1);
+        const count = await seedBooksFromFixtures({ limit: 1, keyPrefix: testPrefix });
         expect(count).toBeGreaterThan(0);
 
-        // 1. Verify book metadata (cover path prefix)
-        const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error: bookError } = await supabase
+            .from('books')
+            .select('*')
+            .like('book_key', `${testPrefix}-%`)
+            .single();
+        
         if (bookError) throw bookError;
         expect(book).toBeTruthy();
-        // Expect format: [uuid]/cover.webp
-        expect(book.cover_image_path).toMatch(/^[0-9a-f-]+\/cover\.webp$/);
+        
+        const coverPath = book.cover_image_path;
+        expect(typeof coverPath).toBe('string');
+        expect(String(coverPath)).toMatch(/^[0-9a-f-]+\/cover\.webp$/);
 
         // 2. Verify tokens format (canonical)
         const { data: content, error: contentError } = await supabase.from('book_contents').select('*').eq('book_id', book.id).single();
