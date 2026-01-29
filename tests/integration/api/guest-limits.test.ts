@@ -3,7 +3,8 @@ import { GET as getUsage } from '@/app/api/usage/route';
 import { GET as getBooks } from '@/app/api/books/route';
 import { POST as generateStory } from '@/app/api/story/route';
 import { truncateAllTables } from '../../utils/db-test-utils';
-import { seedBooksFromOutput } from '../../utils/test-seeder';
+import { seedBooksFromFixtures } from '../../utils/test-seeder';
+import { createAdminClient } from '@/lib/supabase/server';
 
 vi.mock('next/headers', () => ({
     cookies: () => ({
@@ -23,9 +24,17 @@ vi.mock('next/headers', () => ({
 }));
 
 describe('Guest Limit Use Cases', () => {
+    const supabase = createAdminClient();
+
     beforeAll(async () => {
         await truncateAllTables();
-        await seedBooksFromOutput({ limit: 10, skipAssets: true });
+        await seedBooksFromFixtures({ limit: 10, skipAssets: true });
+
+        // Verify seeding
+        const { data: books, error } = await supabase.from('books').select('id');
+        if (error) throw error;
+        expect(books).toBeTruthy();
+        expect(books!.length).toBeGreaterThanOrEqual(10);
     });
 
     it('should limit library books to exactly 6 for guests', async () => {
