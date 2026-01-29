@@ -25,7 +25,7 @@ vi.mock('next/headers', () => ({
 describe('Guest Limit Use Cases', () => {
     beforeAll(async () => {
         await truncateAllTables();
-        await seedBooksFromOutput(10);
+        await seedBooksFromOutput({ limit: 10, skipAssets: true });
     });
 
     it('should limit library books to exactly 6 for guests', async () => {
