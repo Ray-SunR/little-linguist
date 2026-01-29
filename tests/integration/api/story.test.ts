@@ -36,9 +36,10 @@ vi.mock('next/headers', () => ({
 describe('Story API Integration', () => {
     let testUser: any;
     let testChild: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
