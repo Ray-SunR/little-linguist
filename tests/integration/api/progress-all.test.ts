@@ -21,19 +21,25 @@ describe('All-Progress API Integration', () => {
 
     beforeAll(async () => {
         await truncateAllTables();
-        await seedBooksFromOutput(1);
+        await seedBooksFromOutput({ limit: 1, skipAssets: true });
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
         
-        const { data: book } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
+        if (bookError) throw bookError;
         testBook = book;
+        expect(testBook).toBeTruthy();
 
-        const { data: child } = await supabase.from('children').insert({
+        const { data: child, error: childError } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'ProgKid',
             birth_year: 2018
         }).select().single();
+        if (childError) throw childError;
         testChild = child;
+        expect(testChild).toBeTruthy();
     });
+
 
     it('should fetch all progress for user', async () => {
         await supabase.from('child_books').upsert({
