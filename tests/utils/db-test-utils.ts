@@ -1,21 +1,22 @@
 import { createAdminClient } from '@/lib/supabase/server';
 
 const FULL_TRUNCATE_TABLES = [
+    "audit_logs",
+    "point_transactions",
     "learning_sessions",
+    "stories",
     "child_vocab",
     "child_books",
     "child_magic_sentences",
     "child_badges",
-    "audit_logs",
-    "point_transactions",
     "feedbacks",
     "children",
     "profiles",
     "book_audios",
     "book_media",
-    "stories",
-    "books",
+    "book_contents",
     "feature_usage",
+    "books",
 ];
 
 /**
@@ -73,11 +74,14 @@ export async function truncateAllTables() {
             query = query.neq('id', '00000000-0000-0000-0000-000000000000' as any);
 
             const { error } = await query;
-        if (error && error.code !== 'PGRST116' && error.code !== '42703') {
-             // Handle case where 'id' column doesn't exist (e.g. child_books)
-             if (error.message.includes('column "id" does not exist')) {
-                 await supabase.from(table).delete().not('created_at', 'is', null);
-             }
+        if (error) {
+            // Handle case where 'id' column doesn't exist (e.g. child_books)
+            if (error.message.includes('column "id" does not exist') || error.code === '42703') {
+                const { error: retryError } = await supabase.from(table).delete().not('created_at', 'is', null);
+                if (retryError) throw retryError;
+            } else {
+                throw error;
+            }
         }
     }
 }
