@@ -42,27 +42,32 @@ describe('MagicSentenceService Integration', () => {
     let testUser: any;
     let testChild: any;
     let service: MagicSentenceService;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
         
-        const { data: child } = await supabase.from('children').insert({
+        const { data: child, error: childError } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'MagicKid',
             birth_year: 2018,
             gender: 'girl'
         }).select().single();
+        if (childError) throw childError;
         testChild = child;
+        expect(testChild).toBeTruthy();
 
         service = new MagicSentenceService(testUser.id);
         
-        await supabase.from('subscription_plans').upsert({
+        const { error: subError } = await supabase.from('subscription_plans').upsert({
             code: 'free',
             name: 'Free Plan',
             quotas: { magic_sentence: 10, image_generation: 10 }
         });
+        if (subError) throw subError;
     });
 
     it('should generate and store a magic sentence', async () => {
