@@ -58,6 +58,17 @@ npm run test:local-setup
 
 This will check table existence, storage bucket availability, and Realtime publication status. **Note: All test verification should be performed in non-watch mode (using `run` or npm scripts) to avoid hanging processes.**
 
+### 3. Running Tests Locally
+
+While Raiden follows a **"Beta-first"** strategy (where `npm run test` targets the remote Beta instance by default), you can run tests against your local Docker-based Supabase instance:
+
+```bash
+# Run all integration tests against local Docker
+TEST_TARGET=local npm run test
+```
+
+**Local Safety**: Unlike the Beta environment, the local instance is safe for destructive operations. However, to maintain cross-environment compatibility, it is still recommended to use the **User-Scoped Isolation** pattern documented in the [Integration Testing Guide](../guides/testing.md).
+
 ---
 
 ## 🧪 Beta Environment Setup

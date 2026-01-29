@@ -18,7 +18,7 @@ Testing in Raiden is categorized by its dependency on external resources and its
 | Environment | Risk Level | Description |
 | :--- | :--- | :--- |
 | **Local** | ✅ **Safe** | Primary development workspace. Local Docker-based Supabase. Destructive operations (reset/truncate) are encouraged here. |
-| **Beta** | ✅ **Default** | Staging environment. **Default target for all tests.** User tables will be truncated during test runs. |
+| **Beta** | ✅ **Default** | Staging environment. **Default target for all tests.** Tests MUST use the user-isolation pattern. Global truncation is prohibited. |
 | **Production** | 🚨 **High Risk** | Live system. **NEVER** run integration tests or destructive scripts against this environment. |
 
 ### 🧪 Unit vs. Integration Tests
@@ -32,7 +32,7 @@ Testing in Raiden is categorized by its dependency on external resources and its
 
 ### 1. Beta Environment (Default)
 All integration tests target the Beta environment by default to ensure parity with staging.
-- **Warning**: Tables will be truncated. Ensure you are not running tests if you have unsaved manual data in Beta.
+- **Strict Isolation**: Tests MUST use the user-isolation pattern. Global truncation (`truncateAllTables`) is strictly prohibited on Beta.
 - To override and target Local Docker, set `TEST_TARGET=local`.
 
 ### 2. Local Supabase (Optional Override)
@@ -44,6 +44,7 @@ You can still run tests against the local Docker-based Supabase instance.
 ### 3. Global Setup
 The `tests/setup/global.ts` script ensures that:
 - `.env.beta.local` (default) or `.env.development.local` (if `TEST_TARGET=local`) is loaded into the test process.
+- **Beta Reachability**: Automatically verifies that the Beta Supabase API is reachable before starting the suite.
 
 ### 4. Environment Verification
 Always verify that your tests are targeting the intended environment:
@@ -52,7 +53,7 @@ Always verify that your tests are targeting the intended environment:
 - **Warning**: If you see a URL pointing to the Production instance, **ABORT** the test immediately.
 
 ### 4. E2E Test Setup
-E2E tests require a running app server and an explicit `BASE_URL`. For local development, always use `MOCK_AI_SERVICES=true` to ensure stability and reduce costs.
+E2E tests require a running app server and an explicit `BASE_URL`. By default, E2E tests target the **Beta** instance but respect the `TEST_TARGET` override. For local development, always use `MOCK_AI_SERVICES=true` to ensure stability and reduce costs.
 
 ```bash
 # In one terminal
@@ -109,24 +110,38 @@ Logs for the background server are captured in `/tmp/raiden-server-*.log`.
 
 ## 🏗️ Testing Patterns
 
-### 1. Database Isolation (Truncation)
-To ensure tests are deterministic and do not pollute each other, use the truncation utility in `beforeAll` or `beforeEach`:
+### 1. Database Isolation (User-Scoped)
+To ensure tests are deterministic and do not pollute each other on shared environments (like Beta), use the user-isolation pattern instead of global truncation:
+
+1.  **Unique User**: Use `createTestUser()` to generate a unique test user with a UUID-based email.
+2.  **No Truncation**: DO NOT use `truncateAllTables()`. This prevents cross-test interference and accidental data loss on remote instances.
+3.  **Cleanup**: Use `afterAll` to delete all data associated with your test user.
+
 ```typescript
-import { truncateAllTables } from '../../utils/db-test-utils';
+import { createTestUser, cleanupTestData } from '../../utils/db-test-utils';
+
+let testUser: any;
 
 beforeAll(async () => {
-    await truncateAllTables();
+    testUser = await createTestUser();
+});
+
+afterAll(async () => {
+    if (testUser) await cleanupTestData(testUser.id);
 });
 ```
-Truncation only clears user-owned records (`owner_user_id` or user-linked tables). Public seed data like system books, badges, subscription plans, and word insights are retained across test runs.
 
 ### 2. Smart Seeding
-Instead of hardcoding objects, use the real library data from the `output/expanded-library/` folder:
+Instead of hardcoding objects, use the real library data from the `output/expanded-library/` folder. For tests, use `skipAssets: true` to speed up the process and a unique `keyPrefix` to prevent book collisions:
+
 ```typescript
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 
 beforeAll(async () => {
-    await seedBooksFromOutput(5); // Seeds 5 real books with metadata and assets
+    await seedBooksFromOutput(5, { 
+        skipAssets: true, 
+        keyPrefix: `test-${testUser.id}` 
+    }); 
 });
 ```
 
@@ -147,13 +162,13 @@ it('should generate a story', async () => {
 
 ## 🚫 Guardrails & Constraints
 
-### 1. Production Safety (Zero Tolerance)
-**NEVER** modify, reset, or erase the Production or Beta databases.
-- **Strictly Forbidden on Remote DBs**:
+### 1. Production & Beta Safety (Zero Tolerance)
+**NEVER** modify, reset, or erase the Production or Beta databases using global destructive commands.
+- **Strictly Forbidden on Remote DBs (Beta/Prod)**:
     - `supabase db reset`: Wipes the database.
-    - `truncateAllTables()`: Clears user data.
-    - Integration tests that perform mutations (Insert/Update/Delete).
-- **Environment Awareness**: Always check your active `.env` file. If `.env.local` contains production credentials, do not run integration tests while it is active unless you are certain the test runner is overriding it with `.env.development.local`.
+    - `truncateAllTables()`: Clears user data globally. **Mandatory: Use User-Scoped isolation.**
+- **Environment Awareness**: Always check your active `.env` file. If `.env.local` contains production credentials, do not run integration tests while it is active. The test runner defaults to `.env.beta.local`.
+- **Timeouts**: Remote database operations are slower. Ensure your `hookTimeout` is set to at least 60,000ms (default is increased for Beta runs).
 
 ### 2. Substantive Assertions (Rule 11)
 **NEVER write placeholder tests.** A test that only checks `expect(res.status).toBe(200)` is insufficient if the database state isn't verified. 
