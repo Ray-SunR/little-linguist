@@ -4,24 +4,37 @@ import path from 'path';
 import fs from 'fs';
 
 // Load environment variables for tests
-const envPath = path.resolve(process.cwd(), '.env.development.local');
+const TEST_TARGET = process.env.TEST_TARGET || 'beta';
+const envFile = TEST_TARGET === 'local' ? '.env.development.local' : '.env.beta.local';
+const envPath = path.resolve(process.cwd(), envFile);
+
 if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath, override: true });
 } else {
-  // If we are in a test environment and .env.development.local is missing, 
-  // we must NOT fallback to .env.local.
-  console.error('❌ ERROR: .env.development.local not found.');
-  console.error('Integration tests must run against a local Supabase instance.');
-  console.error('Run "npm run supabase:setup" to initialize your local environment.');
+  console.error(`❌ ERROR: ${envFile} not found.`);
+  if (TEST_TARGET === 'local') {
+    console.error('Integration tests must run against a local Supabase instance.');
+    console.error('Run "npm run supabase:setup" to initialize your local environment.');
+  } else {
+    console.error('Integration tests are defaulting to the Beta environment.');
+    console.error('Ensure you have downloaded the Beta credentials into .env.beta.local.');
+  }
   process.exit(1);
 }
 
 // Final safety check: Ensure we aren't pointing to production
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const PROD_URL = 'tawhvgzctlfavucdxwbt.supabase.co';
+
+if (supabaseUrl.includes(PROD_URL)) {
+    console.error(`❌ FATAL: Integration tests attempted to run against the PRODUCTION database: ${supabaseUrl}`);
+    console.error('Tests are strictly forbidden from running against production to prevent data loss.');
+    process.exit(1);
+}
+
 const isLocal = supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1') || supabaseUrl.includes('0.0.0.0');
-if (!isLocal) {
-    console.error(`❌ FATAL: Integration tests attempted to run against a non-local database: ${supabaseUrl}`);
-    console.error('To protect production data, tests are only allowed to run against local Docker instances.');
+if (TEST_TARGET === 'local' && !isLocal) {
+    console.error(`❌ FATAL: TEST_TARGET is 'local' but NEXT_PUBLIC_SUPABASE_URL is not local: ${supabaseUrl}`);
     process.exit(1);
 }
 
