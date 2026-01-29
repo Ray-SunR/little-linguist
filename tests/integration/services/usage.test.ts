@@ -16,13 +16,15 @@ vi.mock('next/headers', () => ({
 
 describe('UsageService Integration', () => {
     let testUser: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
         
-        await supabase.from('subscription_plans').upsert({
+        const { error: subError } = await supabase.from('subscription_plans').upsert({
             code: 'free',
             name: 'Free Plan',
             quotas: {
@@ -30,6 +32,7 @@ describe('UsageService Integration', () => {
                 story_generation: 1
             }
         });
+        if (subError) throw subError;
     });
 
     it('should resolve quota for free user', async () => {
