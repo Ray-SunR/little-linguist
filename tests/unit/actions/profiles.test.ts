@@ -14,9 +14,11 @@ import { ensureUserProfile } from "@/lib/core/profiles/repository.server";
 // Mock dependencies
 const mockCopy = vi.fn();
 const mockRemove = vi.fn().mockResolvedValue({ error: null });
+const mockList = vi.fn().mockResolvedValue({ data: [], error: null });
 const mockFrom = vi.fn((bucket: string) => ({
   copy: mockCopy,
   remove: mockRemove,
+  list: mockList,
   createSignedUrl: vi.fn().mockResolvedValue({ data: { signedUrl: 'http://signed' } }),
   createSignedUrls: vi.fn().mockResolvedValue({ data: [{ path: 'path', signedUrl: 'http://signed' }] })
 }));

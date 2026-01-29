@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { AuditService, AuditAction, EntityType } from "@/lib/features/audit/audit-service.server";
 import { generateUUID } from "@/lib/core/utils/uuid";
+import { ConversionLogger } from "@/lib/features/usage/conversion-logger";
 
 export interface ChildProfilePayload {
   first_name: string;
@@ -145,7 +146,6 @@ async function validateAvatarPath(
  * paths directly unless they have the matching cookie (which is often lost/cleared after signup).
  */
 export async function claimGuestAvatar(path: string, userId: string): Promise<string | null> {
-  // Only handle guest paths
   if (!path || !path.startsWith('guests/')) {
     return null;
   }
@@ -157,23 +157,39 @@ export async function claimGuestAvatar(path: string, userId: string): Promise<st
     const newPath = `${userId}/avatars/${fileName}`;
     const supabase = createClient();
     
+    // Check if it's already been claimed (idempotency)
+    const { data: existing } = await supabase.storage
+      .from(AVATAR_BUCKET)
+      .list(`${userId}/avatars`, {
+        search: fileName
+      });
+
+    if (existing && existing.length > 0) {
+      console.log('[profiles:claimGuestAvatar] Avatar already claimed:', newPath);
+      return newPath;
+    }
+
     // Copy the file. Note: Copy is atomic.
     const { error } = await supabase.storage
       .from(AVATAR_BUCKET)
       .copy(path, newPath);
 
     if (error) {
+      // Supabase error codes: https://supabase.com/docs/guides/storage/error-handling
       // If error is "The object already exists", we can safely return the new path
-      // But Supabase storage copy error handling can be specific. 
-      // For now, log warning and return null to fallback to original behavior (which will fail validation)
-      console.warn('[profiles:claimGuestAvatar] Copy failed:', { path, newPath, error });
-      return null;
+      if (error.message.includes('already exists') || (error as any).status === 409) {
+        return newPath;
+      }
+      
+      console.error('[profiles:claimGuestAvatar] Storage copy failed:', { path, newPath, error });
+      throw new Error(`Failed to claim guest avatar: ${error.message}`);
     }
 
+    console.log('[profiles:claimGuestAvatar] Successfully claimed avatar:', { from: path, to: newPath });
     return newPath;
   } catch (err: any) {
     console.error('[profiles:claimGuestAvatar] Unexpected error:', err);
-    return null;
+    throw err;
   }
 }
 
@@ -258,14 +274,7 @@ export async function createChildProfile(data: ChildProfilePayload) {
     const returnChild = { ...newChild, avatar_asset_path };
 
     // Audit: Child Created
-    await AuditService.log({
-      action: AuditAction.CHILD_CREATED,
-      entityType: EntityType.CHILD_PROFILE,
-      entityId: newChild?.id,
-      userId: user.id,
-      childId: newChild?.id,
-      details: { name: newChild?.first_name } // Minimal PII
-    });
+    await ConversionLogger.logConversion(user.id, newChild.id, newChild.first_name);
 
     return { success: true, data: returnChild as ChildProfile };
   } catch (err: any) {
@@ -727,4 +736,11 @@ export async function updateLibrarySettings(childId: string, settings: any) {
     console.error('[profiles:updateLibrarySettings] Unexpected error:', err);
     return { error: err.message || 'An unexpected error occurred' };
   }
+}
+
+/**
+ * Logs a guest interruption for conversion tracking.
+ */
+export async function logConversionInterruption(guestId: string) {
+  await ConversionLogger.logGuestInterruption(guestId, 'login_wall');
 }

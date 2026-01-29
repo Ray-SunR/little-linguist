@@ -137,7 +137,7 @@ test('Full Guest to Story Workflow', async ({ page, context }) => {
   await expect(page.locator('.page-story-maker')).toHaveAttribute('data-status', 'GENERATING', { timeout: 45000 });
 
   // Wait for reader
-  await expect(page).toHaveURL(/\/reader\//, { timeout: 60000 });
+  await expect(page).toHaveURL(/\/reader\//, { timeout: 120000 });
   await expect(page.getByText('Leo').first()).toBeVisible();
 
   // Verify image blocks

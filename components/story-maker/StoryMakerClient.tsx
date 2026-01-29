@@ -8,6 +8,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { cn } from "@/lib/core";
 import { getStoryService, draftManager, useStoryState } from "@/lib/features/story";
+import { useStoryOrchestrator } from "@/lib/features/story/hooks/use-story-orchestrator";
 import HeroIdentityForm, { type HeroIdentity, type HeroIdentityStep } from "@/components/profile/HeroIdentityForm";
 import { useBookMediaSubscription, useBookAudioSubscription } from "@/lib/hooks/use-realtime-subscriptions";
 import { useUsage } from "@/lib/hooks/use-usage";
@@ -17,7 +18,7 @@ import { CachedImage } from "@/components/ui/cached-image";
 import { ShadowPill } from "@/components/ui/shadow-pill";
 import MagicSlider from "@/components/ui/MagicSlider";
 import { useAuth } from "@/components/auth/auth-provider";
-import { createChildProfile, switchActiveChild, getAvatarUploadUrl } from "@/app/actions/profiles";
+import { createChildProfile, switchActiveChild, getAvatarUploadUrl, logConversionInterruption } from "@/app/actions/profiles";
 import { createClient } from "@/lib/supabase/client";
 import { useTutorial } from "@/components/tutorial/tutorial-context";
 import { PageToolbar } from "@/components/layout/page-toolbar";
@@ -60,6 +61,11 @@ const itemVariants = {
 };
 
 export default function StoryMakerClient({ initialProfile }: StoryMakerClientProps) {
+    useEffect(() => {
+        console.log("[StoryMakerClient] MOUNTED");
+        return () => console.log("[StoryMakerClient] UNMOUNTED");
+    }, []);
+
     const { words } = useWordList();
     const { activeChild, isLoading, user, profiles, refreshProfiles, setActiveChild, setIsStoryGenerating } = useAuth();
     const { completeStep } = useTutorial();
@@ -80,6 +86,17 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         setError: setMachineError, 
         reset: resetMachine 
     } = useStoryState(isResumingIntent ? "MIGRATING" : "CONFIGURING");
+
+    const { generateStory } = useStoryOrchestrator({
+        state: storyMachine,
+        actions: {
+            startGenerating,
+            startMigrating,
+            startConfiguring,
+            setSuccess,
+            setError: setMachineError
+        }
+    });
 
     const [profile, setProfile] = useState<UserProfile>(initialProfile);
     const [selectedWords, setSelectedWords] = useState<string[]>([]);
@@ -126,138 +143,9 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
 
     const { usage, plan, refresh: refreshUsage } = useUsage(["story_generation", "image_generation"]);
 
-    const generateStory = useCallback(async (
-        overrideWords?: string[], 
-        overrideProfile?: UserProfile, 
-        overrideStoryLengthMinutes?: number, 
-        overrideImageSceneCount?: number, 
-        overrideIdempotencyKey?: string
-    ): Promise<void> => {
-        const finalWords = overrideWords || selectedWords;
-        const finalProfile = overrideProfile || profile;
-        const finalStoryLengthMinutes = overrideStoryLengthMinutes || storyLengthMinutes;
-        const finalImageSceneCount = overrideImageSceneCount ?? imageSceneCount;
-        const finalIdempotencyKey = overrideIdempotencyKey || storyMachine.idempotencyKey || generateUUID();
-
-        setGeneratingHeroName(finalProfile.name || "our hero");
-
-        if (!user) {
-            const guestDraftData = { profile: finalProfile, selectedWords: finalWords, storyLengthMinutes: finalStoryLengthMinutes, imageSceneCount: finalImageSceneCount, idempotencyKey: finalIdempotencyKey, resumeRequested: true };
-            await draftManager.saveDraft("draft:guest", guestDraftData);
-            localStorage.setItem("lumo:resume_requested", "true");
-            router.push(`/login?returnTo=${encodeURIComponent("/story-maker?action=resume_story_maker")}`);
-            return;
-        }
-
-        const currentUid = user.id;
-        const state = getGenerationState(currentUid);
-        startGenerating(finalIdempotencyKey);
-        setIsStoryGenerating(true);
-        state.isGenerating = true;
-
-        if (overrideProfile) setProfile(finalProfile);
-        if (overrideWords) setSelectedWords(finalWords);
-
-        completeStep("story-create");
-
-        try {
-            let currentProfile = finalProfile;
-            if (!currentProfile.id) {
-                const result = await createChildProfile({ 
-                    first_name: currentProfile.name, 
-                    birth_year: new Date().getFullYear() - currentProfile.age, 
-                    gender: currentProfile.gender, 
-                    interests: currentProfile.interests || [], 
-                    avatar_asset_path: currentProfile.avatarStoragePath || "", 
-                    avatar_paths: currentProfile.avatarStoragePath ? [currentProfile.avatarStoragePath] : [] 
-                });
-                if (result.success && result.data) {
-                    currentProfile = { ...currentProfile, id: result.data.id };
-                    setProfile(currentProfile);
-                    setActiveChild(result.data);
-                    await refreshProfiles(true);
-                } else {
-                    throw new Error(result.error || "Failed to create profile");
-                }
-            }
-
-            const content = await service.generateStoryContent(finalWords, currentProfile, finalStoryLengthMinutes, finalImageSceneCount, finalIdempotencyKey);
-            
-            const initialStory: Story = { id: generateUUID(), book_id: content.book_id, title: content.title, content: content.content, sections: content.sections, createdAt: Date.now(), wordsUsed: finalWords, userProfile: currentProfile, mainCharacterDescription: content.mainCharacterDescription };
-            const initialSupabaseBook = { id: content.book_id, title: content.title, text: content.content, tokens: content.tokens || [], shards: [], images: content.sections.map((section: any, idx: number) => ({ id: `section-${idx}`, src: "", afterWordIndex: Number(section.after_word_index), caption: "Drawing Magic...", prompt: section.image_prompt, isPlaceholder: true, sectionIndex: idx })) };
-
-            setSupabaseBook(initialSupabaseBook);
-            state.result = initialStory;
-            await raidenCache.put(CacheStore.BOOKS, initialSupabaseBook as any);
-            if (user?.id) await raidenCache.delete(CacheStore.LIBRARY_METADATA, user.id);
-            
-        setSuccess(initialStory.id);
-        router.push(`/reader/${content.book_id}`);
-    } catch (err: any) {
-        console.error("[StoryMakerClient] ERROR during generation:", err);
-        setMachineError(err.message || "Oops! Something went wrong.");
-    } finally {
-        setIsStoryGenerating(false);
-        state.isGenerating = false;
-        processingRef.current = false;
-    }
-}, [user, selectedWords, profile, storyLengthMinutes, imageSceneCount, storyMachine.idempotencyKey, router, completeStep, service, setActiveChild, refreshProfiles, setSuccess, setMachineError, setIsStoryGenerating, startGenerating]);
-
-    useEffect(() => {
-        const handleMigration = async () => {
-            if (!user || storyMachine.status !== "MIGRATING" || processingRef.current) return;
-            processingRef.current = true;
-            try {
-                const guestDraft = await draftManager.getDraft("draft:guest");
-                const userDraftKey = activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`;
-                if (guestDraft) {
-                    await draftManager.migrateGuestDraft("draft:guest", userDraftKey);
-                    setProfile(guestDraft.profile);
-                    generateStory(guestDraft.selectedWords, guestDraft.profile, guestDraft.storyLengthMinutes, guestDraft.imageSceneCount, guestDraft.idempotencyKey);
-                } else {
-                    const userDraft = await draftManager.getDraft(userDraftKey);
-                    if (userDraft) {
-                        setProfile(userDraft.profile);
-                        generateStory(userDraft.selectedWords, userDraft.profile, userDraft.storyLengthMinutes, userDraft.imageSceneCount, userDraft.idempotencyKey);
-                    } else {
-                        startConfiguring();
-                    }
-                }
-            } catch (err) {
-                startConfiguring();
-            } finally {
-                processingRef.current = false;
-                router.replace(pathname, { scroll: false });
-            }
-        };
-        handleMigration();
-    }, [user, storyMachine.status, activeChild, pathname, router, generateStory, startConfiguring]);
-
-    useEffect(() => {
-        if (!user || storyMachine.status !== "GENERATING") return;
-
-        const checkResult = () => {
-            const state = getGenerationState(user.id);
-            if (state.result && isMountedRef.current) {
-                const result = state.result;
-                state.result = null;
-                setSuccess(result.id);
-                router.push(`/reader/${result.book_id}`);
-                return true;
-            }
-            return false;
-        };
-
-        if (checkResult()) return;
-
-        const interval = setInterval(() => {
-            if (checkResult()) {
-                clearInterval(interval);
-            }
-        }, 500);
-
-        return () => clearInterval(interval);
-    }, [storyMachine.status, user, router, setSuccess]);
+    const handleGenerateStory = useCallback(() => {
+        generateStory(selectedWords, profile, storyLengthMinutes, imageSceneCount);
+    }, [generateStory, selectedWords, profile, storyLengthMinutes, imageSceneCount]);
 
     useBookMediaSubscription(supabaseBook?.id, useCallback((newImage: any) => {
         setSupabaseBook((prev: any) => {
@@ -322,7 +210,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                         <p className="text-ink-muted mb-6">{storyMachine.error}</p>
                         <div className="flex justify-center gap-4">
                             <button onClick={reset} className="ghost-btn h-12 px-6 font-bold uppercase">Go Back</button>
-                            <button onClick={() => generateStory()} className="primary-btn h-12 px-8 font-black uppercase">Try Again</button>
+                            <button onClick={handleGenerateStory} className="primary-btn h-12 px-8 font-black uppercase">Try Again</button>
                         </div>
                     </div>
                 )}
@@ -469,7 +357,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                             <motion.button
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
-                                                onClick={() => generateStory()}
+                                                onClick={handleGenerateStory}
                                                 className="text-purple-400 font-black text-sm uppercase tracking-wider underline hover:text-purple-600"
                                             >
                                                 Skip and create anyway
@@ -529,7 +417,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                         data-testid="cast-spell-button"
                                         whileHover={usage?.story_generation?.isLimitReached ? {} : { scale: 1.02, y: -4 }}
                                         whileTap={usage?.story_generation?.isLimitReached ? {} : { scale: 0.98 }}
-                                        onClick={() => generateStory()} 
+                                        onClick={handleGenerateStory} 
                                         disabled={usage?.story_generation?.isLimitReached}
                                         className={cn(
                                             "w-full sm:w-auto h-14 md:h-16 px-10 md:px-12 rounded-xl md:rounded-[1.5rem] text-white border-2 border-white/30 flex items-center justify-center gap-3 text-lg md:text-xl font-black font-fredoka uppercase tracking-widest transition-all", 
