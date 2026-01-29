@@ -15,11 +15,13 @@ vi.mock('next/headers', () => ({
 
 describe('AuditService Integration', () => {
     let testUser: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
     });
 
     it('should log an action successfully', async () => {
