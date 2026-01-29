@@ -1,12 +1,13 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GET as getUsage } from '@/app/api/usage/route';
 import { POST as postProgress, GET as getProgress } from '@/app/api/books/[id]/progress/route';
 import { GET as getWords, POST as postWords, DELETE as deleteWords } from '@/app/api/words/route';
 import { POST as postWordInsight } from '@/app/api/word-insight/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 const state = {
     activeChildId: 'test-child-id'
@@ -64,15 +65,15 @@ describe('Remaining API Routes Integration', () => {
     let testChild: any;
     let testBook: any;
     let supabase: any;
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
-        await seedBooksFromOutput({ limit: 1, skipAssets: true });
+        await seedBooksFromOutput({ limit: 1, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         
-        const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error: bookError } = await supabase.from('books').select('*').like('book_key', `${testPrefix}-%`).limit(1).single();
         if (bookError) throw bookError;
         testBook = book;
         expect(testBook).toBeTruthy();
@@ -93,6 +94,15 @@ describe('Remaining API Routes Integration', () => {
             quotas: { word_insight: 10, story_generation: 1, magic_sentence: 10, image_generation: 10 }
         });
         if (subError) throw subError;
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
+        if (testPrefix) {
+            await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
+        }
     });
 
     it('should fetch usage for a user', async () => {

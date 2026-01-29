@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GET, POST } from '@/app/api/progress/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { createTestUser, cleanupTestData } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 vi.mock('next/headers', () => ({
     cookies: () => ({
@@ -17,15 +18,20 @@ describe('All-Progress API Integration', () => {
     let testUser: any;
     let testChild: any;
     let testBook: any;
+    const testPrefix = `test-${crypto.randomUUID()}`;
     const supabase = createAdminClient();
 
     beforeAll(async () => {
-        await truncateAllTables();
-        await seedBooksFromOutput({ limit: 1, skipAssets: true });
+        await seedBooksFromOutput({ limit: 1, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         
-        const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error: bookError } = await supabase
+            .from('books')
+            .select('*')
+            .like('book_key', `${testPrefix}-%`)
+            .limit(1)
+            .single();
         if (bookError) throw bookError;
         testBook = book;
         expect(testBook).toBeTruthy();
@@ -38,6 +44,13 @@ describe('All-Progress API Integration', () => {
         if (childError) throw childError;
         testChild = child;
         expect(testChild).toBeTruthy();
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
+        await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
     });
 
 

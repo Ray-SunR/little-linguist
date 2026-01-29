@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { reserveCredits, getQuotaForUser, refundCredits, getOrCreateIdentity } from '@/lib/features/usage/usage-service.server';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { createTestUser, cleanupTestData } from '../../utils/db-test-utils';
 import { createAdminClient } from '@/lib/supabase/server';
 
 vi.mock('next/headers', () => ({
@@ -20,7 +20,6 @@ describe('UsageService Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         
@@ -33,6 +32,12 @@ describe('UsageService Integration', () => {
             }
         });
         if (subError) throw subError;
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
     });
 
     it('should resolve quota for free user', async () => {
