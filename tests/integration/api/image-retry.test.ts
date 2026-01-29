@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { POST } from '@/app/api/books/[id]/images/retry/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 vi.mock('next/headers', () => ({
     cookies: () => ({
@@ -27,10 +28,10 @@ describe('Image Retry API Integration', () => {
     let testUser: any;
     let testBook: any;
     let supabase: any;
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
         
@@ -38,7 +39,7 @@ describe('Image Retry API Integration', () => {
             title: 'Retry Test Book',
             owner_user_id: testUser.id,
             origin: 'test-fixture',
-            book_key: 'retry-test',
+            book_key: `${testPrefix}-retry-test`,
             metadata: {
                 sections: [
                     { 
@@ -69,6 +70,12 @@ describe('Image Retry API Integration', () => {
             quotas: { image_generation: 10 }
         });
         if (subError) throw subError;
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
     });
 
     it('should trigger image retry', async () => {
