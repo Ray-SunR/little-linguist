@@ -10,19 +10,23 @@ describe('BookRepository Integration', () => {
     let bookRepo: BookRepository;
     let testUser: any;
     let testChild: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
-        await seedBooksFromOutput(10);
+        await seedBooksFromOutput({ limit: 10, skipAssets: true });
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
 
-        const { data: child } = await supabase.from('children').insert({
+        const { data: child, error: childError } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'TestKid',
             birth_year: 2018
         }).select().single();
+        if (childError) throw childError;
         testChild = child;
+        expect(testChild).toBeTruthy();
 
         bookRepo = new BookRepository(supabase);
     });
