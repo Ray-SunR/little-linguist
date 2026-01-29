@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { POST as postMagicSentence } from '@/app/api/words/magic-sentence/route';
 import { GET as getMagicSentenceHistory } from '@/app/api/words/magic-sentence/history/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
 
@@ -77,7 +77,6 @@ describe('Magic Sentence API Integration', () => {
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
 
@@ -97,6 +96,12 @@ describe('Magic Sentence API Integration', () => {
             quotas: { magic_sentence: 10, image_generation: 10 }
         });
         if (subError) throw subError;
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
     });
 
     it('should generate magic sentence via API', async () => {
