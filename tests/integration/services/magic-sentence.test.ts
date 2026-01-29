@@ -76,13 +76,14 @@ describe('MagicSentenceService Integration', () => {
         expect(result.id).toBeDefined();
         expect(result.sentence).toBe('The cat is on the mat.');
         
-        const { data: stored } = await supabase
+        const { data: stored, error: fetchError } = await supabase
             .from('child_magic_sentences')
             .select('*')
             .eq('id', result.id)
             .single();
+        if (fetchError) throw fetchError;
         
-        expect(stored).not.toBeNull();
+        expect(stored).toBeTruthy();
         expect(stored.child_id).toBe(testChild.id);
     });
 
