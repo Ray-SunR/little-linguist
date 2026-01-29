@@ -9,17 +9,21 @@ describe('Rewards System Integration', () => {
     let testUser: any;
     let testChild: any;
     let testBook: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         await seedBooksFromOutput(1);
         testUser = await createTestUser();
+        expect(testUser, 'testUser should be created').toBeTruthy();
         
-        const { data: book } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error: bookError } = await supabase.from('books').select('*').limit(1).single();
+        if (bookError) throw bookError;
         testBook = book;
+        expect(testBook, 'testBook should be seeded and found').toBeTruthy();
 
-        const { data: child } = await supabase.from('children').insert({
+        const { data: child, error: childError } = await supabase.from('children').insert({
             owner_user_id: testUser.id,
             first_name: 'RewardKid',
             birth_year: 2018,
@@ -27,7 +31,9 @@ describe('Rewards System Integration', () => {
             total_xp: 0,
             streak_count: 0
         }).select().single();
+        if (childError) throw childError;
         testChild = child;
+        expect(testChild, 'testChild should be created').toBeTruthy();
     });
 
     it('should grant XP when a book is opened for the first time today', async () => {
@@ -49,11 +55,13 @@ describe('Rewards System Integration', () => {
         expect(body.reward.success).toBe(true);
         expect(body.reward.xp_earned).toBe(10);
 
-        const { data: updatedChild } = await supabase.from('children').select('total_xp, streak_count').eq('id', testChild.id).single();
+        const { data: updatedChild, error: updateError } = await supabase.from('children').select('total_xp, streak_count').eq('id', testChild.id).single();
+        if (updateError) throw updateError;
         expect(updatedChild?.total_xp).toBe(body.reward.new_total_xp);
         expect(updatedChild?.streak_count).toBe(1);
 
-        const { data: tx } = await supabase.from('point_transactions').select('*').match({ child_id: testChild.id, reason: 'book_opened' }).single();
+        const { data: tx, error: txError } = await supabase.from('point_transactions').select('*').match({ child_id: testChild.id, reason: 'book_opened' }).single();
+        if (txError) throw txError;
         expect(tx).not.toBeNull();
         
         vi.restoreAllMocks();
@@ -98,7 +106,8 @@ describe('Rewards System Integration', () => {
         expect(body.reward.success).toBe(true);
         expect(body.reward.xp_earned).toBe(50); 
 
-        const { data: updatedChild } = await supabase.from('children').select('total_xp').eq('id', testChild.id).single();
+        const { data: updatedChild, error: updateError } = await supabase.from('children').select('total_xp').eq('id', testChild.id).single();
+        if (updateError) throw updateError;
         expect(updatedChild?.total_xp).toBeGreaterThan(10); 
 
         vi.restoreAllMocks();
