@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GET as searchBooks } from '@/app/api/books/search/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { BookRepository } from '@/lib/core/books/repository.server';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
+import crypto from 'node:crypto';
 
 vi.mock('next/headers', () => ({
     cookies: () => ({
@@ -16,22 +17,28 @@ vi.mock('next/headers', () => ({
 describe('Search Tie-breaking Integration', () => {
     let testUser: any;
     let supabase: any;
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
     });
 
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
+        await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
+    });
+
     it('should use similarity as tie-breaker when lexile_levels are equal', async () => {
-        const timestamp = Date.now();
         // 1. Seed two books with the same min_grade
         const { data: book1, error: error1 } = await supabase
             .from('books')
             .insert({
                 title: 'Book A',
-                book_key: `book-a-${timestamp}`,
+                book_key: `${testPrefix}-book-a`,
                 min_grade: 2,
                 origin: 'test-fixture',
                 owner_user_id: null // public
@@ -43,7 +50,7 @@ describe('Search Tie-breaking Integration', () => {
             .from('books')
             .insert({
                 title: 'Book B',
-                book_key: `book-b-${timestamp}`,
+                book_key: `${testPrefix}-book-b`,
                 min_grade: 2,
                 origin: 'test-fixture',
                 owner_user_id: null // public
