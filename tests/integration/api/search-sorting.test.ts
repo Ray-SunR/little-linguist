@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GET as searchBooks } from '@/app/api/books/search/route';
 import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
-import { seedBooksFromOutput } from '../../utils/test-seeder';
+import { seedBooksFromFixtures } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
 import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
@@ -15,7 +15,7 @@ describe('Search Custom Sorting Integration', () => {
     beforeAll(async () => {
         supabase = createAdminClient();
         // Seed some specific books to test sorting
-        await seedBooksFromOutput({ limit: 10, skipAssets: true, keyPrefix: testPrefix });
+        await seedBooksFromFixtures({ limit: 10, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
     });

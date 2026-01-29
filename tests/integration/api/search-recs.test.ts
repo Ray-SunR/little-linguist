@@ -1,12 +1,13 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GET as searchBooks } from '@/app/api/books/search/route';
 import { GET as getRecommendations } from '@/app/api/books/recommendations/route';
 import { PATCH as toggleFavorite } from '@/app/api/books/[id]/favorite/route';
-import { truncateAllTables, createTestUser } from '../../utils/db-test-utils';
+import { cleanupTestData, createTestUser } from '../../utils/db-test-utils';
 import { seedBooksFromOutput } from '../../utils/test-seeder';
 import { createAdminClient } from '@/lib/supabase/server';
 import * as supabaseServer from '@/lib/supabase/server';
 import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
+import crypto from 'node:crypto';
 
 const state = {
     activeChildId: 'test-child-id'
@@ -32,16 +33,16 @@ describe('Search and Recommendations API Integration', () => {
     let testChild: any;
     let testBook: any;
     let supabase: any;
+    const testPrefix = crypto.randomUUID();
 
     beforeAll(async () => {
         supabase = createAdminClient();
-        await truncateAllTables();
-        await seedBooksFromOutput({ limit: 5, skipAssets: true });
+        await seedBooksFromOutput({ limit: 5, skipAssets: true, keyPrefix: testPrefix });
         testUser = await createTestUser();
         expect(testUser).toBeTruthy();
 
         // Fetch a book from the seeded data
-        const { data: books, error: fetchError } = await supabase.from('books').select('*').limit(1);
+        const { data: books, error: fetchError } = await supabase.from('books').select('*').like('book_key', `${testPrefix}-%`).limit(1);
         if (fetchError) throw fetchError;
         testBook = books[0];
         expect(testBook).toBeTruthy();
@@ -63,6 +64,15 @@ describe('Search and Recommendations API Integration', () => {
             quotas: { word_insight: 10 }
         });
         if (subError) throw subError;
+    });
+
+    afterAll(async () => {
+        if (testUser) {
+            await cleanupTestData(testUser.id);
+        }
+        if (testPrefix) {
+            await supabase.from('books').delete().like('book_key', `${testPrefix}-%`);
+        }
     });
 
     it('should search books', async () => {
