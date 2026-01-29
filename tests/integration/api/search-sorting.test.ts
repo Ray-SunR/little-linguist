@@ -8,9 +8,10 @@ import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
 
 describe('Search Custom Sorting Integration', () => {
     let testUser: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         // Seed some specific books to test sorting
         await seedBooksFromOutput({ limit: 10, skipAssets: true });
