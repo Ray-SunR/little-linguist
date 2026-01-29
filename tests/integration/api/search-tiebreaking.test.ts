@@ -20,6 +20,7 @@ describe('Search Tie-breaking Integration', () => {
     beforeAll(async () => {
         await truncateAllTables();
         testUser = await createTestUser();
+        expect(testUser).toBeTruthy();
     });
 
     it('should use similarity as tie-breaker when lexile_levels are equal', async () => {
@@ -49,9 +50,13 @@ describe('Search Tie-breaking Integration', () => {
             .select()
             .single();
 
-        if (error1 || error2 || !book1 || !book2) {
+        if (error1) throw error1;
+        if (error2) throw error2;
+        if (!book1 || !book2) {
             throw new Error('Failed to seed books');
         }
+        expect(book1).toBeTruthy();
+        expect(book2).toBeTruthy();
 
         // 2. Mock searchBooks to return these two books with different similarities
         // Favoring book2 (Book B)
