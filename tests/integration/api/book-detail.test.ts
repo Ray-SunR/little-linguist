@@ -16,14 +16,18 @@ vi.mock('next/headers', () => ({
 describe('Book Detail API Integration', () => {
     let testUser: any;
     let testBook: any;
-    const supabase = createAdminClient();
+    let supabase: any;
 
     beforeAll(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         await seedBooksFromOutput(1);
         testUser = await createTestUser();
+        if (!testUser) throw new Error("Failed to create test user");
         
-        const { data: book } = await supabase.from('books').select('*').limit(1).single();
+        const { data: book, error } = await supabase.from('books').select('*').limit(1).single();
+        if (error) throw error;
+        if (!book) throw new Error("Failed to seed and retrieve test book");
         testBook = book;
     });
 
@@ -45,12 +49,15 @@ describe('Book Detail API Integration', () => {
     });
 
     it('should delete own book', async () => {
-        const { data: ownBook } = await supabase.from('books').insert({
+        const { data: ownBook, error: insertError } = await supabase.from('books').insert({
             title: 'Own Book',
             owner_user_id: testUser.id,
             origin: 'test-fixture',
             book_key: 'own-book'
         }).select().single();
+
+        if (insertError) throw insertError;
+        if (!ownBook) throw new Error("Failed to create own book");
 
         const mockClient = createAdminClient();
         vi.spyOn(mockClient.auth, 'getUser').mockResolvedValue({ data: { user: testUser }, error: null });
@@ -60,7 +67,8 @@ describe('Book Detail API Integration', () => {
         const res = await DELETE(req as any, { params: { id: ownBook.id } });
         expect(res.status).toBe(200);
 
-        const { data: deleted } = await supabase.from('books').select('*').eq('id', ownBook.id).maybeSingle();
+        const { data: deleted, error: selectError } = await supabase.from('books').select('*').eq('id', ownBook.id).maybeSingle();
+        if (selectError) throw selectError;
         expect(deleted).toBeNull();
         
         vi.restoreAllMocks();
@@ -68,13 +76,16 @@ describe('Book Detail API Integration', () => {
 
     it('should fail to delete someone elses book', async () => {
         const otherUser = await createTestUser('other@example.com');
-        const { data: otherBook } = await supabase.from('books').insert({
+        if (!otherUser) throw new Error("Failed to create other test user");
+
+        const { data: otherBook, error: insertError } = await supabase.from('books').insert({
             title: 'Other Book',
             owner_user_id: otherUser.id,
             origin: 'test-fixture',
             book_key: 'other-book'
         }).select().single();
 
+        if (insertError) throw insertError;
         if (!otherBook) throw new Error("Failed to create other book");
 
         const mockClient = createAdminClient();
