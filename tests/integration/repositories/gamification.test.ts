@@ -7,11 +7,13 @@ describe('GamificationRepository', () => {
     let testUser: any;
     let testChildId: string;
     let repo: GamificationRepository;
+    let supabase: any;
 
     beforeEach(async () => {
+        supabase = createAdminClient();
         await truncateAllTables();
         testUser = await createTestUser();
-        const supabase = createAdminClient();
+        expect(testUser).toBeTruthy();
         repo = new GamificationRepository(supabase);
         
         const { data: child, error } = await supabase.from('children').insert({
@@ -23,6 +25,7 @@ describe('GamificationRepository', () => {
         }).select().single();
         
         if (error) throw error;
+        expect(child).toBeTruthy();
         testChildId = child.id;
 
         // Insert mix
