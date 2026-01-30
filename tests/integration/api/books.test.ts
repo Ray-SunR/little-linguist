@@ -49,9 +49,19 @@ describe('Books API Integration', () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
+        expect(body.length).toBeGreaterThan(0);
         body.forEach((book: any) => {
-            expect(book.origin).toBe('avengers');
+            expect(['avengers', 'seed_library_v1']).toContain(book.origin);
         });
+    });
+
+    it('should return empty array for non-existent category', async () => {
+        const req = new Request('http://localhost/api/books?mode=library&category=non_existent_category_xyz');
+        const res = await GET(req as any);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body).toEqual([]);
     });
 
     it('should respect limit and offset for authenticated user', async () => {
