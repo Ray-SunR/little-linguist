@@ -4,10 +4,10 @@ import type { INarrationService } from "./server-types";
 
 export class NarrationFactory {
     static getProvider(): INarrationService {
-        if (process.env.MOCK_AI_SERVICES === "true") {
-            console.log("[NarrationFactory] Using MockNarrationService");
-            return new MockNarrationService();
+        if (process.env.MOCK_AI_SERVICES === "false") {
+            return new PollyNarrationService();
         }
-        return new PollyNarrationService();
+        console.log("[NarrationFactory] Using MockNarrationService (Default)");
+        return new MockNarrationService();
     }
 }

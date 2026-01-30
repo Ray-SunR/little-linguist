@@ -22,7 +22,7 @@ while [[ "$#" -gt 0 ]]; do
             echo "Usage: ./scripts/full-test.sh [options]"
             echo "Options:"
             echo "  --skip-build    Skip the production build step"
-            echo "  --no-mock       Run without MOCK_AI_SERVICES=true"
+            echo "  --no-mock       Disable mock AI services (set MOCK_AI_SERVICES=false)"
             echo "  --local         Run against local development environment (.env.development.local)"
             echo "  --help          Show this help message"
             exit 0

@@ -1,67 +1,115 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { StoryService } from '../implementations/story-service';
-import { AIProvider } from '@/lib/core/integrations/ai';
+import { StoryService } from '../story-service.server';
+import { AIFactory } from '@/lib/core/integrations/ai/factory.server';
+import { getOrCreateIdentity, reserveCredits } from '@/lib/features/usage/usage-service.server';
 
-// Mock the getAIProvider function
-const mockGenerateStory = vi.fn();
-const mockAIProvider: AIProvider = {
-    generateStory: mockGenerateStory,
-    // Add other methods if required by the interface, mocking them as needed
-    generateImage: vi.fn(),
-    generateSpeech: vi.fn(),
-} as unknown as AIProvider;
-
-vi.mock('@/lib/core/integrations/ai', () => ({
-    getAIProvider: () => mockAIProvider
+vi.mock('@/lib/core/integrations/ai/factory.server');
+vi.mock('@/lib/features/audit/audit-service.server');
+vi.mock('@/lib/features/usage/usage-service.server');
+vi.mock('@/lib/features/activity/reward-service.server');
+vi.mock('@/lib/core/books/tokenizer', () => ({
+    Tokenizer: {
+        tokenize: vi.fn().mockReturnValue([{ t: 'word', type: 'w', i: 0 }]),
+        getWords: vi.fn().mockReturnValue([{ t: 'word', type: 'w', i: 0 }]),
+        join: vi.fn().mockReturnValue('joined text'),
+    }
 }));
 
-describe('StoryService', () => {
+describe('StoryService Regression', () => {
     let service: StoryService;
+    let mockSupabase: any;
+    let mockServiceRole: any;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        service = new StoryService(mockAIProvider);
-    });
-
-    it('generateStory should call the AI provider and return a structured story', async () => {
-        const mockWords = ['dragon', 'castle'];
-        const mockUserProfile = { id: 'user1', name: 'Timmy', age: 5 } as any;
-        
-        const mockGeneratedContent = {
-            title: 'Timmy and the Dragon',
-            content: 'Once upon a time...',
-            sections: [
-                { text: 'Section 1', image_prompt: 'A dragon', after_word_index: 10 }
-            ],
-            mainCharacterDescription: 'A brave boy',
-            book_id: 'book-123',
-            tokens: []
+        mockSupabase = {
+            from: vi.fn().mockReturnThis(),
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ 
+                data: { 
+                    first_name: 'Test', 
+                    age: 5, 
+                    gender: 'boy',
+                    avatar_paths: [] 
+                }, 
+                error: null 
+            }),
+            upsert: vi.fn().mockResolvedValue({ data: {}, error: null })
+        };
+        mockServiceRole = {
+            from: vi.fn().mockReturnThis(),
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: { id: 'book-123' }, error: null }),
+            maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+            upsert: vi.fn().mockReturnThis(),
+            insert: vi.fn().mockReturnThis(),
+            update: vi.fn().mockReturnThis(),
+            rpc: vi.fn().mockResolvedValue({}),
+            storage: {
+                from: vi.fn().mockReturnThis(),
+                upload: vi.fn().mockResolvedValue({}),
+                download: vi.fn().mockResolvedValue({ data: { arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) } }),
+                createSignedUrl: vi.fn().mockResolvedValue({ data: { signedUrl: 'http://test.com' } })
+            }
         };
 
-        mockGenerateStory.mockResolvedValue(mockGeneratedContent);
+        (getOrCreateIdentity as any).mockResolvedValue({ identity_key: 'user-123' });
+        (reserveCredits as any).mockResolvedValue({ success: true });
 
-        const result = await service.generateStory(mockWords, mockUserProfile);
-
-        expect(mockGenerateStory).toHaveBeenCalledWith(
-            mockWords, 
-            mockUserProfile, 
-            { storyLengthMinutes: undefined, imageSceneCount: undefined, idempotencyKey: undefined }
-        );
-        
-        expect(result.title).toBe(mockGeneratedContent.title);
-        expect(result.content).toBe(mockGeneratedContent.content);
-        expect(result.book_id).toBe(mockGeneratedContent.book_id);
-        expect(result.id).toBeDefined(); // UUID generated
-        expect(result.wordsUsed).toEqual(mockWords);
-        expect(result.userProfile).toEqual(mockUserProfile);
+        service = new StoryService(mockSupabase, mockServiceRole, 'user-123');
     });
 
-    it('generateStory should propagate errors from the provider', async () => {
-        const mockError = new Error('AI Generation Failed');
-        mockGenerateStory.mockRejectedValue(mockError);
+    it('should pass correct after_word_index to book_media background upsert', async () => {
+        const mockAI = {
+            generateStory: vi.fn().mockResolvedValue({
+                rawPrompt: 'prompt',
+                rawResponse: {
+                    title: 'Title',
+                    content: 'Section 1. Section 2.',
+                    mainCharacterDescription: 'Hero',
+                    image_scenes: [
+                        { section_index: 0, image_prompt: 'prompt 1' },
+                        { section_index: 1, image_prompt: 'prompt 2' }
+                    ],
+                    sections: [
+                        { text: 'Section 1 content.' },
+                        { text: 'Section 2 content.' }
+                    ]
+                }
+            }),
+            generateEmbedding: vi.fn().mockResolvedValue(new Array(1024).fill(0))
+        };
+        (AIFactory.getProvider as any).mockReturnValue(mockAI);
 
-        await expect(service.generateStory(['test'], {} as any))
-            .rejects
-            .toThrow('AI Generation Failed');
+        const upsertSpy = vi.spyOn(mockServiceRole.from('book_media'), 'upsert');
+
+        // We use a manual promise to ensure background tasks complete
+        let backgroundResolve: any;
+        const backgroundPromise = new Promise((resolve) => {
+            backgroundResolve = resolve;
+        });
+
+        // Wrap waitUntil to know when background tasks are actually done
+        const waitUntil = (promise: Promise<any>) => {
+            promise.finally(() => backgroundResolve());
+        };
+
+        await service.createStory({
+            words: ['test'],
+            childId: '00000000-0000-0000-0000-000000000000',
+        }, waitUntil as any);
+
+        await backgroundPromise;
+
+        const mediaUpserts = upsertSpy.mock.calls
+            .filter(call => call[0].hasOwnProperty('after_word_index'))
+            .map(call => call[0]);
+        
+        expect(mediaUpserts.length).toBe(2);
+        
+        // BUG FIX VERIFICATION: Second section index should be > 0.
+        expect(mediaUpserts.find((m: any) => m.metadata.caption === 'Illustration 2').after_word_index).toBeGreaterThan(0);
     });
 });

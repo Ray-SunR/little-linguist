@@ -6,7 +6,7 @@ export function DevEnvironmentIndicator() {
         return null;
     }
 
-    const isMockAI = process.env.MOCK_AI_SERVICES === "true";
+    const isMockAI = process.env.MOCK_AI_SERVICES !== "false";
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const isLocalDB = supabaseUrl.includes("localhost") || supabaseUrl.includes("127.0.0.1");
 

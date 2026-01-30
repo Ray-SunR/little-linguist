@@ -4,7 +4,7 @@ import { MockImageProvider } from './implementations/mock-image-provider';
 
 export class ImageGenerationFactory {
     static getProvider(type: ImageGenerationProviderType = 'google'): IImageGenerationProvider {
-        if (process.env.MOCK_AI_SERVICES === "true") {
+        if (process.env.MOCK_AI_SERVICES !== "false") {
             return new MockImageProvider();
         }
 

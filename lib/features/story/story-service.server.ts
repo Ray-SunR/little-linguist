@@ -251,6 +251,8 @@ export class StoryService {
             return { ...section, after_word_index: afterWordIndex };
         });
 
+        data.sections = sectionsWithIndices;
+
         const bookKey = `${data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.random().toString(36).substring(2, 7)}`;
         let bookEmbedding: number[] | null = null;
         try {
