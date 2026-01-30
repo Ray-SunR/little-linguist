@@ -25,7 +25,7 @@ describe('HeroIdentityForm', () => {
     it('renders only the first step (name) when isInline is false', () => {
         render(<HeroIdentityForm {...defaultProps} isInline={false} />);
         
-        expect(screen.getByText(/Who is our Hero\?/i)).toBeTruthy();
+        expect(screen.getAllByText(/Who is our Hero\?/i)[0]).toBeTruthy();
         expect(screen.queryByText(/How old is/i)).toBeNull();
         expect(screen.queryByText(/Which hero are they\?/i)).toBeNull();
     });

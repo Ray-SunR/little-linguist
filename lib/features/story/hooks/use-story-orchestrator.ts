@@ -18,6 +18,7 @@ export interface StoryOrchestratorOptions {
     actions: {
         startGenerating: (idempotencyKey: string) => void;
         startMigrating: () => void;
+        startChoosingProfile: () => void;
         startConfiguring: () => void;
         setSuccess: (storyId: string) => void;
         setError: (error: string) => void;
@@ -25,7 +26,7 @@ export interface StoryOrchestratorOptions {
 }
 
 export function useStoryOrchestrator({ state, actions }: StoryOrchestratorOptions) {
-    const { user, activeChild, isLoading, refreshProfiles, setActiveChild: clientSetActiveChild, setIsStoryGenerating } = useAuth();
+    const { user, activeChild, profiles, isLoading, refreshProfiles, setActiveChild: clientSetActiveChild, setIsStoryGenerating } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -49,7 +50,8 @@ export function useStoryOrchestrator({ state, actions }: StoryOrchestratorOption
         profile: UserProfile,
         storyLengthMinutes: number,
         imageSceneCount: number,
-        idempotencyKey?: string
+        idempotencyKey?: string,
+        selectedChildId?: string
     ) => {
         const finalIdempotencyKey = idempotencyKey || state.idempotencyKey || generateUUID();
         
@@ -79,6 +81,16 @@ export function useStoryOrchestrator({ state, actions }: StoryOrchestratorOption
         try {
             let currentProfile = profile;
             
+            if (selectedChildId) {
+                const child = profiles?.find(p => p.id === selectedChildId);
+                if (child) {
+                    currentProfile = { ...profile, id: selectedChildId };
+                    clientSetActiveChild(child);
+                } else {
+                    console.warn("[StoryOrchestrator] Selected child not found, will attempt auto-creation or fallback.");
+                }
+            }
+
             if (!currentProfile.id) {
                 const result = await createChildProfile({
                     first_name: currentProfile.name,
@@ -167,7 +179,7 @@ export function useStoryOrchestrator({ state, actions }: StoryOrchestratorOption
             setIsStoryGenerating(false);
             processingRef.current = false;
         }
-    }, [user, state.idempotencyKey, actions, setIsStoryGenerating, clearTimeouts, router, clientSetActiveChild, refreshProfiles, service]);
+    }, [user, profiles, state.idempotencyKey, actions, setIsStoryGenerating, clearTimeouts, router, clientSetActiveChild, refreshProfiles, service]);
 
     useEffect(() => {
         const handleMigration = async () => {
@@ -197,6 +209,12 @@ export function useStoryOrchestrator({ state, actions }: StoryOrchestratorOption
                 const userDraftKey = activeChild?.id ? `draft:${user.id}:${activeChild.id}` : `draft:${user.id}`;
                 
                 if (guestDraft) {
+                    if (profiles && profiles.length > 0) {
+                        console.info("[StoryOrchestrator] Existing profiles found, interrupting migration for choice.");
+                        actions.startChoosingProfile();
+                        return;
+                    }
+
                     console.info("[StoryOrchestrator] Migrating guest draft...");
                     await draftManager.migrateGuestDraft("draft:guest", userDraftKey);
                     await generateStory(
@@ -232,7 +250,7 @@ export function useStoryOrchestrator({ state, actions }: StoryOrchestratorOption
         };
 
         handleMigration();
-    }, [user, isLoading, state.status, searchParams, activeChild, pathname, router, actions, generateStory]);
+    }, [user, profiles, isLoading, state.status, searchParams, activeChild, pathname, router, actions, generateStory]);
 
     return {
         generateStory

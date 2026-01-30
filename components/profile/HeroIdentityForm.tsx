@@ -259,15 +259,16 @@ const HeroIdentityForm: React.FC<HeroIdentityFormProps> = ({
             )}
             <div className="relative max-w-sm mx-auto">
                 {isInline && <label className="text-xs font-black text-ink-muted uppercase tracking-widest font-fredoka block mb-2 text-left ml-2">Hero&apos;s Name</label>}
-                <input
-                    type="text"
-                    autoFocus={!isInline}
-                    value={formData.firstName}
-                    onChange={(e) => handleFieldChange({ firstName: e.target.value })}
-                    onKeyDown={(e) => !isInline && e.key === 'Enter' && formData.firstName && nextStep('age')}
-                    className="w-full h-12 px-8 rounded-xl border-2 border-purple-100 bg-white/50 focus:bg-white focus:border-purple-400 outline-none transition-all font-fredoka text-xl font-black text-ink placeholder:text-slate-300 shadow-inner text-center"
-                    placeholder="Leo, Mia, Sam..."
-                />
+                    <input
+                        type="text"
+                        autoFocus={!isInline}
+                        value={formData.firstName}
+                        onChange={(e) => handleFieldChange({ firstName: e.target.value })}
+                        onKeyDown={(e) => !isInline && e.key === 'Enter' && formData.firstName && nextStep('age')}
+                        className="w-full h-12 px-8 rounded-xl border-2 border-purple-100 bg-white/50 focus:bg-white focus:border-purple-400 outline-none transition-all font-fredoka text-xl font-black text-ink placeholder:text-slate-300 shadow-inner text-center"
+                        placeholder="Leo, Mia, Sam..."
+                        data-testid="hero-name-input"
+                    />
             </div>
             {!isInline && (
                 <div className="flex justify-center">

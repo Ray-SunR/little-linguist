@@ -1,17 +1,21 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import StoryMakerClient from '../StoryMakerClient';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/auth/auth-provider';
 import { createChildProfile } from '@/app/actions/profiles';
-import { getStoryService } from '@/lib/features/story';
+import { getStoryService, useStoryState, draftManager } from '@/lib/features/story';
+import { useStoryOrchestrator } from '@/lib/features/story/hooks/use-story-orchestrator';
 
-// Mock dependencies
 vi.mock('next/navigation', () => ({
-    useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn() })),
-    useSearchParams: vi.fn(() => ({ get: vi.fn() })),
-    usePathname: vi.fn(() => '/story-maker'),
+    useRouter: vi.fn(),
+    useSearchParams: vi.fn(),
+    usePathname: vi.fn(),
+}));
+
+vi.mock('@/lib/features/story/hooks/use-story-orchestrator', () => ({
+    useStoryOrchestrator: vi.fn(),
 }));
 
 vi.mock('@/components/auth/auth-provider', () => ({
@@ -31,14 +35,7 @@ vi.mock('@/lib/features/story', () => ({
         getDraft: vi.fn(),
         migrateGuestDraft: vi.fn(),
     },
-    useStoryState: vi.fn(() => ({
-        state: { status: 'CONFIGURING' },
-        startConfiguring: vi.fn(),
-        startGenerating: vi.fn(),
-        setSuccess: vi.fn(),
-        setError: vi.fn(),
-        reset: vi.fn(),
-    })),
+    useStoryState: vi.fn(),
 }));
 
 vi.mock('@/lib/hooks/use-usage', () => ({
@@ -64,15 +61,46 @@ describe('StoryMakerClient', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        (useAuth as any).mockReturnValue({
-            user: mockUser,
+        
+        vi.mocked(useRouter).mockReturnValue({ push: vi.fn(), replace: vi.fn() } as any);
+        vi.mocked(useSearchParams).mockReturnValue({ get: vi.fn() } as any);
+        vi.mocked(usePathname).mockReturnValue('/story-maker');
+
+        vi.mocked(useStoryOrchestrator).mockReturnValue({
+            generateStory: vi.fn(),
+        } as any);
+
+        vi.mocked(useStoryState).mockReturnValue({
+            state: { status: 'CONFIGURING' },
+            startConfiguring: vi.fn(),
+            startMigrating: vi.fn(),
+            startChoosingProfile: vi.fn(),
+            startGenerating: vi.fn(),
+            setSuccess: vi.fn(),
+            setError: vi.fn(),
+            reset: vi.fn(),
+        } as any);
+
+        vi.mocked(useAuth).mockReturnValue({
+            user: mockUser as any,
             activeChild: null,
             profiles: [],
+            status: 'ready' as any,
+            isLoading: false,
+            isStoryGenerating: false,
+            setIsStoryGenerating: vi.fn(),
+            librarySettings: {},
+            updateLibrarySettings: vi.fn(),
             refreshProfiles: vi.fn(),
             setActiveChild: vi.fn(),
-            setIsStoryGenerating: vi.fn(),
+            setProfiles: vi.fn(),
+            setStatus: vi.fn(),
+            profileError: null,
+            logout: vi.fn(),
+            authResolved: true,
         });
-        (getStoryService as any).mockReturnValue({
+
+        vi.mocked(getStoryService).mockReturnValue({
             generateStoryContent: vi.fn().mockResolvedValue({
                 book_id: 'book-123',
                 title: 'Title',
@@ -81,11 +109,14 @@ describe('StoryMakerClient', () => {
                 tokens: [],
                 mainCharacterDescription: 'Hero'
             }),
-        });
+        } as any);
     });
 
-    it('uses avatarStoragePath for avatar_asset_path when creating a profile', async () => {
-        (createChildProfile as any).mockResolvedValue({ success: true, data: { id: 'profile-123' } });
+    it('calls generateStory with correct profile data when casting spell', async () => {
+        const mockGenerateStory = vi.fn();
+        vi.mocked(useStoryOrchestrator).mockReturnValue({
+            generateStory: mockGenerateStory,
+        } as any);
 
         const initialProfile = {
             ...mockProfile,
@@ -95,19 +126,95 @@ describe('StoryMakerClient', () => {
 
         render(<StoryMakerClient initialProfile={initialProfile} />);
 
-        // Fill required fields (Topic is needed to enable Next)
         fireEvent.change(screen.getByTestId('story-topic-input'), { target: { value: 'Dragons' } });
-        
-        // Go to words tab
         fireEvent.click(screen.getByTestId('story-config-next'));
-
-        // Cast spell
         fireEvent.click(screen.getByTestId('cast-spell-button'));
 
         await waitFor(() => {
-            expect(createChildProfile).toHaveBeenCalledWith(expect.objectContaining({
-                avatar_asset_path: 'user-123/avatars/image.png'
-            }));
+            expect(mockGenerateStory).toHaveBeenCalledWith(
+                expect.any(Array),
+                expect.objectContaining({
+                    name: 'Hero',
+                    avatarStoragePath: 'user-123/avatars/image.png'
+                }),
+                expect.any(Number),
+                expect.any(Number)
+            );
         });
+    });
+
+    it('renders profile selection when status is CHOOSING_PROFILE', async () => {
+        const mockGenerateStory = vi.fn();
+        vi.mocked(useStoryOrchestrator).mockReturnValue({
+            generateStory: mockGenerateStory,
+        } as any);
+
+        vi.mocked(useStoryState).mockReturnValue({
+            state: { status: 'CHOOSING_PROFILE' },
+            startConfiguring: vi.fn(),
+            startMigrating: vi.fn(),
+            startChoosingProfile: vi.fn(),
+            startGenerating: vi.fn(),
+            setSuccess: vi.fn(),
+            setError: vi.fn(),
+            reset: vi.fn(),
+        } as any);
+
+        vi.mocked(draftManager.getDraft).mockResolvedValue({ 
+            profile: { name: 'MagicGuest', age: 5 }, 
+            selectedWords: [], 
+            storyLengthMinutes: 5, 
+            imageSceneCount: 3 
+        } as any);
+
+        const mockProfiles = [
+            { id: 'p1', first_name: 'Leo', avatar_asset_path: '/leo.png' },
+            { id: 'p2', first_name: 'Mia', avatar_asset_path: '/mia.png' },
+        ];
+
+        vi.mocked(useAuth).mockReturnValue({
+            user: mockUser as any,
+            activeChild: null,
+            profiles: mockProfiles as any,
+            status: 'ready' as any,
+            isLoading: false,
+            isStoryGenerating: false,
+            setIsStoryGenerating: vi.fn(),
+            librarySettings: {},
+            updateLibrarySettings: vi.fn(),
+            refreshProfiles: vi.fn(),
+            setActiveChild: vi.fn(),
+            setProfiles: vi.fn(),
+            setStatus: vi.fn(),
+            profileError: null,
+            logout: vi.fn(),
+            authResolved: true,
+        });
+
+        render(<StoryMakerClient initialProfile={mockProfile} />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Who is this Story For?')).toBeTruthy();
+        });
+
+        expect(screen.getByText('Leo')).toBeTruthy();
+        
+        fireEvent.click(screen.getByTestId('profile-card-p1'));
+        expect(mockGenerateStory).toHaveBeenCalledWith(
+            expect.any(Array),
+            expect.objectContaining({ name: 'MagicGuest' }),
+            expect.any(Number),
+            expect.any(Number),
+            undefined,
+            'p1'
+        );
+
+        fireEvent.click(screen.getByTestId('create-new-profile-card'));
+        expect(mockGenerateStory).toHaveBeenCalledWith(
+            expect.any(Array),
+            expect.objectContaining({ name: 'MagicGuest' }),
+            expect.any(Number),
+            expect.any(Number)
+        );
     });
 });

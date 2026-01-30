@@ -15,7 +15,14 @@ vi.mock('next/navigation', () => ({
 
 // Mock useAuth
 vi.mock('@/components/auth/auth-provider', () => ({
-    useAuth: vi.fn(),
+    useAuth: vi.fn(() => ({
+        refreshProfiles: vi.fn(),
+        user: { id: 'user-123' },
+        activeChild: null,
+        profiles: [],
+        setIsStoryGenerating: vi.fn(),
+        setActiveChild: vi.fn(),
+    })),
 }));
 
 // Mock createChildProfile action
@@ -58,7 +65,14 @@ describe('ChildProfileWizard', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         (useRouter as any).mockReturnValue({ push: mockPush });
-        (useAuth as any).mockReturnValue({ refreshProfiles: mockRefreshProfiles, user: { id: 'user-123' } });
+        vi.mocked(useAuth).mockReturnValue({
+            refreshProfiles: mockRefreshProfiles,
+            user: { id: 'user-123' },
+            activeChild: null,
+            profiles: [],
+            setIsStoryGenerating: vi.fn(),
+            setActiveChild: vi.fn(),
+        } as any);
     });
 
     afterEach(() => {
@@ -69,9 +83,9 @@ describe('ChildProfileWizard', () => {
         render(<ChildProfileWizard mode="onboarding" />);
 
         // Step 1: Name - fill in name and continue
-        const nameInput = screen.getByPlaceholderText(/Leo, Mia, Sam/i);
+        const nameInput = screen.getAllByTestId('hero-name-input')[0];
         fireEvent.change(nameInput, { target: { value: 'Skywalker' } });
-        fireEvent.click(screen.getByTestId('identity-continue-name'));
+        fireEvent.click(screen.getAllByTestId('identity-continue-name')[0]);
 
         // Step 2: Age - just continue
         await waitFor(() => {
@@ -118,8 +132,8 @@ describe('ChildProfileWizard', () => {
         render(<ChildProfileWizard mode="onboarding" />);
 
         // Step 1: Name
-        fireEvent.change(screen.getByPlaceholderText(/Leo, Mia, Sam/i), { target: { value: 'Skywalker' } });
-        fireEvent.click(screen.getByTestId('identity-continue-name'));
+        fireEvent.change(screen.getAllByTestId('hero-name-input')[0], { target: { value: 'Skywalker' } });
+        fireEvent.click(screen.getAllByTestId('identity-continue-name')[0]);
 
         // Step 2: Age - wait for step transition then continue
         await waitFor(() => {

@@ -49,7 +49,7 @@ export type StoryDraft = {
 /**
  * Story state machine statuses
  */
-export type StoryStatus = 'IDLE' | 'CONFIGURING' | 'MIGRATING' | 'GENERATING' | 'SUCCESS' | 'ERROR';
+export type StoryStatus = 'IDLE' | 'CONFIGURING' | 'MIGRATING' | 'CHOOSING_PROFILE' | 'GENERATING' | 'SUCCESS' | 'ERROR';
 
 /**
  * State object for the story machine

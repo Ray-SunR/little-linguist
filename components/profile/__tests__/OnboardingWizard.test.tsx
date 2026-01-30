@@ -86,9 +86,9 @@ describe('OnboardingWizard', () => {
         render(<OnboardingWizard />);
 
         // 1. Identity Step - Name
-        const nameInput = screen.getByPlaceholderText(/Leo, Mia, Sam/i);
+        const nameInput = screen.getAllByTestId('hero-name-input')[0];
         fireEvent.change(nameInput, { target: { value: 'Leo' } });
-        fireEvent.click(screen.getByText(/Continue/i));
+        fireEvent.click(screen.getAllByTestId('identity-continue-name')[0]);
 
         // 2. Identity Step - Age
         await waitFor(() => {
@@ -139,9 +139,9 @@ describe('OnboardingWizard', () => {
         render(<OnboardingWizard />);
 
         // Fast forward to interests step
-        const nameInput = screen.getByPlaceholderText(/Leo, Mia, Sam/i);
+        const nameInput = screen.getAllByTestId('hero-name-input')[0];
         fireEvent.change(nameInput, { target: { value: 'Leo' } });
-        fireEvent.click(screen.getByText(/Continue/i));
+        fireEvent.click(screen.getAllByTestId('identity-continue-name')[0]);
         await waitFor(() => fireEvent.click(screen.getByText(/Yep!/i)));
         await waitFor(() => {
             fireEvent.click(screen.getByText(/Boy/i));

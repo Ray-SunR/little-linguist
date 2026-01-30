@@ -6,6 +6,7 @@ const STORAGE_KEY = 'raiden:story-state';
 type StoryAction =
   | { type: 'START_CONFIGURING' }
   | { type: 'START_MIGRATING' }
+  | { type: 'START_CHOOSING_PROFILE' }
   | { type: 'START_GENERATING'; idempotencyKey?: string }
   | { type: 'SET_SUCCESS'; storyId: string }
   | { type: 'SET_ERROR'; error: string }
@@ -17,6 +18,8 @@ function storyReducer(state: StoryMachineState, action: StoryAction): StoryMachi
       return { status: 'CONFIGURING' };
     case 'START_MIGRATING':
       return { status: 'MIGRATING' };
+    case 'START_CHOOSING_PROFILE':
+      return { status: 'CHOOSING_PROFILE' };
     case 'START_GENERATING':
       return { status: 'GENERATING', idempotencyKey: action.idempotencyKey };
     case 'SET_SUCCESS':
@@ -52,7 +55,7 @@ export function useStoryState(initialStatus: StoryStatus = 'IDLE') {
 
   useEffect(() => {
     // Only persist "active" states that should survive a remount
-    if (state.status === 'GENERATING' || state.status === 'MIGRATING') {
+    if (state.status === 'GENERATING' || state.status === 'MIGRATING' || state.status === 'CHOOSING_PROFILE') {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } else if (state.status === 'SUCCESS' || state.status === 'IDLE' || state.status === 'ERROR') {
       // Clear persistence when we reach a final state or reset
@@ -64,6 +67,7 @@ export function useStoryState(initialStatus: StoryStatus = 'IDLE') {
     state,
     startConfiguring: () => dispatch({ type: 'START_CONFIGURING' }),
     startMigrating: () => dispatch({ type: 'START_MIGRATING' }),
+    startChoosingProfile: () => dispatch({ type: 'START_CHOOSING_PROFILE' }),
     startGenerating: (idempotencyKey?: string) => dispatch({ type: 'START_GENERATING', idempotencyKey }),
     setSuccess: (storyId: string) => dispatch({ type: 'SET_SUCCESS', storyId }),
     setError: (error: string) => dispatch({ type: 'SET_ERROR', error }),

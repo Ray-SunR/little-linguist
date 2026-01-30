@@ -81,6 +81,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         state: storyMachine, 
         startConfiguring, 
         startMigrating, 
+        startChoosingProfile,
         startGenerating, 
         setSuccess, 
         setError: setMachineError, 
@@ -92,6 +93,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
         actions: {
             startGenerating,
             startMigrating,
+            startChoosingProfile,
             startConfiguring,
             setSuccess,
             setError: setMachineError
@@ -107,6 +109,8 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const [storyLengthMinutes, setStoryLengthMinutes] = useState(5);
     const [imageSceneCount, setImageSceneCount] = useState(3);
     const [generatingHeroName, setGeneratingHeroName] = useState<string>("");
+    const [isHydratingGuestData, setIsHydratingGuestData] = useState(false);
+    const [hasHydratedFromDraft, setHasHydratedFromDraft] = useState(false);
     
     const processingRef = useRef(false);
     const isMountedRef = useRef(true);
@@ -121,6 +125,23 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
             setProfile(prev => ({ ...prev, ...initialProfile }));
         }
     }, [initialProfile, profile.name]);
+
+    useEffect(() => {
+        if (storyMachine.status === "CHOOSING_PROFILE" && !hasHydratedFromDraft && !isHydratingGuestData) {
+            setIsHydratingGuestData(true);
+            draftManager.getDraft("draft:guest").then(draft => {
+                if (draft?.profile) {
+                    setProfile(prev => ({ ...prev, ...draft.profile }));
+                    if (draft.selectedWords) setSelectedWords(draft.selectedWords);
+                    if (draft.storyLengthMinutes) setStoryLengthMinutes(draft.storyLengthMinutes);
+                    if (draft.imageSceneCount) setImageSceneCount(draft.imageSceneCount);
+                }
+                setHasHydratedFromDraft(true);
+            }).finally(() => {
+                setIsHydratingGuestData(false);
+            });
+        }
+    }, [storyMachine.status, hasHydratedFromDraft, isHydratingGuestData]);
 
     const handleHeroDataChange = useCallback((data: HeroIdentity) => {
         setProfile(prev => ({ 
@@ -432,6 +453,74 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                 </div>
                             </div>
                         )}
+                    </motion.div>
+                )}
+
+                {storyMachine.status === "CHOOSING_PROFILE" && (
+                    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-4xl mx-auto" data-testid="profile-selection-screen">
+                        <div className="clay-card p-8 md:p-12 text-center mb-8">
+                            <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-3xl shadow-clay-purple flex items-center justify-center mx-auto mb-6">
+                                {isHydratingGuestData ? <RefreshCw className="h-10 w-10 text-white animate-spin" /> : <User className="h-10 w-10 text-white" />}
+                            </div>
+                            <h2 className="text-3xl font-black text-ink font-fredoka uppercase tracking-tight mb-2">
+                                {isHydratingGuestData ? "Recovering Your Hero..." : "Who is this Story For?"}
+                            </h2>
+                            <p className="text-lg text-ink-muted font-medium font-nunito mb-10">
+                                {isHydratingGuestData ? "Wait a moment while we get your details ready." : "Choose an existing profile or create a new one for your hero."}
+                            </p>
+
+                            {!isHydratingGuestData && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {profiles.map((p) => (
+                                    <motion.button
+                                        key={p.id}
+                                        data-testid={`profile-card-${p.id}`}
+                                        whileHover={{ scale: 1.05, y: -5 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => generateStory(selectedWords, profile, storyLengthMinutes, imageSceneCount, undefined, p.id)}
+                                        className="clay-card p-6 flex flex-col items-center gap-4 hover:border-purple-300 transition-colors group"
+                                    >
+                                        <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-4 border-white shadow-soft group-hover:shadow-clay-purple-sm transition-all">
+                                            <CachedImage
+                                                src={p.avatar_asset_path || ""}
+                                                alt={p.first_name}
+                                                fill
+                                                className="object-cover"
+                                                bucket="user-assets"
+                                            />
+                                        </div>
+                                        <span className="text-xl font-black font-fredoka text-ink uppercase tracking-tight">{p.first_name}</span>
+                                    </motion.button>
+                                ))}
+
+                                <motion.button
+                                    data-testid="create-new-profile-card"
+                                    whileHover={{ scale: 1.05, y: -5 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => generateStory(selectedWords, profile, storyLengthMinutes, imageSceneCount)}
+                                    className="clay-card p-6 flex flex-col items-center justify-center gap-4 border-2 border-dashed border-purple-200 bg-purple-50/30 hover:bg-purple-50 hover:border-purple-400 transition-all"
+                                >
+                                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm border-2 border-purple-100">
+                                        <Plus className="h-8 w-8 text-purple-400" />
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="block text-lg font-black font-fredoka text-purple-600 uppercase tracking-tight">Create New</span>
+                                        {profile.name && (
+                                            <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest" data-testid="guest-hero-name-label">
+                                                {profile.name}
+                                            </span>
+                                        )}
+                                    </div>
+                                </motion.button>
+                                </div>
+                            )}
+                            
+                            <div className="mt-12 pt-8 border-t-2 border-purple-50">
+                                <button onClick={reset} className="text-ink-muted font-black font-fredoka uppercase tracking-widest hover:text-purple-600 transition-colors">
+                                    Cancel and Start Over
+                                </button>
+                            </div>
+                        </div>
                     </motion.div>
                 )}
 
