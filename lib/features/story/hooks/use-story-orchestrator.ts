@@ -164,6 +164,7 @@ export function useStoryOrchestrator({ state, actions }: StoryOrchestratorOption
             }
 
             clearTimeouts();
+            actions.setSuccess(initialStory.id);
             console.log("[StoryOrchestrator] Redirecting to reader via window.location...");
             window.location.href = `/reader/${content.book_id}`;
             

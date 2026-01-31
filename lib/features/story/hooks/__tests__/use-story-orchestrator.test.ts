@@ -152,4 +152,28 @@ describe('useStoryOrchestrator', () => {
         expect(mockAuth.setActiveChild).toHaveBeenCalledWith(childProfile);
         expect(mockService.generateStoryContent).toHaveBeenCalled();
     });
+
+    it('should mark success before redirecting after generation', async () => {
+        mockService.generateStoryContent.mockResolvedValue({
+            book_id: 'book-1',
+            title: 'Title',
+            content: 'Once...',
+            sections: [],
+        });
+
+        const { result } = renderHook(() => useStoryOrchestrator({
+            state: { status: 'IDLE' },
+            actions: mockActions
+        }));
+
+        await result.current.generateStory(
+            ['word1'],
+            { name: 'Leo', age: 5 } as any,
+            5,
+            0,
+            'idemp-1'
+        );
+
+        expect(mockActions.setSuccess).toHaveBeenCalled();
+    });
 });
