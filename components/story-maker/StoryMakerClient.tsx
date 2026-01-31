@@ -75,7 +75,7 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
     const service = getStoryService();
 
     const action = searchParams.get("action");
-    const isResumingIntent = action === "resume_story_maker" || action === "generate";
+    const isResumingIntent = action === "resume_story_maker";
 
     const { 
         state: storyMachine, 
@@ -497,7 +497,10 @@ export default function StoryMakerClient({ initialProfile }: StoryMakerClientPro
                                     data-testid="create-new-profile-card"
                                     whileHover={{ scale: 1.05, y: -5 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => generateStory(selectedWords, profile, storyLengthMinutes, imageSceneCount)}
+                                    onClick={() => {
+                                        const { id: _ignoredId, ...profileWithoutId } = profile as UserProfile & { id?: string };
+                                        generateStory(selectedWords, profileWithoutId, storyLengthMinutes, imageSceneCount);
+                                    }}
                                     className="clay-card p-6 flex flex-col items-center justify-center gap-4 border-2 border-dashed border-purple-200 bg-purple-50/30 hover:bg-purple-50 hover:border-purple-400 transition-all"
                                 >
                                     <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm border-2 border-purple-100">

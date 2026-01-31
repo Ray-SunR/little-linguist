@@ -5,14 +5,11 @@ import StoryMakerClient from "@/components/story-maker/StoryMakerClient";
 import type { UserProfile } from "@/lib/features/story";
 import LumoLoader from "@/components/ui/lumo-loader";
 import { Suspense, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 
 import ChildProfileWizard from "@/components/profile/ChildProfileWizard";
 
 function StoryMakerPageContent() {
     const { activeChild, user, status, authResolved, isLoading } = useAuth();
-    const searchParams = useSearchParams();
-
     // Map active child to initial profile - Move to top to avoid Rules of Hooks violation
     const initialProfile: UserProfile = useMemo(() => activeChild ? {
         name: activeChild.first_name,
@@ -27,10 +24,6 @@ function StoryMakerPageContent() {
         age: 6,
         gender: "boy",
     }, [activeChild]);
-
-    // Check if we are in a resume flow
-    const action = searchParams.get("action");
-    const isResuming = action === "resume_story_maker" || action === "generate";
 
     // Wait for auth to definitively resolve before rendering content
     if (!authResolved || isLoading) {

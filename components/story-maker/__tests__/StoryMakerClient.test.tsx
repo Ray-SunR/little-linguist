@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import StoryMakerClient from '../StoryMakerClient';
 import { useAuth } from '@/components/auth/auth-provider';
-import { createChildProfile } from '@/app/actions/profiles';
 import { getStoryService, useStoryState, draftManager } from '@/lib/features/story';
 import { useStoryOrchestrator } from '@/lib/features/story/hooks/use-story-orchestrator';
 
@@ -70,8 +69,8 @@ describe('StoryMakerClient', () => {
             generateStory: vi.fn(),
         } as any);
 
-        vi.mocked(useStoryState).mockReturnValue({
-            state: { status: 'CONFIGURING' },
+        vi.mocked(useStoryState).mockImplementation((initialStatus?: string) => ({
+            state: { status: initialStatus ?? 'CONFIGURING' },
             startConfiguring: vi.fn(),
             startMigrating: vi.fn(),
             startChoosingProfile: vi.fn(),
@@ -79,7 +78,7 @@ describe('StoryMakerClient', () => {
             setSuccess: vi.fn(),
             setError: vi.fn(),
             reset: vi.fn(),
-        } as any);
+        } as any));
 
         vi.mocked(useAuth).mockReturnValue({
             user: mockUser as any,
@@ -141,6 +140,19 @@ describe('StoryMakerClient', () => {
                 expect.any(Number)
             );
         });
+    });
+
+    it('does not treat action=generate as resume intent', async () => {
+        const searchParamsGet = vi.fn().mockReturnValue('generate');
+        vi.mocked(useSearchParams).mockReturnValue({ get: searchParamsGet } as any);
+
+        render(<StoryMakerClient initialProfile={mockProfile} />);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('story-topic-input')).toBeTruthy();
+        });
+
+        expect(screen.queryByTestId('loading-container')).toBeNull();
     });
 
     it('renders profile selection when status is CHOOSING_PROFILE', async () => {
@@ -216,5 +228,65 @@ describe('StoryMakerClient', () => {
             expect.any(Number),
             expect.any(Number)
         );
+    });
+
+    it('clears profile id when creating a new profile during selection', async () => {
+        const mockGenerateStory = vi.fn();
+        vi.mocked(useStoryOrchestrator).mockReturnValue({
+            generateStory: mockGenerateStory,
+        } as any);
+
+        vi.mocked(useStoryState).mockReturnValue({
+            state: { status: 'CHOOSING_PROFILE' },
+            startConfiguring: vi.fn(),
+            startMigrating: vi.fn(),
+            startChoosingProfile: vi.fn(),
+            startGenerating: vi.fn(),
+            setSuccess: vi.fn(),
+            setError: vi.fn(),
+            reset: vi.fn(),
+        } as any);
+
+        vi.mocked(draftManager.getDraft).mockResolvedValue({
+            profile: { name: 'Guest', age: 5 },
+            selectedWords: [],
+            storyLengthMinutes: 5,
+            imageSceneCount: 3,
+        } as any);
+
+        vi.mocked(useAuth).mockReturnValue({
+            user: mockUser as any,
+            activeChild: null,
+            profiles: [{ id: 'p1', first_name: 'Leo', avatar_asset_path: '/leo.png' }] as any,
+            status: 'ready' as any,
+            isLoading: false,
+            isStoryGenerating: false,
+            setIsStoryGenerating: vi.fn(),
+            librarySettings: {},
+            updateLibrarySettings: vi.fn(),
+            refreshProfiles: vi.fn(),
+            setActiveChild: vi.fn(),
+            setProfiles: vi.fn(),
+            setStatus: vi.fn(),
+            profileError: null,
+            logout: vi.fn(),
+            authResolved: true,
+        });
+
+        render(
+            <StoryMakerClient
+                initialProfile={{ name: 'Existing', age: 6, gender: 'boy', id: 'child-1' } as any}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Who is this Story For?')).toBeTruthy();
+        });
+
+        fireEvent.click(screen.getByTestId('create-new-profile-card'));
+
+        const lastCall = mockGenerateStory.mock.calls[mockGenerateStory.mock.calls.length - 1];
+        const profileArg = lastCall?.[1] as any;
+        expect(profileArg?.id).toBeUndefined();
     });
 });
